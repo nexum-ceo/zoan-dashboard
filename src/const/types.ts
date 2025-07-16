@@ -5,3 +5,10 @@ export type TAgentInformation = {
   createdAt: string;
   updatedAt: string;
 };
+
+export type TUser = {
+  id: string;
+  email: string;
+  createdAt: string;
+  updatedAt: string;
+};

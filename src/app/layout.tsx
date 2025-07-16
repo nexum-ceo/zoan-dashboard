@@ -1,5 +1,4 @@
-import { AppSidebar } from '@/components/app-sidebar';
-import { SidebarProvider } from '@/components/ui/sidebar';
+import AppNavbar from '@/components/app-navbar';
 import type { Metadata } from 'next';
 import { Geist, Geist_Mono } from 'next/font/google';
 import './globals.css';
@@ -29,10 +28,12 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
-        <SidebarProvider>
+        {/* <SidebarProvider>
           <AppSidebar />
           <main className="w-full h-screen p-2">{children}</main>
-        </SidebarProvider>
+        </SidebarProvider> */}
+        <AppNavbar />
+        {children}
       </body>
     </html>
   );

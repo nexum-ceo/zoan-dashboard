@@ -19,17 +19,17 @@ import {
 const items = [
   {
     title: 'Playground',
-    url: '/playground',
+    url: '/dashboard/playground',
     icon: Home,
   },
   {
     title: 'Assistants',
-    url: '/assistant',
+    url: '/dashboard/assistant',
     icon: Bot,
   },
   {
     title: 'Settings',
-    url: '/setting',
+    url: '/dashboard/setting',
     icon: Settings,
   },
 ];
