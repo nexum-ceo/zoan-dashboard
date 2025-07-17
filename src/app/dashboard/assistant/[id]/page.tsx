@@ -9,7 +9,8 @@ import {
   FileSliders,
   Workflow as WorkflowIcon,
 } from 'lucide-react';
-import { use, useState } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
+import { use, useEffect, useState } from 'react';
 import Configuration from './components/Configuration';
 import Trainning from './components/Trainning';
 import Workflow from './components/Workflow';
@@ -19,11 +20,28 @@ export default function AssistantPage({
 }: {
   params: Promise<{ id: string }>;
 }) {
+  const router = useRouter();
+  const searchParams = useSearchParams();
   const [tab, setTab] = useState<'config' | 'training' | 'workflow'>('config');
 
   const { id } = use(params);
-
   const agent = AGENT_LIST.find((agent) => agent.id === id);
+
+  // Đọc giá trị tab từ URL khi load page
+  useEffect(() => {
+    const t = searchParams.get('t');
+    if (t === 'config' || t === 'training' || t === 'workflow') {
+      setTab(t);
+    }
+  }, [searchParams]);
+
+  // Khi đổi tab, cập nhật URL param t
+  const handleTabChange = (newTab: 'config' | 'training' | 'workflow') => {
+    setTab(newTab);
+    const params = new URLSearchParams(Array.from(searchParams.entries()));
+    params.set('t', newTab);
+    router.replace(`?${params.toString()}`);
+  };
 
   return (
     <div className="w-full h-full bg-sidebar rounded-lg border border-border flex flex-col">
@@ -44,7 +62,7 @@ export default function AssistantPage({
             </div>
             <Button
               variant="ghost"
-              onClick={() => setTab('config')}
+              onClick={() => handleTabChange('config')}
               className={cn(
                 'flex items-center justify-start gap-2',
                 tab === 'config' && 'bg-black/10 text-foreground',
@@ -55,7 +73,7 @@ export default function AssistantPage({
             <div className="text-[12px] text-gray-500 font-medium">Data</div>
             <Button
               variant="ghost"
-              onClick={() => setTab('training')}
+              onClick={() => handleTabChange('training')}
               className={cn(
                 'flex items-center justify-start gap-2',
                 tab === 'training' && 'bg-black/10 text-foreground',
@@ -68,7 +86,7 @@ export default function AssistantPage({
             </div>
             <Button
               variant="ghost"
-              onClick={() => setTab('workflow')}
+              onClick={() => handleTabChange('workflow')}
               className={cn(
                 'flex items-center justify-start gap-2',
                 tab === 'workflow' && 'bg-black/10 text-foreground',
