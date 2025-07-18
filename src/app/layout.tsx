@@ -1,4 +1,3 @@
-import AppNavbar from '@/components/app-navbar';
 import type { Metadata } from 'next';
 import { Geist, Geist_Mono } from 'next/font/google';
 import './globals.css';
@@ -32,7 +31,7 @@ export default function RootLayout({
           <AppSidebar />
           <main className="w-full h-screen p-2">{children}</main>
         </SidebarProvider> */}
-        <AppNavbar />
+        {/* <AppNavbar /> */}
         {children}
       </body>
     </html>
