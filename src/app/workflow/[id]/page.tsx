@@ -158,44 +158,136 @@ export default function Page() {
 
   return (
     <div style={{ width: '100vw', height: '100vh' }}>
-      {/* Sidebar bên trái */}
-      <aside
+      {/* Header */}
+      <header
         style={{
           position: 'fixed',
-          left: 0,
           top: 0,
-          width: 80,
-          height: '100vh',
-          background: '#23272f',
-          color: '#fff',
-          boxShadow: '2px 0 8px #0002',
-          zIndex: 1000,
+          left: 0,
+          right: 0,
+          height: 60,
+          background: '#fff',
+          borderBottom: '1px solid #e5e7eb',
+          zIndex: 1001,
           display: 'flex',
-          flexDirection: 'column',
           alignItems: 'center',
-          paddingTop: 24,
+          justifyContent: 'space-between',
+          paddingLeft: 16,
+          paddingRight: 16,
         }}
       >
-        <button
-          style={{
-            width: 48,
-            height: 48,
-            borderRadius: 12,
-            background: '#3b82f6',
-            color: '#fff',
-            fontWeight: 700,
-            fontSize: 24,
-            border: 'none',
-            marginBottom: 16,
-            cursor: 'pointer',
-          }}
-          title="Thêm node mới"
-          onClick={addNewNode}
-        >
-          +
-        </button>
-        <span style={{ fontSize: 12, textAlign: 'center' }}>Add Node</span>
-      </aside>
+        {/* Left side */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+          <button
+            style={{
+              width: 32,
+              height: 32,
+              borderRadius: 6,
+              border: 'none',
+              background: 'transparent',
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              color: '#6b7280',
+            }}
+            title="Go back"
+          >
+            ←
+          </button>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+            <span style={{ fontSize: 16, fontWeight: 600, color: '#111827' }}>
+              Daniel
+            </span>
+            <button
+              style={{
+                width: 20,
+                height: 20,
+                border: 'none',
+                background: 'transparent',
+                cursor: 'pointer',
+                color: '#6b7280',
+              }}
+              title="Edit name"
+            >
+              ✏️
+            </button>
+          </div>
+          <span
+            style={{
+              padding: '4px 8px',
+              borderRadius: 12,
+              background: '#dcfce7',
+              color: '#166534',
+              fontSize: 12,
+              fontWeight: 500,
+            }}
+          >
+            Published
+          </span>
+        </div>
+
+        {/* Right side */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+          <button
+            style={{
+              padding: '6px 12px',
+              border: 'none',
+              background: 'transparent',
+              cursor: 'pointer',
+              fontSize: 14,
+              color: '#6b7280',
+            }}
+          >
+            🕒 Version history
+          </button>
+          <button
+            style={{
+              padding: '8px 16px',
+              borderRadius: 6,
+              border: '1px solid #d1d5db',
+              background: '#fff',
+              cursor: 'pointer',
+              fontSize: 14,
+              fontWeight: 500,
+              color: '#374151',
+            }}
+          >
+            Save changes
+          </button>
+          <button
+            style={{
+              padding: '8px 16px',
+              borderRadius: 6,
+              border: 'none',
+              background: '#dc2626',
+              cursor: 'pointer',
+              fontSize: 14,
+              fontWeight: 500,
+              color: '#fff',
+            }}
+          >
+            Unpublished
+          </button>
+          <button
+            style={{
+              padding: '8px 16px',
+              borderRadius: 6,
+              border: '1px solid #d1d5db',
+              background: '#fff',
+              cursor: 'pointer',
+              fontSize: 14,
+              fontWeight: 500,
+              color: '#374151',
+              display: 'flex',
+              alignItems: 'center',
+              gap: 6,
+            }}
+          >
+            👁️ Preview
+          </button>
+        </div>
+      </header>
 
       <ReactFlow
         nodes={nodes}
