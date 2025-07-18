@@ -36,7 +36,7 @@ export const WorkflowHeader: React.FC<WorkflowHeaderProps> = ({
           </Button>
         </div>
         <span className="px-2 py-1 rounded-xl bg-green-100 text-green-800 text-xs font-medium">
-          Published
+          Active
         </span>
       </div>
 

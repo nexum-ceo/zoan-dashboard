@@ -35,91 +35,98 @@ import { WorkflowRightSideBar } from './components/WorkflowRightSideBar';
 
 const initialNodes: Node[] = [
   {
-    id: 'n1',
-    position: { x: 250, y: 100 },
-    data: { label: 'Node 1' },
+    id: 'node1',
+    position: { x: 100, y: 200 },
+    data: {
+      label: 'Webhook Trigger',
+      type: 'webhook',
+      config: {
+        path: '/submit-form',
+        method: 'POST',
+      },
+    },
     type: 'baseFullDemo',
   },
   {
-    id: 'n2',
-    position: { x: 600, y: 100 },
-    data: { label: 'Node 2' },
+    id: 'node2',
+    position: { x: 400, y: 200 },
+    data: {
+      label: 'Send Welcome Email',
+      type: 'emailSend',
+      config: {
+        to: '{{ $json.email }}',
+        subject: 'Welcome!',
+        body: 'Thanks for signing up.',
+      },
+    },
     type: 'baseFullDemo',
   },
 ];
-const initialEdges: Edge[] = [];
-
-const BaseNodeFullDemo = memo(
-  ({
-    data,
-    id,
-  }: {
-    data?: { label?: string; showTopSource?: boolean };
-    id?: string;
-  }) => {
-    return (
-      <BaseNode className="w-96 relative">
-        {/* Handles: absolutely positioned, always visible, high z-index */}
-        <BaseHandle
-          type="source"
-          position={Position.Right}
-          id={id ? `${id}-source` : undefined}
-          style={{
-            position: 'absolute',
-            top: '50%',
-            right: -6,
-            zIndex: 20,
-            transform: 'translateY(-50%)',
-          }}
-        />
-        <BaseHandle
-          type="target"
-          position={Position.Left}
-          id={id ? `${id}-target` : undefined}
-          style={{
-            position: 'absolute',
-            top: '50%',
-            left: -6,
-            zIndex: 20,
-            transform: 'translateY(-50%)',
-          }}
-        />
-        {/* Handle mới ở top nếu có showTopSource */}
-        {data?.showTopSource && (
-          <BaseHandle
-            type="source"
-            position={Position.Top}
-            id={id ? `${id}-top-source` : undefined}
-            style={{
-              position: 'absolute',
-              top: -6,
-              left: '50%',
-              zIndex: 20,
-              transform: 'translateX(-50%)',
-            }}
-          />
-        )}
-        <BaseNodeHeader className="border-b">
-          <Rocket className="size-4" />
-          <BaseNodeHeaderTitle>{data?.label ?? 'Header'}</BaseNodeHeaderTitle>
-        </BaseNodeHeader>
-        <BaseNodeContent>
-          <h3 className="text-lg font-bold">Content</h3>
-          <p className="text-xs">
-            This is a full-featured node with a header, content, and footer. You
-            can customize it as needed.
-          </p>
-        </BaseNodeContent>
-        <BaseNodeFooter>
-          <h4 className="text-md self-start font-bold">Footer</h4>
-          <Button variant="outline" className="nodrag w-full">
-            Action 1
-          </Button>
-        </BaseNodeFooter>
-      </BaseNode>
-    );
+const initialEdges: Edge[] = [
+  {
+    id: 'edge-node1-node2',
+    source: 'node1',
+    target: 'node2',
+    type: 'default',
   },
-);
+];
+
+const BaseNodeFullDemo = memo(({ data, id }: { data?: any; id?: string }) => {
+  return (
+    <BaseNode className="w-96 relative">
+      <BaseHandle
+        type="source"
+        position={Position.Right}
+        id={id ? `${id}-source` : undefined}
+        style={{
+          position: 'absolute',
+          top: '50%',
+          right: -6,
+          zIndex: 20,
+          transform: 'translateY(-50%)',
+        }}
+      />
+      <BaseHandle
+        type="target"
+        position={Position.Left}
+        id={id ? `${id}-target` : undefined}
+        style={{
+          position: 'absolute',
+          top: '50%',
+          left: -6,
+          zIndex: 20,
+          transform: 'translateY(-50%)',
+        }}
+      />
+      <BaseNodeHeader className="border-b">
+        <Rocket className="size-4" />
+        <BaseNodeHeaderTitle>{data?.label ?? 'Header'}</BaseNodeHeaderTitle>
+      </BaseNodeHeader>
+      <BaseNodeContent>
+        <div className="mb-2">
+          <span className="font-semibold">Type:</span> {data?.type}
+        </div>
+        {data?.config && (
+          <div className="text-xs">
+            <span className="font-semibold">Config:</span>
+            <ul className="list-disc ml-4">
+              {Object.entries(data.config).map(([key, value]) => (
+                <li key={key}>
+                  <span className="font-bold">{key}:</span> {String(value)}
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
+      </BaseNodeContent>
+      <BaseNodeFooter>
+        <Button variant="outline" className="nodrag w-full">
+          Action
+        </Button>
+      </BaseNodeFooter>
+    </BaseNode>
+  );
+});
 BaseNodeFullDemo.displayName = 'BaseNodeFullDemo';
 
 export default function Page() {
@@ -161,7 +168,7 @@ export default function Page() {
 
   return (
     <div style={{ width: '100vw', height: '100vh' }}>
-      <WorkflowHeader name="Daniel" />
+      <WorkflowHeader name="Send Email on Form Submit" />
       <WorkflowLeftSideBar onAddNode={addNewNode} />
       <ReactFlow
         nodes={nodes}
