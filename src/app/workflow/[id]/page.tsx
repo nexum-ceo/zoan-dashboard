@@ -1,4 +1,5 @@
 'use client';
+import { WorkflowLeftSideBar } from '@/app/workflow/[id]/components/WorkflowLeftSideBar';
 import { BaseHandle } from '@/components/base-handle';
 import {
   BaseNode,
@@ -29,7 +30,7 @@ import {
 import '@xyflow/react/dist/style.css';
 import { Rocket } from 'lucide-react';
 import { memo, useCallback, useState } from 'react';
-import { WorkflowHeader } from './WorkflowHeader';
+import { WorkflowHeader } from './components/WorkflowHeader';
 
 const initialNodes: Node[] = [
   {
@@ -160,7 +161,7 @@ export default function Page() {
   return (
     <div style={{ width: '100vw', height: '100vh' }}>
       <WorkflowHeader name="Daniel" />
-
+      <WorkflowLeftSideBar />
       <ReactFlow
         nodes={nodes}
         edges={edges}
@@ -188,7 +189,7 @@ export default function Page() {
           style={{
             position: 'fixed',
             right: 0,
-            top: 0,
+            top: 60,
             width: 320,
             height: '100vh',
             background: '#18181b',
