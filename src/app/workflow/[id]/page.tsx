@@ -29,6 +29,7 @@ import {
 import '@xyflow/react/dist/style.css';
 import { Rocket } from 'lucide-react';
 import { memo, useCallback, useState } from 'react';
+import { WorkflowHeader } from './WorkflowHeader';
 
 const initialNodes: Node[] = [
   {
@@ -158,136 +159,7 @@ export default function Page() {
 
   return (
     <div style={{ width: '100vw', height: '100vh' }}>
-      {/* Header */}
-      <header
-        style={{
-          position: 'fixed',
-          top: 0,
-          left: 0,
-          right: 0,
-          height: 60,
-          background: '#fff',
-          borderBottom: '1px solid #e5e7eb',
-          zIndex: 1001,
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          paddingLeft: 16,
-          paddingRight: 16,
-        }}
-      >
-        {/* Left side */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-          <button
-            style={{
-              width: 32,
-              height: 32,
-              borderRadius: 6,
-              border: 'none',
-              background: 'transparent',
-              cursor: 'pointer',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              color: '#6b7280',
-            }}
-            title="Go back"
-          >
-            ←
-          </button>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-            <span style={{ fontSize: 16, fontWeight: 600, color: '#111827' }}>
-              Daniel
-            </span>
-            <button
-              style={{
-                width: 20,
-                height: 20,
-                border: 'none',
-                background: 'transparent',
-                cursor: 'pointer',
-                color: '#6b7280',
-              }}
-              title="Edit name"
-            >
-              ✏️
-            </button>
-          </div>
-          <span
-            style={{
-              padding: '4px 8px',
-              borderRadius: 12,
-              background: '#dcfce7',
-              color: '#166534',
-              fontSize: 12,
-              fontWeight: 500,
-            }}
-          >
-            Published
-          </span>
-        </div>
-
-        {/* Right side */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-          <button
-            style={{
-              padding: '6px 12px',
-              border: 'none',
-              background: 'transparent',
-              cursor: 'pointer',
-              fontSize: 14,
-              color: '#6b7280',
-            }}
-          >
-            🕒 Version history
-          </button>
-          <button
-            style={{
-              padding: '8px 16px',
-              borderRadius: 6,
-              border: '1px solid #d1d5db',
-              background: '#fff',
-              cursor: 'pointer',
-              fontSize: 14,
-              fontWeight: 500,
-              color: '#374151',
-            }}
-          >
-            Save changes
-          </button>
-          <button
-            style={{
-              padding: '8px 16px',
-              borderRadius: 6,
-              border: 'none',
-              background: '#dc2626',
-              cursor: 'pointer',
-              fontSize: 14,
-              fontWeight: 500,
-              color: '#fff',
-            }}
-          >
-            Unpublished
-          </button>
-          <button
-            style={{
-              padding: '8px 16px',
-              borderRadius: 6,
-              border: '1px solid #d1d5db',
-              background: '#fff',
-              cursor: 'pointer',
-              fontSize: 14,
-              fontWeight: 500,
-              color: '#374151',
-              display: 'flex',
-              alignItems: 'center',
-              gap: 6,
-            }}
-          >
-            👁️ Preview
-          </button>
-        </div>
-      </header>
+      <WorkflowHeader name="Daniel" />
 
       <ReactFlow
         nodes={nodes}
@@ -307,7 +179,7 @@ export default function Page() {
           style={{
             color: 'black',
           }}
-          position="top-right"
+          position="center-right"
         />
         <MiniMap />
       </ReactFlow>
