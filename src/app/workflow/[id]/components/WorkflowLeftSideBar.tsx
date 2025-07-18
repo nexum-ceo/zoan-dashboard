@@ -45,12 +45,11 @@ const SidebarSection = ({
   </div>
 );
 
-export function WorkflowLeftSideBar() {
-  const handleAddNode = (type: string) => {
-    console.log(`Adding ${type} node`);
-    // This will be connected to your addNewNode function
-  };
-
+export function WorkflowLeftSideBar({
+  onAddNode,
+}: {
+  onAddNode: (type: string) => void;
+}) {
   return (
     <aside className="fixed left-0 top-16 w-20 h-[calc(100vh-4rem)] bg-white border-r border-gray-200 z-50 flex flex-col">
       {/* Blue accent line */}
@@ -61,12 +60,12 @@ export function WorkflowLeftSideBar() {
           <SidebarItem
             icon={<Type size={18} />}
             title="Text Button"
-            onClick={() => handleAddNode('text')}
+            onClick={() => onAddNode('text')}
           />
           <SidebarItem
             icon={<MousePointer size={18} />}
             title="Click Button"
-            onClick={() => handleAddNode('click')}
+            onClick={() => onAddNode('click')}
           />
         </SidebarSection>
 
@@ -74,34 +73,34 @@ export function WorkflowLeftSideBar() {
           <SidebarItem
             icon={<Percent size={18} />}
             title="Percentage"
-            onClick={() => handleAddNode('percentage')}
+            onClick={() => onAddNode('percentage')}
           />
           <SidebarItem
             icon={
               <Square size={18} className="fill-orange-500 text-orange-500" />
             }
             title="Block"
-            onClick={() => handleAddNode('block')}
+            onClick={() => onAddNode('block')}
           />
           <SidebarItem
             icon={<Bell size={18} />}
             title="Notification"
-            onClick={() => handleAddNode('notification')}
+            onClick={() => onAddNode('notification')}
           />
           <SidebarItem
             icon={<FileText size={18} />}
             title="Document"
-            onClick={() => handleAddNode('document')}
+            onClick={() => onAddNode('document')}
           />
           <SidebarItem
             icon={<Ban size={18} className="text-red-500" />}
             title="Stop"
-            onClick={() => handleAddNode('stop')}
+            onClick={() => onAddNode('stop')}
           />
           <SidebarItem
             icon={<X size={18} />}
             title="Close"
-            onClick={() => handleAddNode('close')}
+            onClick={() => onAddNode('close')}
           />
         </SidebarSection>
       </div>
@@ -111,7 +110,7 @@ export function WorkflowLeftSideBar() {
         <SidebarItem
           icon={<Plus size={18} className="text-green-600" />}
           title="Add Component"
-          onClick={() => handleAddNode('new')}
+          onClick={() => onAddNode('new')}
         />
       </div>
     </aside>

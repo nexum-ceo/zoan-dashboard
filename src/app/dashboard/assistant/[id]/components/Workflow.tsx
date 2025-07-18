@@ -1,3 +1,4 @@
+'use client';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import {
@@ -10,19 +11,15 @@ import {
 } from '@/components/ui/table';
 
 import { Download, Edit, FileDown, List, Plus, Trash } from 'lucide-react';
-import { useState } from 'react';
-import Flow from './Flow';
+import { useRouter } from 'next/navigation';
 
 export default function Workflow() {
-  const [showFlow, setShowFlow] = useState(false);
+  const router = useRouter();
 
   const handleFlowClick = () => {
-    setShowFlow(true);
+    // Navigate to the flow page
+    router.push('/workflow/123');
   };
-
-  if (showFlow) {
-    return <Flow />;
-  }
 
   return (
     <div className="flex flex-col gap-4 w-full h-full p-4">

@@ -162,7 +162,7 @@ export default function Page() {
   return (
     <div style={{ width: '100vw', height: '100vh' }}>
       <WorkflowHeader name="Daniel" />
-      <WorkflowLeftSideBar />
+      <WorkflowLeftSideBar onAddNode={addNewNode} />
       <ReactFlow
         nodes={nodes}
         edges={edges}
