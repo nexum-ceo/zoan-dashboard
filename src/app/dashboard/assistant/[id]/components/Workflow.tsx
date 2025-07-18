@@ -10,8 +10,20 @@ import {
 } from '@/components/ui/table';
 
 import { Download, Edit, FileDown, List, Plus, Trash } from 'lucide-react';
+import { useState } from 'react';
+import Flow from './Flow';
 
 export default function Workflow() {
+  const [showFlow, setShowFlow] = useState(false);
+
+  const handleFlowClick = () => {
+    setShowFlow(true);
+  };
+
+  if (showFlow) {
+    return <Flow />;
+  }
+
   return (
     <div className="flex flex-col gap-4 w-full h-full p-4">
       <div className="flex flex-col gap-4">
@@ -42,8 +54,10 @@ export default function Workflow() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              <TableRow>
-                <TableCell>Workflow 1</TableCell>
+              <TableRow onClick={handleFlowClick}>
+                <TableCell className="cursor-pointer hover:bg-gray-100">
+                  Workflow 1
+                </TableCell>
                 <TableCell>1.0.0</TableCell>
                 <TableCell>Trigger Condition</TableCell>
                 <TableCell>
