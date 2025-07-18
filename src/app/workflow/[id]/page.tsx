@@ -31,6 +31,7 @@ import '@xyflow/react/dist/style.css';
 import { Rocket } from 'lucide-react';
 import { memo, useCallback, useState } from 'react';
 import { WorkflowHeader } from './components/WorkflowHeader';
+import { WorkflowRightSideBar } from './components/WorkflowRightSideBar';
 
 const initialNodes: Node[] = [
   {
@@ -185,40 +186,11 @@ export default function Page() {
         <MiniMap />
       </ReactFlow>
       {selectedNode && (
-        <aside
-          style={{
-            position: 'fixed',
-            right: 0,
-            top: 60,
-            width: 320,
-            height: '100vh',
-            background: '#18181b',
-            color: '#fff',
-            boxShadow: '-2px 0 8px #0002',
-            zIndex: 1000,
-            padding: 24,
-          }}
-        >
-          <h2 className="font-bold text-lg mb-2">Node info</h2>
-          <div className="mb-2">
-            ID: <span className="font-mono">{selectedNode.id}</span>
-          </div>
-          <div className="mb-2">
-            Label:{' '}
-            <span className="font-mono">
-              {String((selectedNode.data as any)?.label ?? '')}
-            </span>
-          </div>
-          <div className="mb-2">
-            Type: <span className="font-mono">{selectedNode.type}</span>
-          </div>
-          <button
-            className="mt-4 px-4 py-2 bg-zinc-700 rounded hover:bg-zinc-600"
-            onClick={() => setSelectedNode(null)}
-          >
-            Đóng
-          </button>
-        </aside>
+        <WorkflowRightSideBar
+          isOpen={!!selectedNode}
+          onClose={() => setSelectedNode(null)}
+          selectedNode={selectedNode}
+        />
       )}
     </div>
   );
