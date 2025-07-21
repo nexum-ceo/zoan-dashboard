@@ -45,53 +45,57 @@ export default function Flow({ onClose, workflowId, workflowName }: FlowProps) {
   const [localEdges, setLocalEdges] = useState<any[]>([]);
   const [hasLocalChange, setHasLocalChange] = useState(false);
   // Fetch workflow-process data from API
-  useEffect(() => {
+  // Đưa fetchWorkflowProcess ra ngoài để có thể gọi lại sau khi lưu node
+  const fetchWorkflowProcess = async () => {
     if (!workflowId) return;
-    async function fetchWorkflowProcess() {
-      setLoading(true);
-      setError(null);
-      try {
-        const res = await fetch(`/api/workflow-process/${workflowId}`);
-        const data = await res.json();
-        if (res.ok && data && Array.isArray(data.nodes)) {
-          const apiNodes = data.nodes.map((n: any) => ({
-            id: n.id,
-            position: n.position || { x: 0, y: 0 },
-            data: {
-              label: n.name,
-              ...n,
-            },
-            type: 'baseHandleCustom',
-          }));
-          const apiEdges = Array.isArray(data.connections)
-            ? data.connections.map((c: any) => ({
-                id: c.id,
-                source: c.from_node_id,
-                target: c.to_node_id,
-                type: 'default',
-              }))
-            : [];
-          setNodes(apiNodes);
-          setEdges(apiEdges);
-          setLocalEdges(data.connections || []);
-          setHasLocalChange(false);
-        } else {
-          setNodes([]);
-          setEdges([]);
-          setLocalEdges([]);
-          setHasLocalChange(false);
-        }
-      } catch (err: any) {
-        setError('Lỗi khi fetch workflow-process');
+    setLoading(true);
+    setError(null);
+    try {
+      const res = await fetch(`/api/workflow-process/${workflowId}`);
+      const data = await res.json();
+      if (res.ok && data && Array.isArray(data.nodes)) {
+        // Map node BE về node ReactFlow cho UI
+        const apiNodes = data.nodes.map((n: any) => ({
+          id: n.id,
+          position: n.position || { x: 0, y: 0 },
+          data: {
+            label: n.name,
+            ...n,
+          },
+          type: 'baseHandleCustom',
+        }));
+        const apiEdges = Array.isArray(data.connections)
+          ? data.connections.map((c: any) => ({
+              id: c.id,
+              source: c.from_node_id,
+              target: c.to_node_id,
+              type: 'default',
+            }))
+          : [];
+        setNodes(apiNodes);
+        setEdges(apiEdges);
+        setLocalEdges(data.connections || []);
+        setHasLocalChange(false);
+      } else {
         setNodes([]);
         setEdges([]);
         setLocalEdges([]);
         setHasLocalChange(false);
-      } finally {
-        setLoading(false);
       }
+    } catch (err: any) {
+      setError('Lỗi khi fetch workflow-process');
+      setNodes([]);
+      setEdges([]);
+      setLocalEdges([]);
+      setHasLocalChange(false);
+    } finally {
+      setLoading(false);
     }
+  };
+
+  useEffect(() => {
     fetchWorkflowProcess();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [workflowId]);
 
   const onNodesChange = useCallback(
@@ -171,11 +175,10 @@ export default function Flow({ onClose, workflowId, workflowName }: FlowProps) {
         toast.success('Lưu node mới thành công!');
         setHasLocalChange(false);
         setLocalNodes([]); // clear node mới sau khi lưu thành công
-        // Reload lại từ BE
-        setTimeout(() => {
-          setNodes([]);
-          setEdges([]);
-        }, 500);
+        // Reload lại từ BE (gọi lại fetchWorkflowProcess)
+        // Cách đơn giản: trigger lại useEffect bằng cách đổi workflowId (nếu cần), hoặc refetch thủ công
+        // Ở đây refetch thủ công:
+        fetchWorkflowProcess();
       } else {
         toast.error('Lưu node mới thất bại!');
       }
