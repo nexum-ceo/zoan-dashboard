@@ -1,13 +1,5 @@
 'use client';
-import { BaseHandle } from '@/components/base-handle';
-import {
-  BaseNode,
-  BaseNodeContent,
-  BaseNodeFooter,
-  BaseNodeHeader,
-  BaseNodeHeaderTitle,
-} from '@/components/base-node';
-import { Button } from '@/components/ui/button';
+import BaseHandleCustom from '@/components/base-handle-custom';
 import { WorkflowHeader } from '@/components/workflow/workflow-header';
 import { WorkflowLeftSideBar } from '@/components/workflow/workflow-left-sidebar';
 import { WorkflowRightSideBar } from '@/components/workflow/workflow-right-sidebar';
@@ -26,12 +18,11 @@ import {
   Background,
   Controls,
   MiniMap,
-  Position,
   ReactFlow,
 } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
-import { Rocket } from 'lucide-react';
-import { memo, useCallback, useState } from 'react';
+
+import { useCallback, useState } from 'react';
 
 const initialNodes: Node[] = [
   {
@@ -45,7 +36,7 @@ const initialNodes: Node[] = [
         method: 'POST',
       },
     },
-    type: 'baseFullDemo',
+    type: 'baseHandleCustom',
   },
   {
     id: 'node2',
@@ -59,7 +50,7 @@ const initialNodes: Node[] = [
         body: 'Thanks for signing up.',
       },
     },
-    type: 'baseFullDemo',
+    type: 'baseHandleCustom',
   },
 ];
 const initialEdges: Edge[] = [
@@ -70,64 +61,6 @@ const initialEdges: Edge[] = [
     type: 'default',
   },
 ];
-
-const BaseNodeFullDemo = memo(({ data, id }: { data?: any; id?: string }) => {
-  return (
-    <BaseNode className="w-96 relative">
-      <BaseHandle
-        type="source"
-        position={Position.Right}
-        id={id ? `${id}-source` : undefined}
-        style={{
-          position: 'absolute',
-          top: '50%',
-          right: -6,
-          zIndex: 20,
-          transform: 'translateY(-50%)',
-        }}
-      />
-      <BaseHandle
-        type="target"
-        position={Position.Left}
-        id={id ? `${id}-target` : undefined}
-        style={{
-          position: 'absolute',
-          top: '50%',
-          left: -6,
-          zIndex: 20,
-          transform: 'translateY(-50%)',
-        }}
-      />
-      <BaseNodeHeader className="border-b">
-        <Rocket className="size-4" />
-        <BaseNodeHeaderTitle>{data?.label ?? 'Header'}</BaseNodeHeaderTitle>
-      </BaseNodeHeader>
-      <BaseNodeContent>
-        <div className="mb-2">
-          <span className="font-semibold">Type:</span> {data?.type}
-        </div>
-        {data?.config && (
-          <div className="text-xs">
-            <span className="font-semibold">Config:</span>
-            <ul className="list-disc ml-4">
-              {Object.entries(data.config).map(([key, value]) => (
-                <li key={key}>
-                  <span className="font-bold">{key}:</span> {String(value)}
-                </li>
-              ))}
-            </ul>
-          </div>
-        )}
-      </BaseNodeContent>
-      <BaseNodeFooter>
-        <Button variant="outline" className="nodrag w-full">
-          Action
-        </Button>
-      </BaseNodeFooter>
-    </BaseNode>
-  );
-});
-BaseNodeFullDemo.displayName = 'BaseNodeFullDemo';
 
 interface FlowProps {
   onClose?: () => void;
@@ -154,10 +87,9 @@ export default function Flow({ onClose }: FlowProps) {
   );
 
   const nodeTypes: NodeTypes = {
-    baseFullDemo: (props) => <BaseNodeFullDemo {...props} />,
+    baseHandleCustom: (props) => <BaseHandleCustom {...props} />,
   };
 
-  // Thêm node mới vào flow
   const addNewNode = () => {
     setNodes((nds) => [
       ...nds,
@@ -165,7 +97,7 @@ export default function Flow({ onClose }: FlowProps) {
         id: `n${nds.length + 1}`,
         position: { x: 300 + nds.length * 200, y: 200 },
         data: { label: `Node ${nds.length + 1}` },
-        type: 'baseFullDemo',
+        type: 'baseHandleCustom',
       },
     ]);
   };
@@ -202,16 +134,6 @@ export default function Flow({ onClose }: FlowProps) {
           onClose={() => setSelectedNode(null)}
           selectedNode={selectedNode}
         />
-      )}
-      {/* Nếu muốn có nút đóng trong Flow, có thể thêm ở đây: */}
-      {onClose && (
-        <button
-          onClick={onClose}
-          className="fixed top-4 left-4 z-50 bg-black/5 border-none rounded-lg p-2 cursor-pointer flex items-center justify-center"
-          title="Đóng Flow"
-        >
-          Đóng
-        </button>
       )}
     </div>
   );

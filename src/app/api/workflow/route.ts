@@ -11,7 +11,7 @@ export async function GET() {
   }
 
   try {
-    const response = await axiosInstance.get('/workflow', {
+    const response = await axiosInstance.get('/workflow/', {
       headers: {
         Authorization: `Bearer ${session.accessToken}`,
       },

@@ -13,7 +13,7 @@ import {
 import { Download, Edit, FileDown, List, Plus, Trash, X } from 'lucide-react';
 import dynamic from 'next/dynamic';
 import { useEffect, useState } from 'react';
-// Dynamic import
+
 const Flow = dynamic(() => import('./Flow'), { ssr: false });
 
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
@@ -40,7 +40,24 @@ export default function Workflow() {
       })
       .catch((err) => {
         setError('Lỗi khi lấy workflow');
-        setWorkflows([]);
+        setWorkflows([
+          {
+            id: 'fake-1',
+            name: 'Fake Workflow 1',
+            publishVersion: '1.0.0',
+            triggerCondition: 'On Start',
+            status: 'Published',
+            updatedAt: '2025-07-21',
+          },
+          {
+            id: 'fake-2',
+            name: 'Fake Workflow 2',
+            publishVersion: '2.0.0',
+            triggerCondition: 'On Event',
+            status: 'Draft',
+            updatedAt: '2025-07-20',
+          },
+        ]);
       })
       .finally(() => setLoading(false));
   }, []);
@@ -74,14 +91,14 @@ export default function Workflow() {
             <Button variant="outline">
               <Download /> Import FAQs
             </Button>
-            <Button variant="outline">
+            <Button variant="outline" onClick={handleFlowClick}>
               <Plus /> Add New Workflow
             </Button>
           </div>
         </div>
         <div className="flex flex-col gap-2">
           {loading ? (
-            <div className="text-center py-8">Đang tải workflow...</div>
+            <div className="text-center py-8">Loading workflow...</div>
           ) : error ? (
             <div className="text-center text-red-500 py-8">{error}</div>
           ) : (
@@ -100,7 +117,7 @@ export default function Workflow() {
                 {workflows.length === 0 ? (
                   <TableRow>
                     <TableCell colSpan={6} className="text-center">
-                      Không có workflow nào
+                      No workflows found
                     </TableCell>
                   </TableRow>
                 ) : (
@@ -144,7 +161,6 @@ export default function Workflow() {
         </div>
       </div>
 
-      {/* Popup full màn hình hiển thị Flow */}
       {showFlow && (
         <div className="fixed inset-0 w-screen h-screen bg-black/50 z-[2000] flex items-center justify-center">
           <div className="relative w-screen h-screen bg-white rounded-2xl overflow-hidden shadow-2xl flex flex-col">
