@@ -26,3 +26,28 @@ export async function GET() {
     );
   }
 }
+
+export async function POST(req: Request) {
+  const session = await getServerSession(authOptions);
+  if (!session?.accessToken) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  }
+
+  try {
+    const body = await req.json();
+
+    console.log('Request body:', body);
+    const response = await axiosInstance.post('/workflow/', body, {
+      headers: {
+        Authorization: `Bearer ${session.accessToken}`,
+      },
+    });
+    console.log('Workflow created successfully:', response.data);
+    return NextResponse.json(response.data);
+  } catch (error: any) {
+    return NextResponse.json(
+      { error: error?.message || 'Create failed' },
+      { status: 500 },
+    );
+  }
+}

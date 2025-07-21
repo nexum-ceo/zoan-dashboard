@@ -13,6 +13,7 @@ import {
 import { Download, Edit, FileDown, List, Plus, Trash, X } from 'lucide-react';
 import dynamic from 'next/dynamic';
 import { useEffect, useState } from 'react';
+import { toast } from 'sonner';
 
 const Flow = dynamic(() => import('./Flow'), { ssr: false });
 
@@ -79,6 +80,36 @@ export default function Workflow() {
     setShowFlow(false);
   };
 
+  // Call API create new workflow
+  const handleAddWorkflow = async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const res = await fetch('/api/workflow', {
+        method: 'POST',
+        body: JSON.stringify({
+          name: 'New Workflow 123123',
+          description: 'This is a new workflow',
+        }),
+      });
+      const data = await res.json();
+      if (res.ok) {
+        setWorkflows((prev) => [data, ...prev]);
+        setShowFlow(true);
+        toast.success('Create workflow successfully!', {
+          position: 'top-center',
+        });
+      } else {
+        setError(data?.error || 'Failed to create workflow');
+        toast.error(data?.error || 'Failed to create workflow');
+      }
+    } catch (err) {
+      setError('Failed to create workflow');
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <div className="flex flex-col gap-4 w-full h-full p-4">
       <div className="flex flex-col gap-4">
@@ -91,7 +122,7 @@ export default function Workflow() {
             <Button variant="outline">
               <Download /> Import FAQs
             </Button>
-            <Button variant="outline" onClick={handleFlowClick}>
+            <Button variant="outline" onClick={handleAddWorkflow}>
               <Plus /> Add New Workflow
             </Button>
           </div>
