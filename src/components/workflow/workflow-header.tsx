@@ -5,12 +5,11 @@ import React from 'react';
 interface WorkflowHeaderProps {
   name?: string;
   onClose?: () => void;
+  onSave?: () => void;
+  saving?: boolean;
 }
-
-export const WorkflowHeader: React.FC<WorkflowHeaderProps> = ({
-  name = 'Daniel',
-  onClose,
-}) => {
+export const WorkflowHeader: React.FC<WorkflowHeaderProps> = (props) => {
+  const { name = 'Daniel', onClose, onSave, saving } = props;
   return (
     <header className="fixed top-0 left-0 right-0 h-[60px] bg-white border-b border-zinc-200 z-[1001] flex items-center justify-between px-4">
       {/* Left side */}
@@ -47,8 +46,13 @@ export const WorkflowHeader: React.FC<WorkflowHeaderProps> = ({
         <Button variant="ghost" className="text-zinc-500 px-3">
           🕒 Version history
         </Button>
-        <Button variant="outline" className="font-medium">
-          Save changes
+        <Button
+          variant="outline"
+          className="font-medium"
+          onClick={onSave}
+          disabled={!onSave || saving}
+        >
+          {saving ? 'Saving...' : 'Save changes'}
         </Button>
         <Button variant="destructive" className="font-medium">
           Unpublished

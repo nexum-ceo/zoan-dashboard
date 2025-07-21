@@ -23,6 +23,8 @@ import {
 import '@xyflow/react/dist/style.css';
 
 import { useCallback, useEffect, useState } from 'react';
+import { toast } from 'sonner';
+import { v4 as uuidv4 } from 'uuid';
 
 // initialNodes/initialEdges will be set from API
 
@@ -38,6 +40,10 @@ export default function Flow({ onClose, workflowId, workflowName }: FlowProps) {
   const [selectedNode, setSelectedNode] = useState<Node | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  // Track local changes for save
+  const [localNodes, setLocalNodes] = useState<any[]>([]);
+  const [localEdges, setLocalEdges] = useState<any[]>([]);
+  const [hasLocalChange, setHasLocalChange] = useState(false);
   // Fetch workflow-process data from API
   useEffect(() => {
     if (!workflowId) return;
@@ -48,7 +54,6 @@ export default function Flow({ onClose, workflowId, workflowName }: FlowProps) {
         const res = await fetch(`/api/workflow-process/${workflowId}`);
         const data = await res.json();
         if (res.ok && data && Array.isArray(data.nodes)) {
-          // Convert API nodes to React Flow nodes
           const apiNodes = data.nodes.map((n: any) => ({
             id: n.id,
             position: n.position || { x: 0, y: 0 },
@@ -58,7 +63,6 @@ export default function Flow({ onClose, workflowId, workflowName }: FlowProps) {
             },
             type: 'baseHandleCustom',
           }));
-          // Convert API connections to React Flow edges
           const apiEdges = Array.isArray(data.connections)
             ? data.connections.map((c: any) => ({
                 id: c.id,
@@ -69,14 +73,23 @@ export default function Flow({ onClose, workflowId, workflowName }: FlowProps) {
             : [];
           setNodes(apiNodes);
           setEdges(apiEdges);
+          setLocalNodes(data.nodes);
+          setLocalEdges(data.connections || []);
+          setHasLocalChange(false);
         } else {
           setNodes([]);
           setEdges([]);
+          setLocalNodes([]);
+          setLocalEdges([]);
+          setHasLocalChange(false);
         }
       } catch (err: any) {
         setError('Lỗi khi fetch workflow-process');
         setNodes([]);
         setEdges([]);
+        setLocalNodes([]);
+        setLocalEdges([]);
+        setHasLocalChange(false);
       } finally {
         setLoading(false);
       }
@@ -104,20 +117,72 @@ export default function Flow({ onClose, workflowId, workflowName }: FlowProps) {
   };
 
   const addNewNode = () => {
-    setNodes((nds) => [
-      ...nds,
+    // Fake node mới, chỉ thêm vào local state, chưa gửi lên BE
+    const nodeId = uuidv4();
+    const nodeName = `Node ${nodeId.slice(0, 4)}`;
+    const centerX = window.innerWidth / 2;
+    const centerY = window.innerHeight / 2;
+    const offset = 100 + Math.random() * 100;
+    const newNode = {
+      id: nodeId,
+      workflow_id: workflowId,
+      name: nodeName,
+      type: 'text_and_image',
+      config: {},
+      position: { x: centerX + offset, y: centerY + Math.random() * 100 },
+    };
+    setLocalNodes((prev) => [...prev, newNode]);
+    setNodes((prev) => [
+      ...prev,
       {
-        id: `n${nds.length + 1}`,
-        position: { x: 300 + nds.length * 200, y: 200 },
-        data: { label: `Node ${nds.length + 1}` },
+        id: nodeId,
+        position: newNode.position,
+        data: { label: nodeName, ...newNode },
         type: 'baseHandleCustom',
       },
     ]);
+    setHasLocalChange(true);
+  };
+
+  // Save all localNodes/localEdges lên BE
+  const handleSaveChanges = async () => {
+    setLoading(true);
+    try {
+      const res = await fetch('/api/workflow-process', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          nodes: localNodes,
+          connections: localEdges,
+          triggers: [],
+        }),
+      });
+      if (res.ok) {
+        toast.success('Lưu workflow thành công!');
+        setHasLocalChange(false);
+        // Reload lại từ BE
+        setTimeout(() => {
+          setNodes([]);
+          setEdges([]);
+        }, 500);
+      } else {
+        toast.error('Lưu workflow thất bại!');
+      }
+    } catch (err) {
+      toast.error('Lưu workflow thất bại!');
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
     <div style={{ width: '100vw', height: '100vh' }}>
-      <WorkflowHeader name={workflowName || 'Workflow'} onClose={onClose} />
+      <WorkflowHeader
+        name={workflowName || 'Workflow'}
+        onClose={onClose}
+        onSave={hasLocalChange ? handleSaveChanges : undefined}
+        saving={loading}
+      />
       <WorkflowLeftSideBar onAddNode={addNewNode} />
       {loading ? (
         <div className="flex items-center justify-center h-full text-lg">
