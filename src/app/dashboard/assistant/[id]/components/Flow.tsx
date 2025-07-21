@@ -22,54 +22,67 @@ import {
 } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
 
-import { useCallback, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 
-const initialNodes: Node[] = [
-  {
-    id: 'node1',
-    position: { x: 100, y: 200 },
-    data: {
-      label: 'Webhook Trigger',
-      type: 'webhook',
-      config: {
-        path: '/submit-form',
-        method: 'POST',
-      },
-    },
-    type: 'baseHandleCustom',
-  },
-  {
-    id: 'node2',
-    position: { x: 400, y: 200 },
-    data: {
-      label: 'Send Welcome Email',
-      type: 'emailSend',
-      config: {
-        to: '{{ $json.email }}',
-        subject: 'Welcome!',
-        body: 'Thanks for signing up.',
-      },
-    },
-    type: 'baseHandleCustom',
-  },
-];
-const initialEdges: Edge[] = [
-  {
-    id: 'edge-node1-node2',
-    source: 'node1',
-    target: 'node2',
-    type: 'default',
-  },
-];
+// initialNodes/initialEdges will be set from API
 
 interface FlowProps {
   onClose?: () => void;
+  workflowId: string;
+  workflowName?: string;
 }
 
-export default function Flow({ onClose }: FlowProps) {
-  const [nodes, setNodes] = useState<Node[]>(initialNodes);
-  const [edges, setEdges] = useState<Edge[]>(initialEdges);
+export default function Flow({ onClose, workflowId, workflowName }: FlowProps) {
+  const [nodes, setNodes] = useState<Node[]>([]);
+  const [edges, setEdges] = useState<Edge[]>([]);
   const [selectedNode, setSelectedNode] = useState<Node | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  // Fetch workflow-process data from API
+  useEffect(() => {
+    if (!workflowId) return;
+    async function fetchWorkflowProcess() {
+      setLoading(true);
+      setError(null);
+      try {
+        const res = await fetch(`/api/workflow-process/${workflowId}`);
+        const data = await res.json();
+        if (res.ok && data && Array.isArray(data.nodes)) {
+          // Convert API nodes to React Flow nodes
+          const apiNodes = data.nodes.map((n: any) => ({
+            id: n.id,
+            position: n.position || { x: 0, y: 0 },
+            data: {
+              label: n.name,
+              ...n,
+            },
+            type: 'baseHandleCustom',
+          }));
+          // Convert API connections to React Flow edges
+          const apiEdges = Array.isArray(data.connections)
+            ? data.connections.map((c: any) => ({
+                id: c.id,
+                source: c.from_node_id,
+                target: c.to_node_id,
+                type: 'default',
+              }))
+            : [];
+          setNodes(apiNodes);
+          setEdges(apiEdges);
+        } else {
+          setNodes([]);
+          setEdges([]);
+        }
+      } catch (err: any) {
+        setError('Lỗi khi fetch workflow-process');
+        setNodes([]);
+        setEdges([]);
+      } finally {
+        setLoading(false);
+      }
+    }
+    fetchWorkflowProcess();
+  }, [workflowId]);
 
   const onNodesChange = useCallback(
     (changes: NodeChange[]) =>
@@ -104,30 +117,40 @@ export default function Flow({ onClose }: FlowProps) {
 
   return (
     <div style={{ width: '100vw', height: '100vh' }}>
-      <WorkflowHeader name="Send Email on Form Submit" onClose={onClose} />
+      <WorkflowHeader name={workflowName || 'Workflow'} onClose={onClose} />
       <WorkflowLeftSideBar onAddNode={addNewNode} />
-      <ReactFlow
-        nodes={nodes}
-        edges={edges}
-        onNodesChange={onNodesChange}
-        onEdgesChange={onEdgesChange}
-        onConnect={onConnect}
-        nodeTypes={nodeTypes}
-        fitView
-        onEdgeClick={(_event, edge) => {
-          setEdges((eds) => eds.filter((e) => e.id !== edge.id));
-        }}
-        onNodeClick={(_event, node) => setSelectedNode(node)}
-      >
-        <Background />
-        <Controls
-          style={{
-            color: 'black',
+      {loading ? (
+        <div className="flex items-center justify-center h-full text-lg">
+          Loading workflow...
+        </div>
+      ) : error ? (
+        <div className="flex items-center justify-center h-full text-red-500 text-lg">
+          {error}
+        </div>
+      ) : (
+        <ReactFlow
+          nodes={nodes}
+          edges={edges}
+          onNodesChange={onNodesChange}
+          onEdgesChange={onEdgesChange}
+          onConnect={onConnect}
+          nodeTypes={nodeTypes}
+          fitView
+          onEdgeClick={(_event, edge) => {
+            setEdges((eds) => eds.filter((e) => e.id !== edge.id));
           }}
-          position="center-right"
-        />
-        <MiniMap />
-      </ReactFlow>
+          onNodeClick={(_event, node) => setSelectedNode(node)}
+        >
+          <Background />
+          <Controls
+            style={{
+              color: 'black',
+            }}
+            position="center-right"
+          />
+          <MiniMap />
+        </ReactFlow>
+      )}
       {selectedNode && (
         <WorkflowRightSideBar
           isOpen={!!selectedNode}

@@ -36,6 +36,7 @@ export default function Workflow() {
   const [openDialog, setOpenDialog] = useState(false);
   const [newName, setNewName] = useState('');
   const [newDesc, setNewDesc] = useState('');
+  const [selectedWorkflow, setSelectedWorkflow] = useState<any | null>(null);
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
@@ -78,6 +79,7 @@ export default function Workflow() {
     const params = new URLSearchParams(searchParams?.toString() || '');
     params.set('flow_id', workflow.id);
     router.replace(`${pathname}?${params.toString()}`);
+    setSelectedWorkflow(workflow);
     setShowFlow(true);
   };
 
@@ -89,6 +91,7 @@ export default function Workflow() {
       : pathname;
     router.replace(newUrl);
     setShowFlow(false);
+    setSelectedWorkflow(null);
   };
 
   // Call API create new workflow
@@ -251,7 +254,7 @@ export default function Workflow() {
         </div>
       </div>
 
-      {showFlow && (
+      {showFlow && selectedWorkflow && (
         <div className="fixed inset-0 w-screen h-screen bg-black/50 z-[2000] flex items-center justify-center">
           <div className="relative w-screen h-screen bg-white rounded-2xl overflow-hidden shadow-2xl flex flex-col">
             <button
@@ -262,7 +265,11 @@ export default function Workflow() {
               <X size={24} />
             </button>
             <div className="flex-1 min-h-0">
-              <Flow onClose={handleCloseFlow} />
+              <Flow
+                onClose={handleCloseFlow}
+                workflowId={selectedWorkflow.id}
+                workflowName={selectedWorkflow.name}
+              />
             </div>
           </div>
         </div>
