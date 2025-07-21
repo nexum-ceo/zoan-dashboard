@@ -87,54 +87,16 @@ export default function Workflow() {
 
       {/* Popup full màn hình hiển thị Flow */}
       {showFlow && (
-        <div
-          style={{
-            position: 'fixed',
-            top: 0,
-            left: 0,
-            width: '100vw',
-            height: '100vh',
-            background: 'rgba(0,0,0,0.5)',
-            zIndex: 2000,
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-          }}
-        >
-          <div
-            style={{
-              position: 'relative',
-              width: '100vw',
-              height: '100vh',
-              background: '#fff',
-              borderRadius: 16,
-              overflow: 'hidden',
-              boxShadow: '0 8px 32px rgba(0,0,0,0.2)',
-              display: 'flex',
-              flexDirection: 'column',
-            }}
-          >
+        <div className="fixed inset-0 w-screen h-screen bg-black/50 z-[2000] flex items-center justify-center">
+          <div className="relative w-screen h-screen bg-white rounded-2xl overflow-hidden shadow-2xl flex flex-col">
             <button
               onClick={handleCloseFlow}
-              style={{
-                position: 'absolute',
-                top: 16,
-                right: 16,
-                zIndex: 10,
-                background: 'rgba(0,0,0,0.05)',
-                border: 'none',
-                borderRadius: 8,
-                padding: 8,
-                cursor: 'pointer',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-              }}
+              className="absolute top-4 right-4 z-10 bg-black/5 border-none rounded-lg p-2 cursor-pointer flex items-center justify-center"
               title="Đóng"
             >
               <X size={24} />
             </button>
-            <div style={{ flex: 1, minHeight: 0 }}>
+            <div className="flex-1 min-h-0">
               <Flow />
             </div>
           </div>
