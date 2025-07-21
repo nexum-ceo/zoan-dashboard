@@ -25,7 +25,7 @@ export default function PlaygroundPage() {
   }, [messages]);
 
   return (
-    <div className="w-full h-screen bg-gradient-to-br from-gray-50 to-gray-100 flex">
+    <div className="w-full h-full bg-gradient-to-br from-gray-50 to-gray-100 flex">
       {/* Sidebar */}
       <div className="w-80 bg-white border-r border-gray-200 flex flex-col shadow-sm">
         <div className="p-6 border-b border-gray-100">
@@ -82,7 +82,7 @@ export default function PlaygroundPage() {
         </div>
 
         {/* Input Area */}
-        <div className="p-6 border-t border-gray-100 bg-white">
+        <div className="p-6  bg-white">
           <ChatInput
             value={input}
             onChange={handleInputChange}

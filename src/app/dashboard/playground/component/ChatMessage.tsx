@@ -55,7 +55,11 @@ export default function ChatMessage({
       </div>
 
       {/* Message Content */}
-      <div className={`flex-1 max-w-3xl ${isUser ? 'flex justify-end' : ''}`}>
+      <div
+        className={`flex-1 whitespace-pre-wrap max-w-3xl ${
+          isUser ? 'flex justify-end' : ''
+        }`}
+      >
         <div
           className={`relative ${
             isUser
@@ -64,27 +68,7 @@ export default function ChatMessage({
           } px-4 py-3 shadow-sm`}
         >
           <div className="prose prose-sm max-w-none">
-            {isLoading && isLast ? (
-              <div className="flex items-center gap-2">
-                <div className="flex gap-1">
-                  <div
-                    className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"
-                    style={{ animationDelay: '0ms' }}
-                  ></div>
-                  <div
-                    className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"
-                    style={{ animationDelay: '150ms' }}
-                  ></div>
-                  <div
-                    className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"
-                    style={{ animationDelay: '300ms' }}
-                  ></div>
-                </div>
-                <span className="text-sm text-gray-500">AI is thinking...</span>
-              </div>
-            ) : (
-              <p className="whitespace-pre-wrap leading-relaxed">{content}</p>
-            )}
+            <p className="whitespace-pre-wrap leading-relaxed">{content}</p>
           </div>
         </div>
 
