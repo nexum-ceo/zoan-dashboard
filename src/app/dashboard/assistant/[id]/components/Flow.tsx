@@ -268,7 +268,7 @@ export default function Flow({ onClose, workflowId, workflowName }: FlowProps) {
           onEdgesChange={onEdgesChange}
           onConnect={onConnect}
           nodeTypes={nodeTypes}
-          fitView
+          defaultViewport={{ x: 0, y: 0, zoom: 0.7 }}
           onEdgeClick={(_event, edge) => {
             setEdges((eds) => eds.filter((e) => e.id !== edge.id));
           }}
