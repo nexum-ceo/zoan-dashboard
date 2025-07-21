@@ -10,15 +10,19 @@ import {
   TableRow,
 } from '@/components/ui/table';
 
-import { Download, Edit, FileDown, List, Plus, Trash } from 'lucide-react';
-import { useRouter } from 'next/navigation';
+import { Download, Edit, FileDown, List, Plus, Trash, X } from 'lucide-react';
+import dynamic from 'next/dynamic';
+import { useState } from 'react';
+// Dynamic import để tránh lỗi SSR với ReactFlow
+const Flow = dynamic(() => import('./Flow'), { ssr: false });
 
 export default function Workflow() {
-  const router = useRouter();
-
+  const [showFlow, setShowFlow] = useState(false);
   const handleFlowClick = () => {
-    // Navigate to the flow page
-    router.push('/workflow/123');
+    setShowFlow(true);
+  };
+  const handleCloseFlow = () => {
+    setShowFlow(false);
   };
 
   return (
@@ -51,10 +55,8 @@ export default function Workflow() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              <TableRow onClick={handleFlowClick}>
-                <TableCell className="cursor-pointer hover:bg-gray-100">
-                  Workflow 1
-                </TableCell>
+              <TableRow onClick={handleFlowClick} style={{ cursor: 'pointer' }}>
+                <TableCell className="hover:bg-gray-100">Workflow 1</TableCell>
                 <TableCell>1.0.0</TableCell>
                 <TableCell>Trigger Condition</TableCell>
                 <TableCell>
@@ -82,6 +84,62 @@ export default function Workflow() {
           </Table>
         </div>
       </div>
+
+      {/* Popup full màn hình hiển thị Flow */}
+      {showFlow && (
+        <div
+          style={{
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            width: '100vw',
+            height: '100vh',
+            background: 'rgba(0,0,0,0.5)',
+            zIndex: 2000,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+          }}
+        >
+          <div
+            style={{
+              position: 'relative',
+              width: '100vw',
+              height: '100vh',
+              background: '#fff',
+              borderRadius: 16,
+              overflow: 'hidden',
+              boxShadow: '0 8px 32px rgba(0,0,0,0.2)',
+              display: 'flex',
+              flexDirection: 'column',
+            }}
+          >
+            <button
+              onClick={handleCloseFlow}
+              style={{
+                position: 'absolute',
+                top: 16,
+                right: 16,
+                zIndex: 10,
+                background: 'rgba(0,0,0,0.05)',
+                border: 'none',
+                borderRadius: 8,
+                padding: 8,
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+              }}
+              title="Đóng"
+            >
+              <X size={24} />
+            </button>
+            <div style={{ flex: 1, minHeight: 0 }}>
+              <Flow />
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
