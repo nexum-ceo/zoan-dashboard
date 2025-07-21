@@ -123,15 +123,29 @@ export default function Flow({ onClose, workflowId, workflowName }: FlowProps) {
     const centerX = window.innerWidth / 2;
     const centerY = window.innerHeight / 2;
     const offset = 100 + Math.random() * 100;
-    const newNode = {
+    // Node BE: chỉ chứa data cần gửi lên API
+    const newNodeBE = {
       id: nodeId,
       workflow_id: workflowId,
       name: nodeName,
       type: 'text_and_image',
       config: {},
-      position: { x: centerX + offset, y: centerY + Math.random() * 100 },
+      position: { x: centerX + offset, y: centerY },
     };
-    setLocalNodes((prev) => [...prev, newNode]);
+    // Node ReactFlow: dùng cho UI
+    const newNodeRF = {
+      id: nodeId,
+      position: { x: centerX + offset, y: centerY },
+      data: { label: nodeName, ...newNodeBE },
+      type: 'baseHandleCustom',
+    };
+    console.log('[addNewNode] newNodeBE:', newNodeBE);
+    setLocalNodes((prev) => {
+      const next = [...prev, newNodeBE];
+      console.log('[addNewNode] localNodes after add:', next);
+      return next;
+    });
+    setNodes((prev) => [...prev, newNodeRF]);
     setHasLocalChange(true);
   };
 
@@ -172,16 +186,11 @@ export default function Flow({ onClose, workflowId, workflowName }: FlowProps) {
     }
   };
 
-  // Render nodes: nodes từ BE + localNodes (node mới)
-  const allNodes = [
-    ...nodes,
-    ...localNodes.map((n) => ({
-      id: n.id,
-      position: n.position,
-      data: { label: n.name, ...n },
-      type: 'baseHandleCustom',
-    })),
-  ];
+  // Render nodes: chỉ dùng nodes (ReactFlow) cho UI, không cần merge localNodes nữa vì đã push vào nodes khi add
+  const allNodes = nodes;
+  console.log('[render] nodes (UI):', nodes);
+  console.log('[render] localNodes (BE):', localNodes);
+  console.log('[render] allNodes:', allNodes);
 
   return (
     <div style={{ width: '100vw', height: '100vh' }}>
