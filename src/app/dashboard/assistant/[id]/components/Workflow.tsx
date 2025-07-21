@@ -39,7 +39,6 @@ export default function Workflow() {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
-  const FAKE_FLOW_ID = 'demo-flow-123';
 
   useEffect(() => {
     setLoading(true);
@@ -75,9 +74,9 @@ export default function Workflow() {
       .finally(() => setLoading(false));
   }, []);
 
-  const handleFlowClick = () => {
+  const handleFlowClick = (workflow: any) => {
     const params = new URLSearchParams(searchParams?.toString() || '');
-    params.set('flow_id', FAKE_FLOW_ID);
+    params.set('flow_id', workflow.id);
     router.replace(`${pathname}?${params.toString()}`);
     setShowFlow(true);
   };
@@ -215,7 +214,7 @@ export default function Workflow() {
                   workflows.map((wf, idx) => (
                     <TableRow
                       key={wf.id || idx}
-                      onClick={handleFlowClick}
+                      onClick={() => handleFlowClick(wf)}
                       style={{ cursor: 'pointer' }}
                     >
                       <TableCell className="hover:bg-gray-100">

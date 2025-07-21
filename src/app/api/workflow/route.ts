@@ -5,7 +5,6 @@ import { NextResponse } from 'next/server';
 
 export async function GET() {
   const session = await getServerSession(authOptions);
-  console.log('Session in workflow route:', session?.accessToken);
   if (!session?.accessToken) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
@@ -16,10 +15,8 @@ export async function GET() {
         Authorization: `Bearer ${session.accessToken}`,
       },
     });
-    console.log('Workflow data fetched successfully:', response.data);
     return NextResponse.json(response.data);
   } catch (error: any) {
-    console.log('Error fetching workflow data:', error.message);
     return NextResponse.json(
       { error: error?.message || 'Fetch failed' },
       { status: 500 },
@@ -36,13 +33,11 @@ export async function POST(req: Request) {
   try {
     const body = await req.json();
 
-    console.log('Request body:', body);
     const response = await axiosInstance.post('/workflow/', body, {
       headers: {
         Authorization: `Bearer ${session.accessToken}`,
       },
     });
-    console.log('Workflow created successfully:', response.data);
     return NextResponse.json(response.data);
   } catch (error: any) {
     return NextResponse.json(
