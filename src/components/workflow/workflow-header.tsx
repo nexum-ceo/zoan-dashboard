@@ -1,6 +1,5 @@
 'use client';
 import { Button } from '@/components/ui/button';
-import { useRouter } from 'next/navigation';
 import React from 'react';
 
 interface WorkflowHeaderProps {
@@ -12,7 +11,6 @@ export const WorkflowHeader: React.FC<WorkflowHeaderProps> = ({
   name = 'Daniel',
   onClose,
 }) => {
-  const router = useRouter();
   return (
     <header className="fixed top-0 left-0 right-0 h-[60px] bg-white border-b border-zinc-200 z-[1001] flex items-center justify-between px-4">
       {/* Left side */}
@@ -24,7 +22,6 @@ export const WorkflowHeader: React.FC<WorkflowHeaderProps> = ({
           className="text-zinc-500"
           onClick={() => {
             if (onClose) onClose();
-            else router.back();
           }}
         >
           ←

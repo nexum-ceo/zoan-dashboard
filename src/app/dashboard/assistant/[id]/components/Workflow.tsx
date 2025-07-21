@@ -12,7 +12,7 @@ import {
 
 import { Download, Edit, FileDown, List, Plus, Trash, X } from 'lucide-react';
 import dynamic from 'next/dynamic';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 // Dynamic import
 const Flow = dynamic(() => import('./Flow'), { ssr: false });
 
@@ -20,10 +20,30 @@ import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 
 export default function Workflow() {
   const [showFlow, setShowFlow] = useState(false);
+  const [workflows, setWorkflows] = useState<any[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const FAKE_FLOW_ID = 'demo-flow-123';
+
+  useEffect(() => {
+    setLoading(true);
+    fetch('/api/workflow')
+      .then((res) => res.json())
+      .then((data) => {
+        if (Array.isArray(data)) setWorkflows(data);
+        else if (Array.isArray(data.data)) setWorkflows(data.data);
+        else setWorkflows([]);
+        setError(null);
+      })
+      .catch((err) => {
+        setError('Lỗi khi lấy workflow');
+        setWorkflows([]);
+      })
+      .finally(() => setLoading(false));
+  }, []);
 
   const handleFlowClick = () => {
     const params = new URLSearchParams(searchParams?.toString() || '');
@@ -60,45 +80,67 @@ export default function Workflow() {
           </div>
         </div>
         <div className="flex flex-col gap-2">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Name</TableHead>
-                <TableHead>Publish Version</TableHead>
-                <TableHead>Trigger Condition</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead>Updated At</TableHead>
-                <TableHead>Actions</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              <TableRow onClick={handleFlowClick} style={{ cursor: 'pointer' }}>
-                <TableCell className="hover:bg-gray-100">Workflow 1</TableCell>
-                <TableCell>1.0.0</TableCell>
-                <TableCell>Trigger Condition</TableCell>
-                <TableCell>
-                  <Badge
-                    variant="secondary"
-                    className="bg-green-100 text-green-600 dark:bg-green-600"
-                  >
-                    Published
-                  </Badge>
-                </TableCell>
-                <TableCell>2021-01-01</TableCell>
-                <TableCell>
-                  <Button variant="ghost">
-                    <FileDown />
-                  </Button>
-                  <Button variant="ghost">
-                    <Edit />
-                  </Button>
-                  <Button variant="ghost">
-                    <Trash color="red" />
-                  </Button>
-                </TableCell>
-              </TableRow>
-            </TableBody>
-          </Table>
+          {loading ? (
+            <div className="text-center py-8">Đang tải workflow...</div>
+          ) : error ? (
+            <div className="text-center text-red-500 py-8">{error}</div>
+          ) : (
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Name</TableHead>
+                  <TableHead>Publish Version</TableHead>
+                  <TableHead>Trigger Condition</TableHead>
+                  <TableHead>Status</TableHead>
+                  <TableHead>Updated At</TableHead>
+                  <TableHead>Actions</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {workflows.length === 0 ? (
+                  <TableRow>
+                    <TableCell colSpan={6} className="text-center">
+                      Không có workflow nào
+                    </TableCell>
+                  </TableRow>
+                ) : (
+                  workflows.map((wf, idx) => (
+                    <TableRow
+                      key={wf.id || idx}
+                      onClick={handleFlowClick}
+                      style={{ cursor: 'pointer' }}
+                    >
+                      <TableCell className="hover:bg-gray-100">
+                        {wf.name || 'No name'}
+                      </TableCell>
+                      <TableCell>{wf.publishVersion || '-'}</TableCell>
+                      <TableCell>{wf.triggerCondition || '-'}</TableCell>
+                      <TableCell>
+                        <Badge
+                          variant="secondary"
+                          className="bg-green-100 text-green-600 dark:bg-green-600"
+                        >
+                          {wf.status || 'Published'}
+                        </Badge>
+                      </TableCell>
+                      <TableCell>{wf.updatedAt || '-'}</TableCell>
+                      <TableCell>
+                        <Button variant="ghost">
+                          <FileDown />
+                        </Button>
+                        <Button variant="ghost">
+                          <Edit />
+                        </Button>
+                        <Button variant="ghost">
+                          <Trash color="red" />
+                        </Button>
+                      </TableCell>
+                    </TableRow>
+                  ))
+                )}
+              </TableBody>
+            </Table>
+          )}
         </div>
       </div>
 

@@ -8,9 +8,9 @@ import {
   BaseNodeHeaderTitle,
 } from '@/components/base-node';
 import { Button } from '@/components/ui/button';
-import { WorkflowHeader } from '@/components/workflow/WorkflowHeader';
-import { WorkflowLeftSideBar } from '@/components/workflow/WorkflowLeftSideBar';
-import { WorkflowRightSideBar } from '@/components/workflow/WorkflowRightSideBar';
+import { WorkflowHeader } from '@/components/workflow/workflow-header';
+import { WorkflowLeftSideBar } from '@/components/workflow/workflow-left-sidebar';
+import { WorkflowRightSideBar } from '@/components/workflow/workflow-right-sidebar';
 import type {
   Connection,
   Edge,
