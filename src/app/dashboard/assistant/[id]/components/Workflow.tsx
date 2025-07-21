@@ -10,6 +10,15 @@ import {
   TableRow,
 } from '@/components/ui/table';
 
+import {
+  Dialog,
+  DialogClose,
+  DialogContent,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from '@/components/ui/dialog';
 import { Download, Edit, FileDown, List, Plus, Trash, X } from 'lucide-react';
 import dynamic from 'next/dynamic';
 import { useEffect, useState } from 'react';
@@ -24,6 +33,9 @@ export default function Workflow() {
   const [workflows, setWorkflows] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [openDialog, setOpenDialog] = useState(false);
+  const [newName, setNewName] = useState('');
+  const [newDesc, setNewDesc] = useState('');
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
@@ -40,7 +52,7 @@ export default function Workflow() {
         setError(null);
       })
       .catch((err) => {
-        setError('Lỗi khi lấy workflow');
+        setError('Error when fetching workflow');
         setWorkflows([
           {
             id: 'fake-1',
@@ -81,21 +93,25 @@ export default function Workflow() {
   };
 
   // Call API create new workflow
-  const handleAddWorkflow = async () => {
+  const handleAddWorkflow = async (e?: React.FormEvent) => {
+    if (e) e.preventDefault();
     setLoading(true);
     setError(null);
     try {
       const res = await fetch('/api/workflow', {
         method: 'POST',
         body: JSON.stringify({
-          name: 'New Workflow 123123',
-          description: 'This is a new workflow',
+          name: newName,
+          description: newDesc,
         }),
       });
       const data = await res.json();
       if (res.ok) {
         setWorkflows((prev) => [data, ...prev]);
         setShowFlow(true);
+        setOpenDialog(false);
+        setNewName('');
+        setNewDesc('');
         toast.success('Create workflow successfully!', {
           position: 'top-center',
         });
@@ -122,9 +138,53 @@ export default function Workflow() {
             <Button variant="outline">
               <Download /> Import FAQs
             </Button>
-            <Button variant="outline" onClick={handleAddWorkflow}>
-              <Plus /> Add New Workflow
-            </Button>
+            <Dialog open={openDialog} onOpenChange={setOpenDialog}>
+              <DialogTrigger asChild>
+                <Button variant="outline">
+                  <Plus /> Add New Workflow
+                </Button>
+              </DialogTrigger>
+              <DialogContent>
+                <form
+                  onSubmit={handleAddWorkflow}
+                  className="flex flex-col gap-4"
+                >
+                  <DialogHeader>
+                    <DialogTitle>Create New Workflow</DialogTitle>
+                  </DialogHeader>
+                  <div className="flex flex-col gap-2">
+                    <label className="text-sm font-medium">Name</label>
+                    <input
+                      className="border rounded px-3 py-2"
+                      value={newName}
+                      onChange={(e) => setNewName(e.target.value)}
+                      required
+                      placeholder="Enter workflow name"
+                    />
+                  </div>
+                  <div className="flex flex-col gap-2">
+                    <label className="text-sm font-medium">Description</label>
+                    <textarea
+                      className="border rounded px-3 py-2"
+                      value={newDesc}
+                      onChange={(e) => setNewDesc(e.target.value)}
+                      required
+                      placeholder="Enter description"
+                    />
+                  </div>
+                  <DialogFooter>
+                    <Button type="submit" disabled={loading}>
+                      {loading ? 'Creating...' : 'Create'}
+                    </Button>
+                    <DialogClose asChild>
+                      <Button type="button" variant="outline">
+                        Cancel
+                      </Button>
+                    </DialogClose>
+                  </DialogFooter>
+                </form>
+              </DialogContent>
+            </Dialog>
           </div>
         </div>
         <div className="flex flex-col gap-2">
