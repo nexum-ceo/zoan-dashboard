@@ -73,13 +73,11 @@ export default function Flow({ onClose, workflowId, workflowName }: FlowProps) {
             : [];
           setNodes(apiNodes);
           setEdges(apiEdges);
-          setLocalNodes(data.nodes);
           setLocalEdges(data.connections || []);
           setHasLocalChange(false);
         } else {
           setNodes([]);
           setEdges([]);
-          setLocalNodes([]);
           setLocalEdges([]);
           setHasLocalChange(false);
         }
@@ -87,7 +85,6 @@ export default function Flow({ onClose, workflowId, workflowName }: FlowProps) {
         setError('Lỗi khi fetch workflow-process');
         setNodes([]);
         setEdges([]);
-        setLocalNodes([]);
         setLocalEdges([]);
         setHasLocalChange(false);
       } finally {
@@ -117,8 +114,11 @@ export default function Flow({ onClose, workflowId, workflowName }: FlowProps) {
   };
 
   const addNewNode = () => {
-    // Fake node mới, chỉ thêm vào local state, chưa gửi lên BE
-    const nodeId = uuidv4();
+    // Tạo node mới với id unique, không trùng node cũ
+    let nodeId = uuidv4();
+    while ([...localNodes, ...nodes].some((n) => n.id === nodeId)) {
+      nodeId = uuidv4();
+    }
     const nodeName = `Node ${nodeId.slice(0, 4)}`;
     const centerX = window.innerWidth / 2;
     const centerY = window.innerHeight / 2;
@@ -132,48 +132,56 @@ export default function Flow({ onClose, workflowId, workflowName }: FlowProps) {
       position: { x: centerX + offset, y: centerY + Math.random() * 100 },
     };
     setLocalNodes((prev) => [...prev, newNode]);
-    setNodes((prev) => [
-      ...prev,
-      {
-        id: nodeId,
-        position: newNode.position,
-        data: { label: nodeName, ...newNode },
-        type: 'baseHandleCustom',
-      },
-    ]);
     setHasLocalChange(true);
   };
 
-  // Save all localNodes/localEdges lên BE
+  // Chỉ gửi các node mới (localNodes) lên khi save
   const handleSaveChanges = async () => {
     setLoading(true);
     try {
+      if (localNodes.length === 0) {
+        toast.info('Không có node mới để lưu.');
+        setLoading(false);
+        return;
+      }
       const res = await fetch('/api/workflow-process', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           nodes: localNodes,
-          connections: localEdges,
+          connections: [],
           triggers: [],
         }),
       });
       if (res.ok) {
-        toast.success('Lưu workflow thành công!');
+        toast.success('Lưu node mới thành công!');
         setHasLocalChange(false);
+        setLocalNodes([]); // clear node mới sau khi lưu thành công
         // Reload lại từ BE
         setTimeout(() => {
           setNodes([]);
           setEdges([]);
         }, 500);
       } else {
-        toast.error('Lưu workflow thất bại!');
+        toast.error('Lưu node mới thất bại!');
       }
     } catch (err) {
-      toast.error('Lưu workflow thất bại!');
+      toast.error('Lưu node mới thất bại!');
     } finally {
       setLoading(false);
     }
   };
+
+  // Render nodes: nodes từ BE + localNodes (node mới)
+  const allNodes = [
+    ...nodes,
+    ...localNodes.map((n) => ({
+      id: n.id,
+      position: n.position,
+      data: { label: n.name, ...n },
+      type: 'baseHandleCustom',
+    })),
+  ];
 
   return (
     <div style={{ width: '100vw', height: '100vh' }}>
@@ -194,7 +202,7 @@ export default function Flow({ onClose, workflowId, workflowName }: FlowProps) {
         </div>
       ) : (
         <ReactFlow
-          nodes={nodes}
+          nodes={allNodes}
           edges={edges}
           onNodesChange={onNodesChange}
           onEdgesChange={onEdgesChange}
