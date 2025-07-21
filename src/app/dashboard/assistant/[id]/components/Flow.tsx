@@ -26,8 +26,6 @@ import { useCallback, useEffect, useState } from 'react';
 import { toast } from 'sonner';
 import { v4 as uuidv4 } from 'uuid';
 
-// initialNodes/initialEdges will be set from API
-
 interface FlowProps {
   onClose?: () => void;
   workflowId: string;
@@ -98,19 +96,56 @@ export default function Flow({ onClose, workflowId, workflowName }: FlowProps) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [workflowId]);
 
-  const onNodesChange = useCallback(
-    (changes: NodeChange[]) =>
-      setNodes((nds) => applyNodeChanges(changes, nds)),
-    [],
-  );
+  // When nodes are moved/changed in UI, update both nodes (UI) and localNodes (for BE)
+  const onNodesChange = useCallback((changes: NodeChange[]) => {
+    setNodes((nds) => applyNodeChanges(changes, nds));
+    // Sync position in localNodes for new nodes
+    setLocalNodes((prev) => {
+      let updated = [...prev];
+      changes.forEach((change) => {
+        if (change.type === 'position' && change.id) {
+          const idx = updated.findIndex((n) => n.id === change.id);
+          if (idx !== -1 && change.position) {
+            updated[idx] = {
+              ...updated[idx],
+              position: change.position,
+            };
+          }
+        }
+      });
+      return updated;
+    });
+  }, []);
   const onEdgesChange = useCallback(
     (changes: EdgeChange[]) =>
       setEdges((eds) => applyEdgeChanges(changes, eds)),
     [],
   );
+  // When a new connection is made, add to edges (UI) and localEdges (for saving if both nodes are new)
   const onConnect = useCallback(
-    (params: Connection) => setEdges((eds) => addEdge(params, eds)),
-    [],
+    (params: Connection) => {
+      setEdges((eds) => addEdge(params, eds));
+      // Only track connection if both source and target are new nodes (in localNodes)
+      setLocalEdges((prev) => {
+        const isSourceNew = localNodes.some((n) => n.id === params.source);
+        const isTargetNew = localNodes.some((n) => n.id === params.target);
+        if (isSourceNew && isTargetNew) {
+          // Generate a unique id for the connection
+          const connId = uuidv4();
+          return [
+            ...prev,
+            {
+              id: connId,
+              from_node_id: params.source,
+              to_node_id: params.target,
+              type: 'default',
+            },
+          ];
+        }
+        return prev;
+      });
+    },
+    [localNodes],
   );
 
   const nodeTypes: NodeTypes = {
@@ -153,7 +188,7 @@ export default function Flow({ onClose, workflowId, workflowName }: FlowProps) {
     setHasLocalChange(true);
   };
 
-  // Only send new nodes (localNodes) when saving
+  // Only send new nodes (localNodes) and new connections (localEdges) when saving
   const handleSaveChanges = async () => {
     setLoading(true);
     try {
@@ -162,12 +197,27 @@ export default function Flow({ onClose, workflowId, workflowName }: FlowProps) {
         setLoading(false);
         return;
       }
+      // Only send connections where both source and target are new nodes
+      const newNodeIds = localNodes.map((n) => n.id);
+      // Map localEdges to BE format: { workflow_id, from_node_id, to_node_id, condition }
+      const newConnections = localEdges
+        .filter(
+          (c) =>
+            newNodeIds.includes(c.from_node_id) &&
+            newNodeIds.includes(c.to_node_id),
+        )
+        .map((c) => ({
+          workflow_id: workflowId,
+          from_node_id: c.from_node_id,
+          to_node_id: c.to_node_id,
+          condition: {},
+        }));
       const res = await fetch('/api/workflow-process', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           nodes: localNodes,
-          connections: [],
+          connections: newConnections,
           triggers: [],
         }),
       });
@@ -175,9 +225,7 @@ export default function Flow({ onClose, workflowId, workflowName }: FlowProps) {
         toast.success('Successfully saved new nodes!');
         setHasLocalChange(false);
         setLocalNodes([]); // clear new nodes after successful save
-        // Reload from BE (call fetchWorkflowProcess again)
-        // Simple way: trigger useEffect by changing workflowId (if needed), or refetch manually
-        // Here refetch manually:
+        setLocalEdges([]); // clear new connections after successful save
         fetchWorkflowProcess();
       } else {
         toast.error('Failed to save new nodes!');
