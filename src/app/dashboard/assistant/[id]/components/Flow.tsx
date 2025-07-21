@@ -45,7 +45,7 @@ export default function Flow({ onClose, workflowId, workflowName }: FlowProps) {
   const [localEdges, setLocalEdges] = useState<any[]>([]);
   const [hasLocalChange, setHasLocalChange] = useState(false);
   // Fetch workflow-process data from API
-  // Đưa fetchWorkflowProcess ra ngoài để có thể gọi lại sau khi lưu node
+  // Move fetchWorkflowProcess to the top level so it can be reused
   const fetchWorkflowProcess = async () => {
     if (!workflowId) return;
     setLoading(true);
@@ -54,7 +54,7 @@ export default function Flow({ onClose, workflowId, workflowName }: FlowProps) {
       const res = await fetch(`/api/workflow-process/${workflowId}`);
       const data = await res.json();
       if (res.ok && data && Array.isArray(data.nodes)) {
-        // Map node BE về node ReactFlow cho UI
+        // Map node BE into node ReactFlow for UI
         const apiNodes = data.nodes.map((n: any) => ({
           id: n.id,
           position: n.position || { x: 0, y: 0 },
@@ -83,7 +83,7 @@ export default function Flow({ onClose, workflowId, workflowName }: FlowProps) {
         setHasLocalChange(false);
       }
     } catch (err: any) {
-      setError('Lỗi khi fetch workflow-process');
+      setError('Error fetching workflow-process');
       setNodes([]);
       setEdges([]);
       setLocalEdges([]);
@@ -118,7 +118,7 @@ export default function Flow({ onClose, workflowId, workflowName }: FlowProps) {
   };
 
   const addNewNode = () => {
-    // Tạo node mới với id unique, không trùng node cũ
+    // Create a new node with a unique id, not conflicting with old nodes
     let nodeId = uuidv4();
     while ([...localNodes, ...nodes].some((n) => n.id === nodeId)) {
       nodeId = uuidv4();
@@ -127,7 +127,7 @@ export default function Flow({ onClose, workflowId, workflowName }: FlowProps) {
     const centerX = window.innerWidth / 2;
     const centerY = window.innerHeight / 2;
     const offset = 100 + Math.random() * 100;
-    // Node BE: chỉ chứa data cần gửi lên API
+    // Node BE: only contains data to send to API
     const newNodeBE = {
       id: nodeId,
       workflow_id: workflowId,
@@ -136,7 +136,7 @@ export default function Flow({ onClose, workflowId, workflowName }: FlowProps) {
       config: {},
       position: { x: centerX + offset, y: centerY },
     };
-    // Node ReactFlow: dùng cho UI
+    // Node ReactFlow: used for UI
     const newNodeRF = {
       id: nodeId,
       position: { x: centerX + offset, y: centerY },
@@ -153,12 +153,12 @@ export default function Flow({ onClose, workflowId, workflowName }: FlowProps) {
     setHasLocalChange(true);
   };
 
-  // Chỉ gửi các node mới (localNodes) lên khi save
+  // Only send new nodes (localNodes) when saving
   const handleSaveChanges = async () => {
     setLoading(true);
     try {
       if (localNodes.length === 0) {
-        toast.info('Không có node mới để lưu.');
+        toast.info('No new nodes to save.');
         setLoading(false);
         return;
       }
@@ -172,24 +172,24 @@ export default function Flow({ onClose, workflowId, workflowName }: FlowProps) {
         }),
       });
       if (res.ok) {
-        toast.success('Lưu node mới thành công!');
+        toast.success('Successfully saved new nodes!');
         setHasLocalChange(false);
-        setLocalNodes([]); // clear node mới sau khi lưu thành công
-        // Reload lại từ BE (gọi lại fetchWorkflowProcess)
-        // Cách đơn giản: trigger lại useEffect bằng cách đổi workflowId (nếu cần), hoặc refetch thủ công
-        // Ở đây refetch thủ công:
+        setLocalNodes([]); // clear new nodes after successful save
+        // Reload from BE (call fetchWorkflowProcess again)
+        // Simple way: trigger useEffect by changing workflowId (if needed), or refetch manually
+        // Here refetch manually:
         fetchWorkflowProcess();
       } else {
-        toast.error('Lưu node mới thất bại!');
+        toast.error('Failed to save new nodes!');
       }
     } catch (err) {
-      toast.error('Lưu node mới thất bại!');
+      toast.error('Failed to save new nodes!');
     } finally {
       setLoading(false);
     }
   };
 
-  // Render nodes: chỉ dùng nodes (ReactFlow) cho UI, không cần merge localNodes nữa vì đã push vào nodes khi add
+  // Render nodes: only use nodes (ReactFlow) for UI, no need to merge localNodes anymore as they have been pushed into nodes when added
   const allNodes = nodes;
   console.log('[render] nodes (UI):', nodes);
   console.log('[render] localNodes (BE):', localNodes);
