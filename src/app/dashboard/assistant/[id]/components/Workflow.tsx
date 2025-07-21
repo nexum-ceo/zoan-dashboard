@@ -13,15 +13,32 @@ import {
 import { Download, Edit, FileDown, List, Plus, Trash, X } from 'lucide-react';
 import dynamic from 'next/dynamic';
 import { useState } from 'react';
-// Dynamic import để tránh lỗi SSR với ReactFlow
+// Dynamic import
 const Flow = dynamic(() => import('./Flow'), { ssr: false });
+
+import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 
 export default function Workflow() {
   const [showFlow, setShowFlow] = useState(false);
+  const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
+  const FAKE_FLOW_ID = 'demo-flow-123';
+
   const handleFlowClick = () => {
+    const params = new URLSearchParams(searchParams?.toString() || '');
+    params.set('flow_id', FAKE_FLOW_ID);
+    router.replace(`${pathname}?${params.toString()}`);
     setShowFlow(true);
   };
+
   const handleCloseFlow = () => {
+    const params = new URLSearchParams(searchParams?.toString() || '');
+    params.delete('flow_id');
+    const newUrl = params.toString()
+      ? `${pathname}?${params.toString()}`
+      : pathname;
+    router.replace(newUrl);
     setShowFlow(false);
   };
 
@@ -97,7 +114,7 @@ export default function Workflow() {
               <X size={24} />
             </button>
             <div className="flex-1 min-h-0">
-              <Flow />
+              <Flow onClose={handleCloseFlow} />
             </div>
           </div>
         </div>

@@ -5,10 +5,12 @@ import React from 'react';
 
 interface WorkflowHeaderProps {
   name?: string;
+  onClose?: () => void;
 }
 
 export const WorkflowHeader: React.FC<WorkflowHeaderProps> = ({
   name = 'Daniel',
+  onClose,
 }) => {
   const router = useRouter();
   return (
@@ -20,7 +22,10 @@ export const WorkflowHeader: React.FC<WorkflowHeaderProps> = ({
           size="icon"
           title="Go back"
           className="text-zinc-500"
-          onClick={() => router.back()}
+          onClick={() => {
+            if (onClose) onClose();
+            else router.back();
+          }}
         >
           ←
         </Button>
