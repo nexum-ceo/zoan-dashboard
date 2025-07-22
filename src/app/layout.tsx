@@ -27,13 +27,30 @@ export default function RootLayout({
     <html lang="en">
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
+        style={{
+          minHeight: '100vh',
+          height: '100%',
+          width: '100%',
+          margin: 0,
+          padding: 0,
+        }}
       >
         {/* <SidebarProvider>
           <AppSidebar />
           <main className="w-full h-screen p-2">{children}</main>
         </SidebarProvider> */}
         {/* <AppNavbar /> */}
-        {children}
+        <main
+          style={{
+            minHeight: '100vh',
+            height: '100%',
+            width: '100%',
+            display: 'flex',
+            flexDirection: 'column',
+          }}
+        >
+          {children}
+        </main>
         <Toaster />
       </body>
     </html>

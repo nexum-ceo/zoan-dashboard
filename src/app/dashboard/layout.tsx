@@ -26,15 +26,34 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    // <html lang="en">
-    <div className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
+    <div
+      className={`${geistSans.variable} ${geistMono.variable} antialiased`}
+      style={{
+        minHeight: '100vh',
+        height: '100vh',
+        width: '100vw',
+        display: 'flex',
+        flexDirection: 'column',
+        margin: 0,
+        padding: 0,
+      }}
+    >
       <ZoanBaseLayout>
         <SidebarProvider>
           <AppSidebar />
-          <main className="w-full h-screen p-2">{children}</main>
+          <main
+            style={{
+              flex: 1,
+              width: '100%',
+              padding: '8px',
+              display: 'flex',
+              flexDirection: 'column',
+            }}
+          >
+            {children}
+          </main>
         </SidebarProvider>
       </ZoanBaseLayout>
     </div>
-    // </html>
   );
 }

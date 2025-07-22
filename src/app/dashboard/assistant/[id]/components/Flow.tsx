@@ -69,12 +69,12 @@ export default function Flow({ onClose, workflowId, workflowName }: FlowProps) {
   // Persist full workflow (nodes, edges) and draft (localNodes, localEdges) to IndexedDB on any change
   useEffect(() => {
     setHasLocalChange(localNodes.length > 0 || localEdges.length > 0);
-    // Lưu full workflow
+    // Save full workflow
     if (loadedFromIdb || (!loadedFromIdb && nodes.length > 0)) {
       idbSet(idbNodesKey, nodes);
       idbSet(idbEdgesKey, edges);
     }
-    // Lưu draft
+    // Save draft
     idbSet(idbDraftNodesKey, localNodes);
     idbSet(idbDraftEdgesKey, localEdges);
   }, [nodes, edges, localNodes, localEdges, loadedFromIdb]);
