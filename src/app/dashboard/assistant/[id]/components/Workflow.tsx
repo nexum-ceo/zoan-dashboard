@@ -211,8 +211,8 @@ export default function Workflow() {
                       <TableCell className="hover:bg-gray-100">
                         {wf.name || 'No name'}
                       </TableCell>
-                      <TableCell>{wf.publishVersion || '-'}</TableCell>
-                      <TableCell>{wf.triggerCondition || '-'}</TableCell>
+                      <TableCell>{wf.publish_version || '-'}</TableCell>
+                      <TableCell>{wf.trigger_condition || '-'}</TableCell>
                       <TableCell>
                         <Badge
                           variant="secondary"
@@ -221,7 +221,7 @@ export default function Workflow() {
                           {wf.status || 'Published'}
                         </Badge>
                       </TableCell>
-                      <TableCell>{wf.updatedAt || '-'}</TableCell>
+                      <TableCell>{wf.updated_at || '-'}</TableCell>
                       <TableCell>
                         <Button variant="ghost">
                           <FileDown />

@@ -24,10 +24,9 @@ export type TabType = 'Setting' | 'Introduction';
 export const WorkflowSchema = z.object({
   id: z.string(),
   name: z.string(),
-  publishVersion: z.string().optional(),
-  triggerCondition: z.string().optional(),
+  publish_version: z.string().optional(),
+  trigger_condition: z.string().optional(),
   status: z.string().optional(),
-  updatedAt: z.string().optional(),
   description: z.string().optional(),
   is_active: z.boolean().optional(),
   created_at: z.string().optional(),
