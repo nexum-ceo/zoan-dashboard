@@ -15,7 +15,7 @@ export default function AssistantPage() {
   const router = useRouter();
 
   const handleClick = (agentId: string) => {
-    router.push(`/dashboard/assistant/${agentId}`); // ✅ works like a Link but programmatically
+    router.push(`/dashboard/assistant/${agentId}`); //  works like a Link but programmatically
   };
   return (
     <div className="w-full h-full bg-sidebar rounded-lg border border-border flex flex-col">

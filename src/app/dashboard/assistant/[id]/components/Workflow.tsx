@@ -21,22 +21,26 @@ import {
 } from '@/components/ui/dialog';
 import { Download, Edit, FileDown, List, Plus, Trash, X } from 'lucide-react';
 import dynamic from 'next/dynamic';
-import { useEffect, useState } from 'react';
+import { FormEvent, useEffect, useState } from 'react';
 import { toast } from 'sonner';
 
 const Flow = dynamic(() => import('./Flow'), { ssr: false });
 
+import type { CreateWorkflowType } from '@/types/workflow';
+import { WorkflowType } from '@/types/workflow';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 
 export default function Workflow() {
-  const [showFlow, setShowFlow] = useState(false);
-  const [workflows, setWorkflows] = useState<any[]>([]);
-  const [loading, setLoading] = useState(false);
+  const [showFlow, setShowFlow] = useState<boolean>(false);
+  const [workflows, setWorkflows] = useState<WorkflowType[]>([]);
+  const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
-  const [openDialog, setOpenDialog] = useState(false);
-  const [newName, setNewName] = useState('');
-  const [newDesc, setNewDesc] = useState('');
-  const [selectedWorkflow, setSelectedWorkflow] = useState<any | null>(null);
+  const [openDialog, setOpenDialog] = useState<boolean>(false);
+  const [newName, setNewName] = useState<string>('');
+  const [newDesc, setNewDesc] = useState<string>('');
+  const [selectedWorkflow, setSelectedWorkflow] = useState<WorkflowType | null>(
+    null,
+  );
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
@@ -53,29 +57,12 @@ export default function Workflow() {
       })
       .catch((err) => {
         setError('Error when fetching workflow');
-        setWorkflows([
-          {
-            id: 'fake-1',
-            name: 'Fake Workflow 1',
-            publishVersion: '1.0.0',
-            triggerCondition: 'On Start',
-            status: 'Published',
-            updatedAt: '2025-07-21',
-          },
-          {
-            id: 'fake-2',
-            name: 'Fake Workflow 2',
-            publishVersion: '2.0.0',
-            triggerCondition: 'On Event',
-            status: 'Draft',
-            updatedAt: '2025-07-20',
-          },
-        ]);
+        setWorkflows([]);
       })
       .finally(() => setLoading(false));
   }, []);
 
-  const handleFlowClick = (workflow: any) => {
+  const handleFlowClick = (workflow: WorkflowType) => {
     const params = new URLSearchParams(searchParams?.toString() || '');
     params.set('flow_id', workflow.id);
     router.replace(`${pathname}?${params.toString()}`);
@@ -95,17 +82,18 @@ export default function Workflow() {
   };
 
   // Call API create new workflow
-  const handleAddWorkflow = async (e?: React.FormEvent) => {
+  const handleAddWorkflow = async (e?: FormEvent) => {
     if (e) e.preventDefault();
     setLoading(true);
     setError(null);
     try {
+      const body: CreateWorkflowType = {
+        name: newName,
+        description: newDesc,
+      };
       const res = await fetch('/api/workflow', {
         method: 'POST',
-        body: JSON.stringify({
-          name: newName,
-          description: newDesc,
-        }),
+        body: JSON.stringify(body),
       });
       const data = await res.json();
       if (res.ok) {

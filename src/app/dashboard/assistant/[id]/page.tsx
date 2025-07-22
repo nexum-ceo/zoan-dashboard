@@ -27,7 +27,7 @@ export default function AssistantPage({
   const { id } = use(params);
   const agent = AGENT_LIST.find((agent) => agent.id === id);
 
-  // Đọc giá trị tab từ URL khi load page
+  // Read tab from URL params
   useEffect(() => {
     const t = searchParams.get('t');
     if (t === 'config' || t === 'training' || t === 'workflow') {
@@ -35,7 +35,7 @@ export default function AssistantPage({
     }
   }, [searchParams]);
 
-  // Khi đổi tab, cập nhật URL param t
+  // When change tab, update URL param t
   const handleTabChange = (newTab: 'config' | 'training' | 'workflow') => {
     setTab(newTab);
     const params = new URLSearchParams(Array.from(searchParams.entries()));
