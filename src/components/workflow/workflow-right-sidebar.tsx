@@ -3,6 +3,7 @@
 import { Button } from '@/components/ui/button';
 import { Switch } from '@/components/ui/switch';
 import { Textarea } from '@/components/ui/textarea';
+import { TabType } from '@/types/workflow';
 import {
   Bold,
   Italic,
@@ -25,10 +26,12 @@ export function WorkflowRightSideBar({
   onClose,
   selectedNode,
 }: RightSidebarProps) {
-  const [activeTab, setActiveTab] = useState('Setting');
-  const [message, setMessage] = useState('👋 Hello! How can I help you today?');
-  const [selectionRequired, setSelectionRequired] = useState(false);
-  const [timeoutEnabled, setTimeoutEnabled] = useState(false);
+  const [activeTab, setActiveTab] = useState<TabType>('Setting');
+  const [message, setMessage] = useState<string>(
+    '👋 Hello! How can I help you today?',
+  );
+  const [selectionRequired, setSelectionRequired] = useState<boolean>(false);
+  const [timeoutEnabled, setTimeoutEnabled] = useState<boolean>(false);
 
   if (!isOpen) return null;
 
@@ -58,7 +61,7 @@ export function WorkflowRightSideBar({
           <Button
             key={tab}
             variant="ghost"
-            onClick={() => setActiveTab(tab)}
+            onClick={() => setActiveTab(tab as TabType)}
             className={`px-4 py-3 text-sm font-medium border-b-2 rounded-none shadow-none transition-colors ${
               activeTab === tab
                 ? 'text-blue-600 border-blue-600'

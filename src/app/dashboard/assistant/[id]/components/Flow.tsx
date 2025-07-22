@@ -1,8 +1,8 @@
-// --- REFACTORED FLOW COMPONENT ---
 import BaseHandleCustom from '@/components/base-handle-custom';
 import { WorkflowHeader } from '@/components/workflow/workflow-header';
 import { WorkflowLeftSideBar } from '@/components/workflow/workflow-left-sidebar';
 import { WorkflowRightSideBar } from '@/components/workflow/workflow-right-sidebar';
+import type { WorkflowConnection, WorkflowNode } from '@/types/workflow';
 import type { Edge, Node } from '@xyflow/react';
 import { Background, Controls, MiniMap, ReactFlow } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
@@ -50,10 +50,13 @@ export default function Flow({ onClose, workflowId, workflowName }: FlowProps) {
     setError(null);
     try {
       const res = await fetch(`/api/workflow-process/${workflowId}`);
-      const data = await res.json();
+      const data: {
+        nodes: WorkflowNode[];
+        connections: WorkflowConnection[];
+      } = await res.json();
       if (res.ok && data && Array.isArray(data.nodes)) {
         const nodesRF = data.nodes.map(
-          (n: any): Node => ({
+          (n): Node => ({
             id: n.id,
             position: n.position || { x: 0, y: 0 },
             data: { label: n.name, ...n },
@@ -62,11 +65,11 @@ export default function Flow({ onClose, workflowId, workflowName }: FlowProps) {
         );
         const edgesRF = Array.isArray(data.connections)
           ? data.connections.map(
-              (c: any): Edge => ({
+              (c): Edge => ({
                 id: c.id,
                 source: c.from_node_id,
                 target: c.to_node_id,
-                type: 'default',
+                type: c.type || 'default',
               }),
             )
           : [];
@@ -74,7 +77,7 @@ export default function Flow({ onClose, workflowId, workflowName }: FlowProps) {
         setEdges(edgesRF);
         setLocalEdges(
           (data.connections || []).map(
-            (c: any): LocalEdge => ({
+            (c): LocalEdge => ({
               id: c.id,
               from_node_id: c.from_node_id,
               to_node_id: c.to_node_id,
@@ -148,10 +151,7 @@ export default function Flow({ onClose, workflowId, workflowName }: FlowProps) {
   });
 
   const addNewNode = () => {
-    let nodeId = uuidv4();
-    while ([...localNodes, ...nodes].some((n) => n.id === nodeId)) {
-      nodeId = uuidv4();
-    }
+    const nodeId = uuidv4();
     const nodeName = `Node ${nodeId.slice(0, 4)}`;
     const centerX = window.innerWidth / 2;
     const centerY = window.innerHeight / 2;

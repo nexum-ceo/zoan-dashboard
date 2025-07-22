@@ -5,6 +5,7 @@ import { NextResponse } from 'next/server';
 
 export async function GET(req: Request, context: { params: { id: string } }) {
   const session = await getServerSession(authOptions);
+
   if (!session?.accessToken) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
@@ -18,6 +19,7 @@ export async function GET(req: Request, context: { params: { id: string } }) {
         Authorization: `Bearer ${session.accessToken}`,
       },
     });
+
     return NextResponse.json(response.data);
   } catch (error: any) {
     return NextResponse.json(

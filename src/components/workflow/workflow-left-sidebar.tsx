@@ -1,7 +1,5 @@
 'use client';
 
-import type React from 'react';
-
 import {
   Ban,
   Bell,
@@ -13,9 +11,10 @@ import {
   Type,
   X,
 } from 'lucide-react';
+import { ReactNode } from 'react';
 
 interface SidebarItemProps {
-  icon: React.ReactNode;
+  icon: ReactNode;
   title?: string;
   onClick?: () => void;
 }
@@ -35,7 +34,7 @@ const SidebarSection = ({
   children,
 }: {
   title: string;
-  children: React.ReactNode;
+  children: ReactNode;
 }) => (
   <div className="mb-8">
     <h3 className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3 px-2">
