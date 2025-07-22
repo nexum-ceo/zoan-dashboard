@@ -26,29 +26,14 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
-        style={{
-          minHeight: '100vh',
-          height: '100%',
-          width: '100%',
-          margin: 0,
-          padding: 0,
-        }}
+        className={`${geistSans.variable} ${geistMono.variable} antialiased min-h-screen h-full w-full m-0 p-0`}
       >
         {/* <SidebarProvider>
           <AppSidebar />
           <main className="w-full h-screen p-2">{children}</main>
         </SidebarProvider> */}
         {/* <AppNavbar /> */}
-        <main
-          style={{
-            minHeight: '100vh',
-            height: '100%',
-            width: '100%',
-            display: 'flex',
-            flexDirection: 'column',
-          }}
-        >
+        <main className="min-h-screen h-full w-full flex flex-col">
           {children}
         </main>
         <Toaster />

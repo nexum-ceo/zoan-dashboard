@@ -3,49 +3,27 @@ import BaseHandleCustom from '@/components/base-handle-custom';
 import { WorkflowHeader } from '@/components/workflow/workflow-header';
 import { WorkflowLeftSideBar } from '@/components/workflow/workflow-left-sidebar';
 import { WorkflowRightSideBar } from '@/components/workflow/workflow-right-sidebar';
-import type {
-  Connection,
-  Edge,
-  EdgeChange,
-  Node,
-  NodeChange,
-} from '@xyflow/react';
-import {
-  addEdge,
-  applyEdgeChanges,
-  applyNodeChanges,
-  Background,
-  Controls,
-  MiniMap,
-  ReactFlow,
-} from '@xyflow/react';
+import type { Edge, Node } from '@xyflow/react';
+import { Background, Controls, MiniMap, ReactFlow } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
-import { del as idbDel, get as idbGet, set as idbSet } from 'idb-keyval';
-import { useCallback, useEffect, useState } from 'react';
+import { del as idbDel, set as idbSet } from 'idb-keyval';
+import { useState } from 'react';
 import { toast } from 'sonner';
 import { v4 as uuidv4 } from 'uuid';
+import {
+  LocalEdge,
+  LocalNode,
+  useConnectHandler,
+  useEdgeHandlers,
+  useNodeHandlers,
+  usePersistWorkflow,
+  useRestoreWorkflow,
+} from '../../../../../hooks/useWorkflow';
 
 interface FlowProps {
   onClose?: () => void;
   workflowId: string;
   workflowName?: string;
-}
-
-interface LocalEdge {
-  id: string;
-  from_node_id: string;
-  to_node_id: string;
-  type: string;
-  isNew?: boolean;
-}
-
-interface LocalNode {
-  id: string;
-  workflow_id: string;
-  name: string;
-  type: string;
-  config: object;
-  position: { x: number; y: number };
 }
 
 export default function Flow({ onClose, workflowId, workflowName }: FlowProps) {
@@ -62,75 +40,8 @@ export default function Flow({ onClose, workflowId, workflowName }: FlowProps) {
   const [error, setError] = useState<string | null>(null);
   const [localNodes, setLocalNodes] = useState<LocalNode[]>([]);
   const [localEdges, setLocalEdges] = useState<LocalEdge[]>([]);
-  const [hasLocalChange, setHasLocalChange] = useState<boolean>(false);
-  // Track if loaded from idb
   const [loadedFromIdb, setLoadedFromIdb] = useState<boolean>(false);
-  console.log('loadedFromIdb', loadedFromIdb);
 
-  // Persist full workflow (nodes, edges) and draft (localNodes, localEdges) to IndexedDB on any change
-  const [initialized, setInitialized] = useState(false);
-  useEffect(() => {
-    if (!initialized) {
-      setInitialized(true);
-      return;
-    }
-    setHasLocalChange(localNodes.length > 0 || localEdges.length > 0);
-    // Save full workflow
-    if (loadedFromIdb || (!loadedFromIdb && nodes.length > 0)) {
-      idbSet(idbNodesKey, nodes);
-      idbSet(idbEdgesKey, edges);
-    }
-    // Chỉ lưu draft khi thực sự có thay đổi
-    if (localNodes.length > 0) {
-      idbSet(idbDraftNodesKey, localNodes);
-    }
-    if (localEdges.length > 0) {
-      idbSet(idbDraftEdgesKey, localEdges);
-    }
-  }, [nodes, edges, localNodes, localEdges, loadedFromIdb, initialized]);
-
-  // On mount, restore full workflow and draft from IndexedDB, nếu không có thì mới fetch từ server
-  useEffect(() => {
-    (async () => {
-      const [idbNodes, idbEdges, idbDraftNodes, idbDraftEdges] =
-        await Promise.all([
-          idbGet(idbNodesKey),
-          idbGet(idbEdgesKey),
-          idbGet(idbDraftNodesKey),
-          idbGet(idbDraftEdgesKey),
-        ]);
-      let loaded = false;
-      // Chỉ set nodes/edges cho ReactFlow, giữ draftNodes/draftEdges riêng
-      if (
-        Array.isArray(idbNodes) &&
-        idbNodes.length > 0 &&
-        Array.isArray(idbEdges)
-      ) {
-        setNodes(idbNodes);
-        setEdges(idbEdges);
-        loaded = true;
-      } else {
-        setNodes([]);
-        setEdges([]);
-      }
-      // Luôn giữ draftNodes/draftEdges riêng để kiểm tra trạng thái
-      setLocalNodes(Array.isArray(idbDraftNodes) ? idbDraftNodes : []);
-      setLocalEdges(Array.isArray(idbDraftEdges) ? idbDraftEdges : []);
-      setLoadedFromIdb(loaded);
-      if (!loaded) {
-        fetchWorkflowProcess();
-      }
-    })();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [
-    workflowId,
-    idbNodesKey,
-    idbEdgesKey,
-    idbDraftNodesKey,
-    idbDraftEdgesKey,
-  ]);
-
-  // --- API FETCH ---
   const fetchWorkflowProcess = async (): Promise<void> => {
     if (!workflowId) return;
     // If already loaded from idb, skip fetch
@@ -171,7 +82,6 @@ export default function Flow({ onClose, workflowId, workflowName }: FlowProps) {
             }),
           ),
         );
-        setHasLocalChange(false);
         // Save to idb for next time
         if (!loadedFromIdb) {
           idbSet(idbNodesKey, nodesRF);
@@ -181,7 +91,6 @@ export default function Flow({ onClose, workflowId, workflowName }: FlowProps) {
         setNodes([]);
         setEdges([]);
         setLocalEdges([]);
-        setHasLocalChange(false);
         if (!loadedFromIdb) {
           idbSet(idbNodesKey, []);
           idbSet(idbEdgesKey, []);
@@ -192,7 +101,6 @@ export default function Flow({ onClose, workflowId, workflowName }: FlowProps) {
       setNodes([]);
       setEdges([]);
       setLocalEdges([]);
-      setHasLocalChange(false);
       if (!loadedFromIdb) {
         idbSet(idbNodesKey, []);
         idbSet(idbEdgesKey, []);
@@ -202,55 +110,42 @@ export default function Flow({ onClose, workflowId, workflowName }: FlowProps) {
     }
   };
 
-  // --- HANDLERS ---
-  const onNodesChange = useCallback((changes: NodeChange[]) => {
-    setNodes((nds) => applyNodeChanges(changes, nds));
-    setLocalNodes((prev) => {
-      const updated = [...prev];
-      changes.forEach((change: NodeChange) => {
-        if (change.type === 'position' && change.id) {
-          const idx = updated.findIndex((n) => n.id === change.id);
-          if (idx !== -1 && change.position) {
-            updated[idx] = { ...updated[idx], position: change.position };
-          }
-        }
-      });
-      return updated;
-    });
-  }, []);
+  // Custom hook: persist workflow and draft state
+  const hasLocalChange = usePersistWorkflow({
+    nodes,
+    edges,
+    localNodes,
+    localEdges,
+    loadedFromIdb,
+    idbNodesKey,
+    idbEdgesKey,
+    idbDraftNodesKey,
+    idbDraftEdgesKey,
+  });
 
-  const onEdgesChange = useCallback(
-    (changes: EdgeChange[]) =>
-      setEdges((eds) => applyEdgeChanges(changes, eds)),
-    [],
-  );
+  // Custom hook: restore workflow and draft state from IndexedDB
+  useRestoreWorkflow({
+    idbNodesKey,
+    idbEdgesKey,
+    idbDraftNodesKey,
+    idbDraftEdgesKey,
+    workflowId,
+    fetchWorkflowProcess,
+    setNodes,
+    setEdges,
+    setLocalNodes,
+    setLocalEdges,
+    setLoadedFromIdb,
+  });
 
-  const onConnect = useCallback(
-    (params: Connection) => {
-      setEdges((eds) => addEdge(params, eds));
-      setLocalEdges((prev) => {
-        const exists = prev.some(
-          (edge) =>
-            edge.from_node_id === params.source &&
-            edge.to_node_id === params.target,
-        );
-        if (exists) return prev;
-        const next = [
-          ...prev,
-          {
-            id: uuidv4(),
-            from_node_id: params.source,
-            to_node_id: params.target,
-            type: 'default',
-            isNew: true,
-          },
-        ];
-        idbSet(idbDraftEdgesKey, next);
-        return next;
-      });
-    },
-    [idbDraftEdgesKey],
-  );
+  // Custom hooks: handlers
+  const onNodesChange = useNodeHandlers({ setNodes, setLocalNodes });
+  const onEdgesChange = useEdgeHandlers({ setEdges });
+  const onConnect = useConnectHandler({
+    setEdges,
+    setLocalEdges,
+    idbDraftEdgesKey,
+  });
 
   const addNewNode = () => {
     let nodeId = uuidv4();
@@ -275,19 +170,18 @@ export default function Flow({ onClose, workflowId, workflowName }: FlowProps) {
       data: { label: nodeName, ...newNodeBE },
       type: 'baseHandleCustom',
     };
-    // Thêm vào draftNodes và lưu vào idbDraftNodes
+    // Add draftNodes into dbDraftNodes
     setLocalNodes((prev) => {
       const next = [...prev, newNodeBE];
       idbSet(idbDraftNodesKey, next);
       return next;
     });
-    // Thêm vào full nodes và lưu vào idbNodes
+    // Add full nodes into dbNodes
     setNodes((prev) => {
       const next = [...prev, newNodeRF];
       idbSet(idbNodesKey, next);
       return next;
     });
-    setHasLocalChange(true);
   };
 
   const handleSaveChanges = async () => {
@@ -320,7 +214,6 @@ export default function Flow({ onClose, workflowId, workflowName }: FlowProps) {
         });
         if (res.ok) {
           toast.success('Successfully saved new connections!');
-          setHasLocalChange(false);
           setLocalEdges([]);
           await idbDel(idbDraftEdgesKey);
           await idbDel(idbDraftNodesKey);
@@ -358,7 +251,6 @@ export default function Flow({ onClose, workflowId, workflowName }: FlowProps) {
       });
       if (res.ok) {
         toast.success('Successfully saved new nodes!');
-        setHasLocalChange(false);
         setLocalNodes([]);
         setLocalEdges([]);
         await idbDel(idbDraftEdgesKey);

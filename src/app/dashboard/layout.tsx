@@ -27,31 +27,12 @@ export default function RootLayout({
 }>) {
   return (
     <div
-      className={`${geistSans.variable} ${geistMono.variable} antialiased`}
-      style={{
-        minHeight: '100vh',
-        height: '100vh',
-        width: '100vw',
-        display: 'flex',
-        flexDirection: 'column',
-        margin: 0,
-        padding: 0,
-      }}
+      className={`${geistSans.variable} ${geistMono.variable} antialiased min-h-screen h-screen w-screen flex flex-col m-0 p-0`}
     >
       <ZoanBaseLayout>
         <SidebarProvider>
           <AppSidebar />
-          <main
-            style={{
-              flex: 1,
-              width: '100%',
-              padding: '8px',
-              display: 'flex',
-              flexDirection: 'column',
-            }}
-          >
-            {children}
-          </main>
+          <main className="flex-1 w-full p-2 flex flex-col">{children}</main>
         </SidebarProvider>
       </ZoanBaseLayout>
     </div>
