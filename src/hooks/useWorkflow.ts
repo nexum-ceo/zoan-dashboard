@@ -7,37 +7,28 @@ import type {
 } from '@xyflow/react';
 import { addEdge, applyEdgeChanges, applyNodeChanges } from '@xyflow/react';
 import { get as idbGet, set as idbSet } from 'idb-keyval';
+import type { Dispatch, FC, SetStateAction } from 'react';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { v4 as uuidv4 } from 'uuid';
 
-export interface LocalNode {
+export type LocalNode = {
   id: string;
   workflow_id: string;
   name: string;
   type: string;
   config: object;
   position: { x: number; y: number };
-}
+};
 
-export interface LocalEdge {
+export type LocalEdge = {
   id: string;
   from_node_id: string;
   to_node_id: string;
   type: string;
   isNew?: boolean;
-}
+};
 
-export function usePersistWorkflow({
-  nodes,
-  edges,
-  localNodes,
-  localEdges,
-  loadedFromIdb,
-  idbNodesKey,
-  idbEdgesKey,
-  idbDraftNodesKey,
-  idbDraftEdgesKey,
-}: {
+type UsePersistWorkflowProps = {
   nodes: Node[];
   edges: Edge[];
   localNodes: LocalNode[];
@@ -47,8 +38,20 @@ export function usePersistWorkflow({
   idbEdgesKey: string;
   idbDraftNodesKey: string;
   idbDraftEdgesKey: string;
-}) {
-  const [hasLocalChange, setHasLocalChange] = useState(false);
+};
+
+export const usePersistWorkflow: FC<UsePersistWorkflowProps> = ({
+  nodes,
+  edges,
+  localNodes,
+  localEdges,
+  loadedFromIdb,
+  idbNodesKey,
+  idbEdgesKey,
+  idbDraftNodesKey,
+  idbDraftEdgesKey,
+}) => {
+  const [hasLocalChange, setHasLocalChange] = useState<boolean>(false);
   const initialized = useRef(false);
 
   useEffect(() => {
@@ -80,7 +83,21 @@ export function usePersistWorkflow({
   ]);
 
   return hasLocalChange;
-}
+};
+
+type UseRestoreWorkflowProps = {
+  idbNodesKey: string;
+  idbEdgesKey: string;
+  idbDraftNodesKey: string;
+  idbDraftEdgesKey: string;
+  workflowId: string;
+  fetchWorkflowProcess: () => void;
+  setNodes: Dispatch<SetStateAction<Node[]>>;
+  setEdges: Dispatch<SetStateAction<Edge[]>>;
+  setLocalNodes: Dispatch<SetStateAction<LocalNode[]>>;
+  setLocalEdges: Dispatch<SetStateAction<LocalEdge[]>>;
+  setLoadedFromIdb: Dispatch<SetStateAction<boolean>>;
+};
 
 export function useRestoreWorkflow({
   idbNodesKey,
@@ -94,19 +111,7 @@ export function useRestoreWorkflow({
   setLocalNodes,
   setLocalEdges,
   setLoadedFromIdb,
-}: {
-  idbNodesKey: string;
-  idbEdgesKey: string;
-  idbDraftNodesKey: string;
-  idbDraftEdgesKey: string;
-  workflowId: string;
-  fetchWorkflowProcess: () => void;
-  setNodes: React.Dispatch<React.SetStateAction<Node[]>>;
-  setEdges: React.Dispatch<React.SetStateAction<Edge[]>>;
-  setLocalNodes: React.Dispatch<React.SetStateAction<LocalNode[]>>;
-  setLocalEdges: React.Dispatch<React.SetStateAction<LocalEdge[]>>;
-  setLoadedFromIdb: React.Dispatch<React.SetStateAction<boolean>>;
-}) {
+}: UseRestoreWorkflowProps) {
   useEffect(() => {
     (async () => {
       const [idbNodes, idbEdges, idbDraftNodes, idbDraftEdges] =
@@ -150,8 +155,8 @@ export function useNodeHandlers({
   setNodes,
   setLocalNodes,
 }: {
-  setNodes: React.Dispatch<React.SetStateAction<Node[]>>;
-  setLocalNodes: React.Dispatch<React.SetStateAction<LocalNode[]>>;
+  setNodes: Dispatch<SetStateAction<Node[]>>;
+  setLocalNodes: Dispatch<SetStateAction<LocalNode[]>>;
 }) {
   return useCallback(
     (changes: NodeChange[]) => {
@@ -176,7 +181,7 @@ export function useNodeHandlers({
 export function useEdgeHandlers({
   setEdges,
 }: {
-  setEdges: React.Dispatch<React.SetStateAction<Edge[]>>;
+  setEdges: Dispatch<SetStateAction<Edge[]>>;
 }) {
   return useCallback(
     (changes: EdgeChange[]) =>
@@ -190,8 +195,8 @@ export function useConnectHandler({
   setLocalEdges,
   idbDraftEdgesKey,
 }: {
-  setEdges: React.Dispatch<React.SetStateAction<Edge[]>>;
-  setLocalEdges: React.Dispatch<React.SetStateAction<LocalEdge[]>>;
+  setEdges: Dispatch<SetStateAction<Edge[]>>;
+  setLocalEdges: Dispatch<SetStateAction<LocalEdge[]>>;
   idbDraftEdgesKey: string;
 }) {
   return useCallback(

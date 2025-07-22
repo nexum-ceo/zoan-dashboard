@@ -11,15 +11,16 @@ import {
   Type,
   X,
 } from 'lucide-react';
+import type { FC } from 'react';
 import { ReactNode } from 'react';
 
-interface SidebarItemProps {
+type SidebarItemProps = {
   icon: ReactNode;
   title?: string;
   onClick?: () => void;
-}
+};
 
-const SidebarItem = ({ icon, title, onClick }: SidebarItemProps) => (
+const SidebarItem: FC<SidebarItemProps> = ({ icon, title, onClick }) => (
   <button
     className="w-10 h-10 flex items-center justify-center rounded-lg hover:bg-gray-100 transition-colors cursor-pointer text-gray-600 hover:text-gray-900"
     title={title}
@@ -29,13 +30,11 @@ const SidebarItem = ({ icon, title, onClick }: SidebarItemProps) => (
   </button>
 );
 
-const SidebarSection = ({
-  title,
-  children,
-}: {
+type SidebarSectionProps = {
   title: string;
   children: ReactNode;
-}) => (
+};
+const SidebarSection: FC<SidebarSectionProps> = ({ title, children }) => (
   <div className="mb-8">
     <h3 className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3 px-2">
       {title}
@@ -44,11 +43,12 @@ const SidebarSection = ({
   </div>
 );
 
-export function WorkflowLeftSideBar({
-  onAddNode,
-}: {
+type WorkflowLeftSideBarProps = {
   onAddNode: (type: string) => void;
-}) {
+};
+export const WorkflowLeftSideBar: FC<WorkflowLeftSideBarProps> = ({
+  onAddNode,
+}) => {
   return (
     <aside className="fixed left-0 top-16 w-20 h-[calc(100vh-4rem)] bg-white border-r border-gray-200 z-50 flex flex-col">
       {/* Blue accent line */}
@@ -114,4 +114,4 @@ export function WorkflowLeftSideBar({
       </div>
     </aside>
   );
-}
+};

@@ -1,19 +1,20 @@
 'use client';
 import { Button } from '@/components/ui/button';
+import type { FC } from 'react';
 
-interface WorkflowHeaderProps {
+type WorkflowHeaderProps = {
   name?: string;
   onClose?: () => void;
   onSave?: () => void;
   saving?: boolean;
-}
+};
 
-export function WorkflowHeader({
+export const WorkflowHeader: FC<WorkflowHeaderProps> = ({
   name = 'Daniel',
   onClose,
   onSave,
   saving,
-}: WorkflowHeaderProps) {
+}) => {
   return (
     <header className="fixed top-0 left-0 right-0 h-[60px] bg-white border-b border-zinc-200 z-[1001] flex items-center justify-between px-4">
       {/* Left side */}
@@ -70,4 +71,4 @@ export function WorkflowHeader({
       </div>
     </header>
   );
-}
+};

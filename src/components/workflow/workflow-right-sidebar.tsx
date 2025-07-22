@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Switch } from '@/components/ui/switch';
 import { Textarea } from '@/components/ui/textarea';
 import { TabType } from '@/types/workflow';
+import { Node } from '@xyflow/react';
 import {
   Bold,
   Italic,
@@ -13,19 +14,20 @@ import {
   Underline,
   X,
 } from 'lucide-react';
+import type { FC } from 'react';
 import { useState } from 'react';
 
-interface RightSidebarProps {
+type RightSidebarProps = {
   isOpen: boolean;
   onClose: () => void;
-  selectedNode?: any;
-}
+  selectedNode?: Node;
+};
 
-export function WorkflowRightSideBar({
+export const WorkflowRightSideBar: FC<RightSidebarProps> = ({
   isOpen,
   onClose,
   selectedNode,
-}: RightSidebarProps) {
+}) => {
   const [activeTab, setActiveTab] = useState<TabType>('Setting');
   const [message, setMessage] = useState<string>(
     '👋 Hello! How can I help you today?',
@@ -167,4 +169,4 @@ export function WorkflowRightSideBar({
       </div>
     </aside>
   );
-}
+};
