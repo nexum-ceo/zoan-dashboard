@@ -20,6 +20,7 @@ import {
   ReactFlow,
 } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
+import { del as idbDel, get as idbGet, set as idbSet } from 'idb-keyval';
 import { useCallback, useEffect, useState } from 'react';
 import { toast } from 'sonner';
 import { v4 as uuidv4 } from 'uuid';
@@ -48,6 +49,10 @@ interface LocalNode {
 }
 
 export default function Flow({ onClose, workflowId, workflowName }: FlowProps) {
+  // IndexedDB keys (move inside function)
+  const idbNodesKey = `flow_fullNodes_${workflowId}`;
+  const idbEdgesKey = `flow_fullEdges_${workflowId}`;
+
   const [nodes, setNodes] = useState<Node[]>([]);
   const [edges, setEdges] = useState<Edge[]>([]);
   const [selectedNode, setSelectedNode] = useState<Node | null>(null);
@@ -56,15 +61,39 @@ export default function Flow({ onClose, workflowId, workflowName }: FlowProps) {
   const [localNodes, setLocalNodes] = useState<LocalNode[]>([]);
   const [localEdges, setLocalEdges] = useState<LocalEdge[]>([]);
   const [hasLocalChange, setHasLocalChange] = useState<boolean>(false);
+  // Track if loaded from idb
+  const [loadedFromIdb, setLoadedFromIdb] = useState<boolean>(false);
 
+  // Persist full workflow (nodes, edges) to IndexedDB on any change
   useEffect(() => {
     setHasLocalChange(localNodes.length > 0 || localEdges.length > 0);
-  }, [localNodes, localEdges]);
+    // Save full nodes and edges (including local changes) to idb
+    idbSet(idbNodesKey, nodes);
+    idbSet(idbEdgesKey, edges);
+  }, [nodes, edges, localNodes, localEdges]);
 
+  // On mount, restore full workflow from IndexedDB, if not exist then fetch from server
   useEffect(() => {
-    fetchWorkflowProcess();
+    (async () => {
+      const [idbNodes, idbEdges] = await Promise.all([
+        idbGet(idbNodesKey),
+        idbGet(idbEdgesKey),
+      ]);
+      if (
+        Array.isArray(idbNodes) &&
+        idbNodes.length > 0 &&
+        Array.isArray(idbEdges)
+      ) {
+        setNodes(idbNodes);
+        setEdges(idbEdges);
+        setLoadedFromIdb(true);
+      } else {
+        setLoadedFromIdb(false);
+        fetchWorkflowProcess();
+      }
+    })();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [workflowId]);
+  }, [workflowId, idbNodesKey, idbEdgesKey]);
 
   // --- API FETCH ---
   const fetchWorkflowProcess = async (): Promise<void> => {
@@ -75,28 +104,26 @@ export default function Flow({ onClose, workflowId, workflowName }: FlowProps) {
       const res = await fetch(`/api/workflow-process/${workflowId}`);
       const data = await res.json();
       if (res.ok && data && Array.isArray(data.nodes)) {
-        setNodes(
-          data.nodes.map(
-            (n: any): Node => ({
-              id: n.id,
-              position: n.position || { x: 0, y: 0 },
-              data: { label: n.name, ...n },
-              type: 'baseHandleCustom',
-            }),
-          ),
+        const nodesRF = data.nodes.map(
+          (n: any): Node => ({
+            id: n.id,
+            position: n.position || { x: 0, y: 0 },
+            data: { label: n.name, ...n },
+            type: 'baseHandleCustom',
+          }),
         );
-        setEdges(
-          Array.isArray(data.connections)
-            ? data.connections.map(
-                (c: any): Edge => ({
-                  id: c.id,
-                  source: c.from_node_id,
-                  target: c.to_node_id,
-                  type: 'default',
-                }),
-              )
-            : [],
-        );
+        const edgesRF = Array.isArray(data.connections)
+          ? data.connections.map(
+              (c: any): Edge => ({
+                id: c.id,
+                source: c.from_node_id,
+                target: c.to_node_id,
+                type: 'default',
+              }),
+            )
+          : [];
+        setNodes(nodesRF);
+        setEdges(edgesRF);
         setLocalEdges(
           (data.connections || []).map(
             (c: any): LocalEdge => ({
@@ -108,11 +135,16 @@ export default function Flow({ onClose, workflowId, workflowName }: FlowProps) {
           ),
         );
         setHasLocalChange(false);
+        // Save to idb for next time
+        idbSet(idbNodesKey, nodesRF);
+        idbSet(idbEdgesKey, edgesRF);
       } else {
         setNodes([]);
         setEdges([]);
         setLocalEdges([]);
         setHasLocalChange(false);
+        idbSet(idbNodesKey, []);
+        idbSet(idbEdgesKey, []);
       }
     } catch {
       setError('Error fetching workflow-process');
@@ -120,6 +152,8 @@ export default function Flow({ onClose, workflowId, workflowName }: FlowProps) {
       setEdges([]);
       setLocalEdges([]);
       setHasLocalChange(false);
+      idbSet(idbNodesKey, []);
+      idbSet(idbEdgesKey, []);
     } finally {
       setLoading(false);
     }
@@ -148,27 +182,32 @@ export default function Flow({ onClose, workflowId, workflowName }: FlowProps) {
     [],
   );
 
-  const onConnect = useCallback((params: Connection) => {
-    setEdges((eds) => addEdge(params, eds));
-    setLocalEdges((prev) => {
-      const exists = prev.some(
-        (edge) =>
-          edge.from_node_id === params.source &&
-          edge.to_node_id === params.target,
-      );
-      if (exists) return prev;
-      return [
-        ...prev,
-        {
-          id: uuidv4(),
-          from_node_id: params.source,
-          to_node_id: params.target,
-          type: 'default',
-          isNew: true,
-        },
-      ];
-    });
-  }, []);
+  const onConnect = useCallback(
+    (params: Connection) => {
+      setEdges((eds) => addEdge(params, eds));
+      setLocalEdges((prev) => {
+        const exists = prev.some(
+          (edge) =>
+            edge.from_node_id === params.source &&
+            edge.to_node_id === params.target,
+        );
+        if (exists) return prev;
+        const next = [
+          ...prev,
+          {
+            id: uuidv4(),
+            from_node_id: params.source,
+            to_node_id: params.target,
+            type: 'default',
+            isNew: true,
+          },
+        ];
+        idbSet(idbEdgesKey, next);
+        return next;
+      });
+    },
+    [idbEdgesKey],
+  );
 
   const addNewNode = () => {
     let nodeId = uuidv4();
@@ -193,12 +232,17 @@ export default function Flow({ onClose, workflowId, workflowName }: FlowProps) {
       data: { label: nodeName, ...newNodeBE },
       type: 'baseHandleCustom',
     };
-    setLocalNodes((prev) => [...prev, newNodeBE]);
+    setLocalNodes((prev) => {
+      const next = [...prev, newNodeBE];
+      idbSet(idbNodesKey, next);
+      return next;
+    });
     setNodes((prev) => [...prev, newNodeRF]);
     setHasLocalChange(true);
   };
 
   const handleSaveChanges = async () => {
+    // Clear IDB before/after successful save
     setLoading(true);
     try {
       // Save only new connections if no new nodes
@@ -216,6 +260,8 @@ export default function Flow({ onClose, workflowId, workflowName }: FlowProps) {
         if (newConnections.length === 0) {
           toast.info('No new connections to save.');
           setLoading(false);
+          await idbDel(idbEdgesKey);
+          await idbDel(idbNodesKey);
           return;
         }
         const res = await fetch('/api/workflow-process', {
@@ -227,6 +273,8 @@ export default function Flow({ onClose, workflowId, workflowName }: FlowProps) {
           toast.success('Successfully saved new connections!');
           setHasLocalChange(false);
           setLocalEdges([]);
+          await idbDel(idbEdgesKey);
+          await idbDel(idbNodesKey);
           fetchWorkflowProcess();
         } else {
           toast.error('Failed to save new connections!');
@@ -238,6 +286,8 @@ export default function Flow({ onClose, workflowId, workflowName }: FlowProps) {
       if (localNodes.length === 0) {
         toast.info('No new nodes or connections to save.');
         setLoading(false);
+        await idbDel(idbEdgesKey);
+        await idbDel(idbNodesKey);
         return;
       }
       const newConnections = localEdges
@@ -262,6 +312,8 @@ export default function Flow({ onClose, workflowId, workflowName }: FlowProps) {
         setHasLocalChange(false);
         setLocalNodes([]);
         setLocalEdges([]);
+        await idbDel(idbEdgesKey);
+        await idbDel(idbNodesKey);
         fetchWorkflowProcess();
       } else {
         toast.error('Failed to save new nodes!');
