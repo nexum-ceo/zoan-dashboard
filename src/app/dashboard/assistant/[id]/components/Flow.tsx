@@ -65,19 +65,29 @@ export default function Flow({ onClose, workflowId, workflowName }: FlowProps) {
   const [hasLocalChange, setHasLocalChange] = useState<boolean>(false);
   // Track if loaded from idb
   const [loadedFromIdb, setLoadedFromIdb] = useState<boolean>(false);
+  console.log('loadedFromIdb', loadedFromIdb);
 
   // Persist full workflow (nodes, edges) and draft (localNodes, localEdges) to IndexedDB on any change
+  const [initialized, setInitialized] = useState(false);
   useEffect(() => {
+    if (!initialized) {
+      setInitialized(true);
+      return;
+    }
     setHasLocalChange(localNodes.length > 0 || localEdges.length > 0);
     // Save full workflow
     if (loadedFromIdb || (!loadedFromIdb && nodes.length > 0)) {
       idbSet(idbNodesKey, nodes);
       idbSet(idbEdgesKey, edges);
     }
-    // Save draft
-    idbSet(idbDraftNodesKey, localNodes);
-    idbSet(idbDraftEdgesKey, localEdges);
-  }, [nodes, edges, localNodes, localEdges, loadedFromIdb]);
+    // Chỉ lưu draft khi thực sự có thay đổi
+    if (localNodes.length > 0) {
+      idbSet(idbDraftNodesKey, localNodes);
+    }
+    if (localEdges.length > 0) {
+      idbSet(idbDraftEdgesKey, localEdges);
+    }
+  }, [nodes, edges, localNodes, localEdges, loadedFromIdb, initialized]);
 
   // On mount, restore full workflow and draft from IndexedDB, nếu không có thì mới fetch từ server
   useEffect(() => {
@@ -90,6 +100,7 @@ export default function Flow({ onClose, workflowId, workflowName }: FlowProps) {
           idbGet(idbDraftEdgesKey),
         ]);
       let loaded = false;
+      // Chỉ set nodes/edges cho ReactFlow, giữ draftNodes/draftEdges riêng
       if (
         Array.isArray(idbNodes) &&
         idbNodes.length > 0 &&
@@ -98,15 +109,13 @@ export default function Flow({ onClose, workflowId, workflowName }: FlowProps) {
         setNodes(idbNodes);
         setEdges(idbEdges);
         loaded = true;
+      } else {
+        setNodes([]);
+        setEdges([]);
       }
-      if (Array.isArray(idbDraftNodes) && idbDraftNodes.length > 0) {
-        setLocalNodes(idbDraftNodes);
-        loaded = true;
-      }
-      if (Array.isArray(idbDraftEdges) && idbDraftEdges.length > 0) {
-        setLocalEdges(idbDraftEdges);
-        loaded = true;
-      }
+      // Luôn giữ draftNodes/draftEdges riêng để kiểm tra trạng thái
+      setLocalNodes(Array.isArray(idbDraftNodes) ? idbDraftNodes : []);
+      setLocalEdges(Array.isArray(idbDraftEdges) ? idbDraftEdges : []);
       setLoadedFromIdb(loaded);
       if (!loaded) {
         fetchWorkflowProcess();
@@ -266,12 +275,18 @@ export default function Flow({ onClose, workflowId, workflowName }: FlowProps) {
       data: { label: nodeName, ...newNodeBE },
       type: 'baseHandleCustom',
     };
+    // Thêm vào draftNodes và lưu vào idbDraftNodes
     setLocalNodes((prev) => {
       const next = [...prev, newNodeBE];
       idbSet(idbDraftNodesKey, next);
       return next;
     });
-    setNodes((prev) => [...prev, newNodeRF]);
+    // Thêm vào full nodes và lưu vào idbNodes
+    setNodes((prev) => {
+      const next = [...prev, newNodeRF];
+      idbSet(idbNodesKey, next);
+      return next;
+    });
     setHasLocalChange(true);
   };
 
