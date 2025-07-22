@@ -129,16 +129,13 @@ export default function Flow({ onClose, workflowId, workflowName }: FlowProps) {
   const onConnect = useCallback(
     (params: Connection) => {
       setEdges((eds) => addEdge(params, eds));
-      // Track connection if either source or target is a new node (in localNodes)
+      // Track any new connection created in the UI, regardless of node type
       setLocalEdges((prev) => {
-        const isSourceNew = localNodes.some((n) => n.id === params.source);
-        const isTargetNew = localNodes.some((n) => n.id === params.target);
-        // Only add if not already present in prev
         const alreadyExists = prev.some(
           (e) =>
             e.from_node_id === params.source && e.to_node_id === params.target,
         );
-        if ((isSourceNew || isTargetNew) && !alreadyExists) {
+        if (!alreadyExists) {
           const connId = uuidv4();
           return [
             ...prev,
@@ -201,17 +198,24 @@ export default function Flow({ onClose, workflowId, workflowName }: FlowProps) {
   const handleSaveChanges = async () => {
     setLoading(true);
     try {
-      // If only new connections (localEdges) exist and no new nodes, send only connections
+      // If only new connections (localEdges) exist and no new nodes, send only new connections
       if (localNodes.length === 0 && localEdges.length > 0) {
-        // Map localEdges to BE format
-        const newConnections = localEdges.map((c) => ({
-          id: uuidv4(),
-          from_node_id: c.from_node_id,
-          to_node_id: c.to_node_id,
-          condition: {},
-          created_at: '0001-01-01T00:00:00Z',
-          updated_at: '0001-01-01T00:00:00Z',
-        }));
+        // Only send connections marked as new
+        const newConnections = localEdges
+          .filter((c) => c.isNew)
+          .map((c) => ({
+            id: uuidv4(),
+            from_node_id: c.from_node_id,
+            to_node_id: c.to_node_id,
+            condition: {},
+            created_at: '0001-01-01T00:00:00Z',
+            updated_at: '0001-01-01T00:00:00Z',
+          }));
+        if (newConnections.length === 0) {
+          toast.info('No new connections to save.');
+          setLoading(false);
+          return;
+        }
         const res = await fetch('/api/workflow-process', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
