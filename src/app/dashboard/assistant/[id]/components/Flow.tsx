@@ -52,6 +52,8 @@ export default function Flow({ onClose, workflowId, workflowName }: FlowProps) {
   // IndexedDB keys (move inside function)
   const idbNodesKey = `flow_fullNodes_${workflowId}`;
   const idbEdgesKey = `flow_fullEdges_${workflowId}`;
+  const idbDraftNodesKey = `flow_draftNodes_${workflowId}`;
+  const idbDraftEdgesKey = `flow_draftEdges_${workflowId}`;
 
   const [nodes, setNodes] = useState<Node[]>([]);
   const [edges, setEdges] = useState<Edge[]>([]);
@@ -64,23 +66,30 @@ export default function Flow({ onClose, workflowId, workflowName }: FlowProps) {
   // Track if loaded from idb
   const [loadedFromIdb, setLoadedFromIdb] = useState<boolean>(false);
 
-  // Persist full workflow (nodes, edges) to IndexedDB on any change
+  // Persist full workflow (nodes, edges) and draft (localNodes, localEdges) to IndexedDB on any change
   useEffect(() => {
     setHasLocalChange(localNodes.length > 0 || localEdges.length > 0);
-    // Chỉ lưu vào idb nếu đã load từ idb hoặc vừa fetch từ server (tránh ghi đè khi chưa load xong)
+    // Lưu full workflow
     if (loadedFromIdb || (!loadedFromIdb && nodes.length > 0)) {
       idbSet(idbNodesKey, nodes);
       idbSet(idbEdgesKey, edges);
     }
+    // Lưu draft
+    idbSet(idbDraftNodesKey, localNodes);
+    idbSet(idbDraftEdgesKey, localEdges);
   }, [nodes, edges, localNodes, localEdges, loadedFromIdb]);
 
-  // On mount, restore full workflow from IndexedDB, nếu không có thì mới fetch từ server
+  // On mount, restore full workflow and draft from IndexedDB, nếu không có thì mới fetch từ server
   useEffect(() => {
     (async () => {
-      const [idbNodes, idbEdges] = await Promise.all([
-        idbGet(idbNodesKey),
-        idbGet(idbEdgesKey),
-      ]);
+      const [idbNodes, idbEdges, idbDraftNodes, idbDraftEdges] =
+        await Promise.all([
+          idbGet(idbNodesKey),
+          idbGet(idbEdgesKey),
+          idbGet(idbDraftNodesKey),
+          idbGet(idbDraftEdgesKey),
+        ]);
+      let loaded = false;
       if (
         Array.isArray(idbNodes) &&
         idbNodes.length > 0 &&
@@ -88,19 +97,34 @@ export default function Flow({ onClose, workflowId, workflowName }: FlowProps) {
       ) {
         setNodes(idbNodes);
         setEdges(idbEdges);
-        setLoadedFromIdb(true);
-      } else {
-        setLoadedFromIdb(false);
+        loaded = true;
+      }
+      if (Array.isArray(idbDraftNodes) && idbDraftNodes.length > 0) {
+        setLocalNodes(idbDraftNodes);
+        loaded = true;
+      }
+      if (Array.isArray(idbDraftEdges) && idbDraftEdges.length > 0) {
+        setLocalEdges(idbDraftEdges);
+        loaded = true;
+      }
+      setLoadedFromIdb(loaded);
+      if (!loaded) {
         fetchWorkflowProcess();
       }
     })();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [workflowId, idbNodesKey, idbEdgesKey]);
+  }, [
+    workflowId,
+    idbNodesKey,
+    idbEdgesKey,
+    idbDraftNodesKey,
+    idbDraftEdgesKey,
+  ]);
 
   // --- API FETCH ---
   const fetchWorkflowProcess = async (): Promise<void> => {
     if (!workflowId) return;
-    // Nếu đã load từ idb thì không fetch nữa
+    // If already loaded from idb, skip fetch
     if (loadedFromIdb) return;
     setLoading(true);
     setError(null);
@@ -212,11 +236,11 @@ export default function Flow({ onClose, workflowId, workflowName }: FlowProps) {
             isNew: true,
           },
         ];
-        idbSet(idbEdgesKey, next);
+        idbSet(idbDraftEdgesKey, next);
         return next;
       });
     },
-    [idbEdgesKey],
+    [idbDraftEdgesKey],
   );
 
   const addNewNode = () => {
@@ -244,7 +268,7 @@ export default function Flow({ onClose, workflowId, workflowName }: FlowProps) {
     };
     setLocalNodes((prev) => {
       const next = [...prev, newNodeBE];
-      idbSet(idbNodesKey, next);
+      idbSet(idbDraftNodesKey, next);
       return next;
     });
     setNodes((prev) => [...prev, newNodeRF]);
@@ -270,8 +294,8 @@ export default function Flow({ onClose, workflowId, workflowName }: FlowProps) {
         if (newConnections.length === 0) {
           toast.info('No new connections to save.');
           setLoading(false);
-          await idbDel(idbEdgesKey);
-          await idbDel(idbNodesKey);
+          await idbDel(idbDraftEdgesKey);
+          await idbDel(idbDraftNodesKey);
           return;
         }
         const res = await fetch('/api/workflow-process', {
@@ -283,8 +307,8 @@ export default function Flow({ onClose, workflowId, workflowName }: FlowProps) {
           toast.success('Successfully saved new connections!');
           setHasLocalChange(false);
           setLocalEdges([]);
-          await idbDel(idbEdgesKey);
-          await idbDel(idbNodesKey);
+          await idbDel(idbDraftEdgesKey);
+          await idbDel(idbDraftNodesKey);
           fetchWorkflowProcess();
         } else {
           toast.error('Failed to save new connections!');
@@ -296,8 +320,8 @@ export default function Flow({ onClose, workflowId, workflowName }: FlowProps) {
       if (localNodes.length === 0) {
         toast.info('No new nodes or connections to save.');
         setLoading(false);
-        await idbDel(idbEdgesKey);
-        await idbDel(idbNodesKey);
+        await idbDel(idbDraftEdgesKey);
+        await idbDel(idbDraftNodesKey);
         return;
       }
       const newConnections = localEdges
@@ -322,8 +346,8 @@ export default function Flow({ onClose, workflowId, workflowName }: FlowProps) {
         setHasLocalChange(false);
         setLocalNodes([]);
         setLocalEdges([]);
-        await idbDel(idbEdgesKey);
-        await idbDel(idbNodesKey);
+        await idbDel(idbDraftEdgesKey);
+        await idbDel(idbDraftNodesKey);
         fetchWorkflowProcess();
       } else {
         toast.error('Failed to save new nodes!');
