@@ -42,6 +42,10 @@ export default function Flow({ onClose, workflowId, workflowName }: FlowProps) {
   const [localNodes, setLocalNodes] = useState<any[]>([]);
   const [localEdges, setLocalEdges] = useState<any[]>([]);
   const [hasLocalChange, setHasLocalChange] = useState(false);
+  // Enable Save button if there are new nodes or new connections
+  useEffect(() => {
+    setHasLocalChange(localNodes.length > 0 || localEdges.length > 0);
+  }, [localNodes, localEdges]);
   // Fetch workflow-process data from API
   // Move fetchWorkflowProcess to the top level so it can be reused
   const fetchWorkflowProcess = async () => {
@@ -125,12 +129,16 @@ export default function Flow({ onClose, workflowId, workflowName }: FlowProps) {
   const onConnect = useCallback(
     (params: Connection) => {
       setEdges((eds) => addEdge(params, eds));
-      // Only track connection if both source and target are new nodes (in localNodes)
+      // Track connection if either source or target is a new node (in localNodes)
       setLocalEdges((prev) => {
         const isSourceNew = localNodes.some((n) => n.id === params.source);
         const isTargetNew = localNodes.some((n) => n.id === params.target);
-        if (isSourceNew && isTargetNew) {
-          // Generate a unique id for the connection
+        // Only add if not already present in prev
+        const alreadyExists = prev.some(
+          (e) =>
+            e.from_node_id === params.source && e.to_node_id === params.target,
+        );
+        if ((isSourceNew || isTargetNew) && !alreadyExists) {
           const connId = uuidv4();
           return [
             ...prev,
@@ -139,6 +147,7 @@ export default function Flow({ onClose, workflowId, workflowName }: FlowProps) {
               from_node_id: params.source,
               to_node_id: params.target,
               type: 'default',
+              isNew: true, // mark as new connection
             },
           ];
         }
@@ -192,20 +201,45 @@ export default function Flow({ onClose, workflowId, workflowName }: FlowProps) {
   const handleSaveChanges = async () => {
     setLoading(true);
     try {
-      if (localNodes.length === 0) {
-        toast.info('No new nodes to save.');
+      // If only new connections (localEdges) exist and no new nodes, send only connections
+      if (localNodes.length === 0 && localEdges.length > 0) {
+        // Map localEdges to BE format
+        const newConnections = localEdges.map((c) => ({
+          id: uuidv4(),
+          from_node_id: c.from_node_id,
+          to_node_id: c.to_node_id,
+          condition: {},
+          created_at: '0001-01-01T00:00:00Z',
+          updated_at: '0001-01-01T00:00:00Z',
+        }));
+        const res = await fetch('/api/workflow-process', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            connections: newConnections,
+            triggers: [],
+          }),
+        });
+        if (res.ok) {
+          toast.success('Successfully saved new connections!');
+          setHasLocalChange(false);
+          setLocalEdges([]);
+          fetchWorkflowProcess();
+        } else {
+          toast.error('Failed to save new connections!');
+        }
         setLoading(false);
         return;
       }
-      // Only send connections where both source and target are new nodes
-      const newNodeIds = localNodes.map((n) => n.id);
-      // Map localEdges to BE format: { workflow_id, from_node_id, to_node_id, condition }
+      // If new nodes exist, send nodes and connections as before
+      if (localNodes.length === 0) {
+        toast.info('No new nodes or connections to save.');
+        setLoading(false);
+        return;
+      }
+      // Only send connections created in this session (isNew)
       const newConnections = localEdges
-        .filter(
-          (c) =>
-            newNodeIds.includes(c.from_node_id) &&
-            newNodeIds.includes(c.to_node_id),
-        )
+        .filter((c) => c.isNew)
         .map((c) => ({
           workflow_id: workflowId,
           from_node_id: c.from_node_id,
