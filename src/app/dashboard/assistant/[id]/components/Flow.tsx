@@ -67,12 +67,14 @@ export default function Flow({ onClose, workflowId, workflowName }: FlowProps) {
   // Persist full workflow (nodes, edges) to IndexedDB on any change
   useEffect(() => {
     setHasLocalChange(localNodes.length > 0 || localEdges.length > 0);
-    // Save full nodes and edges (including local changes) to idb
-    idbSet(idbNodesKey, nodes);
-    idbSet(idbEdgesKey, edges);
-  }, [nodes, edges, localNodes, localEdges]);
+    // Chỉ lưu vào idb nếu đã load từ idb hoặc vừa fetch từ server (tránh ghi đè khi chưa load xong)
+    if (loadedFromIdb || (!loadedFromIdb && nodes.length > 0)) {
+      idbSet(idbNodesKey, nodes);
+      idbSet(idbEdgesKey, edges);
+    }
+  }, [nodes, edges, localNodes, localEdges, loadedFromIdb]);
 
-  // On mount, restore full workflow from IndexedDB, if not exist then fetch from server
+  // On mount, restore full workflow from IndexedDB, nếu không có thì mới fetch từ server
   useEffect(() => {
     (async () => {
       const [idbNodes, idbEdges] = await Promise.all([
@@ -98,6 +100,8 @@ export default function Flow({ onClose, workflowId, workflowName }: FlowProps) {
   // --- API FETCH ---
   const fetchWorkflowProcess = async (): Promise<void> => {
     if (!workflowId) return;
+    // Nếu đã load từ idb thì không fetch nữa
+    if (loadedFromIdb) return;
     setLoading(true);
     setError(null);
     try {
@@ -136,15 +140,19 @@ export default function Flow({ onClose, workflowId, workflowName }: FlowProps) {
         );
         setHasLocalChange(false);
         // Save to idb for next time
-        idbSet(idbNodesKey, nodesRF);
-        idbSet(idbEdgesKey, edgesRF);
+        if (!loadedFromIdb) {
+          idbSet(idbNodesKey, nodesRF);
+          idbSet(idbEdgesKey, edgesRF);
+        }
       } else {
         setNodes([]);
         setEdges([]);
         setLocalEdges([]);
         setHasLocalChange(false);
-        idbSet(idbNodesKey, []);
-        idbSet(idbEdgesKey, []);
+        if (!loadedFromIdb) {
+          idbSet(idbNodesKey, []);
+          idbSet(idbEdgesKey, []);
+        }
       }
     } catch {
       setError('Error fetching workflow-process');
@@ -152,8 +160,10 @@ export default function Flow({ onClose, workflowId, workflowName }: FlowProps) {
       setEdges([]);
       setLocalEdges([]);
       setHasLocalChange(false);
-      idbSet(idbNodesKey, []);
-      idbSet(idbEdgesKey, []);
+      if (!loadedFromIdb) {
+        idbSet(idbNodesKey, []);
+        idbSet(idbEdgesKey, []);
+      }
     } finally {
       setLoading(false);
     }
