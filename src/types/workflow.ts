@@ -6,7 +6,7 @@ export type WorkflowNode = {
   position?: { x: number; y: number };
   type?: string;
   workflow_id?: string;
-  config?: Record<string, unknown>;
+  config?: Record<string, string>;
 };
 
 export type WorkflowConnection = {
@@ -14,7 +14,7 @@ export type WorkflowConnection = {
   from_node_id: string;
   to_node_id: string;
   type?: string;
-  condition?: Record<string, unknown>;
+  condition?: Record<string, string>;
   created_at?: string;
   updated_at?: string;
 };
