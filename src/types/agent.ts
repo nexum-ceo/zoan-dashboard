@@ -1,43 +1,44 @@
 import { z } from 'zod';
 
-export type WorkflowNode = {
-  id: string;
-  name: string;
-  position?: { x: number; y: number };
-  type?: string;
-  workflow_id?: string;
-  config?: Record<string, string>;
-};
-
-export type WorkflowConnection = {
-  id: string;
-  from_node_id: string;
-  to_node_id: string;
-  type?: string;
-  condition?: Record<string, string>;
-  created_at?: string;
-  updated_at?: string;
-};
-
-export type TabType = 'Setting' | 'Introduction';
-
-export const WorkflowSchema = z.object({
+export const AgentSchema = z.object({
   id: z.string(),
-  name: z.string(),
-  publish_version: z.string().optional(),
-  trigger_condition: z.string().optional(),
-  status: z.string().optional(),
-  description: z.string().optional(),
-  is_active: z.boolean().optional(),
-  created_at: z.string().optional(),
-  updated_at: z.string().optional(),
-});
-
-export type WorkflowType = z.infer<typeof WorkflowSchema>;
-
-export const CreateWorkflowSchema = z.object({
+  user_id: z.string(),
   name: z.string(),
   description: z.string(),
+  prompt: z.string(),
+  model: z.string(),
+  response_format: z.string(),
+  temperature: z.number(),
+  top_p: z.number(),
+  created_at: z.string(),
+  updated_at: z.string(),
 });
 
-export type CreateWorkflowType = z.infer<typeof CreateWorkflowSchema>;
+export const GetAgentResSchema = z.object({
+  status: z.string(),
+  message: z.string(),
+  data: z.array(AgentSchema),
+});
+
+export type AgentItemType = z.infer<typeof AgentSchema>;
+export type GetAgentResType = z.infer<typeof GetAgentResSchema>;
+
+export const CreateAgentBodySchema = z.object({
+  name: z.string(),
+  description: z.string(),
+  prompt: z.string(),
+  model: z.string(),
+  response_format: z.string(),
+  temperature: z.number(),
+  top_p: z.number(),
+});
+
+export type CreateAgentBodyType = z.infer<typeof CreateAgentBodySchema>;
+
+export const CreateAgentResSchema = z.object({
+  status: z.string(),
+  message: z.string(),
+  data: AgentSchema,
+});
+
+export type CreateAgentResType = z.infer<typeof CreateAgentResSchema>;

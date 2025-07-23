@@ -8,15 +8,40 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import { AGENT_LIST } from '@/const/agent';
+import { formatDate } from '@/lib/date';
+import { AgentItemType, GetAgentResType } from '@/types/agent';
 import { useRouter } from 'next/navigation';
+import { useEffect, useState } from 'react';
 
 export default function AssistantPage() {
   const router = useRouter();
+  const [agents, setAgents] = useState<AgentItemType[]>([]);
+  const [loading, setLoading] = useState<boolean>(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    const fetchAgents = async () => {
+      try {
+        const res = await fetch('/api/agent');
+        const data: GetAgentResType = await res.json();
+        if (data.status === 'success') {
+          setAgents(data.data);
+        } else {
+          setError(data.message || 'Failed to fetch agents');
+        }
+      } catch (err: any) {
+        setError(err?.message || 'Fetch failed');
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchAgents();
+  }, []);
 
   const handleClick = (agentId: string) => {
-    router.push(`/dashboard/assistant/${agentId}`); //  works like a Link but programmatically
+    router.push(`/dashboard/assistant/${agentId}`);
   };
+
   return (
     <div className="w-full h-full bg-sidebar rounded-lg border border-border flex flex-col">
       <div className="p-4 text-2xl font-semibold border-b border-border bg-white rounded-t-lg w-full">
@@ -36,19 +61,41 @@ export default function AssistantPage() {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {AGENT_LIST.map((agent) => (
-              <TableRow
-                key={agent.name}
-                onClick={() => handleClick(agent.id)}
-                className="cursor-pointer hover:bg-muted transition-colors"
-              >
-                <TableCell className="font-medium">{agent.id}</TableCell>
-                <TableCell className="font-medium">{agent.name}</TableCell>
-                <TableCell>{agent.description}</TableCell>
-                <TableCell>{agent.createdAt}</TableCell>
-                <TableCell className="text-right">{agent.updatedAt}</TableCell>
+            {loading ? (
+              <TableRow>
+                <TableCell colSpan={5} className="text-center">
+                  Loading...
+                </TableCell>
               </TableRow>
-            ))}
+            ) : error ? (
+              <TableRow>
+                <TableCell colSpan={5} className="text-center text-red-500">
+                  {error}
+                </TableCell>
+              </TableRow>
+            ) : agents.length === 0 ? (
+              <TableRow>
+                <TableCell colSpan={5} className="text-center">
+                  No agents found.
+                </TableCell>
+              </TableRow>
+            ) : (
+              agents.map((agent) => (
+                <TableRow
+                  key={agent.id}
+                  onClick={() => handleClick(agent.id)}
+                  className="cursor-pointer hover:bg-muted transition-colors"
+                >
+                  <TableCell className="font-medium">{agent.id}</TableCell>
+                  <TableCell className="font-medium">{agent.name}</TableCell>
+                  <TableCell>{agent.description}</TableCell>
+                  <TableCell>{formatDate(agent.created_at)}</TableCell>
+                  <TableCell className="text-right">
+                    {formatDate(agent.updated_at)}
+                  </TableCell>
+                </TableRow>
+              ))
+            )}
           </TableBody>
         </Table>
       </div>
