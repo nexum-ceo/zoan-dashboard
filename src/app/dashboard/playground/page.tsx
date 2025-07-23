@@ -104,16 +104,14 @@ export default function PlaygroundPage() {
 
         {/* Scroll to Bottom Button */}
         {showScrollButton && (
-          <div className="absolute bottom-32 left-1/2 transform -translate-x-1/2 z-10">
-            <Button
-              onClick={scrollToBottom}
-              size="sm"
-              className="bg-white hover:bg-gray-50 text-gray-700 border border-gray-200 shadow-lg hover:shadow-xl transition-all duration-200 rounded-full px-3 py-2"
-            >
-              <ArrowDown className="w-4 h-4 mr-1" />
-              Scroll to bottom
-            </Button>
-          </div>
+          <Button
+            type="button"
+            onClick={scrollToBottom}
+            className="absolute bottom-40 left-1/2 -translate-x-1/2 z-10 bg-gradient-to-r from-blue-500 to-purple-600 text-white rounded-full w-12 h-12 flex items-center justify-center shadow-lg hover:scale-110 transition-all"
+            aria-label="Scroll to bottom"
+          >
+            <ArrowDown className="w-6 h-6" />
+          </Button>
         )}
 
         {/* Input Area */}

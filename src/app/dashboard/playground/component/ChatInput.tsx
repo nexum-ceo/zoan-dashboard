@@ -1,11 +1,11 @@
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
 import { MessageSquare, Paperclip, Plus, Settings } from 'lucide-react';
 import { ChangeEvent, FC, FormEvent } from 'react';
 
 type ChatInputProps = {
   value: string;
-  onChange: (e: ChangeEvent<HTMLInputElement>) => void;
+  onChange: (e: ChangeEvent<HTMLTextAreaElement>) => void;
   onSubmit: (e: FormEvent<HTMLFormElement>) => void;
 };
 
@@ -16,7 +16,7 @@ export const ChatInput: FC<ChatInputProps> = ({
 }) => {
   return (
     <form onSubmit={onSubmit} className="w-full max-w-4xl mx-auto px-4 py-2">
-      <div className="flex flex-wrap sm:flex-nowrap items-center justify-between gap-2 border border-border rounded-xl bg-background shadow-sm px-3 py-2">
+      <div className="flex flex-wrap sm:flex-nowrap justify-between items-end gap-2 border border-border rounded-xl bg-background shadow-sm px-3 py-2">
         {/* Left Icons */}
         <div className="flex items-center gap-2">
           <Button variant="ghost" size="icon" type="button">
@@ -31,11 +31,15 @@ export const ChatInput: FC<ChatInputProps> = ({
         </div>
 
         {/* Chat Input */}
-        <Input
-          placeholder="Enter your message..."
-          className="flex-1 min-w-[180px] border-none focus-visible:ring-0 focus-visible:ring-offset-0"
+        <Textarea
+          placeholder="Ask me anything..."
+          className="flex-1 min-w-[180px] border-none focus-visible:ring-0 focus-visible:ring-offset-0 resize-none max-h-[105px] overflow-y-auto rounded-md bg-background px-3 py-2 text-sm"
+          style={{ lineHeight: '1.5' }}
           value={value}
-          onChange={onChange}
+          onChange={(e) => onChange(e)}
+          rows={3}
+          // minLength={1}
+          // maxLength={500}
         />
 
         {/* Right Buttons */}
