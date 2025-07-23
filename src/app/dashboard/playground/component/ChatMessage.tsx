@@ -1,6 +1,12 @@
 'use client';
 
 import { Button } from '@/components/ui/button';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from '@/components/ui/tooltip';
 import { Bot, Copy, ThumbsDown, ThumbsUp, User } from 'lucide-react';
 import { useState } from 'react';
 
@@ -85,21 +91,52 @@ export default function ChatMessage({
               onClick={copyToClipboard}
               className="h-7 px-2 text-gray-500 hover:text-gray-700"
             >
-              <Copy className="w-3 h-3" />
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={copyToClipboard}
+                    >
+                      <Copy className="w-3 h-3" />
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent>Copy</TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
             </Button>
             <Button
               variant="ghost"
               size="sm"
               className="h-7 px-2 text-gray-500 hover:text-gray-700"
             >
-              <ThumbsUp className="w-3 h-3" />
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button variant="ghost" size="icon">
+                      <ThumbsUp className="w-3 h-3" />
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent>Like</TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
             </Button>
             <Button
               variant="ghost"
               size="sm"
               className="h-7 px-2 text-gray-500 hover:text-gray-700"
             >
-              <ThumbsDown className="w-3 h-3" />
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button variant="ghost" size="icon">
+                      <ThumbsDown className="w-3 h-3" />
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent>Dislike</TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
             </Button>
           </div>
         )}
