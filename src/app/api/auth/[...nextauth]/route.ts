@@ -9,6 +9,7 @@ export const authOptions: NextAuthOptions = {
         authCode: { label: 'Auth Code', type: 'text' },
       },
       authorize: async (credentials) => {
+        console.log('Authorizing with credentials:', credentials?.authCode);
         const res = await fetch(
           `${process.env.NEXT_PUBLIC_API_URL}/auth/login`,
           {

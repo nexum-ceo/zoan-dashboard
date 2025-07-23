@@ -1,5 +1,6 @@
 import { AppSidebar } from '@/components/app-sidebar';
 import { SidebarProvider } from '@/components/ui/sidebar';
+import ZoanBaseLayout from '@/templates/ZoanBaseLayout';
 import type { Metadata } from 'next';
 import { Geist, Geist_Mono } from 'next/font/google';
 // import './globals.css';
@@ -25,15 +26,15 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    // <html lang="en">
     <div
-      className={`${geistSans.variable} ${geistMono.variable} antialiased h-full`}
+      className={`${geistSans.variable} ${geistMono.variable} antialiased min-h-screen h-screen w-screen flex flex-col m-0 p-0`}
     >
-      <SidebarProvider>
-        <AppSidebar />
-        <main className="w-full h-full p-4">{children}</main>
-      </SidebarProvider>
+      <ZoanBaseLayout>
+        <SidebarProvider>
+          <AppSidebar />
+          <main className="flex-1 w-full p-2 flex flex-col">{children}</main>
+        </SidebarProvider>
+      </ZoanBaseLayout>
     </div>
-    // </html>
   );
 }

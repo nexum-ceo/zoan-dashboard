@@ -1,4 +1,4 @@
-import AppNavbar from '@/components/app-navbar';
+import { Toaster } from '@/components/ui/sonner';
 import type { Metadata } from 'next';
 import { Geist, Geist_Mono } from 'next/font/google';
 import './globals.css';
@@ -26,14 +26,17 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased h-screen w-screen`}
+        className={`${geistSans.variable} ${geistMono.variable} antialiased min-h-screen h-full w-full m-0 p-0`}
       >
         {/* <SidebarProvider>
           <AppSidebar />
           <main className="w-full h-screen p-2">{children}</main>
         </SidebarProvider> */}
-        <AppNavbar />
-        {children}
+        {/* <AppNavbar /> */}
+        <main className="min-h-screen h-full w-full flex flex-col">
+          {children}
+        </main>
+        <Toaster />
       </body>
     </html>
   );
