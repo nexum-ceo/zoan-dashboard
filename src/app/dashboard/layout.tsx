@@ -32,7 +32,9 @@ export default function RootLayout({
       <ZoanBaseLayout>
         <SidebarProvider>
           <AppSidebar />
-          <main className="flex-1 w-full p-2 flex flex-col">{children}</main>
+          <main className="flex-1 w-full h-full p-2 flex flex-col">
+            {children}
+          </main>
         </SidebarProvider>
       </ZoanBaseLayout>
     </div>

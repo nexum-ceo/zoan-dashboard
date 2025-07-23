@@ -27,7 +27,7 @@ export default function PlaygroundPage() {
   return (
     <div className="w-full h-full bg-gradient-to-br from-gray-50 to-gray-100 flex">
       {/* Sidebar */}
-      <div className="w-80 bg-white border-r border-gray-200 flex flex-col shadow-sm">
+      <div className="w-80 bg-white border-r border-gray-200 flex flex-col shadow-sm h-[750px] 2xl:h-[996px]">
         <div className="p-6 border-b border-gray-100">
           <div className="flex items-center gap-3 mb-4">
             <div className="w-8 h-8 bg-gradient-to-r from-blue-500 to-purple-600 rounded-lg flex items-center justify-center">
@@ -49,9 +49,9 @@ export default function PlaygroundPage() {
       </div>
 
       {/* Main Chat Area */}
-      <div className="flex-1 flex flex-col bg-white">
+      <div className="flex-1 flex flex-col bg-white 2xl:h-[996px] h-[750px]">
         {/* Messages */}
-        <div className="flex-1 overflow-y-auto px-6 py-4 space-y-6">
+        <div className="flex-1 px-6 py-4 space-y-6 w-full overflow-y-auto h-full">
           {messages.length === 0 ? (
             <div className="flex flex-col items-center justify-center h-full text-center">
               <div className="w-16 h-16 bg-gradient-to-r from-blue-500 to-purple-600 rounded-2xl flex items-center justify-center mb-4">
