@@ -2,13 +2,15 @@
 import ChatMessage from '@/app/dashboard/playground/component/ChatMessage';
 import { Button } from '@/components/ui/button';
 import { useChat } from '@ai-sdk/react';
-import { MessageSquare, Plus, Sparkles } from 'lucide-react';
-import { useEffect, useRef } from 'react';
+import { ArrowDown, MessageSquare, Plus, Sparkles } from 'lucide-react';
+import { useEffect, useRef, useState } from 'react';
 import ChatInput from './component/ChatInput';
 import SelectAssistant from './component/SelectAssistant';
 
 export default function PlaygroundPage() {
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const messagesContainerRef = useRef<HTMLDivElement>(null);
+  const [showScrollButton, setShowScrollButton] = useState<boolean>(false);
 
   const { messages, input, handleInputChange, handleSubmit, isLoading } =
     useChat({
@@ -20,9 +22,26 @@ export default function PlaygroundPage() {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   };
 
+  const handleScroll = () => {
+    if (messagesContainerRef.current) {
+      const { scrollTop, scrollHeight, clientHeight } =
+        messagesContainerRef.current;
+      const isNearBottom = scrollHeight - scrollTop - clientHeight < 100;
+      setShowScrollButton(!isNearBottom && messages.length > 0);
+    }
+  };
+
   useEffect(() => {
     scrollToBottom();
   }, [messages]);
+
+  useEffect(() => {
+    const container = messagesContainerRef.current;
+    if (container) {
+      container.addEventListener('scroll', handleScroll);
+      return () => container.removeEventListener('scroll', handleScroll);
+    }
+  }, [messages.length]);
 
   return (
     <div className="w-full h-full bg-gradient-to-br from-gray-50 to-gray-100 flex">
@@ -42,16 +61,18 @@ export default function PlaygroundPage() {
             New Chat
           </Button>
         </div>
-
         <div className="flex-1 p-4">
           <SelectAssistant />
         </div>
       </div>
 
       {/* Main Chat Area */}
-      <div className="flex-1 flex flex-col bg-white 2xl:h-[996px] h-[750px]">
+      <div className="flex-1 flex flex-col bg-white 2xl:h-[996px] h-[750px] relative">
         {/* Messages */}
-        <div className="flex-1 px-6 py-4 space-y-6 w-full overflow-y-auto h-full">
+        <div
+          ref={messagesContainerRef}
+          className="flex-1 px-6 py-4 space-y-6 w-full overflow-y-auto h-full"
+        >
           {messages.length === 0 ? (
             <div className="flex flex-col items-center justify-center h-full text-center">
               <div className="w-16 h-16 bg-gradient-to-r from-blue-500 to-purple-600 rounded-2xl flex items-center justify-center mb-4">
@@ -81,8 +102,22 @@ export default function PlaygroundPage() {
           <div ref={messagesEndRef} />
         </div>
 
+        {/* Scroll to Bottom Button */}
+        {showScrollButton && (
+          <div className="absolute bottom-32 left-1/2 transform -translate-x-1/2 z-10">
+            <Button
+              onClick={scrollToBottom}
+              size="sm"
+              className="bg-white hover:bg-gray-50 text-gray-700 border border-gray-200 shadow-lg hover:shadow-xl transition-all duration-200 rounded-full px-3 py-2"
+            >
+              <ArrowDown className="w-4 h-4 mr-1" />
+              Scroll to bottom
+            </Button>
+          </div>
+        )}
+
         {/* Input Area */}
-        <div className="p-6  bg-white">
+        <div className="p-6 bg-white">
           <ChatInput
             value={input}
             onChange={handleInputChange}
