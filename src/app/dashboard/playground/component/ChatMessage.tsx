@@ -35,8 +35,12 @@ export const ChatMessage: FC<ChatMessageProps> = ({
         .join('')
     : message.content;
 
+  const [copied, setCopied] = useState(false);
   const copyToClipboard = () => {
-    navigator.clipboard.writeText(content ?? '');
+    navigator.clipboard.writeText(content ?? '').then(() => {
+      setCopied(true);
+      setTimeout(() => setCopied(false), 1200);
+    });
   };
 
   return (
@@ -85,27 +89,40 @@ export const ChatMessage: FC<ChatMessageProps> = ({
               showActions ? 'opacity-100' : 'opacity-0'
             }`}
           >
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={copyToClipboard}
-              className="h-7 px-2 text-gray-500 hover:text-gray-700"
-            >
-              <TooltipProvider>
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      onClick={copyToClipboard}
-                    >
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={copyToClipboard}
+                    className={`transition-all duration-300 ${
+                      copied ? 'scale-110' : ''
+                    }`}
+                  >
+                    {copied ? (
+                      <svg
+                        className="w-3 h-3"
+                        viewBox="0 0 16 16"
+                        fill="none"
+                        xmlns="http://www.w3.org/2000/svg"
+                      >
+                        <path
+                          d="M4 8l3 3 5-5"
+                          stroke="currentColor"
+                          strokeWidth="2"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                        />
+                      </svg>
+                    ) : (
                       <Copy className="w-3 h-3" />
-                    </Button>
-                  </TooltipTrigger>
-                  <TooltipContent>Copy</TooltipContent>
-                </Tooltip>
-              </TooltipProvider>
-            </Button>
+                    )}
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>{copied ? 'Copied!' : 'Copy'}</TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
             <Button
               variant="ghost"
               size="sm"
