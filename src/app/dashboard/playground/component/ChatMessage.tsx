@@ -8,9 +8,9 @@ import {
   TooltipTrigger,
 } from '@/components/ui/tooltip';
 import { Bot, Copy, ThumbsDown, ThumbsUp, User } from 'lucide-react';
-import { useState } from 'react';
+import { FC, useState } from 'react';
 
-interface ChatMessageProps {
+type ChatMessageProps = {
   message: {
     id: string;
     role: 'user' | 'assistant' | 'system' | 'data';
@@ -19,14 +19,14 @@ interface ChatMessageProps {
   };
   isLast: boolean;
   isLoading: boolean;
-}
+};
 
-export default function ChatMessage({
+export const ChatMessage: FC<ChatMessageProps> = ({
   message,
   isLast,
   isLoading,
-}: ChatMessageProps) {
-  const [showActions, setShowActions] = useState(false);
+}) => {
+  const [showActions, setShowActions] = useState<boolean>(false);
   const isUser = message.role === 'user';
 
   const content = Array.isArray(message.parts)
@@ -143,4 +143,4 @@ export default function ChatMessage({
       </div>
     </div>
   );
-}
+};

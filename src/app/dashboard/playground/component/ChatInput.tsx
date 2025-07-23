@@ -1,19 +1,19 @@
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { MessageSquare, Paperclip, Plus, Settings } from 'lucide-react';
-import React from 'react';
+import { ChangeEvent, FC, FormEvent } from 'react';
 
-interface ChatInputProps {
+type ChatInputProps = {
   value: string;
-  onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
-  onSubmit: (e: React.FormEvent<HTMLFormElement>) => void;
-}
+  onChange: (e: ChangeEvent<HTMLInputElement>) => void;
+  onSubmit: (e: FormEvent<HTMLFormElement>) => void;
+};
 
-export default function ChatInput({
+export const ChatInput: FC<ChatInputProps> = ({
   value,
   onChange,
   onSubmit,
-}: ChatInputProps) {
+}) => {
   return (
     <form onSubmit={onSubmit} className="w-full max-w-4xl mx-auto px-4 py-2">
       <div className="flex flex-wrap sm:flex-nowrap items-center justify-between gap-2 border border-border rounded-xl bg-background shadow-sm px-3 py-2">
@@ -54,4 +54,4 @@ export default function ChatInput({
       </div>
     </form>
   );
-}
+};

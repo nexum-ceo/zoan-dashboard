@@ -1,10 +1,10 @@
 'use client';
-import ChatMessage from '@/app/dashboard/playground/component/ChatMessage';
+import { ChatInput } from '@/app/dashboard/playground/component/ChatInput';
+import { ChatMessage } from '@/app/dashboard/playground/component/ChatMessage';
 import { Button } from '@/components/ui/button';
 import { useChat } from '@ai-sdk/react';
 import { ArrowDown, MessageSquare, Plus, Sparkles } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
-import ChatInput from './component/ChatInput';
 import SelectAssistant from './component/SelectAssistant';
 
 export default function PlaygroundPage() {
