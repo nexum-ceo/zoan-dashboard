@@ -4,7 +4,9 @@ import { ChatMessage } from '@/app/dashboard/playground/component/ChatMessage';
 import { Button } from '@/components/ui/button';
 import { useChat } from '@ai-sdk/react';
 import { ArrowDown, MessageSquare, Plus, Sparkles } from 'lucide-react';
+import { useRouter } from 'next/navigation';
 import { useEffect, useRef, useState } from 'react';
+import { useCreateChat } from '../../../hooks/useCreateChat';
 import SelectAssistant from './component/SelectAssistant';
 
 export default function PlaygroundPage() {
@@ -17,6 +19,27 @@ export default function PlaygroundPage() {
       api: '/api/chat',
       initialMessages: [],
     });
+
+  const { createChat, loading: creatingChat } = useCreateChat();
+  const router = useRouter();
+
+  const handleFirstSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    if (!input.trim()) return;
+    try {
+      // Hard code agent_id for now, can be replaced with selected assistant
+      const chatId = await createChat({
+        agent_id: '32199b03-c87a-4502-824e-ed8619f506ec',
+        title: input,
+      });
+
+      router.push(
+        `/dashboard/playground/${chatId}?firstMsg=${encodeURIComponent(input)}`,
+      );
+    } catch (err) {
+      // Optionally show error
+    }
+  };
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -119,7 +142,8 @@ export default function PlaygroundPage() {
           <ChatInput
             value={input}
             onChange={handleInputChange}
-            onSubmit={handleSubmit}
+            onSubmit={messages.length === 0 ? handleFirstSubmit : handleSubmit}
+            disabled={creatingChat}
           />
         </div>
       </div>
