@@ -9,6 +9,8 @@ import SelectAssistant from '../component/SelectAssistant';
 import { useCustomChat } from '../hooks/useCustomChat';
 
 export default function PlaygroundChatPage() {
+  // State for selected agent
+  const [agentId, setAgentId] = useState<string | undefined>(undefined);
   const params = useParams();
   const chatId =
     typeof params?.id === 'string'
@@ -31,15 +33,48 @@ export default function PlaygroundChatPage() {
     handleSubmit,
     isLoading,
     setInput,
+    setMessages,
   } = useCustomChat({
     wsUrl: `wss://mvp-be.buymed.site/ws/${chatId}`,
-    initialMessages: firstMsg
-      ? [{ id: Date.now().toString(), role: 'user', content: firstMsg }]
-      : [],
-    agentId: '32199b03-c87a-4502-824e-ed8619f506ec', // FIXME: Hardcoded for now
+    initialMessages:
+      firstMsg && !chatId
+        ? [
+            {
+              id: Date.now().toString(),
+              role: 'user',
+              content: firstMsg,
+            },
+          ]
+        : [],
+    agentId: agentId || '',
     chatId: chatId,
   });
-  console.log('messages', messages);
+
+  // Fetch chat detail if chatId exists
+  useEffect(() => {
+    if (chatId) {
+      fetch(`/api/chat/${chatId}`)
+        .then(async (res) => {
+          if (!res.ok) throw new Error('Failed to fetch chat detail');
+          return res.json();
+        })
+        .then((data) => {
+          console.log('Fetched chat detail:', data.data);
+          if (Array.isArray(data?.data)) {
+            // Ensure role is correct type
+            const safeMessages = data.data.map((msg: any) => ({
+              ...msg,
+              role: ['user', 'assistant', 'system', 'data'].includes(msg.role)
+                ? msg.role
+                : 'user',
+            }));
+            setMessages(safeMessages);
+          }
+        })
+        .catch(() => {});
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [chatId]);
 
   useEffect(() => {
     if (firstMsg && !firstMsgSent) {
@@ -97,7 +132,7 @@ export default function PlaygroundChatPage() {
           </Button>
         </div>
         <div className="flex-1 p-4">
-          <SelectAssistant />
+          <SelectAssistant onAgentChange={setAgentId} />
         </div>
       </div>
 

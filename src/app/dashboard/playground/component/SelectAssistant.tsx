@@ -7,9 +7,17 @@ import {
 } from '@/components/ui/select';
 import { AgentType } from '@/types/agent';
 import { GetChatListResType } from '@/types/chat';
+import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 
-export default function SelectAssistant() {
+type SelectAssistantProps = {
+  onAgentChange?: (agentId: string) => void;
+};
+
+export default function SelectAssistant({
+  onAgentChange,
+}: SelectAssistantProps) {
+  const router = useRouter();
   // Agent state
   const [agents, setAgents] = useState<AgentType[]>([]);
   const [selectedAgent, setSelectedAgent] = useState<string | undefined>(
@@ -71,11 +79,15 @@ export default function SelectAssistant() {
       .finally(() => setChatLoading(false));
   }, []);
 
+  const handleAgentChange = (value: string) => {
+    setSelectedAgent(value);
+    if (onAgentChange) onAgentChange(value);
+  };
   return (
-    <div className="space-y-4">
+    <div className="space-y-4 h-[820px]">
       <div>
         <h3 className="text-sm font-medium text-gray-900 mb-2">Choose Agent</h3>
-        <Select value={selectedAgent} onValueChange={setSelectedAgent}>
+        <Select value={selectedAgent} onValueChange={handleAgentChange}>
           <SelectTrigger className="w-full">
             <SelectValue placeholder="Choose agent..." />
           </SelectTrigger>
@@ -111,9 +123,9 @@ export default function SelectAssistant() {
         </Select>
       </div>
 
-      <div className="space-y-2">
+      <div className="space-y-2 h-[calc(100%-25rem)] overflow-y-auto">
         <h4 className="text-sm font-medium text-gray-900">Recent Chats</h4>
-        <div className="space-y-1">
+        <div className="space-y-1 h-full">
           {chatLoading && (
             <div className="text-xs text-gray-400 px-3">Loading...</div>
           )}
@@ -129,6 +141,11 @@ export default function SelectAssistant() {
               <button
                 key={chat.id || index}
                 className="w-full text-left px-3 py-2 text-sm text-gray-600 hover:bg-gray-50 rounded-lg transition-colors duration-150 truncate"
+                onClick={() => {
+                  if (chat.id) {
+                    router.push(`/dashboard/playground/${chat.id}`);
+                  }
+                }}
               >
                 {chat.title || 'Untitled Chat'}
               </button>

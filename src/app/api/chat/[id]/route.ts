@@ -14,7 +14,7 @@ export async function GET(req: Request, context: { params: { id: string } }) {
   const id = (await params?.id) || context.params?.id;
 
   try {
-    const response = await axiosInstance.get(`/chat/${id}`, {
+    const response = await axiosInstance.get(`/chat/${id}/messages`, {
       headers: {
         Authorization: `Bearer ${session.accessToken}`,
       },

@@ -13,6 +13,7 @@ export default function PlaygroundPage() {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const messagesContainerRef = useRef<HTMLDivElement>(null);
   const [showScrollButton, setShowScrollButton] = useState<boolean>(false);
+  const [agentId, setAgentId] = useState<string | undefined>(undefined);
 
   const { messages, input, handleInputChange, handleSubmit, isLoading } =
     useChat({
@@ -27,9 +28,8 @@ export default function PlaygroundPage() {
     e.preventDefault();
     if (!input.trim()) return;
     try {
-      // FIXME: Hard code agent_id for now, can be replaced with selected assistant
       const chatId = await createChat({
-        agent_id: '32199b03-c87a-4502-824e-ed8619f506ec',
+        agent_id: agentId || '',
         title: input,
       });
 
@@ -85,7 +85,7 @@ export default function PlaygroundPage() {
           </Button>
         </div>
         <div className="flex-1 p-4">
-          <SelectAssistant />
+          <SelectAssistant onAgentChange={setAgentId} />
         </div>
       </div>
 
