@@ -78,7 +78,9 @@ export const ChatMessage: FC<ChatMessageProps> = ({
           } px-4 py-3 shadow-sm`}
         >
           <div className="prose prose-sm max-w-none">
-            <p className="whitespace-pre-wrap leading-relaxed">{content}</p>
+            <p className="whitespace-pre-wrap leading-relaxed">
+              {content ?? ''}
+            </p>
           </div>
         </div>
 

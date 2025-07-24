@@ -39,8 +39,8 @@ export default function PlaygroundChatPage() {
     agentId: '32199b03-c87a-4502-824e-ed8619f506ec',
     chatId: chatId,
   });
+  console.log('messages', messages);
 
-  // Gửi message đầu tiên qua socket nếu có
   useEffect(() => {
     if (firstMsg && !firstMsgSent) {
       setInput(firstMsg);

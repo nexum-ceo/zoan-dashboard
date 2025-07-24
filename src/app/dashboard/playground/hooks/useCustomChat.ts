@@ -1,5 +1,4 @@
 import { ChangeEvent, FormEvent, useEffect, useRef, useState } from 'react';
-// Dùng WebSocket thuần, không dùng socket.io-client
 
 export type ChatMessage = {
   id: string;
@@ -37,50 +36,36 @@ export function useCustomChat({
       console.error('[WS] Error:', err);
     };
     wsRef.current.onmessage = (event) => {
-      console.log('[WS] Message received:', event.data);
-      // Nếu là JSON hợp lệ thì xử lý như cũ
-      try {
-        const data = JSON.parse(event.data);
-        if (data && data.role && data.content) {
-          setMessages((prev) => [
+      const chunk = (() => {
+        try {
+          const data = JSON.parse(event.data);
+          if (data && data.role && data.content !== undefined) {
+            return String(data.content);
+          }
+        } catch (err) {
+          console.log('Error parsing WebSocket message:', err);
+        }
+        return String(event.data);
+      })();
+      setMessages((prev) => {
+        if (prev.length > 0 && prev[prev.length - 1].role === 'assistant') {
+          const updated = [...prev];
+          updated[updated.length - 1] = {
+            ...updated[updated.length - 1],
+            content: String(updated[updated.length - 1].content) + chunk,
+          };
+          return updated;
+        } else {
+          return [
             ...prev,
             {
               id: Date.now().toString() + '-ws',
-              role: data.role,
-              content: data.content,
+              role: 'assistant',
+              content: chunk,
             },
-          ]);
-          return;
+          ];
         }
-      } catch (err) {
-        // Nếu không phải JSON, coi là stream text
-        setMessages((prev) => {
-          // Tìm message assistant cuối cùng
-          const lastIdx = [...prev]
-            .reverse()
-            .findIndex((m) => m.role === 'assistant');
-          if (lastIdx === -1) {
-            // Chưa có assistant message, tạo mới
-            return [
-              ...prev,
-              {
-                id: Date.now().toString() + '-ws',
-                role: 'assistant',
-                content: event.data,
-              },
-            ];
-          } else {
-            // Nối vào message assistant cuối cùng
-            const idx = prev.length - 1 - lastIdx;
-            const updated = [...prev];
-            updated[idx] = {
-              ...updated[idx],
-              content: updated[idx].content + event.data,
-            };
-            return updated;
-          }
-        });
-      }
+      });
     };
     return () => {
       wsRef.current?.close();
