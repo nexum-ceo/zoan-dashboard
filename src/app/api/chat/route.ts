@@ -27,11 +27,9 @@ export async function POST(req: Request) {
         },
       },
     );
-    console.log('Chat created successfully:', response.data);
 
     return NextResponse.json(response.data);
   } catch (error: any) {
-    console.log('Error creating chat:', error);
     return NextResponse.json(
       { error: error?.message || 'Create failed' },
       { status: 500 },

@@ -64,8 +64,6 @@ const SelectAssistant: FC<SelectAssistantProps> = ({ onAgentChange }) => {
       .then((data) => {
         if (Array.isArray(data?.chats)) {
           setChats(data.chats);
-        } else if (Array.isArray(data)) {
-          setChats(data);
         } else {
           setChats([]);
         }
