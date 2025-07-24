@@ -81,6 +81,7 @@ const SelectAssistant: FC<SelectAssistantProps> = ({ onAgentChange }) => {
     setSelectedAgent(value);
     if (onAgentChange) onAgentChange(value);
   };
+
   return (
     <div className="space-y-4 h-[820px]">
       <div>

@@ -3,7 +3,7 @@ import { ChatInput } from '@/app/dashboard/playground/component/ChatInput';
 import { ChatMessage } from '@/app/dashboard/playground/component/ChatMessage';
 import { Button } from '@/components/ui/button';
 import { ArrowDown, MessageSquare, Plus, Sparkles } from 'lucide-react';
-import { useParams, useSearchParams } from 'next/navigation';
+import { useParams } from 'next/navigation';
 import { useEffect, useRef, useState } from 'react';
 import SelectAssistant from '../component/SelectAssistant';
 import { useCustomChat } from '../hooks/useCustomChat';
@@ -22,8 +22,7 @@ export default function PlaygroundChatPage() {
   const messagesContainerRef = useRef<HTMLDivElement>(null);
   const [showScrollButton, setShowScrollButton] = useState<boolean>(false);
 
-  const searchParams = useSearchParams();
-  // Lấy message đầu tiên từ localStorage nếu có
+  // Get the first message from localStorage if it exists
   const [pendingMsg, setPendingMsg] = useState<string>(() => {
     if (typeof window !== 'undefined') {
       return localStorage.getItem('pendingMessage') || '';
@@ -58,7 +57,6 @@ export default function PlaygroundChatPage() {
           return res.json();
         })
         .then((data) => {
-          console.log('Fetched chat detail:', data.data);
           if (Array.isArray(data?.data)) {
             // Ensure role is correct type
             const safeMessages = data.data.map((msg: any) => ({
@@ -69,13 +67,12 @@ export default function PlaygroundChatPage() {
             }));
             setMessages(safeMessages);
           }
-        })
-        .catch(() => {});
+        });
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [chatId]);
 
-  // Chỉ gửi message đầu tiên khi ws đã connect, nếu chưa connect thì giữ lại để gửi sau
+  // Only send the first message when WebSocket is connected, otherwise keep it to send later
   useEffect(() => {
     if (pendingMsg && !firstMsgSent && wsConnected) {
       sendMessageDirect(pendingMsg);

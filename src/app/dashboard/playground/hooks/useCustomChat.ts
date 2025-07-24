@@ -15,8 +15,6 @@ export type UseCustomChatProps = {
 };
 
 export function useCustomChat({
-  // ...existing code...
-  // ...existing code...
   wsUrl,
   chatId,
   agentId,
@@ -108,7 +106,7 @@ export function useCustomChat({
     setIsLoading(false);
   };
 
-  // Hàm gửi message trực tiếp qua WebSocket
+  // Send message directly via WebSocket
   const sendMessageDirect = (msg: string) => {
     if (!msg.trim()) return;
     const userMsg: ChatMessage = {
