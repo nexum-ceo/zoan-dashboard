@@ -48,7 +48,7 @@ export function useCustomChat({
             return String(data.content);
           }
         } catch (err) {
-          console.log('Error parsing WebSocket message:', err);
+          // To avoid errors in case of malformed JSON
         }
         return String(event.data);
       })();

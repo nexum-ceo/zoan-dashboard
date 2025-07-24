@@ -1,8 +1,8 @@
 'use client';
 import { ChatInput } from '@/app/dashboard/playground/component/ChatInput';
 import { ChatMessage } from '@/app/dashboard/playground/component/ChatMessage';
+import { useCustomChat } from '@/app/dashboard/playground/hooks/useCustomChat';
 import { Button } from '@/components/ui/button';
-import { useChat } from '@ai-sdk/react';
 import { ArrowDown, MessageSquare, Plus, Sparkles } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useEffect, useRef, useState } from 'react';
@@ -16,16 +16,11 @@ export default function PlaygroundPage() {
   const [agentId, setAgentId] = useState<string | undefined>(undefined);
   const [agentError, setAgentError] = useState<string | null>(null);
 
-  const {
-    messages,
-    input,
-    handleInputChange,
-    handleSubmit,
-    isLoading,
-    setInput,
-  } = useChat({
-    api: '/api/chat',
+  const { messages, handleSubmit, isLoading } = useCustomChat({
+    wsUrl: '/api/chat',
     initialMessages: [],
+    agentId: agentId || '',
+    chatId: '',
   });
 
   // State for pending first message

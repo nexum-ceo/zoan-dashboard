@@ -9,6 +9,7 @@ import {
 } from '@/components/ui/tooltip';
 import { Bot, Copy, ThumbsDown, ThumbsUp, User } from 'lucide-react';
 import { FC, useState } from 'react';
+import ReactMarkdown from 'react-markdown';
 
 type ChatMessageProps = {
   message: {
@@ -77,10 +78,8 @@ export const ChatMessage: FC<ChatMessageProps> = ({
               : 'bg-gray-50 text-gray-900 rounded-2xl rounded-tl-md border border-gray-200'
           } px-4 py-3 shadow-sm`}
         >
-          <div className="prose prose-sm max-w-none">
-            <p className="whitespace-pre-wrap leading-relaxed">
-              {content ?? ''}
-            </p>
+          <div className="prose prose-sm max-w-none whitespace-pre-wrap leading-relaxed">
+            <ReactMarkdown>{content ?? ''}</ReactMarkdown>
           </div>
         </div>
 
