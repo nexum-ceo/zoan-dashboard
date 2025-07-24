@@ -20,7 +20,7 @@ export const GetAgentResSchema = z.object({
   data: z.array(AgentSchema),
 });
 
-export type AgentItemType = z.infer<typeof AgentSchema>;
+export type AgentType = z.infer<typeof AgentSchema>;
 export type GetAgentResType = z.infer<typeof GetAgentResSchema>;
 
 export const CreateAgentBodySchema = z.object({

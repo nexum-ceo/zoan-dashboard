@@ -5,95 +5,108 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import { AgentType } from '@/types/agent';
 import { GetChatListResType } from '@/types/chat';
-import { Bot, Brain, Code, Palette, Zap } from 'lucide-react';
 import { useEffect, useState } from 'react';
 
-const assistants = [
-  {
-    id: 'general',
-    name: 'General Assistant',
-    description: 'Helpful for general questions and tasks',
-    icon: Bot,
-    color: 'from-blue-500 to-purple-600',
-  },
-  {
-    id: 'creative',
-    name: 'Creative Writer',
-    description: 'Specialized in creative writing and content',
-    icon: Palette,
-    color: 'from-pink-500 to-rose-600',
-  },
-  {
-    id: 'technical',
-    name: 'Technical Expert',
-    description: 'Expert in programming and technical topics',
-    icon: Code,
-    color: 'from-green-500 to-teal-600',
-  },
-  {
-    id: 'analyst',
-    name: 'Data Analyst',
-    description: 'Specialized in data analysis and insights',
-    icon: Brain,
-    color: 'from-orange-500 to-red-600',
-  },
-  {
-    id: 'fast',
-    name: 'Quick Response',
-    description: 'Optimized for fast, concise responses',
-    icon: Zap,
-    color: 'from-yellow-500 to-orange-600',
-  },
-];
-
 export default function SelectAssistant() {
-  const [chats, setChats] = useState<GetChatListResType['chats']>([]);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  // Agent state
+  const [agents, setAgents] = useState<AgentType[]>([]);
+  const [selectedAgent, setSelectedAgent] = useState<string | undefined>(
+    undefined,
+  );
+  const [agentLoading, setAgentLoading] = useState<boolean>(false);
+  const [agentError, setAgentError] = useState<string | null>(null);
 
+  // Chat state
+  const [chats, setChats] = useState<GetChatListResType['chats']>([]);
+  const [chatLoading, setChatLoading] = useState<boolean>(false);
+  const [chatError, setChatError] = useState<string | null>(null);
+
+  // Fetch agents
   useEffect(() => {
-    setLoading(true);
+    setAgentLoading(true);
+    fetch('/api/agent')
+      .then(async (res) => {
+        if (!res.ok) throw new Error('Failed to fetch agent list');
+        return res.json();
+      })
+      .then((data) => {
+        if (Array.isArray(data?.data)) {
+          setAgents(data.data);
+        } else if (Array.isArray(data)) {
+          setAgents(data);
+        } else {
+          setAgents([]);
+        }
+        setAgentError(null);
+      })
+      .catch((err) => {
+        setAgentError(err.message || 'Error fetching agents');
+      })
+      .finally(() => setAgentLoading(false));
+  }, []);
+
+  // Fetch chats
+  useEffect(() => {
+    setChatLoading(true);
     fetch('/api/chat')
       .then(async (res) => {
         if (!res.ok) throw new Error('Failed to fetch chat list');
         return res.json();
       })
       .then((data) => {
-        setChats(data.chats || data || []);
-        setError(null);
+        if (Array.isArray(data?.chats)) {
+          setChats(data.chats);
+        } else if (Array.isArray(data)) {
+          setChats(data);
+        } else {
+          setChats([]);
+        }
+        setChatError(null);
       })
       .catch((err) => {
-        setError(err.message || 'Error fetching chats');
+        setChatError(err.message || 'Error fetching chats');
       })
-      .finally(() => setLoading(false));
+      .finally(() => setChatLoading(false));
   }, []);
 
   return (
     <div className="space-y-4">
       <div>
-        <h3 className="text-sm font-medium text-gray-900 mb-2">
-          Choose Assistant
-        </h3>
-        <Select defaultValue="general">
+        <h3 className="text-sm font-medium text-gray-900 mb-2">Choose Agent</h3>
+        <Select value={selectedAgent} onValueChange={setSelectedAgent}>
           <SelectTrigger className="w-full">
-            <SelectValue />
+            <SelectValue placeholder="Choose agent..." />
           </SelectTrigger>
           <SelectContent>
-            {assistants.map((assistant) => (
-              <SelectItem key={assistant.id} value={assistant.id}>
-                <div className="flex items-center gap-3 py-1">
-                  <div
-                    className={`w-6 h-6 bg-gradient-to-r ${assistant.color} rounded-md flex items-center justify-center`}
-                  >
-                    <assistant.icon className="w-3 h-3 text-white" />
+            {agentLoading && (
+              <div className="px-3 py-2 text-xs text-gray-400">Loading...</div>
+            )}
+            {agentError && (
+              <div className="px-3 py-2 text-xs text-red-500">{agentError}</div>
+            )}
+            {!agentLoading && !agentError && agents.length === 0 && (
+              <div className="px-3 py-2 text-xs text-gray-400">
+                Do not have any agents
+              </div>
+            )}
+            {!agentLoading &&
+              !agentError &&
+              agents.map((agent) => (
+                <SelectItem key={agent.id} value={agent.id}>
+                  <div>
+                    <div className="font-medium text-sm">
+                      {agent.name || agent.name || 'Agent'}
+                    </div>
+                    {agent.description && (
+                      <div className="text-xs text-gray-500">
+                        {agent.description}
+                      </div>
+                    )}
                   </div>
-                  <div className="flex-1">
-                    <div className="font-medium text-sm">{assistant.name}</div>
-                  </div>
-                </div>
-              </SelectItem>
-            ))}
+                </SelectItem>
+              ))}
           </SelectContent>
         </Select>
       </div>
@@ -101,15 +114,17 @@ export default function SelectAssistant() {
       <div className="space-y-2">
         <h4 className="text-sm font-medium text-gray-900">Recent Chats</h4>
         <div className="space-y-1">
-          {loading && (
+          {chatLoading && (
             <div className="text-xs text-gray-400 px-3">Loading...</div>
           )}
-          {error && <div className="text-xs text-red-500 px-3">{error}</div>}
-          {!loading && !error && chats.length === 0 && (
+          {chatError && (
+            <div className="text-xs text-red-500 px-3">{chatError}</div>
+          )}
+          {!chatLoading && !chatError && chats.length === 0 && (
             <div className="text-xs text-gray-400 px-3">No recent chats</div>
           )}
-          {!loading &&
-            !error &&
+          {!chatLoading &&
+            !chatError &&
             chats.map((chat, index) => (
               <button
                 key={chat.id || index}
