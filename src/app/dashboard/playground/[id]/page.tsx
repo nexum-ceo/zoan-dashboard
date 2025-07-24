@@ -23,7 +23,13 @@ export default function PlaygroundChatPage() {
   const [showScrollButton, setShowScrollButton] = useState<boolean>(false);
 
   const searchParams = useSearchParams();
-  const firstMsg = searchParams.get('firstMsg') || '';
+  // Lấy message đầu tiên từ localStorage nếu có
+  const [pendingMsg, setPendingMsg] = useState<string>(() => {
+    if (typeof window !== 'undefined') {
+      return localStorage.getItem('pendingMessage') || '';
+    }
+    return '';
+  });
   const [firstMsgSent, setFirstMsgSent] = useState<boolean>(false);
 
   const {
@@ -34,18 +40,11 @@ export default function PlaygroundChatPage() {
     isLoading,
     setInput,
     setMessages,
+    wsConnected,
+    sendMessageDirect,
   } = useCustomChat({
     wsUrl: `wss://mvp-be.buymed.site/ws/${chatId}`,
-    initialMessages:
-      firstMsg && !chatId
-        ? [
-            {
-              id: Date.now().toString(),
-              role: 'user',
-              content: firstMsg,
-            },
-          ]
-        : [],
+    initialMessages: [],
     agentId: agentId || '',
     chatId: chatId,
   });
@@ -76,17 +75,17 @@ export default function PlaygroundChatPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [chatId]);
 
+  // Chỉ gửi message đầu tiên khi ws đã connect, nếu chưa connect thì giữ lại để gửi sau
   useEffect(() => {
-    if (firstMsg && !firstMsgSent) {
-      setInput(firstMsg);
-      const fakeEvent = {
-        preventDefault: () => {},
-      } as React.FormEvent<HTMLFormElement>;
-      handleSubmit(fakeEvent);
+    if (pendingMsg && !firstMsgSent && wsConnected) {
+      sendMessageDirect(pendingMsg);
       setFirstMsgSent(true);
+      setPendingMsg('');
+      if (typeof window !== 'undefined') {
+        localStorage.removeItem('pendingMessage');
+      }
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [firstMsg, handleSubmit]);
+  }, [pendingMsg, firstMsgSent, wsConnected, sendMessageDirect]);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });

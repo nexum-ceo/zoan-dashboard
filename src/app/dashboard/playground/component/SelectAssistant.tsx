@@ -8,15 +8,13 @@ import {
 import { AgentType } from '@/types/agent';
 import { GetChatListResType } from '@/types/chat';
 import { useRouter } from 'next/navigation';
-import { useEffect, useState } from 'react';
+import { FC, useEffect, useState } from 'react';
 
 type SelectAssistantProps = {
   onAgentChange?: (agentId: string) => void;
 };
 
-export default function SelectAssistant({
-  onAgentChange,
-}: SelectAssistantProps) {
+const SelectAssistant: FC<SelectAssistantProps> = ({ onAgentChange }) => {
   const router = useRouter();
   // Agent state
   const [agents, setAgents] = useState<AgentType[]>([]);
@@ -154,4 +152,6 @@ export default function SelectAssistant({
       </div>
     </div>
   );
-}
+};
+
+export default SelectAssistant;

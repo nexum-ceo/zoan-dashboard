@@ -14,28 +14,42 @@ export default function PlaygroundPage() {
   const messagesContainerRef = useRef<HTMLDivElement>(null);
   const [showScrollButton, setShowScrollButton] = useState<boolean>(false);
   const [agentId, setAgentId] = useState<string | undefined>(undefined);
+  const [agentError, setAgentError] = useState<string | null>(null);
 
-  const { messages, input, handleInputChange, handleSubmit, isLoading } =
-    useChat({
-      api: '/api/chat',
-      initialMessages: [],
-    });
+  const {
+    messages,
+    input,
+    handleInputChange,
+    handleSubmit,
+    isLoading,
+    setInput,
+  } = useChat({
+    api: '/api/chat',
+    initialMessages: [],
+  });
+
+  // State for pending first message
+  const [pendingMessage, setPendingMessage] = useState('');
 
   const { createChat, loading: creatingChat } = useCreateChat();
   const router = useRouter();
 
   const handleFirstSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    if (!input.trim()) return;
+    if (!agentId) {
+      setAgentError('Please select an agent before starting a chat.');
+      return;
+    }
+    setAgentError(null);
+    if (!pendingMessage.trim()) return;
     try {
       const chatId = await createChat({
-        agent_id: agentId || '',
-        title: input,
+        agent_id: agentId,
+        title: pendingMessage,
       });
-
-      router.push(
-        `/dashboard/playground/${chatId}?firstMsg=${encodeURIComponent(input)}`,
-      );
+      // Lưu message vào localStorage để trang detail lấy ra gửi
+      localStorage.setItem('pendingMessage', pendingMessage);
+      router.push(`/dashboard/playground/${chatId}`);
     } catch (err) {
       // Optionally show error
     }
@@ -140,11 +154,14 @@ export default function PlaygroundPage() {
         {/* Input Area */}
         <div className="p-6 bg-white">
           <ChatInput
-            value={input}
-            onChange={handleInputChange}
+            value={pendingMessage}
+            onChange={(e) => setPendingMessage(e.target.value)}
             onSubmit={messages.length === 0 ? handleFirstSubmit : handleSubmit}
-            disabled={creatingChat}
+            disabled={creatingChat || !agentId}
           />
+          {agentError && (
+            <div className="text-xs text-red-500 mt-2">{agentError}</div>
+          )}
         </div>
       </div>
     </div>

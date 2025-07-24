@@ -11,9 +11,12 @@ export type UseCustomChatProps = {
   chatId: string;
   agentId: string;
   initialMessages?: ChatMessage[];
+  wsConnected?: boolean;
 };
 
 export function useCustomChat({
+  // ...existing code...
+  // ...existing code...
   wsUrl,
   chatId,
   agentId,
@@ -23,16 +26,20 @@ export function useCustomChat({
   const [input, setInput] = useState<string>('');
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const wsRef = useRef<WebSocket | null>(null);
+  const [wsConnected, setWsConnected] = useState<boolean>(false);
 
   useEffect(() => {
     wsRef.current = new WebSocket(wsUrl);
     wsRef.current.onopen = () => {
+      setWsConnected(true);
       console.log('[WS] Connected:', wsUrl);
     };
     wsRef.current.onclose = (event) => {
+      setWsConnected(false);
       console.log('[WS] Closed:', event);
     };
     wsRef.current.onerror = (err) => {
+      setWsConnected(false);
       console.error('[WS] Error:', err);
     };
     wsRef.current.onmessage = (event) => {
@@ -101,6 +108,30 @@ export function useCustomChat({
     setIsLoading(false);
   };
 
+  // Hàm gửi message trực tiếp qua WebSocket
+  const sendMessageDirect = (msg: string) => {
+    if (!msg.trim()) return;
+    const userMsg: ChatMessage = {
+      id: Date.now().toString(),
+      role: 'user',
+      content: msg,
+    };
+    setMessages((prev) => [...prev, userMsg]);
+    setIsLoading(true);
+    if (wsRef.current && wsRef.current.readyState === WebSocket.OPEN) {
+      wsRef.current.send(
+        JSON.stringify({
+          role: 'user',
+          chat_id: chatId,
+          agent_id: agentId,
+          content: msg,
+          type: 'text',
+        }),
+      );
+    }
+    setIsLoading(false);
+  };
+
   return {
     messages,
     input,
@@ -109,5 +140,7 @@ export function useCustomChat({
     isLoading,
     setMessages,
     setInput,
+    wsConnected,
+    sendMessageDirect,
   };
 }
