@@ -5,7 +5,9 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import { GetChatListResType } from '@/types/chat';
 import { Bot, Brain, Code, Palette, Zap } from 'lucide-react';
+import { useEffect, useState } from 'react';
 
 const assistants = [
   {
@@ -46,6 +48,27 @@ const assistants = [
 ];
 
 export default function SelectAssistant() {
+  const [chats, setChats] = useState<GetChatListResType['chats']>([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    setLoading(true);
+    fetch('/api/chat')
+      .then(async (res) => {
+        if (!res.ok) throw new Error('Failed to fetch chat list');
+        return res.json();
+      })
+      .then((data) => {
+        setChats(data.chats || data || []);
+        setError(null);
+      })
+      .catch((err) => {
+        setError(err.message || 'Error fetching chats');
+      })
+      .finally(() => setLoading(false));
+  }, []);
+
   return (
     <div className="space-y-4">
       <div>
@@ -78,19 +101,23 @@ export default function SelectAssistant() {
       <div className="space-y-2">
         <h4 className="text-sm font-medium text-gray-900">Recent Chats</h4>
         <div className="space-y-1">
-          {[
-            'How to build a React app?',
-            'Explain machine learning',
-            'Write a creative story',
-            'Debug my Python code',
-          ].map((chat, index) => (
-            <button
-              key={index}
-              className="w-full text-left px-3 py-2 text-sm text-gray-600 hover:bg-gray-50 rounded-lg transition-colors duration-150 truncate"
-            >
-              {chat}
-            </button>
-          ))}
+          {loading && (
+            <div className="text-xs text-gray-400 px-3">Loading...</div>
+          )}
+          {error && <div className="text-xs text-red-500 px-3">{error}</div>}
+          {!loading && !error && chats.length === 0 && (
+            <div className="text-xs text-gray-400 px-3">No recent chats</div>
+          )}
+          {!loading &&
+            !error &&
+            chats.map((chat, index) => (
+              <button
+                key={chat.id || index}
+                className="w-full text-left px-3 py-2 text-sm text-gray-600 hover:bg-gray-50 rounded-lg transition-colors duration-150 truncate"
+              >
+                {chat.title || 'Untitled Chat'}
+              </button>
+            ))}
         </div>
       </div>
     </div>

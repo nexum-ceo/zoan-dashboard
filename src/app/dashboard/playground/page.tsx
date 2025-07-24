@@ -27,7 +27,7 @@ export default function PlaygroundPage() {
     e.preventDefault();
     if (!input.trim()) return;
     try {
-      // Hard code agent_id for now, can be replaced with selected assistant
+      // FIXME: Hard code agent_id for now, can be replaced with selected assistant
       const chatId = await createChat({
         agent_id: '32199b03-c87a-4502-824e-ed8619f506ec',
         title: input,

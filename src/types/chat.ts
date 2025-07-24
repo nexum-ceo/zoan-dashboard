@@ -60,3 +60,18 @@ export const GetChatMessagesResSchema = z.object({
 });
 
 export type GetChatMessagesResType = z.infer<typeof GetChatMessagesResSchema>;
+
+export const GetChatListResSchema = z.object({
+  chats: z.array(
+    z.object({
+      id: z.string(),
+      user_id: z.string(),
+      agent_id: z.string(),
+      title: z.string(),
+      created_at: z.string(),
+      updated_at: z.string(),
+    }),
+  ),
+});
+
+export type GetChatListResType = z.infer<typeof GetChatListResSchema>;

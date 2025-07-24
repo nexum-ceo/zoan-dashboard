@@ -36,7 +36,7 @@ export default function PlaygroundChatPage() {
     initialMessages: firstMsg
       ? [{ id: Date.now().toString(), role: 'user', content: firstMsg }]
       : [],
-    agentId: '32199b03-c87a-4502-824e-ed8619f506ec',
+    agentId: '32199b03-c87a-4502-824e-ed8619f506ec', // FIXME: Hardcoded for now
     chatId: chatId,
   });
   console.log('messages', messages);
