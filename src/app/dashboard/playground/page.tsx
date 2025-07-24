@@ -42,7 +42,6 @@ export default function PlaygroundPage() {
         agent_id: agentId,
         title: pendingMessage,
       });
-      // Lưu message vào localStorage để trang detail lấy ra gửi
       localStorage.setItem('pendingMessage', pendingMessage);
       router.push(`/dashboard/playground/${chatId}`);
     } catch (err) {
