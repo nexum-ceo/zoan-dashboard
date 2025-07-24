@@ -1,8 +1,8 @@
 'use client';
 import { ChatInput } from '@/app/dashboard/playground/component/ChatInput';
 import { ChatMessage } from '@/app/dashboard/playground/component/ChatMessage';
-import { useCustomChat } from '@/app/dashboard/playground/hooks/useCustomChat';
 import { Button } from '@/components/ui/button';
+import { useCustomChat } from '@/hooks/useCustomChat';
 import { ArrowDown, MessageSquare, Plus, Sparkles } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useEffect, useRef, useState } from 'react';

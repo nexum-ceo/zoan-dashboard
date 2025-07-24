@@ -5,8 +5,8 @@ import { Button } from '@/components/ui/button';
 import { ArrowDown, MessageSquare, Plus, Sparkles } from 'lucide-react';
 import { useParams } from 'next/navigation';
 import { useEffect, useRef, useState } from 'react';
+import { useCustomChat } from '../../../../hooks/useCustomChat';
 import SelectAssistant from '../component/SelectAssistant';
-import { useCustomChat } from '../hooks/useCustomChat';
 
 export default function PlaygroundChatPage() {
   // State for selected agent
