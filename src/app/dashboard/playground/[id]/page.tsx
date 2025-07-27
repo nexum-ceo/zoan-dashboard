@@ -2,10 +2,11 @@
 import { ChatInput } from '@/app/dashboard/playground/component/ChatInput';
 import { ChatMessage } from '@/app/dashboard/playground/component/ChatMessage';
 import { Button } from '@/components/ui/button';
+import { useChat } from '@/hooks/useChat';
+import { ChatRole, GetChatMessagesResType } from '@/types/chat';
 import { ArrowDown, MessageSquare, Plus, Sparkles } from 'lucide-react';
 import { useParams } from 'next/navigation';
 import { useEffect, useRef, useState } from 'react';
-import { useCustomChat } from '../../../../hooks/useCustomChat';
 import SelectAssistant from '../component/SelectAssistant';
 
 export default function PlaygroundChatPage() {
@@ -24,10 +25,7 @@ export default function PlaygroundChatPage() {
 
   // Get the first message from localStorage if it exists
   const [pendingMsg, setPendingMsg] = useState<string>(() => {
-    if (typeof window !== 'undefined') {
-      return localStorage.getItem('pendingMessage') || '';
-    }
-    return '';
+    return localStorage.getItem('pendingMessage') || '';
   });
   const [firstMsgSent, setFirstMsgSent] = useState<boolean>(false);
 
@@ -37,12 +35,11 @@ export default function PlaygroundChatPage() {
     handleInputChange,
     handleSubmit,
     isLoading,
-    setInput,
     setMessages,
     wsConnected,
     sendMessageDirect,
-  } = useCustomChat({
-    wsUrl: `wss://mvp-be.buymed.site/ws/${chatId}`,
+  } = useChat({
+    wsUrl: `${process.env.NEXT_PUBLIC_WS_URL}/${chatId}`,
     initialMessages: [],
     agentId: agentId || '',
     chatId: chatId,
@@ -54,16 +51,15 @@ export default function PlaygroundChatPage() {
       fetch(`/api/chat/${chatId}`)
         .then(async (res) => {
           if (!res.ok) throw new Error('Failed to fetch chat detail');
-          return res.json();
+          return res.json() as Promise<GetChatMessagesResType>;
         })
         .then((data) => {
           if (Array.isArray(data?.data)) {
-            // Ensure role is correct type
             const safeMessages = data.data.map((msg: any) => ({
               ...msg,
-              role: ['user', 'assistant', 'system', 'data'].includes(msg.role)
+              role: Object.values(ChatRole).includes(msg.role)
                 ? msg.role
-                : 'user',
+                : ChatRole.USER,
             }));
             setMessages(safeMessages);
           }
@@ -84,19 +80,6 @@ export default function PlaygroundChatPage() {
     }
   }, [pendingMsg, firstMsgSent, wsConnected, sendMessageDirect]);
 
-  const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  };
-
-  const handleScroll = () => {
-    if (messagesContainerRef.current) {
-      const { scrollTop, scrollHeight, clientHeight } =
-        messagesContainerRef.current;
-      const isNearBottom = scrollHeight - scrollTop - clientHeight < 100;
-      setShowScrollButton(!isNearBottom && messages.length > 0);
-    }
-  };
-
   useEffect(() => {
     scrollToBottom();
   }, [messages]);
@@ -109,6 +92,18 @@ export default function PlaygroundChatPage() {
     }
   }, [messages.length]);
 
+  const scrollToBottom = () => {
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  };
+
+  const handleScroll = () => {
+    if (messagesContainerRef.current) {
+      const { scrollTop, scrollHeight, clientHeight } =
+        messagesContainerRef.current;
+      const isNearBottom = scrollHeight - scrollTop - clientHeight < 100;
+      setShowScrollButton(!isNearBottom && messages.length > 0);
+    }
+  };
   return (
     <div className="w-full h-full bg-gradient-to-br from-gray-50 to-gray-100 flex">
       {/* Sidebar */}
@@ -160,7 +155,7 @@ export default function PlaygroundChatPage() {
                 isLoading={
                   isLoading &&
                   index === messages.length - 1 &&
-                  message.role === 'assistant'
+                  message.role === ChatRole.ASSISTANT
                 }
               />
             ))

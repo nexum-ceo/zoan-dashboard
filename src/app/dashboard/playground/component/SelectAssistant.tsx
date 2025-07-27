@@ -59,11 +59,15 @@ const SelectAssistant: FC<SelectAssistantProps> = ({ onAgentChange }) => {
     fetch('/api/chat')
       .then(async (res) => {
         if (!res.ok) throw new Error('Failed to fetch chat list');
-        return res.json();
+        return res.json() as Promise<GetChatListResType>;
       })
       .then((data) => {
         if (Array.isArray(data?.chats)) {
-          setChats(data.chats);
+          setChats(
+            data.chats.sort(
+              (a, b) => Date.parse(b.created_at) - Date.parse(a.created_at),
+            ),
+          );
         } else {
           setChats([]);
         }
@@ -120,9 +124,9 @@ const SelectAssistant: FC<SelectAssistantProps> = ({ onAgentChange }) => {
         </Select>
       </div>
 
-      <div className="space-y-2 h-[calc(100%-25rem)] overflow-y-auto">
+      <div className="space-y-2 h-[calc(100%-15rem)]">
         <h4 className="text-sm font-medium text-gray-900">Recent Chats</h4>
-        <div className="space-y-1 h-full">
+        <div className="space-y-1 h-full overflow-y-auto">
           {chatLoading && (
             <div className="text-xs text-gray-400 px-3">Loading...</div>
           )}

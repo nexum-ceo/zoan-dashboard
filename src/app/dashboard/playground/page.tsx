@@ -2,11 +2,11 @@
 import { ChatInput } from '@/app/dashboard/playground/component/ChatInput';
 import { ChatMessage } from '@/app/dashboard/playground/component/ChatMessage';
 import { Button } from '@/components/ui/button';
-import { useCustomChat } from '@/hooks/useCustomChat';
+import { useChat } from '@/hooks/useChat';
+import { useCreateChat } from '@/hooks/useCreateChat';
 import { ArrowDown, MessageSquare, Plus, Sparkles } from 'lucide-react';
 import { useRouter } from 'next/navigation';
-import { useEffect, useRef, useState } from 'react';
-import { useCreateChat } from '../../../hooks/useCreateChat';
+import { FormEvent, useEffect, useRef, useState } from 'react';
 import SelectAssistant from './component/SelectAssistant';
 
 export default function PlaygroundPage() {
@@ -16,7 +16,7 @@ export default function PlaygroundPage() {
   const [agentId, setAgentId] = useState<string | undefined>(undefined);
   const [agentError, setAgentError] = useState<string | null>(null);
 
-  const { messages, handleSubmit, isLoading } = useCustomChat({
+  const { messages, handleSubmit, isLoading } = useChat({
     wsUrl: '/api/chat',
     initialMessages: [],
     agentId: agentId || '',
@@ -24,12 +24,23 @@ export default function PlaygroundPage() {
   });
 
   // State for pending first message
-  const [pendingMessage, setPendingMessage] = useState('');
-
+  const [pendingMessage, setPendingMessage] = useState<string>('');
   const { createChat, loading: creatingChat } = useCreateChat();
   const router = useRouter();
 
-  const handleFirstSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+  useEffect(() => {
+    scrollToBottom();
+  }, [messages]);
+
+  useEffect(() => {
+    const container = messagesContainerRef.current;
+    if (container) {
+      container.addEventListener('scroll', handleScroll);
+      return () => container.removeEventListener('scroll', handleScroll);
+    }
+  }, [messages.length]);
+
+  const handleFirstSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (!agentId) {
       setAgentError('Please select an agent before starting a chat.');
@@ -45,7 +56,7 @@ export default function PlaygroundPage() {
       localStorage.setItem('pendingMessage', pendingMessage);
       router.push(`/dashboard/playground/${chatId}`);
     } catch (err) {
-      // Optionally show error
+      setAgentError('Failed to create chat. Please try again.');
     }
   };
 
@@ -61,18 +72,6 @@ export default function PlaygroundPage() {
       setShowScrollButton(!isNearBottom && messages.length > 0);
     }
   };
-
-  useEffect(() => {
-    scrollToBottom();
-  }, [messages]);
-
-  useEffect(() => {
-    const container = messagesContainerRef.current;
-    if (container) {
-      container.addEventListener('scroll', handleScroll);
-      return () => container.removeEventListener('scroll', handleScroll);
-    }
-  }, [messages.length]);
 
   return (
     <div className="w-full h-full bg-gradient-to-br from-gray-50 to-gray-100 flex">

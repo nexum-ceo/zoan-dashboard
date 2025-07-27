@@ -41,10 +41,17 @@ export const GetSpecificChatResSchema = z.object({
 
 export type GetSpecificChatResType = z.infer<typeof GetSpecificChatResSchema>;
 
+export enum ChatRole {
+  USER = 'user',
+  ASSISTANT = 'assistant',
+  SYSTEM = 'system',
+  DATA = 'data',
+}
+
 export const ChatMessageSchema = z.object({
   id: z.string(),
   chat_id: z.string(),
-  role: z.enum(['user', 'assistant']),
+  role: z.enum(ChatRole),
   content: z.string().optional(),
   metadata: z.record(z.string(), z.string()).optional(),
   created_at: z.string(),

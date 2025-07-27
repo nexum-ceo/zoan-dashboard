@@ -33,10 +33,12 @@ export default function RootLayout({
           <main className="w-full h-screen p-2">{children}</main>
         </SidebarProvider> */}
         {/* <AppNavbar /> */}
+        {/* <SessionProvider> */}
         <main className="min-h-screen h-full w-full flex flex-col">
           {children}
         </main>
         <Toaster />
+        {/* </SessionProvider> */}
       </body>
     </html>
   );

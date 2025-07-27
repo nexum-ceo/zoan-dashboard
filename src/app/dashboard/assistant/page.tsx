@@ -9,13 +9,13 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { formatDate } from '@/lib/date';
-import { AgentItemType, GetAgentResType } from '@/types/agent';
+import { AgentType, GetAgentResType } from '@/types/agent';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 
 export default function AssistantPage() {
   const router = useRouter();
-  const [agents, setAgents] = useState<AgentItemType[]>([]);
+  const [agents, setAgents] = useState<AgentType[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
 

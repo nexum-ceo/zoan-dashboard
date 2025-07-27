@@ -16,7 +16,7 @@ import { useEffect, useState } from 'react';
 
 import { TUser } from '@/const/types';
 import { Menu } from 'lucide-react';
-import { signIn } from 'next-auth/react';
+import { signIn, useSession } from 'next-auth/react';
 import { Button, buttonVariants } from './ui/button';
 
 interface RouteProps {
@@ -46,13 +46,13 @@ const routeList: RouteProps[] = [
 export default function AppNavbar() {
   const [isOpen, setIsOpen] = useState<boolean>(false);
   const [user, setUser] = useState<TUser | null>(null);
+  const { data: session, status } = useSession();
 
   useEffect(() => {
     const fetchUser = async () => {
       const response = await fetch('/api/user');
       const data = await response.json();
-      console.log('data', data);
-      setUser(data.user);
+      setUser(data.data);
     };
 
     fetchUser();
