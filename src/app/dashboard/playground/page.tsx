@@ -101,7 +101,7 @@ export default function PlaygroundPage() {
         {/* Messages */}
         <div
           ref={messagesContainerRef}
-          className="flex-1 px-6 py-4 space-y-6 w-full overflow-y-auto h-full"
+          className="flex-1 px-6 py-4 space-y-6 w-full overflow-y-auto"
         >
           {messages.length === 0 ? (
             <div className="flex flex-col items-center justify-center h-full text-center">

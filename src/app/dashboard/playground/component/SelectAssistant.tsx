@@ -85,7 +85,7 @@ const SelectAssistant: FC<SelectAssistantProps> = ({ onAgentChange }) => {
   };
 
   return (
-    <div className="space-y-4 h-[820px]">
+    <div className="space-y-4">
       <div>
         <h3 className="text-sm font-medium text-gray-900 mb-2">Choose Agent</h3>
         <Select value={selectedAgent} onValueChange={handleAgentChange}>
@@ -124,7 +124,7 @@ const SelectAssistant: FC<SelectAssistantProps> = ({ onAgentChange }) => {
         </Select>
       </div>
 
-      <div className="space-y-2 h-[calc(100%-15rem)]">
+      <div className="space-y-2">
         <h4 className="text-sm font-medium text-gray-900">Recent Chats</h4>
         <div className="space-y-1 h-full overflow-y-auto">
           {chatLoading && (

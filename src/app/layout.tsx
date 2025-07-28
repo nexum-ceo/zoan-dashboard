@@ -26,7 +26,7 @@ export default async function RootLayout({
   return (
     <html lang="en">
       <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased max-h-screen w-full m-0 p-0`}
+        className={`${geistSans.variable} ${geistMono.variable} antialiased h-screen w-full m-0 p-0`}
       >
         <div className="h-full w-full">{children}</div>
         <Toaster />
