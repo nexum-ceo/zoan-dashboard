@@ -12,7 +12,7 @@ export async function GET() {
   }
 
   try {
-    const response = await axiosInstance.get<GetAgentResType>('/agent/', {
+    const response = await axiosInstance.get<GetAgentResType>('/agent', {
       headers: {
         Authorization: `Bearer ${session.accessToken}`,
       },

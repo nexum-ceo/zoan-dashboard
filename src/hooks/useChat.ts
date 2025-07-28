@@ -1,4 +1,6 @@
+'use client';
 import { ChatRole } from '@/types/chat';
+// import { useSession } from 'next-auth/react';
 import { ChangeEvent, FormEvent, useEffect, useRef, useState } from 'react';
 
 export type ChatMessage = {
@@ -88,10 +90,12 @@ export function useChat({
   const handleSubmit = (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (!input.trim()) return;
-    const userMsg: ChatMessage = {
+    const userMsg = {
       id: Date.now().toString(),
       role: ChatRole.USER,
       content: input,
+      chat_id: chatId,
+      agent_id: agentId,
     };
     setMessages((prev) => [...prev, userMsg]);
     setIsLoading(true);
@@ -102,7 +106,7 @@ export function useChat({
           chat_id: chatId,
           agent_id: agentId,
           content: input,
-          type: 'text',
+          metadata: {},
         }),
       );
     }

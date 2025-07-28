@@ -106,7 +106,7 @@ export default function SettingPage() {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          provider_name: selectedProvider,
+          provider: selectedProvider,
           api_token: apiToken,
         }),
       });

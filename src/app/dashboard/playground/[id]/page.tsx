@@ -28,6 +28,15 @@ export default function PlaygroundChatPage() {
     return localStorage.getItem('pendingMessage') || '';
   });
   const [firstMsgSent, setFirstMsgSent] = useState<boolean>(false);
+  const [session, setSession] = useState<any>(null);
+  useEffect(() => {
+    fetch('/api/auth/session')
+      .then((res) => res.json())
+      .then((data) => {
+        setSession(data.accessToken);
+        console.log('[WS] Session:', data);
+      });
+  }, []);
 
   const {
     messages,
@@ -39,7 +48,7 @@ export default function PlaygroundChatPage() {
     wsConnected,
     sendMessageDirect,
   } = useChat({
-    wsUrl: `${process.env.NEXT_PUBLIC_WS_URL}/${chatId}`,
+    wsUrl: `${process.env.NEXT_PUBLIC_WS_URL}/${chatId}?token=${session}`,
     initialMessages: [],
     agentId: agentId || '',
     chatId: chatId,

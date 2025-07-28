@@ -1,5 +1,5 @@
 'use client';
-import Configuration from '@/app/dashboard/assistant/[id]/components/Configuration';
+import AddAgentForm from '@/app/dashboard/assistant/[id]/components/add-agent-form';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent } from '@/components/ui/dialog';
 import {
@@ -112,17 +112,14 @@ export default function AssistantPage() {
       </div>
       {/* Dialog show Configuration */}
       <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
-        <DialogContent
-          // className="w-full max-w-[900px]"
-          style={{ width: '900px', maxWidth: '95vw' }}
-        >
+        <DialogContent style={{ width: '900px', maxWidth: '85vw' }}>
           {/* <DialogHeader>
             <DialogTitle>Edit Provider Configuration</DialogTitle>
             <DialogDescription>
               Update configuration for this provider.
             </DialogDescription>
           </DialogHeader> */}
-          <Configuration />
+          <AddAgentForm />
         </DialogContent>
       </Dialog>
     </div>

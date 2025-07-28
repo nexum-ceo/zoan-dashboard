@@ -21,7 +21,7 @@ export async function POST(req: Request) {
     const body: CreateChatBodyType = await req.json();
 
     const response = await axiosInstance.post<CreateChatResType>(
-      '/chat/',
+      '/chat',
       body,
       {
         headers: {
@@ -47,14 +47,11 @@ export async function GET() {
   }
 
   try {
-    const response = await axiosInstance.get<GetChatListResType>(
-      `/chat/list/${payload.userId}`,
-      {
-        headers: {
-          Authorization: `Bearer ${session.accessToken}`,
-        },
+    const response = await axiosInstance.get<GetChatListResType>(`/chat`, {
+      headers: {
+        Authorization: `Bearer ${session.accessToken}`,
       },
-    );
+    });
 
     return NextResponse.json(response.data);
   } catch (error: any) {
