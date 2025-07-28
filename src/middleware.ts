@@ -28,3 +28,22 @@ export async function middleware(req: NextRequest) {
 
   return NextResponse.next();
 }
+// import { withAuth } from 'next-auth/middleware';
+
+// export default withAuth(
+//   function
+//   ,
+//   {
+//   pages: {
+//     signIn: '/login',
+//   },
+// });
+
+// export const config = {
+//   matcher: [
+//     '/dashboard',
+//     '/dashboard/assistant',
+//     '/dashboard/playground',
+//     '/dashboard/setting',
+//   ], // Adjust paths as needed
+// };
