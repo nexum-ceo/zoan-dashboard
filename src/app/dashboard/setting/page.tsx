@@ -27,7 +27,12 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import { GetProviderResType } from '@/types/provider';
+import { formatDate } from '@/lib/date';
+import {
+  GetProviderOfUserResType,
+  GetProviderResType,
+  ProviderOfUserType,
+} from '@/types/provider';
 import { useEffect, useState } from 'react';
 
 export default function SettingPage() {
@@ -39,6 +44,9 @@ export default function SettingPage() {
   const [apiToken, setApiToken] = useState('');
   const [createLoading, setCreateLoading] = useState(false);
   const [createError, setCreateError] = useState<string | null>(null);
+  const [providerOfUser, setProviderOfUser] = useState<ProviderOfUserType[]>(
+    [],
+  );
 
   useEffect(() => {
     const fetchAgents = async () => {
@@ -58,6 +66,26 @@ export default function SettingPage() {
       }
     };
     fetchAgents();
+  }, []);
+
+  useEffect(() => {
+    const fetchListProviderOfUser = async () => {
+      try {
+        const res = await fetch('/api/provider-user');
+        const data: GetProviderOfUserResType = await res.json();
+        if (data.data) {
+          setProviderOfUser(data.data);
+        } else {
+          setProviderOfUser([]);
+          setError('No providers found.');
+        }
+      } catch (err: any) {
+        setError(err?.message || 'Fetch failed');
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchListProviderOfUser();
   }, []);
 
   const handleAddProvider = async () => {
@@ -171,8 +199,12 @@ export default function SettingPage() {
           <TableCaption>A list of acceptable providers.</TableCaption>
           <TableHeader>
             <TableRow>
-              <TableHead className="w-[100px]">ID</TableHead>
-              <TableHead className="w-[100px]">Name</TableHead>
+              <TableHead className="w-[60px]">#</TableHead>
+              <TableHead className="w-[220px]">ID</TableHead>
+              <TableHead className="w-[120px]">Provider</TableHead>
+              <TableHead className="w-[180px]">API Token</TableHead>
+              <TableHead className="w-[180px]">Created At</TableHead>
+              <TableHead className="w-[180px]">Updated At</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -188,20 +220,33 @@ export default function SettingPage() {
                   {error}
                 </TableCell>
               </TableRow>
-            ) : providers.length === 0 ? (
+            ) : providerOfUser.length === 0 ? (
               <TableRow>
                 <TableCell colSpan={5} className="text-center">
                   No providers found.
                 </TableCell>
               </TableRow>
             ) : (
-              providers.map((provider, index) => (
+              providerOfUser.map((provider, index) => (
                 <TableRow
-                  key={provider}
+                  key={provider.id}
                   className="cursor-pointer hover:bg-muted transition-colors"
                 >
-                  <TableCell className="font-medium">{index}</TableCell>
-                  <TableCell className="font-medium">{provider}</TableCell>
+                  <TableCell className="font-medium">{index + 1}</TableCell>
+                  <TableCell className="font-medium">{provider.id}</TableCell>
+                  <TableCell className="font-medium">
+                    {provider.provider}
+                  </TableCell>
+                  <TableCell className="font-medium">
+                    {provider.api_token}
+                  </TableCell>
+
+                  <TableCell className="font-medium">
+                    {formatDate(provider.created_at)}
+                  </TableCell>
+                  <TableCell className="font-medium">
+                    {formatDate(provider.updated_at)}
+                  </TableCell>
                 </TableRow>
               ))
             )}

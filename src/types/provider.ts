@@ -15,3 +15,24 @@ export const CreateProviderBodySchema = z.object({
 });
 
 export type CreateProviderBodyType = z.infer<typeof CreateProviderBodySchema>;
+
+export const ProviderOfUserSchema = z.object({
+  id: z.string(),
+  provider: z.string(),
+  api_token: z.string(),
+  user_id: z.string(),
+  created_at: z.string(),
+  updated_at: z.string(),
+});
+
+export type ProviderOfUserType = z.infer<typeof ProviderOfUserSchema>;
+
+export const GetProviderOfUserResSchema = z.object({
+  status: z.string(),
+  message: z.string(),
+  data: z.array(ProviderOfUserSchema),
+});
+
+export type GetProviderOfUserResType = z.infer<
+  typeof GetProviderOfUserResSchema
+>;
