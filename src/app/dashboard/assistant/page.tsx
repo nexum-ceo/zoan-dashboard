@@ -1,13 +1,7 @@
 'use client';
 import Configuration from '@/app/dashboard/assistant/[id]/components/Configuration';
 import { Button } from '@/components/ui/button';
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-} from '@/components/ui/dialog';
+import { Dialog, DialogContent } from '@/components/ui/dialog';
 import {
   Table,
   TableBody,
@@ -116,16 +110,18 @@ export default function AssistantPage() {
           </TableBody>
         </Table>
       </div>
-
       {/* Dialog show Configuration */}
       <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
-        <DialogContent className="max-w-2xl">
-          <DialogHeader>
+        <DialogContent
+          // className="w-full max-w-[900px]"
+          style={{ width: '900px', maxWidth: '95vw' }}
+        >
+          {/* <DialogHeader>
             <DialogTitle>Edit Provider Configuration</DialogTitle>
             <DialogDescription>
               Update configuration for this provider.
             </DialogDescription>
-          </DialogHeader>
+          </DialogHeader> */}
           <Configuration />
         </DialogContent>
       </Dialog>

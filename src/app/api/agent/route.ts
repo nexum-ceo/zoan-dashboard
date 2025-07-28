@@ -39,7 +39,7 @@ export async function POST(req: Request) {
     let body = await req.json();
 
     const response = await axiosInstance.post<CreateAgentResType>(
-      '/agent/',
+      '/agent',
       body,
       {
         headers: {

@@ -3,7 +3,6 @@ import { Button } from '@/components/ui/button';
 import {
   Form,
   FormControl,
-  FormDescription,
   FormField,
   FormItem,
   FormLabel,
@@ -18,6 +17,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Slider } from '@/components/ui/slider';
+import { Textarea } from '@/components/ui/textarea';
 import {
   CreateAgentBodySchema,
   CreateAgentBodyType,
@@ -139,249 +139,292 @@ export default function Configuration() {
   };
 
   return (
-    <div className="flex flex-col gap-4 w-full h-full p-4 justify-between">
-      <Form {...form}>
-        <form
-          onSubmit={form.handleSubmit(onSubmit)}
-          className="flex flex-col gap-4"
-        >
-          <div className="flex flex-col gap-4">
-            <div className="text-lg font-medium">General Configuration</div>
+    <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-gray-50 to-white p-2">
+      <div className="w-full h-full rounded-2xl shadow-xl bg-white/90 border border-gray-200 p-4">
+        <Form {...form}>
+          <form
+            onSubmit={form.handleSubmit(onSubmit)}
+            className="flex flex-col gap-8"
+          >
+            {/* General Section */}
+            <div>
+              <div className="text-xl font-semibold mb-2 text-gray-800 flex items-center gap-2">
+                <span className="inline-block w-1.5 h-6 bg-primary rounded-full mr-2" />
+                General Configuration
+              </div>
+              <div className="grid grid-cols-1 gap-6">
+                <FormField
+                  control={form.control}
+                  name="name"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel className="text-[13px] font-medium text-gray-700">
+                        Name
+                      </FormLabel>
+                      <FormControl>
+                        <Input
+                          {...field}
+                          placeholder="Agent name"
+                          className="rounded-lg"
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
 
-            <FormField
-              control={form.control}
-              name="name"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel className="text-[12px] font-medium">
-                    Name
-                  </FormLabel>
-                  <FormControl>
-                    <Input {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+              {/* Description field on its own row */}
+              <div className="mt-6">
+                <FormField
+                  control={form.control}
+                  name="description"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel className="text-[13px] font-medium text-gray-700">
+                        Description
+                      </FormLabel>
+                      <FormControl>
+                        <Textarea
+                          {...field}
+                          placeholder="Short description"
+                          className="rounded-lg"
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
 
-            <FormField
-              control={form.control}
-              name="description"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel className="text-[12px] font-medium">
-                    Description
-                  </FormLabel>
-                  <FormControl>
-                    <Input {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
+                <FormField
+                  control={form.control}
+                  name="provider_id"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel className="text-[13px] font-medium text-gray-700">
+                        Provider
+                      </FormLabel>
+                      <Select
+                        onValueChange={async (val) => {
+                          field.onChange(val);
+                          await handleProviderChange(val);
+                        }}
+                        value={field.value}
+                      >
+                        <FormControl>
+                          <SelectTrigger className="rounded-lg">
+                            <SelectValue placeholder="Select a provider" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          {providers.map((provider) => (
+                            <SelectItem key={provider.id} value={provider.id}>
+                              {provider.provider}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
 
-            <FormField
-              control={form.control}
-              name="prompt"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel className="text-[12px] font-medium">
-                    System Instruction
-                  </FormLabel>
-                  <FormControl>
-                    <Input {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+                <FormField
+                  control={form.control}
+                  name="model"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel className="text-[13px] font-medium text-gray-700">
+                        Model
+                      </FormLabel>
+                      <Select
+                        onValueChange={field.onChange}
+                        defaultValue={field.value || 'deepseek'}
+                        disabled={!selectedProvider || models.length === 0}
+                      >
+                        <FormControl>
+                          <SelectTrigger
+                            className="rounded-lg min-w-[180px]"
+                            disabled={!selectedProvider || models.length === 0}
+                          >
+                            <SelectValue placeholder="Select a model" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          {models.map((model) => (
+                            <SelectItem key={model} value={model}>
+                              {model}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
 
-            <FormField
-              control={form.control}
-              name="provider_id"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel className="text-[12px] font-medium">
-                    Provider
-                  </FormLabel>
-                  <Select
-                    onValueChange={async (val) => {
-                      field.onChange(val);
-                      await handleProviderChange(val);
-                    }}
-                    value={field.value}
-                  >
-                    <FormControl>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select a provider" />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      {providers.map((provider) => (
-                        <SelectItem key={provider.id} value={provider.id}>
-                          {provider.provider}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+              <div className="mt-6">
+                <FormField
+                  control={form.control}
+                  name="prompt"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel className="text-[13px] font-medium text-gray-700">
+                        System Instruction
+                      </FormLabel>
+                      <FormControl>
+                        <Input
+                          {...field}
+                          placeholder="System prompt (optional)"
+                          className="rounded-lg"
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+            </div>
 
-            <FormField
-              control={form.control}
-              name="model"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel className="text-[12px] font-medium">
-                    Model
-                  </FormLabel>
-                  <Select
-                    onValueChange={field.onChange}
-                    defaultValue={'deepseek'}
-                  >
-                    <FormControl>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select a model" />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      {models.map((model) => (
-                        <SelectItem key={model} value={model}>
-                          {model}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <div className="text-lg font-medium mt-2">Model Configuration</div>
+            {/* Divider */}
+            <div className="border-t border-gray-200 my-2" />
 
-            <FormField
-              control={form.control}
-              name="response_format"
-              render={({ field }) => (
-                <FormItem>
-                  <div className="flex flex-row gap-1 justify-between items-center">
-                    <FormLabel className="text-[12px] font-medium">
-                      Response format
-                    </FormLabel>
-                    <FormDescription className="text-[12px] text-muted-foreground">
-                      (Optional)
-                    </FormDescription>
-                  </div>
-                  <Select
-                    onValueChange={field.onChange}
-                    defaultValue={field.value}
-                  >
-                    <FormControl>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select response format" />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      <SelectItem value="text">Text</SelectItem>
-                      <SelectItem value="json">JSON</SelectItem>
-                    </SelectContent>
-                  </Select>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+            {/* Model Config Section */}
+            <div>
+              <div className="text-xl font-semibold mb-2 text-gray-800 flex items-center gap-2">
+                <span className="inline-block w-1.5 h-6 bg-primary rounded-full mr-2" />
+                Model Configuration
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <FormField
+                  control={form.control}
+                  name="response_format"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel className="text-[13px] font-medium text-gray-700">
+                        Response format
+                      </FormLabel>
+                      <Select
+                        onValueChange={field.onChange}
+                        defaultValue={field.value}
+                      >
+                        <FormControl>
+                          <SelectTrigger className="rounded-lg">
+                            <SelectValue placeholder="Select response format" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          <SelectItem value="text">Text</SelectItem>
+                          <SelectItem value="json">JSON</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
 
-            <FormField
-              control={form.control}
-              name="temperature"
-              render={({ field }) => (
-                <FormItem>
-                  <div className="flex flex-col gap-3">
-                    <div className="flex flex-row gap-1 justify-between items-center">
-                      <FormLabel className="text-[12px] font-medium">
+                <FormField
+                  control={form.control}
+                  name="temperature"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel className="text-[13px] font-medium text-gray-700">
                         Temperature
                       </FormLabel>
-                      <FormControl>
-                        <Input
-                          type="number"
-                          step="0.01"
-                          className="w-13 no-spinner"
-                          value={field.value}
-                          onChange={(e) =>
-                            field.onChange(Number(e.target.value))
-                          }
-                        />
-                      </FormControl>
-                    </div>
-                    <FormControl>
-                      <Slider
-                        max={2}
-                        min={0}
-                        step={0.01}
-                        value={[field.value]}
-                        onValueChange={(value) => field.onChange(value[0])}
-                      />
-                    </FormControl>
-                  </div>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+                      <div className="flex items-center gap-2">
+                        <FormControl>
+                          <Input
+                            type="number"
+                            step="0.01"
+                            className="w-20 rounded-lg no-spinner"
+                            value={field.value}
+                            onChange={(e) =>
+                              field.onChange(Number(e.target.value))
+                            }
+                          />
+                        </FormControl>
+                        <FormControl className="flex-1">
+                          <Slider
+                            max={2}
+                            min={0}
+                            step={0.01}
+                            value={[field.value]}
+                            onValueChange={(value) => field.onChange(value[0])}
+                          />
+                        </FormControl>
+                      </div>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
 
-            <FormField
-              control={form.control}
-              name="top_p"
-              render={({ field }) => (
-                <FormItem>
-                  <div className="flex flex-col gap-3">
-                    <div className="flex flex-row gap-1 justify-between items-center">
-                      <FormLabel className="text-[12px] font-medium">
+                <FormField
+                  control={form.control}
+                  name="top_p"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel className="text-[13px] font-medium text-gray-700">
                         Top P
                       </FormLabel>
-                      <FormControl>
-                        <Input
-                          type="number"
-                          step="0.01"
-                          className="w-13 no-spinner"
-                          value={field.value}
-                          onChange={(e) =>
-                            field.onChange(Number(e.target.value))
-                          }
-                        />
-                      </FormControl>
-                    </div>
-                    <FormControl>
-                      <Slider
-                        max={1}
-                        min={0}
-                        step={0.01}
-                        value={[field.value]}
-                        onValueChange={(value) => field.onChange(value[0])}
-                      />
-                    </FormControl>
-                  </div>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-          </div>
+                      <div className="flex items-center gap-2">
+                        <FormControl>
+                          <Input
+                            type="number"
+                            step="0.01"
+                            className="w-20 rounded-lg no-spinner"
+                            value={field.value}
+                            onChange={(e) =>
+                              field.onChange(Number(e.target.value))
+                            }
+                          />
+                        </FormControl>
+                        <FormControl className="flex-1">
+                          <Slider
+                            max={1}
+                            min={0}
+                            step={0.01}
+                            value={[field.value]}
+                            onValueChange={(value) => field.onChange(value[0])}
+                          />
+                        </FormControl>
+                      </div>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+            </div>
 
-          <div className="flex flex-row gap-2 items-center w-full justify-end">
-            <Button type="button" variant="outline" onClick={handleCancel}>
-              Cancel
-            </Button>
-            <Button type="submit" disabled={loading}>
-              {loading ? 'Saving...' : 'Save Changes'}
-            </Button>
-          </div>
-
-          {error && <div className="text-red-500 text-sm mt-2">{error}</div>}
-          {success && (
-            <div className="text-green-500 text-sm mt-2">{success}</div>
-          )}
-        </form>
-      </Form>
+            {/* Actions & Status */}
+            <div className="flex flex-row gap-3 items-center w-full justify-end mt-4">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={handleCancel}
+                className="rounded-lg bg-transparent"
+              >
+                Cancel
+              </Button>
+              <Button type="submit" disabled={loading} className="rounded-lg">
+                {loading ? 'Saving...' : 'Save Changes'}
+              </Button>
+            </div>
+            {error && (
+              <div className="text-red-500 text-sm mt-2 text-right">
+                {error}
+              </div>
+            )}
+            {success && (
+              <div className="text-green-500 text-sm mt-2 text-right">
+                {success}
+              </div>
+            )}
+          </form>
+        </Form>
+      </div>
     </div>
   );
 }
