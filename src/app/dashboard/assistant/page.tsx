@@ -1,4 +1,13 @@
 'use client';
+import Configuration from '@/app/dashboard/assistant/[id]/components/Configuration';
+import { Button } from '@/components/ui/button';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
 import {
   Table,
   TableBody,
@@ -18,6 +27,7 @@ export default function AssistantPage() {
   const [agents, setAgents] = useState<AgentType[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
+  const [editDialogOpen, setEditDialogOpen] = useState(false);
 
   useEffect(() => {
     const fetchAgents = async () => {
@@ -45,10 +55,16 @@ export default function AssistantPage() {
 
   return (
     <div className="w-full h-full bg-sidebar rounded-lg border border-border flex flex-col p-2">
-      <div className="p-4 text-2xl font-semibold border-b border-border bg-white rounded-t-lg w-full">
+      <div className="p-4 flex justify-between text-2xl font-semibold border-b border-border bg-white rounded-t-lg w-full">
         Assistants
+        <Button
+          onClick={() => {
+            setEditDialogOpen(true);
+          }}
+        >
+          Add Agent
+        </Button>
       </div>
-
       <div className="m-2 flex-1 flex flex-row gap-3 p-2">
         <Table className="w-full h-fit bg-white border border-border rounded-lg">
           <TableCaption>A list of your agents.</TableCaption>
@@ -100,6 +116,19 @@ export default function AssistantPage() {
           </TableBody>
         </Table>
       </div>
+
+      {/* Dialog show Configuration */}
+      <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>Edit Provider Configuration</DialogTitle>
+            <DialogDescription>
+              Update configuration for this provider.
+            </DialogDescription>
+          </DialogHeader>
+          <Configuration />
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

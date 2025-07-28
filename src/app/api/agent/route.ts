@@ -1,10 +1,6 @@
 import { authOptions } from '@/app/api/auth/[...nextauth]/route';
 import axiosInstance from '@/lib/axios-instance';
-import {
-  CreateAgentBodyType,
-  CreateAgentResType,
-  GetAgentResType,
-} from '@/types/agent';
+import { CreateAgentResType, GetAgentResType } from '@/types/agent';
 import { getServerSession } from 'next-auth';
 import { NextResponse } from 'next/server';
 
@@ -38,8 +34,9 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
 
+  // const payload = (await jwtDecode(session.accessToken)) as TokenPayloadType;
   try {
-    const body: CreateAgentBodyType = await req.json();
+    let body = await req.json();
 
     const response = await axiosInstance.post<CreateAgentResType>(
       '/agent/',

@@ -23,7 +23,11 @@ import {
   CreateAgentBodyType,
   CreateAgentResType,
 } from '@/types/agent';
-import { GetProviderResType } from '@/types/provider';
+import {
+  GetModelResType,
+  GetProviderOfUserResType,
+  ProviderOfUserType,
+} from '@/types/provider';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
@@ -32,13 +36,15 @@ export default function Configuration() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
-  const [providers, setProviders] = useState<string[]>([]);
+  const [providers, setProviders] = useState<ProviderOfUserType[]>([]);
+  const [selectedProvider, setSelectedProvider] = useState<string>('');
+  const [models, setModels] = useState<string[]>([]);
 
   useEffect(() => {
     const fetchProvider = async () => {
       try {
-        const res = await fetch('/api/provider');
-        const data: GetProviderResType = await res.json();
+        const res = await fetch('/api/provider-user');
+        const data: GetProviderOfUserResType = await res.json();
         if (data.status === 'success') {
           setProviders(data.data);
         } else {
@@ -54,12 +60,43 @@ export default function Configuration() {
     fetchProvider();
   }, []);
 
+  // Chỉ fetch model khi user chọn provider
+  const handleProviderChange = async (providerId: string) => {
+    setSelectedProvider(providerId);
+    setLoading(true);
+    try {
+      // Find the provider object by id
+      const providerObj = providers.find((p) => p.id === providerId);
+      const providerName = providerObj ? providerObj.provider : providerId;
+      const res = await fetch('/api/model', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ name: providerName }),
+      });
+      const data: GetModelResType = await res.json();
+      if (data.status === 'success') {
+        setModels(data.data);
+      } else {
+        setModels([]);
+        setError('No models found.');
+      }
+    } catch (err: any) {
+      setError(err?.message || 'Fetch failed');
+    } finally {
+      setLoading(false);
+    }
+  };
+  console.log('selectedProvider', selectedProvider);
+
   const form = useForm<CreateAgentBodyType>({
     resolver: zodResolver(CreateAgentBodySchema),
     defaultValues: {
       name: '',
       description: '',
       prompt: '',
+      provider_id: '',
       model: 'deepseek',
       response_format: 'text',
       temperature: 1.0,
@@ -72,6 +109,7 @@ export default function Configuration() {
     setError(null);
     setSuccess(null);
 
+    console.log('Form data:', data);
     try {
       const res = await fetch('/api/agent', {
         method: 'POST',
@@ -160,6 +198,39 @@ export default function Configuration() {
 
             <FormField
               control={form.control}
+              name="provider_id"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel className="text-[12px] font-medium">
+                    Provider
+                  </FormLabel>
+                  <Select
+                    onValueChange={async (val) => {
+                      field.onChange(val);
+                      await handleProviderChange(val);
+                    }}
+                    value={field.value}
+                  >
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select a provider" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      {providers.map((provider) => (
+                        <SelectItem key={provider.id} value={provider.id}>
+                          {provider.provider}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
               name="model"
               render={({ field }) => (
                 <FormItem>
@@ -176,9 +247,9 @@ export default function Configuration() {
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
-                      {providers.map((provider) => (
-                        <SelectItem key={provider} value={provider}>
-                          {provider.toLocaleUpperCase()}
+                      {models.map((model) => (
+                        <SelectItem key={model} value={model}>
+                          {model}
                         </SelectItem>
                       ))}
                     </SelectContent>
@@ -187,7 +258,6 @@ export default function Configuration() {
                 </FormItem>
               )}
             />
-
             <div className="text-lg font-medium mt-2">Model Configuration</div>
 
             <FormField

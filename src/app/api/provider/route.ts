@@ -1,6 +1,5 @@
 import { authOptions } from '@/app/api/auth/[...nextauth]/route';
 import axiosInstance from '@/lib/axios-instance';
-import { GetAgentResType } from '@/types/agent';
 import { TokenPayloadType } from '@/types/auth';
 import { CreateProviderBodyType } from '@/types/provider';
 import { jwtDecode } from 'jwt-decode';
@@ -15,7 +14,7 @@ export async function GET() {
   }
 
   try {
-    const response = await axiosInstance.get<GetAgentResType>('/provider', {
+    const response = await axiosInstance.get('/provider', {
       headers: {
         Authorization: `Bearer ${session.accessToken}`,
       },

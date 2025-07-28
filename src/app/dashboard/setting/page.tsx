@@ -1,4 +1,5 @@
 'use client';
+import Configuration from '@/app/dashboard/assistant/[id]/components/Configuration';
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
@@ -47,6 +48,7 @@ export default function SettingPage() {
   const [providerOfUser, setProviderOfUser] = useState<ProviderOfUserType[]>(
     [],
   );
+  const [editDialogOpen, setEditDialogOpen] = useState(false);
 
   useEffect(() => {
     const fetchAgents = async () => {
@@ -129,6 +131,13 @@ export default function SettingPage() {
     <div className="w-full h-full bg-sidebar rounded-lg border border-border flex flex-col p-2">
       <div className="p-4 flex items-center justify-between text-2xl font-semibold border-b border-border bg-white rounded-t-lg w-full">
         <span>Your list providers</span>
+        <Button
+          onClick={() => {
+            setEditDialogOpen(true);
+          }}
+        >
+          Add Agent
+        </Button>
         <Dialog open={open} onOpenChange={setOpen}>
           <DialogTrigger asChild>
             <Button onClick={() => setOpen(true)}>Add Provider</Button>
@@ -220,12 +229,6 @@ export default function SettingPage() {
                   {error}
                 </TableCell>
               </TableRow>
-            ) : providerOfUser.length === 0 ? (
-              <TableRow>
-                <TableCell colSpan={5} className="text-center">
-                  No providers found.
-                </TableCell>
-              </TableRow>
             ) : (
               providerOfUser.map((provider, index) => (
                 <TableRow
@@ -240,7 +243,6 @@ export default function SettingPage() {
                   <TableCell className="font-medium">
                     {provider.api_token}
                   </TableCell>
-
                   <TableCell className="font-medium">
                     {formatDate(provider.created_at)}
                   </TableCell>
@@ -253,6 +255,18 @@ export default function SettingPage() {
           </TableBody>
         </Table>
       </div>
+      {/* Dialog show Configuration */}
+      <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>Edit Provider Configuration</DialogTitle>
+            <DialogDescription>
+              Update configuration for this provider.
+            </DialogDescription>
+          </DialogHeader>
+          <Configuration />
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
