@@ -28,11 +28,9 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { GetProviderResType } from '@/types/provider';
-import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 
 export default function SettingPage() {
-  const router = useRouter();
   const [providers, setProviders] = useState<string[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
@@ -61,6 +59,43 @@ export default function SettingPage() {
     };
     fetchAgents();
   }, []);
+
+  const handleAddProvider = async () => {
+    if (!selectedProvider || !apiToken) {
+      setCreateError('Please select a provider and enter an API token.');
+      return;
+    }
+
+    setCreateLoading(true);
+    setCreateError(null);
+
+    try {
+      const response = await fetch('/api/provider', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          provider_name: selectedProvider,
+          api_token: apiToken,
+        }),
+      });
+
+      const data = await response.json();
+      if (data.status === 'success') {
+        setProviders((prev) => [...prev, selectedProvider]);
+        setOpen(false);
+        setSelectedProvider('');
+        setApiToken('');
+      } else {
+        setCreateError(data.message || 'Failed to add provider');
+      }
+    } catch (error: any) {
+      setCreateError(error?.message || 'Failed to add provider');
+    } finally {
+      setCreateLoading(false);
+    }
+  };
 
   return (
     <div className="w-full h-full bg-sidebar rounded-lg border border-border flex flex-col p-2">
@@ -121,27 +156,7 @@ export default function SettingPage() {
               </DialogClose>
               <Button
                 type="button"
-                onClick={async () => {
-                  setCreateLoading(true);
-                  setCreateError(null);
-                  if (!selectedProvider) {
-                    setCreateError('Provider name is required');
-                    setCreateLoading(false);
-                    return;
-                  }
-                  if (!apiToken.trim()) {
-                    setCreateError('API Token is required');
-                    setCreateLoading(false);
-                    return;
-                  }
-                  // TODO: Replace with real API call
-                  setTimeout(() => {
-                    setSelectedProvider('');
-                    setApiToken('');
-                    setCreateLoading(false);
-                    setOpen(false);
-                  }, 700);
-                }}
+                onClick={handleAddProvider}
                 disabled={createLoading}
               >
                 {createLoading ? 'Adding...' : 'Add'}
