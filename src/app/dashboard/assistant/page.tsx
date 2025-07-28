@@ -24,10 +24,11 @@ export default function AssistantPage() {
       try {
         const res = await fetch('/api/agent');
         const data: GetAgentResType = await res.json();
-        if (data.status === 'success') {
+        if (data.status === 'success' && data.data !== null) {
           setAgents(data.data);
         } else {
-          setError(data.message || 'Failed to fetch agents');
+          setAgents([]);
+          setError('No agents found.');
         }
       } catch (err: any) {
         setError(err?.message || 'Fetch failed');

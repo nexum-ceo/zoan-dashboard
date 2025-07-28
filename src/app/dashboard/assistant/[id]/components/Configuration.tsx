@@ -23,14 +23,36 @@ import {
   CreateAgentBodyType,
   CreateAgentResType,
 } from '@/types/agent';
+import { GetProviderResType } from '@/types/provider';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 
 export default function Configuration() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
+  const [providers, setProviders] = useState<string[]>([]);
+
+  useEffect(() => {
+    const fetchProvider = async () => {
+      try {
+        const res = await fetch('/api/provider');
+        const data: GetProviderResType = await res.json();
+        if (data.status === 'success') {
+          setProviders(data.data);
+        } else {
+          setProviders([]);
+          setError('No providers found.');
+        }
+      } catch (err: any) {
+        setError(err?.message || 'Fetch failed');
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchProvider();
+  }, []);
 
   const form = useForm<CreateAgentBodyType>({
     resolver: zodResolver(CreateAgentBodySchema),
@@ -146,7 +168,7 @@ export default function Configuration() {
                   </FormLabel>
                   <Select
                     onValueChange={field.onChange}
-                    defaultValue={field.value}
+                    defaultValue={'deepseek'}
                   >
                     <FormControl>
                       <SelectTrigger>
@@ -154,9 +176,11 @@ export default function Configuration() {
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
-                      <SelectItem value="deepseek-chat">
-                        DeepSeek Chat
-                      </SelectItem>
+                      {providers.map((provider) => (
+                        <SelectItem key={provider} value={provider}>
+                          {provider.toLocaleUpperCase()}
+                        </SelectItem>
+                      ))}
                     </SelectContent>
                   </Select>
                   <FormMessage />
