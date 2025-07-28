@@ -44,7 +44,7 @@ export default function AssistantPage() {
   };
 
   return (
-    <div className="w-full h-full bg-sidebar rounded-lg border border-border flex flex-col">
+    <div className="w-full h-full bg-sidebar rounded-lg border border-border flex flex-col p-2">
       <div className="p-4 text-2xl font-semibold border-b border-border bg-white rounded-t-lg w-full">
         Assistants
       </div>

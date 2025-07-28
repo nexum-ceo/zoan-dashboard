@@ -60,7 +60,7 @@ export default function Configuration() {
       name: '',
       description: '',
       prompt: '',
-      model: 'gpt-4o',
+      model: 'deepseek',
       response_format: 'text',
       temperature: 1.0,
       top_p: 1.0,

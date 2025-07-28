@@ -1,6 +1,6 @@
-import { Toaster } from '@/components/ui/sonner';
 import type { Metadata } from 'next';
 import { Geist, Geist_Mono } from 'next/font/google';
+import { Toaster } from 'sonner';
 import './globals.css';
 
 const geistSans = Geist({
@@ -23,26 +23,13 @@ export default async function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  // const session = await getServerSession(authOptions);
-  // console.log('session in RootLayout:', session);
   return (
     <html lang="en">
       <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased min-h-screen h-full w-full m-0 p-0`}
+        className={`${geistSans.variable} ${geistMono.variable} antialiased max-h-screen w-full m-0 p-0`}
       >
-        {/* <SidebarProvider>
-          <AppSidebar />
-          <main className="w-full h-screen p-2">{children}</main>
-        </SidebarProvider> */}
-        {/* <AppNavbar /> */}
-        {/* <SessionProvider> */}
-        {/* <SessionProvider session={session}> */}
-        <main className="min-h-screen h-full w-full flex flex-col">
-          {children}
-        </main>
+        <div className="h-full w-full">{children}</div>
         <Toaster />
-        {/* </SessionProvider> */}
-        {/* </SessionProvider> */}
       </body>
     </html>
   );
