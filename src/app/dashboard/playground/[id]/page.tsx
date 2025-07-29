@@ -5,13 +5,14 @@ import { Button } from '@/components/ui/button';
 import { useChat } from '@/hooks/useChat';
 import { ChatRole, GetChatMessagesResType } from '@/types/chat';
 import { ArrowDown, MessageSquare, Plus, Sparkles } from 'lucide-react';
-import { useParams } from 'next/navigation';
+import { useParams, useRouter } from 'next/navigation';
 import { useEffect, useRef, useState } from 'react';
 import SelectAssistant from '../component/SelectAssistant';
 
 export default function PlaygroundChatPage() {
   // State for selected agent
   const [agentId, setAgentId] = useState<string | undefined>(undefined);
+  const router = useRouter();
   const params = useParams();
   const chatId =
     typeof params?.id === 'string'
@@ -126,7 +127,10 @@ export default function PlaygroundChatPage() {
               AI Playground
             </h1>
           </div>
-          <Button className="w-full bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white border-0 shadow-md hover:shadow-lg transition-all duration-200">
+          <Button
+            onClick={() => router.push('/dashboard/playground')}
+            className="w-full bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white border-0 shadow-md hover:shadow-lg transition-all duration-200"
+          >
             <Plus className="w-4 h-4 mr-2" />
             New Chat
           </Button>

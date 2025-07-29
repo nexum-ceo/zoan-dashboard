@@ -44,7 +44,7 @@ export function AppSidebar() {
           <SidebarMenuItem>
             <SidebarMenuButton asChild>
               <a href="/">
-                <img src="./icon.png" alt="Logo" width={32} height={32} />
+                <img src="/icon.png" alt="Logo" width={32} height={32} />
               </a>
             </SidebarMenuButton>
           </SidebarMenuItem>

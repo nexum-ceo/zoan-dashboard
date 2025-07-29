@@ -17,7 +17,6 @@ export default function PlaygroundPage() {
   const [agentError, setAgentError] = useState<string | null>(null);
 
   const { messages, handleSubmit, isLoading } = useChat({
-    wsUrl: '/api/chat',
     initialMessages: [],
     agentId: agentId || '',
     chatId: '',
@@ -79,14 +78,17 @@ export default function PlaygroundPage() {
       <div className="w-80 bg-white border-r border-gray-200 flex flex-col shadow-sm ">
         <div className="p-6 border-b border-gray-100">
           <div className="flex items-center gap-3 mb-4">
-            <div className="w-8 h-8 bg-gradient-to-r from-blue-500 to-purple-600 rounded-lg flex items-center justify-center">
+            <div className="w-8 h-8  rounded-lg flex items-center justify-center">
               <Sparkles className="w-4 h-4 text-white" />
             </div>
             <h1 className="text-xl font-semibold text-gray-900">
               AI Playground
             </h1>
           </div>
-          <Button className="w-full bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white border-0 shadow-md hover:shadow-lg transition-all duration-200">
+          <Button
+            onClick={() => router.push('/dashboard/playground')}
+            className="w-full border-0 shadow-md hover:shadow-lg transition-all duration-200"
+          >
             <Plus className="w-4 h-4 mr-2" />
             New Chat
           </Button>
@@ -105,10 +107,10 @@ export default function PlaygroundPage() {
         >
           {messages.length === 0 ? (
             <div className="flex flex-col items-center justify-center h-full text-center">
-              <div className="w-16 h-16 bg-gradient-to-r from-blue-500 to-purple-600 rounded-2xl flex items-center justify-center mb-4">
-                <MessageSquare className="w-8 h-8 text-white" />
+              <div className="w-16 h-16 rounded-2xl flex items-center justify-center mb-4">
+                <MessageSquare className="w-8 h-8 text-black" />
               </div>
-              <h3 className="text-xl font-semibold text-gray-900 mb-2">
+              <h3 className="text-xl font-semibold mb-2">
                 Start a conversation
               </h3>
               <p className="text-gray-500 max-w-md">

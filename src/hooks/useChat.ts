@@ -10,7 +10,7 @@ export type ChatMessage = {
 };
 
 export type UseCustomChatProps = {
-  wsUrl: string;
+  wsUrl?: string;
   chatId: string;
   agentId: string;
   initialMessages?: ChatMessage[];
@@ -30,7 +30,7 @@ export function useChat({
   const [wsConnected, setWsConnected] = useState<boolean>(false);
 
   useEffect(() => {
-    wsRef.current = new WebSocket(wsUrl);
+    wsRef.current = new WebSocket(wsUrl || '');
     wsRef.current.onopen = () => {
       setWsConnected(true);
       console.log('[WS] Connected:', wsUrl);
@@ -47,6 +47,7 @@ export function useChat({
       const chunk = (() => {
         try {
           const data = JSON.parse(event.data);
+          console.log('[WS] Message received:', data);
           if (data && data.role && data.content !== undefined) {
             return String(data.content);
           }
@@ -90,19 +91,17 @@ export function useChat({
   const handleSubmit = (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (!input.trim()) return;
-    const userMsg = {
+    const userMsg: ChatMessage = {
       id: Date.now().toString(),
-      role: ChatRole.USER,
+      role: 'user',
       content: input,
-      chat_id: chatId,
-      agent_id: agentId,
     };
     setMessages((prev) => [...prev, userMsg]);
     setIsLoading(true);
     if (wsRef.current && wsRef.current.readyState === WebSocket.OPEN) {
       wsRef.current.send(
         JSON.stringify({
-          role: ChatRole.USER,
+          role: 'user',
           chat_id: chatId,
           agent_id: agentId,
           content: input,
@@ -127,11 +126,11 @@ export function useChat({
     if (wsRef.current && wsRef.current.readyState === WebSocket.OPEN) {
       wsRef.current.send(
         JSON.stringify({
-          role: ChatRole.USER,
+          role: 'user',
           chat_id: chatId,
           agent_id: agentId,
           content: msg,
-          type: 'text',
+          metadata: {},
         }),
       );
     }
