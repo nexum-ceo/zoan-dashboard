@@ -53,9 +53,7 @@ export const ChatMessage: FC<ChatMessageProps> = ({
       {/* Avatar */}
       <div
         className={`w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 ${
-          isUser
-            ? 'bg-gradient-to-r from-blue-500 to-purple-600'
-            : 'bg-gradient-to-r from-green-400 to-blue-500'
+          isUser ? 'bg-gray-400' : 'bg-gradient-to-r from-green-400 to-blue-500'
         }`}
       >
         {isUser ? (
@@ -74,7 +72,7 @@ export const ChatMessage: FC<ChatMessageProps> = ({
         <div
           className={`relative ${
             isUser
-              ? 'bg-gradient-to-r from-blue-500 to-purple-600 text-white rounded-2xl rounded-tr-md'
+              ? 'bg-gray-100 rounded-2xl rounded-tr-md'
               : 'bg-gray-50 text-gray-900 rounded-2xl rounded-tl-md border border-gray-200'
           } px-4 py-3 shadow-sm`}
         >
