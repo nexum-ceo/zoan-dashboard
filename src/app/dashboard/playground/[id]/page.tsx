@@ -3,7 +3,11 @@ import { ChatInput } from '@/app/dashboard/playground/component/ChatInput';
 import { ChatMessage } from '@/app/dashboard/playground/component/ChatMessage';
 import { Button } from '@/components/ui/button';
 import { useChat } from '@/hooks/useChat';
-import { ChatRole, GetChatMessagesResType } from '@/types/chat';
+import {
+  ChatMessageType,
+  ChatRole,
+  GetChatMessagesResType,
+} from '@/types/chat';
 import { ArrowDown, MessageSquare, Plus, Sparkles } from 'lucide-react';
 import { useParams, useRouter } from 'next/navigation';
 import { useEffect, useRef, useState } from 'react';
@@ -65,8 +69,9 @@ export default function PlaygroundChatPage() {
         })
         .then((data) => {
           if (Array.isArray(data?.data)) {
-            const safeMessages = data.data.map((msg: any) => ({
+            const safeMessages = data.data.map((msg: ChatMessageType) => ({
               ...msg,
+              content: msg.content ?? '',
               role: Object.values(ChatRole).includes(msg.role)
                 ? msg.role
                 : ChatRole.USER,

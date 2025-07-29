@@ -51,8 +51,12 @@ export default function Configuration() {
           setProviders([]);
           setError('No providers found.');
         }
-      } catch (err: any) {
-        setError(err?.message || 'Fetch failed');
+      } catch (err) {
+        if (err instanceof Error) {
+          setError(err.message);
+        } else {
+          setError('Fetch failed');
+        }
       } finally {
         setLoading(false);
       }
@@ -82,8 +86,12 @@ export default function Configuration() {
         setModels([]);
         setError('No models found.');
       }
-    } catch (err: any) {
-      setError(err?.message || 'Fetch failed');
+    } catch (err) {
+      if (err instanceof Error) {
+        setError(err.message);
+      } else {
+        setError('Fetch failed');
+      }
     } finally {
       setLoading(false);
     }
@@ -125,8 +133,12 @@ export default function Configuration() {
       } else {
         setError(responseData.message || 'Create failed');
       }
-    } catch (err: any) {
-      setError(err?.message || 'Create failed');
+    } catch (err) {
+      if (err instanceof Error) {
+        setError(err.message);
+      } else {
+        setError('Create failed');
+      }
     } finally {
       setLoading(false);
     }

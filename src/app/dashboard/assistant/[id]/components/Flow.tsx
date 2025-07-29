@@ -7,7 +7,7 @@ import type { Edge, Node } from '@xyflow/react';
 import { Background, Controls, MiniMap, ReactFlow } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
 import { del as idbDel, set as idbSet } from 'idb-keyval';
-import { useState } from 'react';
+import { FC, useState } from 'react';
 import { toast } from 'sonner';
 import { v4 as uuidv4 } from 'uuid';
 import {
@@ -20,13 +20,13 @@ import {
   useRestoreWorkflow,
 } from '../../../../../hooks/useWorkflow';
 
-interface FlowProps {
+export type FlowProps = {
   onClose?: () => void;
   workflowId: string;
   workflowName?: string;
-}
+};
 
-export default function Flow({ onClose, workflowId, workflowName }: FlowProps) {
+export const Flow: FC<FlowProps> = ({ onClose, workflowId, workflowName }) => {
   // IndexedDB keys (move inside function)
   const idbNodesKey = `flow_fullNodes_${workflowId}`;
   const idbEdgesKey = `flow_fullEdges_${workflowId}`;
@@ -313,4 +313,4 @@ export default function Flow({ onClose, workflowId, workflowName }: FlowProps) {
       )}
     </div>
   );
-}
+};

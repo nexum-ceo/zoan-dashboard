@@ -23,10 +23,11 @@ export async function POST(req: Request) {
     );
 
     return NextResponse.json(response.data);
-  } catch (error: any) {
-    return NextResponse.json(
-      { error: error?.message || 'Fetch provider failed' },
-      { status: 500 },
-    );
+  } catch (error: unknown) {
+    let message = 'Fetch provider failed';
+    if (error instanceof Error) {
+      message = error.message;
+    }
+    return NextResponse.json({ error: message }, { status: 500 });
   }
 }

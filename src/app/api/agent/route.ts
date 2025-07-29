@@ -19,11 +19,12 @@ export async function GET() {
     });
 
     return NextResponse.json(response.data);
-  } catch (error: any) {
-    return NextResponse.json(
-      { error: error?.message || 'Fetch failed' },
-      { status: 500 },
-    );
+  } catch (error) {
+    let message = 'Fetch failed';
+    if (error instanceof Error) {
+      message = error.message;
+    }
+    return NextResponse.json({ error: message }, { status: 500 });
   }
 }
 
@@ -47,10 +48,11 @@ export async function POST(req: Request) {
       },
     );
     return NextResponse.json(response.data);
-  } catch (error: any) {
-    return NextResponse.json(
-      { error: error?.message || 'Create failed' },
-      { status: 500 },
-    );
+  } catch (error: unknown) {
+    let message = 'Create failed';
+    if (error instanceof Error) {
+      message = error.message;
+    }
+    return NextResponse.json({ error: message }, { status: 500 });
   }
 }

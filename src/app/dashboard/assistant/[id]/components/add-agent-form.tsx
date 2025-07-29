@@ -33,7 +33,7 @@ import { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 
 export default function AddAgentForm() {
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
   const [providers, setProviders] = useState<ProviderOfUserType[]>([]);
@@ -51,8 +51,12 @@ export default function AddAgentForm() {
           setProviders([]);
           setError('No providers found.');
         }
-      } catch (err: any) {
-        setError(err?.message || 'Fetch failed');
+      } catch (err) {
+        if (err instanceof Error) {
+          setError(err.message || 'Fetch failed');
+        } else {
+          setError('Fetch failed');
+        }
       } finally {
         setLoading(false);
       }
@@ -82,13 +86,16 @@ export default function AddAgentForm() {
         setModels([]);
         setError('No models found.');
       }
-    } catch (err: any) {
-      setError(err?.message || 'Fetch failed');
+    } catch (err) {
+      if (err instanceof Error) {
+        setError(err.message || 'Fetch failed');
+      } else {
+        setError('Fetch failed');
+      }
     } finally {
       setLoading(false);
     }
   };
-  console.log('selectedProvider', selectedProvider);
 
   const form = useForm<CreateAgentBodyType>({
     resolver: zodResolver(CreateAgentBodySchema),
@@ -109,7 +116,6 @@ export default function AddAgentForm() {
     setError(null);
     setSuccess(null);
 
-    console.log('Form data:', data);
     try {
       const res = await fetch('/api/agent', {
         method: 'POST',
@@ -125,8 +131,12 @@ export default function AddAgentForm() {
       } else {
         setError(responseData.message || 'Create failed');
       }
-    } catch (err: any) {
-      setError(err?.message || 'Create failed');
+    } catch (err) {
+      if (err instanceof Error) {
+        setError(err.message || 'Create failed');
+      } else {
+        setError('Create failed');
+      }
     } finally {
       setLoading(false);
     }

@@ -22,39 +22,11 @@ export async function GET() {
     );
 
     return NextResponse.json(response.data);
-  } catch (error: any) {
-    return NextResponse.json(
-      { error: error?.message || 'Fetch provider failed' },
-      { status: 500 },
-    );
+  } catch (error: unknown) {
+    let message = 'Fetch provider failed';
+    if (error instanceof Error) {
+      message = error.message;
+    }
+    return NextResponse.json({ error: message }, { status: 500 });
   }
 }
-
-// export async function POST(req: Request) {
-//   const session = await getServerSession(authOptions);
-
-//   if (!session?.accessToken) {
-//     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-//   }
-
-//   const payload: TokenPayloadType = jwtDecode(session.accessToken);
-
-//   try {
-//     let body: CreateProviderBodyType = await req.json();
-//     if (!body.user_id) {
-//       body.user_id = payload.userId;
-//     }
-
-//     const response = await axiosInstance.post('/provider', body, {
-//       headers: {
-//         Authorization: `Bearer ${session.accessToken}`,
-//       },
-//     });
-//     return NextResponse.json(response.data);
-//   } catch (error: any) {
-//     return NextResponse.json(
-//       { error: error?.message || 'Create failed' },
-//       { status: 500 },
-//     );
-//   }
-// }

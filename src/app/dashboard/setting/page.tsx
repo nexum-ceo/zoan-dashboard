@@ -39,10 +39,10 @@ export default function SettingPage() {
   const [providers, setProviders] = useState<string[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
-  const [open, setOpen] = useState(false);
-  const [selectedProvider, setSelectedProvider] = useState('');
-  const [apiToken, setApiToken] = useState('');
-  const [createLoading, setCreateLoading] = useState(false);
+  const [open, setOpen] = useState<boolean>(false);
+  const [selectedProvider, setSelectedProvider] = useState<string>('');
+  const [apiToken, setApiToken] = useState<string>('');
+  const [createLoading, setCreateLoading] = useState<boolean>(false);
   const [createError, setCreateError] = useState<string | null>(null);
   const [providerOfUser, setProviderOfUser] = useState<ProviderOfUserType[]>(
     [],

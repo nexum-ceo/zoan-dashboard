@@ -21,7 +21,7 @@ export default function AssistantPage() {
   const [agents, setAgents] = useState<AgentType[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
-  const [editDialogOpen, setEditDialogOpen] = useState(false);
+  const [editDialogOpen, setEditDialogOpen] = useState<boolean>(false);
 
   useEffect(() => {
     const fetchAgents = async () => {
@@ -34,8 +34,12 @@ export default function AssistantPage() {
           setAgents([]);
           setError('No agents found.');
         }
-      } catch (err: any) {
-        setError(err?.message || 'Fetch failed');
+      } catch (err) {
+        if (err instanceof Error) {
+          setError(err.message);
+        } else {
+          setError('Fetch failed');
+        }
       } finally {
         setLoading(false);
       }
@@ -113,12 +117,6 @@ export default function AssistantPage() {
       {/* Dialog show Configuration */}
       <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
         <DialogContent style={{ width: '900px', maxWidth: '85vw' }}>
-          {/* <DialogHeader>
-            <DialogTitle>Edit Provider Configuration</DialogTitle>
-            <DialogDescription>
-              Update configuration for this provider.
-            </DialogDescription>
-          </DialogHeader> */}
           <AddAgentForm />
         </DialogContent>
       </Dialog>
