@@ -1,12 +1,11 @@
-import { authOptions } from '@/app/api/auth/[...nextauth]/route';
+// import { authOptions } from '@/app/api/auth/[...nextauth]/route';
+import { authOptions } from '@/app/api/auth/[...nextauth]/option';
 import axiosInstance from '@/lib/axios-instance';
-import { TokenPayloadType } from '@/types/auth';
 import {
   CreateChatBodyType,
   CreateChatResType,
   GetChatListResType,
 } from '@/types/chat';
-import { jwtDecode } from 'jwt-decode';
 import { getServerSession } from 'next-auth';
 import { NextResponse } from 'next/server';
 
@@ -42,7 +41,6 @@ export async function POST(req: Request) {
 
 export async function GET() {
   const session = await getServerSession(authOptions);
-  const payload: TokenPayloadType = jwtDecode(session?.accessToken || '');
   if (!session?.accessToken) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }

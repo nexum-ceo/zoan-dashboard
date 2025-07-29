@@ -26,7 +26,6 @@ type RightSidebarProps = {
 export const WorkflowRightSideBar: FC<RightSidebarProps> = ({
   isOpen,
   onClose,
-  selectedNode,
 }) => {
   const [activeTab, setActiveTab] = useState<TabType>('Setting');
   const [message, setMessage] = useState<string>(
@@ -155,7 +154,7 @@ export const WorkflowRightSideBar: FC<RightSidebarProps> = ({
                 />
               </div>
               <p className="text-xs text-gray-500">
-                Establishing timeout for the customer's response
+                Establishing timeout for the customer&#39;s response
               </p>
             </div>
           </>

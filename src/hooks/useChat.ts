@@ -50,7 +50,7 @@ export function useChat({
             return String(data.content);
           }
         } catch (err) {
-          // To avoid errors in case of malformed JSON
+          console.error('[WS] Error parsing message:', err);
         }
         return String(event.data);
       })();

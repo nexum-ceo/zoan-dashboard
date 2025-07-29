@@ -53,7 +53,7 @@ export default function Workflow() {
         else setWorkflows([]);
         setError(null);
       })
-      .catch((err) => {
+      .catch(() => {
         setError('Error when fetching workflow');
         setWorkflows([]);
       })
@@ -108,6 +108,9 @@ export default function Workflow() {
         toast.error(data?.error || 'Failed to create workflow');
       }
     } catch (err) {
+      if (err instanceof Error) {
+        setError(err.message);
+      }
       setError('Failed to create workflow');
     } finally {
       setLoading(false);

@@ -17,6 +17,8 @@ import { useEffect, useState } from 'react';
 import { TUser } from '@/const/types';
 import { Menu } from 'lucide-react';
 import { signIn } from 'next-auth/react';
+import Image from 'next/image';
+import Link from 'next/link';
 import { Button, buttonVariants } from './ui/button';
 
 interface RouteProps {
@@ -103,14 +105,14 @@ export default function AppNavbar() {
       <NavigationMenu className="mx-auto">
         <NavigationMenuList className="container h-14 px-4 w-screen flex justify-between ">
           <NavigationMenuItem className="font-bold flex">
-            <a
+            <Link
               rel="noreferrer noopener"
               href="/"
               className="ml-2 font-bold text-xl flex items-center"
             >
-              <img src="./icon.png" alt="Logo" width={32} height={32} />
+              <Image src="/icon.png" alt="Logo" width={32} height={32} />
               <span className="ml-2">Zoan AI</span>
-            </a>
+            </Link>
           </NavigationMenuItem>
 
           {/* mobile */}

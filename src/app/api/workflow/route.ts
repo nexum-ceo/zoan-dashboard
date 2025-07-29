@@ -1,4 +1,5 @@
-import { authOptions } from '@/app/api/auth/[...nextauth]/route';
+// import { authOptions } from '@/app/api/auth/[...nextauth]/route';
+import { authOptions } from '@/app/api/auth/[...nextauth]/option';
 import axiosInstance from '@/lib/axios-instance';
 import { CreateWorkflowType, WorkflowType } from '@/types/workflow';
 import { getServerSession } from 'next-auth';

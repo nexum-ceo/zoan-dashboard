@@ -10,7 +10,7 @@ import {
 } from '@/types/chat';
 import { ArrowDown, MessageSquare, Plus, Sparkles } from 'lucide-react';
 import { useParams, useRouter } from 'next/navigation';
-import { useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import SelectAssistant from '../component/SelectAssistant';
 
 export default function PlaygroundChatPage() {
@@ -99,26 +99,27 @@ export default function PlaygroundChatPage() {
     scrollToBottom();
   }, [messages]);
 
-  useEffect(() => {
-    const container = messagesContainerRef.current;
-    if (container) {
-      container.addEventListener('scroll', handleScroll);
-      return () => container.removeEventListener('scroll', handleScroll);
-    }
-  }, [messages.length]);
-
-  const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  };
-
-  const handleScroll = () => {
+  const handleScroll = useCallback(() => {
     if (messagesContainerRef.current) {
       const { scrollTop, scrollHeight, clientHeight } =
         messagesContainerRef.current;
       const isNearBottom = scrollHeight - scrollTop - clientHeight < 100;
       setShowScrollButton(!isNearBottom && messages.length > 0);
     }
+  }, [messages.length]);
+
+  useEffect(() => {
+    const container = messagesContainerRef.current;
+    if (container) {
+      container.addEventListener('scroll', handleScroll);
+      return () => container.removeEventListener('scroll', handleScroll);
+    }
+  }, [messages.length, handleScroll]);
+
+  const scrollToBottom = () => {
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   };
+
   return (
     <div className="w-full h-full bg-gradient-to-br from-gray-50 to-gray-100 flex">
       {/* Sidebar */}
@@ -173,7 +174,8 @@ export default function PlaygroundChatPage() {
                 Start a conversation
               </h3>
               <p className="text-gray-500 max-w-md">
-                Ask me anything! I'm here to help with your questions and tasks.
+                Ask me anything! I&#39;m here to help with your questions and
+                tasks.
               </p>
             </div>
           ) : (

@@ -37,7 +37,6 @@ export default function AddAgentForm() {
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
   const [providers, setProviders] = useState<ProviderOfUserType[]>([]);
-  const [selectedProvider, setSelectedProvider] = useState<string>('');
   const [models, setModels] = useState<string[]>([]);
 
   useEffect(() => {
@@ -66,7 +65,6 @@ export default function AddAgentForm() {
 
   // Chỉ fetch model khi user chọn provider
   const handleProviderChange = async (providerId: string) => {
-    setSelectedProvider(providerId);
     setLoading(true);
     try {
       // Find the provider object by id

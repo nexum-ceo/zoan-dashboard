@@ -22,11 +22,7 @@ type ChatMessageProps = {
   isLoading: boolean;
 };
 
-export const ChatMessage: FC<ChatMessageProps> = ({
-  message,
-  isLast,
-  isLoading,
-}) => {
+export const ChatMessage: FC<ChatMessageProps> = ({ message, isLoading }) => {
   const [showActions, setShowActions] = useState<boolean>(false);
   const isUser = message.role === 'user';
 
