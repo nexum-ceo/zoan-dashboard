@@ -1,6 +1,7 @@
 'use client';
 import { Bot, Home, PanelRight, Settings } from 'lucide-react';
 
+import { NavUser } from '@/components/nav-user';
 import {
   Sidebar,
   SidebarContent,
@@ -85,7 +86,7 @@ export function AppSidebar() {
       </SidebarContent>
 
       <SidebarFooter>
-        <SidebarMenu>
+        {/* <SidebarMenu>
           <SidebarMenuItem>
             <SidebarMenuButton asChild>
               <div>
@@ -94,7 +95,14 @@ export function AppSidebar() {
               </div>
             </SidebarMenuButton>
           </SidebarMenuItem>
-        </SidebarMenu>
+        </SidebarMenu> */}
+        <NavUser
+          user={{
+            name: 'John Doe',
+            email: 'john.doe@example.com',
+            avatar: './avatar.png',
+          }}
+        />
       </SidebarFooter>
     </Sidebar>
   );

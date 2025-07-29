@@ -48,7 +48,7 @@ export default function AssistantPage() {
   };
 
   return (
-    <div className="w-full h-full bg-sidebar rounded-lg border border-border flex flex-col p-2">
+    <div className="w-full h-full bg-sidebar flex flex-col p-4">
       <div className="p-4 flex justify-between text-2xl font-semibold border-b border-border bg-white rounded-t-lg w-full">
         Assistants
         <Button
@@ -59,7 +59,7 @@ export default function AssistantPage() {
           Add Agent
         </Button>
       </div>
-      <div className="m-2 flex-1 flex flex-row gap-3 p-2">
+      <div className="flex-1 flex flex-row gap-3 pt-3">
         <Table className="w-full h-fit bg-white border border-border rounded-lg">
           <TableCaption>A list of your agents.</TableCaption>
           <TableHeader>

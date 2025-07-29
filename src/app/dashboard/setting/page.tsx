@@ -47,7 +47,6 @@ export default function SettingPage() {
   const [providerOfUser, setProviderOfUser] = useState<ProviderOfUserType[]>(
     [],
   );
-  const [editDialogOpen, setEditDialogOpen] = useState(false);
 
   useEffect(() => {
     const fetchAgents = async () => {
@@ -60,8 +59,12 @@ export default function SettingPage() {
           setProviders([]);
           setError('No providers found.');
         }
-      } catch (err: any) {
-        setError(err?.message || 'Fetch failed');
+      } catch (err) {
+        if (err instanceof Error) {
+          setError(err.message || 'Fetch failed');
+        } else {
+          setError('Fetch failed');
+        }
       } finally {
         setLoading(false);
       }
@@ -80,8 +83,12 @@ export default function SettingPage() {
           setProviderOfUser([]);
           setError('No providers found.');
         }
-      } catch (err: any) {
-        setError(err?.message || 'Fetch failed');
+      } catch (err) {
+        if (err instanceof Error) {
+          setError(err.message || 'Fetch failed');
+        } else {
+          setError('Fetch failed');
+        }
       } finally {
         setLoading(false);
       }
@@ -119,15 +126,19 @@ export default function SettingPage() {
       } else {
         setCreateError(data.message || 'Failed to add provider');
       }
-    } catch (error: any) {
-      setCreateError(error?.message || 'Failed to add provider');
+    } catch (error) {
+      if (error instanceof Error) {
+        setCreateError(error.message || 'Failed to add provider');
+      } else {
+        setCreateError('Failed to add provider');
+      }
     } finally {
       setCreateLoading(false);
     }
   };
 
   return (
-    <div className="w-full h-full bg-sidebar rounded-lg border border-border flex flex-col p-2">
+    <div className="w-full h-full bg-sidebar flex flex-col p-4">
       <div className="p-4 flex items-center justify-between text-2xl font-semibold border-b border-border bg-white rounded-t-lg w-full">
         <span>Your list providers</span>
         <Dialog open={open} onOpenChange={setOpen}>
@@ -195,57 +206,75 @@ export default function SettingPage() {
         </Dialog>
       </div>
 
-      <div className="m-2 flex-1 flex flex-row gap-3 p-2">
-        <Table className="w-full h-fit bg-white border border-border rounded-lg">
-          <TableCaption>A list of acceptable providers.</TableCaption>
-          <TableHeader>
-            <TableRow>
-              <TableHead className="w-[60px]">#</TableHead>
-              <TableHead className="w-[220px]">ID</TableHead>
-              <TableHead className="w-[120px]">Provider</TableHead>
-              <TableHead className="w-[180px]">API Token</TableHead>
-              <TableHead className="w-[180px]">Created At</TableHead>
-              <TableHead className="w-[180px]">Updated At</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {loading ? (
-              <TableRow>
-                <TableCell colSpan={5} className="text-center">
-                  Loading...
-                </TableCell>
+      <div className="w-full flex-1 flex flex-row gap-3 pt-3">
+        <div className="w-full overflow-x-auto ">
+          <Table className="w-full h-fit bg-white border border-border rounded-2xl shadow-md">
+            <TableCaption className="text-gray-500">
+              A list of acceptable providers.
+            </TableCaption>
+            <TableHeader className="rounded-xl">
+              <TableRow className="bg-gray-50">
+                <TableHead className="w-[60px]">#</TableHead>
+                <TableHead className="w-[220px]">ID</TableHead>
+                <TableHead className="w-[120px]">Provider</TableHead>
+                <TableHead className="w-[180px]">API Token</TableHead>
+                <TableHead className="w-[180px]">Created At</TableHead>
+                <TableHead className="w-[180px]">Updated At</TableHead>
               </TableRow>
-            ) : error ? (
-              <TableRow>
-                <TableCell colSpan={5} className="text-center text-red-500">
-                  {error}
-                </TableCell>
-              </TableRow>
-            ) : (
-              providerOfUser.map((provider, index) => (
-                <TableRow
-                  key={provider.id}
-                  className="cursor-pointer hover:bg-muted transition-colors"
-                >
-                  <TableCell className="font-medium">{index + 1}</TableCell>
-                  <TableCell className="font-medium">{provider.id}</TableCell>
-                  <TableCell className="font-medium">
-                    {provider.provider}
-                  </TableCell>
-                  <TableCell className="font-medium">
-                    {provider.api_token}
-                  </TableCell>
-                  <TableCell className="font-medium">
-                    {formatDate(provider.created_at)}
-                  </TableCell>
-                  <TableCell className="font-medium">
-                    {formatDate(provider.updated_at)}
+            </TableHeader>
+            <TableBody className="rounded-xl">
+              {loading ? (
+                <TableRow>
+                  <TableCell
+                    colSpan={6}
+                    className="text-center py-6 text-gray-400"
+                  >
+                    Loading...
                   </TableCell>
                 </TableRow>
-              ))
-            )}
-          </TableBody>
-        </Table>
+              ) : error ? (
+                <TableRow>
+                  <TableCell
+                    colSpan={6}
+                    className="text-center text-red-500 py-6"
+                  >
+                    {error}
+                  </TableCell>
+                </TableRow>
+              ) : (
+                providerOfUser.map((provider, index) => (
+                  <TableRow
+                    key={provider.id}
+                    className={`cursor-pointer transition-colors rounded-xl ${
+                      index % 2 === 0 ? 'bg-white' : 'bg-gray-50'
+                    } hover:bg-primary/5`}
+                  >
+                    <TableCell className="font-medium text-center align-middle">
+                      {index + 1}
+                    </TableCell>
+                    <TableCell className="font-medium break-all max-w-[200px] truncate align-middle">
+                      {provider.id}
+                    </TableCell>
+                    <TableCell className="font-medium capitalize align-middle">
+                      {provider.provider}
+                    </TableCell>
+                    <TableCell className="font-medium max-w-[180px] break-all truncate line-clamp-1 align-middle">
+                      <span title={provider.api_token}>
+                        {provider.api_token}
+                      </span>
+                    </TableCell>
+                    <TableCell className="font-medium whitespace-nowrap align-middle">
+                      {formatDate(provider.created_at)}
+                    </TableCell>
+                    <TableCell className="font-medium whitespace-nowrap align-middle">
+                      {formatDate(provider.updated_at)}
+                    </TableCell>
+                  </TableRow>
+                ))
+              )}
+            </TableBody>
+          </Table>
+        </div>
       </div>
     </div>
   );
