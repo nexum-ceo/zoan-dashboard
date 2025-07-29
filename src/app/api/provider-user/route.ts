@@ -22,7 +22,7 @@ export async function GET() {
     );
 
     return NextResponse.json(response.data);
-  } catch (error: unknown) {
+  } catch (error) {
     let message = 'Fetch provider failed';
     if (error instanceof Error) {
       message = error.message;
