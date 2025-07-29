@@ -1,5 +1,4 @@
 'use client';
-import Configuration from '@/app/dashboard/assistant/[id]/components/Configuration';
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
@@ -131,13 +130,6 @@ export default function SettingPage() {
     <div className="w-full h-full bg-sidebar rounded-lg border border-border flex flex-col p-2">
       <div className="p-4 flex items-center justify-between text-2xl font-semibold border-b border-border bg-white rounded-t-lg w-full">
         <span>Your list providers</span>
-        <Button
-          onClick={() => {
-            setEditDialogOpen(true);
-          }}
-        >
-          Add Agent
-        </Button>
         <Dialog open={open} onOpenChange={setOpen}>
           <DialogTrigger asChild>
             <Button onClick={() => setOpen(true)}>Add Provider</Button>
@@ -255,18 +247,6 @@ export default function SettingPage() {
           </TableBody>
         </Table>
       </div>
-      {/* Dialog show Configuration */}
-      <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
-        <DialogContent className="max-w-2xl">
-          <DialogHeader>
-            <DialogTitle>Edit Provider Configuration</DialogTitle>
-            <DialogDescription>
-              Update configuration for this provider.
-            </DialogDescription>
-          </DialogHeader>
-          <Configuration />
-        </DialogContent>
-      </Dialog>
     </div>
   );
 }
