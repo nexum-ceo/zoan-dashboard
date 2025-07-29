@@ -34,9 +34,8 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
 
-  // const payload = (await jwtDecode(session.accessToken)) as TokenPayloadType;
   try {
-    let body = await req.json();
+    const body = await req.json();
 
     const response = await axiosInstance.post<CreateAgentResType>(
       '/agent',

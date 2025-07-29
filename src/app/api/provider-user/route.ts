@@ -6,7 +6,6 @@ import { NextResponse } from 'next/server';
 
 export async function GET() {
   const session = await getServerSession(authOptions);
-  console.log('session:', session);
 
   if (!session?.accessToken) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
@@ -21,11 +20,9 @@ export async function GET() {
         },
       },
     );
-    console.log('Provider list fetched successfully:', response.data);
 
     return NextResponse.json(response.data);
   } catch (error: any) {
-    console.log(`Error fetching provider list: ${error.message}`);
     return NextResponse.json(
       { error: error?.message || 'Fetch provider failed' },
       { status: 500 },

@@ -34,8 +34,6 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
 
-  // const payload: TokenPayloadType = jwtDecode(session.accessToken);
-
   try {
     const body: CreateProviderBodyType = await req.json();
 
