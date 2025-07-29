@@ -20,12 +20,10 @@ import {
   DialogTrigger,
 } from '@/components/ui/dialog';
 import { Download, Edit, FileDown, List, Plus, Trash, X } from 'lucide-react';
-import dynamic from 'next/dynamic';
 import { FormEvent, useEffect, useState } from 'react';
 import { toast } from 'sonner';
 
-const Flow = dynamic(() => import('./Flow'), { ssr: false });
-
+import { Flow } from '@/app/dashboard/assistant/[id]/components/Flow';
 import type { CreateWorkflowType } from '@/types/workflow';
 import { WorkflowType } from '@/types/workflow';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';

@@ -1,6 +1,7 @@
 'use client';
 import { Bot, Home, PanelRight, Settings } from 'lucide-react';
 
+import { NavUser } from '@/components/nav-user';
 import {
   Sidebar,
   SidebarContent,
@@ -14,6 +15,8 @@ import {
   SidebarMenuItem,
   useSidebar,
 } from '@/components/ui/sidebar';
+import { TUser } from '@/const/types';
+import { useEffect, useState } from 'react';
 
 // Menu items.
 const items = [
@@ -36,6 +39,19 @@ const items = [
 
 export function AppSidebar() {
   const { toggleSidebar, open } = useSidebar();
+
+  const [user, setUser] = useState<TUser | null>(null);
+
+  useEffect(() => {
+    const fetchUser = async () => {
+      const response = await fetch('/api/user');
+      const data = await response.json();
+      setUser(data.data);
+    };
+
+    fetchUser();
+  }, []);
+
   return (
     <Sidebar collapsible="icon" variant="floating">
       <SidebarHeader>
@@ -43,7 +59,7 @@ export function AppSidebar() {
           <SidebarMenuItem>
             <SidebarMenuButton asChild>
               <a href="/">
-                <img src="./icon.png" alt="Logo" width={32} height={32} />
+                <img src="/icon.png" alt="Logo" width={32} height={32} />
               </a>
             </SidebarMenuButton>
           </SidebarMenuItem>
@@ -85,16 +101,12 @@ export function AppSidebar() {
       </SidebarContent>
 
       <SidebarFooter>
-        <SidebarMenu>
-          <SidebarMenuItem>
-            <SidebarMenuButton asChild>
-              <div>
-                <img src="./icon.png" alt="Logo" width={32} height={32} />
-                <span>ZOAN</span>
-              </div>
-            </SidebarMenuButton>
-          </SidebarMenuItem>
-        </SidebarMenu>
+        <NavUser
+          user={{
+            email: user?.email || '',
+            avatar: './avatar.png',
+          }}
+        />
       </SidebarFooter>
     </Sidebar>
   );

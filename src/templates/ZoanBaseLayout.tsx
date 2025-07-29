@@ -1,4 +1,5 @@
-import AppNavbar from '@/components/app-navbar';
+'use client';
+import { SessionProvider } from 'next-auth/react';
 
 export default function ZoanBaseLayout({
   children,
@@ -7,8 +8,10 @@ export default function ZoanBaseLayout({
 }>) {
   return (
     <>
-      <AppNavbar />
-      {children}
+      <SessionProvider>
+        {/* <AppNavbar /> */}
+        {children}
+      </SessionProvider>
     </>
   );
 }

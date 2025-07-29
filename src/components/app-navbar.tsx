@@ -51,8 +51,7 @@ export default function AppNavbar() {
     const fetchUser = async () => {
       const response = await fetch('/api/user');
       const data = await response.json();
-      console.log('data', data);
-      setUser(data.user);
+      setUser(data.data);
     };
 
     fetchUser();

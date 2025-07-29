@@ -21,10 +21,11 @@ export async function GET(req: Request, context: { params: { id: string } }) {
     });
 
     return NextResponse.json(response.data);
-  } catch (error: any) {
-    return NextResponse.json(
-      { error: error?.message || 'Fetch failed' },
-      { status: 500 },
-    );
+  } catch (error) {
+    let message = 'Fetch failed';
+    if (error instanceof Error) {
+      message = error.message;
+    }
+    return NextResponse.json({ error: message }, { status: 500 });
   }
 }

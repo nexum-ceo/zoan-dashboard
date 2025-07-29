@@ -1,5 +1,13 @@
 'use client';
 import { Button } from '@/components/ui/button';
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import {
   Select,
@@ -9,101 +17,425 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Slider } from '@/components/ui/slider';
-import { useState } from 'react';
+import { Textarea } from '@/components/ui/textarea';
+import {
+  CreateAgentBodySchema,
+  CreateAgentBodyType,
+  CreateAgentResType,
+} from '@/types/agent';
+import {
+  GetModelResType,
+  GetProviderOfUserResType,
+  ProviderOfUserType,
+} from '@/types/provider';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { useEffect, useState } from 'react';
+import { useForm } from 'react-hook-form';
 
 export default function Configuration() {
-  const [temperature, setTemperature] = useState<number>(1.0);
-  const [topP, setTopP] = useState<number>(1.0);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [success, setSuccess] = useState<string | null>(null);
+  const [providers, setProviders] = useState<ProviderOfUserType[]>([]);
+  const [selectedProvider, setSelectedProvider] = useState<string>('');
+  const [models, setModels] = useState<string[]>([]);
+
+  useEffect(() => {
+    const fetchProvider = async () => {
+      try {
+        const res = await fetch('/api/provider-user');
+        const data: GetProviderOfUserResType = await res.json();
+        if (data.status === 'success') {
+          setProviders(data.data);
+        } else {
+          setProviders([]);
+          setError('No providers found.');
+        }
+      } catch (err) {
+        if (err instanceof Error) {
+          setError(err.message);
+        } else {
+          setError('Fetch failed');
+        }
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchProvider();
+  }, []);
+
+  // Chỉ fetch model khi user chọn provider
+  const handleProviderChange = async (providerId: string) => {
+    setSelectedProvider(providerId);
+    setLoading(true);
+    try {
+      // Find the provider object by id
+      const providerObj = providers.find((p) => p.id === providerId);
+      const providerName = providerObj ? providerObj.provider : providerId;
+      const res = await fetch('/api/model', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ name: providerName }),
+      });
+      const data: GetModelResType = await res.json();
+      if (data.status === 'success') {
+        setModels(data.data);
+      } else {
+        setModels([]);
+        setError('No models found.');
+      }
+    } catch (err) {
+      if (err instanceof Error) {
+        setError(err.message);
+      } else {
+        setError('Fetch failed');
+      }
+    } finally {
+      setLoading(false);
+    }
+  };
+  console.log('selectedProvider', selectedProvider);
+
+  const form = useForm<CreateAgentBodyType>({
+    resolver: zodResolver(CreateAgentBodySchema),
+    defaultValues: {
+      name: '',
+      description: '',
+      prompt: '',
+      provider_id: '',
+      model: 'deepseek',
+      response_format: 'text',
+      temperature: 1.0,
+      top_p: 1.0,
+    },
+  });
+
+  const onSubmit = async (data: CreateAgentBodyType) => {
+    setLoading(true);
+    setError(null);
+    setSuccess(null);
+
+    console.log('Form data:', data);
+    try {
+      const res = await fetch('/api/agent', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(data),
+      });
+      const responseData: CreateAgentResType = await res.json();
+      if (responseData.status === 'success') {
+        setSuccess('Agent created successfully!');
+        form.reset();
+      } else {
+        setError(responseData.message || 'Create failed');
+      }
+    } catch (err) {
+      if (err instanceof Error) {
+        setError(err.message);
+      } else {
+        setError('Create failed');
+      }
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleCancel = () => {
+    form.reset();
+    setError(null);
+    setSuccess(null);
+  };
 
   return (
-    <div className="flex flex-col gap-4 w-full h-full p-4 justify-between">
-      <div className="flex flex-col gap-4">
-        <div className="text-lg font-medium">General Configuration</div>
-        <div className="flex flex-col gap-1">
-          <div className="text-[12px] font-medium">Name</div>
-          <Input />
-        </div>
-        <div className="flex flex-col gap-1">
-          <div className="text-[12px] font-medium">System Instruction</div>
-          <Input />
-        </div>
-        <div className="flex flex-col gap-1">
-          <div className="text-[12px] font-medium">Model</div>
-          <Select>
-            <SelectTrigger>
-              <SelectValue placeholder="Select a model" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="gpt-4o">GPT-4o</SelectItem>
-              <SelectItem value="gpt-4o-mini">GPT-4o-mini</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
+    <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-gray-50 to-white p-2">
+      <div className="w-full h-full rounded-2xl shadow-xl bg-white/90 border border-gray-200 p-4">
+        <Form {...form}>
+          <form
+            onSubmit={form.handleSubmit(onSubmit)}
+            className="flex flex-col gap-8"
+          >
+            {/* General Section */}
+            <div>
+              <div className="text-xl font-semibold mb-2 text-gray-800 flex items-center gap-2">
+                <span className="inline-block w-1.5 h-6 bg-primary rounded-full mr-2" />
+                General Configuration
+              </div>
+              <div className="grid grid-cols-1 gap-6">
+                <FormField
+                  control={form.control}
+                  name="name"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel className="text-[13px] font-medium text-gray-700">
+                        Name
+                      </FormLabel>
+                      <FormControl>
+                        <Input
+                          {...field}
+                          placeholder="Agent name"
+                          className="rounded-lg"
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
 
-        <div className="text-lg font-medium mt-2">Model Configuration</div>
-        <div className="flex flex-col gap-4">
-          <div className="flex flex-col gap-1">
-            <div className="flex flex-row gap-1 justify-between items-center">
-              <div className="text-[12px] font-medium">Response format</div>
-              <div className="text-[12px] text-muted-foreground">
-                (Optional)
+              {/* Description field on its own row */}
+              <div className="mt-6">
+                <FormField
+                  control={form.control}
+                  name="description"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel className="text-[13px] font-medium text-gray-700">
+                        Description
+                      </FormLabel>
+                      <FormControl>
+                        <Textarea
+                          {...field}
+                          placeholder="Short description"
+                          className="rounded-lg"
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
+                <FormField
+                  control={form.control}
+                  name="provider_id"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel className="text-[13px] font-medium text-gray-700">
+                        Provider
+                      </FormLabel>
+                      <Select
+                        onValueChange={async (val) => {
+                          field.onChange(val);
+                          await handleProviderChange(val);
+                        }}
+                        value={field.value}
+                      >
+                        <FormControl>
+                          <SelectTrigger className="rounded-lg">
+                            <SelectValue placeholder="Select a provider" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          {providers.map((provider) => (
+                            <SelectItem key={provider.id} value={provider.id}>
+                              {provider.provider}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="model"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel className="text-[13px] font-medium text-gray-700">
+                        Model
+                      </FormLabel>
+                      <Select
+                        onValueChange={field.onChange}
+                        defaultValue={field.value || 'deepseek'}
+                        disabled={!selectedProvider || models.length === 0}
+                      >
+                        <FormControl>
+                          <SelectTrigger
+                            className="rounded-lg min-w-[180px]"
+                            disabled={!selectedProvider || models.length === 0}
+                          >
+                            <SelectValue placeholder="Select a model" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          {models.map((model) => (
+                            <SelectItem key={model} value={model}>
+                              {model}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+
+              <div className="mt-6">
+                <FormField
+                  control={form.control}
+                  name="prompt"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel className="text-[13px] font-medium text-gray-700">
+                        System Instruction
+                      </FormLabel>
+                      <FormControl>
+                        <Input
+                          {...field}
+                          placeholder="System prompt (optional)"
+                          className="rounded-lg"
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
               </div>
             </div>
-            <Select>
-              <SelectTrigger>
-                <SelectValue placeholder="Select a model" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="gpt-4o">GPT-4o</SelectItem>
-                <SelectItem value="gpt-4o-mini">GPT-4o-mini</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
 
-          <div className="flex flex-col gap-3">
-            <div className="flex flex-row gap-1 justify-between items-center">
-              <div className="text-[12px] font-medium">Temperature</div>
-              <Input
-                type="number"
-                step="0.01"
-                className="w-13 no-spinner"
-                value={temperature}
-                onChange={(e) => setTemperature(Number(e.target.value))}
-              />
-            </div>
-            <Slider
-              max={2}
-              min={0}
-              step={0.01}
-              value={[temperature]}
-              onValueChange={(value) => setTemperature(value[0])}
-            />
-          </div>
+            {/* Divider */}
+            <div className="border-t border-gray-200 my-2" />
 
-          <div className="flex flex-col gap-3">
-            <div className="flex flex-row gap-1 justify-between items-center">
-              <div className="text-[12px] font-medium">Top P</div>
-              <Input
-                type="number"
-                step="0.01"
-                className="w-13 no-spinner"
-                value={topP}
-                onChange={(e) => setTopP(Number(e.target.value))}
-              />
+            {/* Model Config Section */}
+            <div>
+              <div className="text-xl font-semibold mb-2 text-gray-800 flex items-center gap-2">
+                <span className="inline-block w-1.5 h-6 bg-primary rounded-full mr-2" />
+                Model Configuration
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <FormField
+                  control={form.control}
+                  name="response_format"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel className="text-[13px] font-medium text-gray-700">
+                        Response format
+                      </FormLabel>
+                      <Select
+                        onValueChange={field.onChange}
+                        defaultValue={field.value}
+                      >
+                        <FormControl>
+                          <SelectTrigger className="rounded-lg">
+                            <SelectValue placeholder="Select response format" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          <SelectItem value="text">Text</SelectItem>
+                          <SelectItem value="json">JSON</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="temperature"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel className="text-[13px] font-medium text-gray-700">
+                        Temperature
+                      </FormLabel>
+                      <div className="flex items-center gap-2">
+                        <FormControl>
+                          <Input
+                            type="number"
+                            step="0.01"
+                            className="w-20 rounded-lg no-spinner"
+                            value={field.value}
+                            onChange={(e) =>
+                              field.onChange(Number(e.target.value))
+                            }
+                          />
+                        </FormControl>
+                        <FormControl className="flex-1">
+                          <Slider
+                            max={2}
+                            min={0}
+                            step={0.01}
+                            value={[field.value]}
+                            onValueChange={(value) => field.onChange(value[0])}
+                          />
+                        </FormControl>
+                      </div>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="top_p"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel className="text-[13px] font-medium text-gray-700">
+                        Top P
+                      </FormLabel>
+                      <div className="flex items-center gap-2">
+                        <FormControl>
+                          <Input
+                            type="number"
+                            step="0.01"
+                            className="w-20 rounded-lg no-spinner"
+                            value={field.value}
+                            onChange={(e) =>
+                              field.onChange(Number(e.target.value))
+                            }
+                          />
+                        </FormControl>
+                        <FormControl className="flex-1">
+                          <Slider
+                            max={1}
+                            min={0}
+                            step={0.01}
+                            value={[field.value]}
+                            onValueChange={(value) => field.onChange(value[0])}
+                          />
+                        </FormControl>
+                      </div>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
             </div>
-            <Slider
-              max={1}
-              min={0}
-              step={0.01}
-              value={[topP]}
-              onValueChange={(value) => setTopP(value[0])}
-            />
-          </div>
-        </div>
-      </div>
-      <div className="flex flex-row gap-2 items-center w-full justify-end">
-        <Button variant="outline">Cancel</Button>
-        <Button>Save Changes</Button>
+
+            {/* Actions & Status */}
+            <div className="flex flex-row gap-3 items-center w-full justify-end mt-4">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={handleCancel}
+                className="rounded-lg bg-transparent"
+              >
+                Cancel
+              </Button>
+              <Button type="submit" disabled={loading} className="rounded-lg">
+                {loading ? 'Saving...' : 'Save Changes'}
+              </Button>
+            </div>
+            {error && (
+              <div className="text-red-500 text-sm mt-2 text-right">
+                {error}
+              </div>
+            )}
+            {success && (
+              <div className="text-green-500 text-sm mt-2 text-right">
+                {success}
+              </div>
+            )}
+          </form>
+        </Form>
       </div>
     </div>
   );
