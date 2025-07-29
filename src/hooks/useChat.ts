@@ -1,6 +1,5 @@
 'use client';
 import { ChatRole } from '@/types/chat';
-// import { useSession } from 'next-auth/react';
 import { ChangeEvent, FormEvent, useEffect, useRef, useState } from 'react';
 
 export type ChatMessage = {
@@ -47,7 +46,6 @@ export function useChat({
       const chunk = (() => {
         try {
           const data = JSON.parse(event.data);
-          console.log('[WS] Message received:', data);
           if (data && data.role && data.content !== undefined) {
             return String(data.content);
           }
