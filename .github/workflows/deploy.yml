@@ -44,7 +44,7 @@ jobs:
 
             COMMIT_ID=${{ steps.vars.outputs.sha }}
             echo "Building Docker image with tag: zoan-dashboard:${COMMIT_ID}"
-            docker build -t zoan-dashboard:${COMMIT_ID} .
+            docker build --no-cache -t zoan-dashboard:${COMMIT_ID} .
 
             echo "Stopping previous container..."
             docker stop zoan-dashboard || true
