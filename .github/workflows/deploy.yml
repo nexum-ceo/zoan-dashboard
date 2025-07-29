@@ -1,0 +1,54 @@
+name: Deploy to VPS with Git Commit Tag
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Get short commit SHA
+        id: vars
+        run: echo "sha=$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
+
+      - name: 🔑 Setup SSH
+        uses: webfactory/ssh-agent@v0.9.0
+        with:
+          ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
+
+      - name: Rsync project files to remote server
+        run: |
+          COMMIT_ID=${{ steps.vars.outputs.sha }}
+
+          ssh -o StrictHostKeyChecking=no ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} << 'EOF'
+            mkdir -p ~/zoan-dashboard
+          EOF
+
+          rsync -avz --exclude '.git' --exclude '.github' --exclude '.env' . ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }}:~/zoan-dashboard/
+
+      - name: 🚀 Build/run Docker on VPS
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USER }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          script: |
+            set -e
+            cd ~/zoan-dashboard
+
+            COMMIT_ID=${{ steps.vars.outputs.sha }}
+            echo "Building Docker image with tag: zoan-dashboard:${COMMIT_ID}"
+            docker build -t zoan-dashboard:${COMMIT_ID} .
+
+            echo "Stopping previous container..."
+            docker stop zoan-dashboard || true
+            docker rm zoan-dashboard || true
+
+            echo "Running new container..."
+            docker run -d --name zoan-dashboard -p 3000:3000 zoan-dashboard:${COMMIT_ID}
