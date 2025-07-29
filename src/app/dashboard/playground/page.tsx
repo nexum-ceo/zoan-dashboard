@@ -6,7 +6,7 @@ import { useChat } from '@/hooks/useChat';
 import { useCreateChat } from '@/hooks/useCreateChat';
 import { ArrowDown, MessageSquare, Plus, Sparkles } from 'lucide-react';
 import { useRouter } from 'next/navigation';
-import { FormEvent, useEffect, useRef, useState } from 'react';
+import { FormEvent, useCallback, useEffect, useRef, useState } from 'react';
 import SelectAssistant from './component/SelectAssistant';
 
 export default function PlaygroundPage() {
@@ -31,13 +31,22 @@ export default function PlaygroundPage() {
     scrollToBottom();
   }, [messages]);
 
+  const handleScroll = useCallback(() => {
+    if (messagesContainerRef.current) {
+      const { scrollTop, scrollHeight, clientHeight } =
+        messagesContainerRef.current;
+      const isNearBottom = scrollHeight - scrollTop - clientHeight < 100;
+      setShowScrollButton(!isNearBottom && messages.length > 0);
+    }
+  }, [messages.length]);
+
   useEffect(() => {
     const container = messagesContainerRef.current;
     if (container) {
       container.addEventListener('scroll', handleScroll);
       return () => container.removeEventListener('scroll', handleScroll);
     }
-  }, [messages.length]);
+  }, [messages.length, handleScroll]);
 
   const handleFirstSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -55,21 +64,16 @@ export default function PlaygroundPage() {
       localStorage.setItem('pendingMessage', pendingMessage);
       router.push(`/dashboard/playground/${chatId}`);
     } catch (err) {
-      setAgentError('Failed to create chat. Please try again.');
+      if (err instanceof Error) {
+        setAgentError(err.message);
+      } else {
+        setAgentError('Failed to create chat. Please try again.');
+      }
     }
   };
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  };
-
-  const handleScroll = () => {
-    if (messagesContainerRef.current) {
-      const { scrollTop, scrollHeight, clientHeight } =
-        messagesContainerRef.current;
-      const isNearBottom = scrollHeight - scrollTop - clientHeight < 100;
-      setShowScrollButton(!isNearBottom && messages.length > 0);
-    }
   };
 
   return (
@@ -114,7 +118,8 @@ export default function PlaygroundPage() {
                 Start a conversation
               </h3>
               <p className="text-gray-500 max-w-md">
-                Ask me anything! I'm here to help with your questions and tasks.
+                Ask me anything! I&#39;m here to help with your questions and
+                tasks.
               </p>
             </div>
           ) : (

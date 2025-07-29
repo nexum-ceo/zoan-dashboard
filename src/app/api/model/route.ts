@@ -1,4 +1,5 @@
-import { authOptions } from '@/app/api/auth/[...nextauth]/route';
+// import { authOptions } from '@/app/api/auth/[...nextauth]/route';
+import { authOptions } from '@/app/api/auth/[...nextauth]/option';
 import axiosInstance from '@/lib/axios-instance';
 import { GetAgentResType } from '@/types/agent';
 import { getServerSession } from 'next-auth';
@@ -12,7 +13,7 @@ export async function POST(req: Request) {
   }
 
   try {
-    let body: { name: string } = await req.json();
+    const body: { name: string } = await req.json();
     const response = await axiosInstance.get<GetAgentResType>(
       `/provider/model/${body.name}`,
       {

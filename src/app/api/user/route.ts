@@ -1,4 +1,5 @@
-import { authOptions } from '@/app/api/auth/[...nextauth]/route';
+// import { authOptions } from '@/app/api/auth/[...nextauth]/route';
+import { authOptions } from '@/app/api/auth/[...nextauth]/option';
 import { TUser } from '@/const/types';
 import axiosInstance from '@/lib/axios-instance';
 import { getServerSession } from 'next-auth';

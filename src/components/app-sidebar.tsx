@@ -16,6 +16,8 @@ import {
   useSidebar,
 } from '@/components/ui/sidebar';
 import { TUser } from '@/const/types';
+import Image from 'next/image';
+import Link from 'next/link';
 import { useEffect, useState } from 'react';
 
 // Menu items.
@@ -38,7 +40,7 @@ const items = [
 ];
 
 export function AppSidebar() {
-  const { toggleSidebar, open } = useSidebar();
+  const { toggleSidebar } = useSidebar();
 
   const [user, setUser] = useState<TUser | null>(null);
 
@@ -58,9 +60,9 @@ export function AppSidebar() {
         <SidebarMenu>
           <SidebarMenuItem>
             <SidebarMenuButton asChild>
-              <a href="/">
-                <img src="/icon.png" alt="Logo" width={32} height={32} />
-              </a>
+              <Link href="/">
+                <Image src="/icon.png" alt="Logo" width={32} height={32} />
+              </Link>
             </SidebarMenuButton>
           </SidebarMenuItem>
         </SidebarMenu>

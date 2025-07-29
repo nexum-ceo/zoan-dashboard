@@ -1,4 +1,5 @@
-import { authOptions } from '@/app/api/auth/[...nextauth]/route';
+// import { authOptions } from '@/app/api/auth/[...nextauth]/route';
+import { authOptions } from '@/app/api/auth/[...nextauth]/option';
 import SessionProvider from '@/components/session-provider';
 import type { Metadata } from 'next';
 import { getServerSession } from 'next-auth';
