@@ -2,7 +2,6 @@ import { AppSidebar } from '@/components/app-sidebar';
 import { SidebarInset, SidebarProvider } from '@/components/ui/sidebar';
 import ZoanBaseLayout from '@/templates/ZoanBaseLayout';
 import type { Metadata } from 'next';
-// import './globals.css';
 
 export const metadata: Metadata = {
   title: 'Create Next App',

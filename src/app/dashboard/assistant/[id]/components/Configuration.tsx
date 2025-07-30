@@ -19,9 +19,10 @@ import {
 import { Slider } from '@/components/ui/slider';
 import { Textarea } from '@/components/ui/textarea';
 import {
-  CreateAgentBodySchema,
-  CreateAgentBodyType,
+  AgentType,
   CreateAgentResType,
+  UpdateAgentBodySchema,
+  UpdateAgentBodyType,
 } from '@/types/agent';
 import {
   GetModelResType,
@@ -32,13 +33,79 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 
+import { useParams } from 'next/navigation';
+
 export default function Configuration() {
+  const params = useParams();
+  const id =
+    typeof params?.id === 'string'
+      ? params.id
+      : Array.isArray(params?.id)
+      ? params.id[0]
+      : '';
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
   const [providers, setProviders] = useState<ProviderOfUserType[]>([]);
   const [selectedProvider, setSelectedProvider] = useState<string>('');
   const [models, setModels] = useState<string[]>([]);
+  const [agent, setAgent] = useState<AgentType>();
+  const form = useForm<UpdateAgentBodyType>({
+    resolver: zodResolver(UpdateAgentBodySchema),
+    defaultValues: {
+      name: '',
+      description: '',
+      prompt: '',
+      provider_id: '',
+      model: 'deepseek',
+      response_format: {},
+    },
+  });
+  // Fetch agent detail and fill form
+  useEffect(() => {
+    if (!id) return;
+    const fetchAgent = async () => {
+      setLoading(true);
+      try {
+        const res = await fetch(`/api/agent/${id}`);
+        const data = await res.json();
+        console.log('Fetched agent data:', data);
+        if (data) {
+          setAgent(data);
+        }
+      } catch (err) {
+        if (err instanceof Error) {
+          setError(err.message);
+        } else {
+          setError('Fetch agent failed');
+        }
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchAgent();
+  }, [id, form]);
+  console.log('agent', agent);
+  console.log('form data', form.getValues());
+
+  useEffect(() => {
+    if (agent) {
+      form.reset({
+        name: agent.name || '',
+        description: agent.description || '',
+        prompt: agent.prompt || '',
+        provider_id: agent.provider_id || '',
+        model: agent.model || 'deepseek',
+        response_format: {},
+        model_kwargs: {
+          max_tokens: agent.model_kwargs?.max_tokens || 1000,
+          temperature: agent.model_kwargs?.temperature || 0.7,
+          top_p: agent.model_kwargs?.top_p || 1.0,
+        },
+      });
+      setSelectedProvider(agent.provider_id || '');
+    }
+  }, [agent, form]);
 
   useEffect(() => {
     const fetchProvider = async () => {
@@ -64,7 +131,6 @@ export default function Configuration() {
     fetchProvider();
   }, []);
 
-  // Chỉ fetch model khi user chọn provider
   const handleProviderChange = async (providerId: string) => {
     setSelectedProvider(providerId);
     setLoading(true);
@@ -96,28 +162,12 @@ export default function Configuration() {
       setLoading(false);
     }
   };
-  console.log('selectedProvider', selectedProvider);
 
-  const form = useForm<CreateAgentBodyType>({
-    resolver: zodResolver(CreateAgentBodySchema),
-    defaultValues: {
-      name: '',
-      description: '',
-      prompt: '',
-      provider_id: '',
-      model: 'deepseek',
-      response_format: 'text',
-      temperature: 1.0,
-      top_p: 1.0,
-    },
-  });
-
-  const onSubmit = async (data: CreateAgentBodyType) => {
+  const onSubmit = async (data: UpdateAgentBodyType) => {
     setLoading(true);
     setError(null);
     setSuccess(null);
 
-    console.log('Form data:', data);
     try {
       const res = await fetch('/api/agent', {
         method: 'POST',
@@ -149,7 +199,8 @@ export default function Configuration() {
     setError(null);
     setSuccess(null);
   };
-
+  console.log('Selected provider:', selectedProvider);
+  console.log('models:', models);
   return (
     <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-gray-50 to-white p-2">
       <div className="w-full h-full rounded-2xl shadow-xl bg-white/90 border border-gray-200 p-4">
@@ -253,13 +304,14 @@ export default function Configuration() {
                       </FormLabel>
                       <Select
                         onValueChange={field.onChange}
-                        defaultValue={field.value || 'deepseek'}
-                        disabled={!selectedProvider || models.length === 0}
+                        defaultValue={agent?.model || 'deepseek'}
+                        value={agent?.model || 'deepseek'}
+                        disabled={!selectedProvider}
                       >
                         <FormControl>
                           <SelectTrigger
                             className="rounded-lg min-w-[180px]"
-                            disabled={!selectedProvider || models.length === 0}
+                            disabled={!selectedProvider}
                           >
                             <SelectValue placeholder="Select a model" />
                           </SelectTrigger>
@@ -313,7 +365,7 @@ export default function Configuration() {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <FormField
                   control={form.control}
-                  name="response_format"
+                  name="response_format.type"
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel className="text-[13px] font-medium text-gray-700">
@@ -340,7 +392,7 @@ export default function Configuration() {
 
                 <FormField
                   control={form.control}
-                  name="temperature"
+                  name="model_kwargs.temperature"
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel className="text-[13px] font-medium text-gray-700">
@@ -375,7 +427,7 @@ export default function Configuration() {
 
                 <FormField
                   control={form.control}
-                  name="top_p"
+                  name="model_kwargs.top_p"
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel className="text-[13px] font-medium text-gray-700">

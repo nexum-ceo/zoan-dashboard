@@ -6,10 +6,16 @@ export const AgentSchema = z.object({
   name: z.string(),
   description: z.string(),
   prompt: z.string(),
+  model_kwargs: z.object({
+    max_tokens: z.number(),
+    temperature: z.number(),
+    top_p: z.number(),
+  }),
   model: z.string(),
-  response_format: z.string(),
-  temperature: z.number(),
-  top_p: z.number(),
+  response_format: z.object({
+    type: z.string(),
+  }),
+  provider_id: z.string(),
   created_at: z.string(),
   updated_at: z.string(),
 });
@@ -57,3 +63,7 @@ export const CreateAgentResSchema = z.object({
 });
 
 export type CreateAgentResType = z.infer<typeof CreateAgentResSchema>;
+
+export const UpdateAgentBodySchema = AgentSchema;
+
+export type UpdateAgentBodyType = z.infer<typeof UpdateAgentBodySchema>;
