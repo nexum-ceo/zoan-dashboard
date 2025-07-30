@@ -63,7 +63,6 @@ export default function AddAgentForm() {
     fetchProvider();
   }, []);
 
-  // Chỉ fetch model khi user chọn provider
   const handleProviderChange = async (providerId: string) => {
     setLoading(true);
     try {
@@ -100,6 +99,7 @@ export default function AddAgentForm() {
     defaultValues: {
       name: '',
       description: '',
+      max_tokens: 5,
       prompt: '',
       provider_id: '',
       model: 'deepseek',
@@ -301,33 +301,71 @@ export default function AddAgentForm() {
             </div>
 
             <div className="space-y-3">
-              {/* Response format */}
-              <FormField
-                control={form.control}
-                name="response_format"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel className="text-xs font-medium text-gray-700">
-                      Response format
-                    </FormLabel>
-                    <Select
-                      onValueChange={field.onChange}
-                      defaultValue={field.value}
-                    >
-                      <FormControl>
-                        <SelectTrigger className="rounded-md h-8">
-                          <SelectValue placeholder="Select response format" />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        <SelectItem value="text">Text</SelectItem>
-                        <SelectItem value="json">JSON</SelectItem>
-                      </SelectContent>
-                    </Select>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+              <div className="grid grid-cols-2 gap-3">
+                {/* Response format */}
+                <FormField
+                  control={form.control}
+                  name="response_format"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel className="text-xs font-medium text-gray-700">
+                        Response format
+                      </FormLabel>
+                      <Select
+                        onValueChange={field.onChange}
+                        defaultValue={field.value}
+                      >
+                        <FormControl>
+                          <SelectTrigger className="rounded-md h-8">
+                            <SelectValue placeholder="Select response format" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          <SelectItem value="text">Text</SelectItem>
+                          <SelectItem value="json">JSON</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="max_tokens"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel className="text-xs font-medium text-gray-700">
+                        Max Tokens
+                      </FormLabel>
+                      <div className="flex items-center gap-2">
+                        <FormControl>
+                          <Input
+                            type="number"
+                            step="1"
+                            className="w-15 h-6 text-xs rounded-md no-spinner"
+                            value={field.value}
+                            onChange={(e) =>
+                              field.onChange(Number(e.target.value))
+                            }
+                          />
+                        </FormControl>
+                        <FormControl className="flex-1">
+                          <Slider
+                            max={8192}
+                            min={5}
+                            step={1}
+                            value={[field.value ?? 5]}
+                            onValueChange={(value) => field.onChange(value[0])}
+                            className="h-4"
+                          />
+                        </FormControl>
+                      </div>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
 
               {/* Temperature and Top P in compact grid */}
               <div className="grid grid-cols-2 gap-3">
@@ -344,7 +382,7 @@ export default function AddAgentForm() {
                           <Input
                             type="number"
                             step="0.01"
-                            className="w-12 h-6 text-xs rounded-md no-spinner"
+                            className="w-13 h-6 text-xs rounded-md no-spinner"
                             value={field.value}
                             onChange={(e) =>
                               field.onChange(Number(e.target.value))
@@ -380,7 +418,7 @@ export default function AddAgentForm() {
                           <Input
                             type="number"
                             step="0.01"
-                            className="w-12 h-6 text-xs rounded-md no-spinner"
+                            className="w-13 h-6 text-xs rounded-md no-spinner"
                             value={field.value}
                             onChange={(e) =>
                               field.onChange(Number(e.target.value))

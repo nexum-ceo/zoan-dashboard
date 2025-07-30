@@ -39,6 +39,11 @@ export const CreateAgentBodySchema = z.object({
     .min(1, 'Description is required')
     .max(500, 'Description must be less than 500 characters'),
   prompt: z.string().min(1, 'System instruction is required'),
+  max_tokens: z
+    .number()
+    .min(5, 'Max token must be at least 5')
+    .max(8192, 'Max token must be at most 8192')
+    .optional(),
   provider_id: z.string().min(1, 'Provider is required'),
   model: z.string().min(1, 'Model is required'),
   response_format: z.string().refine((val) => ['text', 'json'].includes(val), {

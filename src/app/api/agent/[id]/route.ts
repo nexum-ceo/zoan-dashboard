@@ -29,3 +29,37 @@ export async function GET(
     return NextResponse.json({ error: message }, { status: 500 });
   }
 }
+
+export async function PUT(
+  req: Request,
+
+  { params }: { params: Promise<{ id: string }> },
+) {
+  const session = await getServerSession(authOptions);
+
+  if (!session?.accessToken) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  }
+
+  try {
+    const body = await req.json();
+
+    const response = await axiosInstance.put(
+      `/agent/${(await params).id}`,
+      body,
+      {
+        headers: {
+          Authorization: `Bearer ${session.accessToken}`,
+        },
+      },
+    );
+
+    return NextResponse.json(response.data);
+  } catch (error) {
+    let message = 'Update failed';
+    if (error instanceof Error) {
+      message = error.message;
+    }
+    return NextResponse.json({ error: message }, { status: 500 });
+  }
+}

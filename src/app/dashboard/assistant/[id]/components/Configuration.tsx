@@ -43,7 +43,7 @@ export default function Configuration() {
       : Array.isArray(params?.id)
       ? params.id[0]
       : '';
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
   const [providers, setProviders] = useState<ProviderOfUserType[]>([]);
@@ -85,8 +85,8 @@ export default function Configuration() {
     };
     fetchAgent();
   }, [id, form]);
-  console.log('agent', agent);
-  console.log('form data', form.getValues());
+  // console.log('agent', agent);
+  // console.log('form data', form.getValues());
 
   useEffect(() => {
     if (agent) {
@@ -96,38 +96,54 @@ export default function Configuration() {
         prompt: agent.prompt || '',
         provider_id: agent.provider_id || '',
         model: agent.model || 'deepseek',
-        response_format: {},
+        response_format: {
+          type: agent.response_format?.type || 'text',
+        },
         model_kwargs: {
           max_tokens: agent.model_kwargs?.max_tokens || 1000,
           temperature: agent.model_kwargs?.temperature || 0.7,
           top_p: agent.model_kwargs?.top_p || 1.0,
         },
       });
+
+      // const fetchModels = async () => {
+      //   try {
+      //     // Find the provider object by id
+      //     const providerObj = providers.find((p) => p.id === agent.provider_id);
+      //     const providerName = providerObj
+      //       ? providerObj.provider
+      //       : agent.provider_id;
+      //     const res = await fetch('/api/model', {
+      //       method: 'POST',
+      //       headers: {
+      //         'Content-Type': 'application/json',
+      //       },
+      //       body: JSON.stringify({ name: providerName }),
+      //     });
+      //     const data: GetModelResType = await res.json();
+      //     if (data.status === 'success') {
+      //       setModels(data.data);
+      //     } else {
+      //       setModels([]);
+      //       // setError('No models found.');
+      //     }
+      //   } catch (err) {
+      //     if (err instanceof Error) {
+      //       setError(err.message);
+      //     } else {
+      //       setError('Fetch failed');
+      //     }
+      //   } finally {
+      //     setLoading(false);
+      //   }
+      // };
+
+      // fetchModels();
       setSelectedProvider(agent.provider_id || '');
     }
-  }, [agent, form]);
+  }, [agent, form, providers]);
 
   useEffect(() => {
-    const fetchProvider = async () => {
-      try {
-        const res = await fetch('/api/provider-user');
-        const data: GetProviderOfUserResType = await res.json();
-        if (data.status === 'success') {
-          setProviders(data.data);
-        } else {
-          setProviders([]);
-          setError('No providers found.');
-        }
-      } catch (err) {
-        if (err instanceof Error) {
-          setError(err.message);
-        } else {
-          setError('Fetch failed');
-        }
-      } finally {
-        setLoading(false);
-      }
-    };
     fetchProvider();
   }, []);
 
@@ -150,7 +166,7 @@ export default function Configuration() {
         setModels(data.data);
       } else {
         setModels([]);
-        setError('No models found.');
+        // setError('No models found.');
       }
     } catch (err) {
       if (err instanceof Error) {
@@ -170,7 +186,7 @@ export default function Configuration() {
 
     try {
       const res = await fetch('/api/agent', {
-        method: 'POST',
+        method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
         },
@@ -178,16 +194,36 @@ export default function Configuration() {
       });
       const responseData: CreateAgentResType = await res.json();
       if (responseData.status === 'success') {
-        setSuccess('Agent created successfully!');
+        setSuccess('Agent updated successfully!');
         form.reset();
       } else {
-        setError(responseData.message || 'Create failed');
+        setError(responseData.message || 'Update failed');
       }
     } catch (err) {
       if (err instanceof Error) {
         setError(err.message);
       } else {
-        setError('Create failed');
+        setError('Updated failed');
+      }
+    } finally {
+      setLoading(false);
+    }
+  };
+  const fetchProvider = async () => {
+    try {
+      const res = await fetch('/api/provider-user');
+      const data: GetProviderOfUserResType = await res.json();
+      if (data.status === 'success') {
+        setProviders(data.data);
+      } else {
+        setProviders([]);
+        setError('No providers found.');
+      }
+    } catch (err) {
+      if (err instanceof Error) {
+        setError(err.message);
+      } else {
+        setError('Fetch failed');
       }
     } finally {
       setLoading(false);
@@ -199,8 +235,7 @@ export default function Configuration() {
     setError(null);
     setSuccess(null);
   };
-  console.log('Selected provider:', selectedProvider);
-  console.log('models:', models);
+
   return (
     <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-gray-50 to-white p-2">
       <div className="w-full h-full rounded-2xl shadow-xl bg-white/90 border border-gray-200 p-4">
@@ -274,6 +309,7 @@ export default function Configuration() {
                           field.onChange(val);
                           await handleProviderChange(val);
                         }}
+                        defaultValue={field.value}
                         value={field.value}
                       >
                         <FormControl>
@@ -304,8 +340,8 @@ export default function Configuration() {
                       </FormLabel>
                       <Select
                         onValueChange={field.onChange}
-                        defaultValue={agent?.model || 'deepseek'}
-                        value={agent?.model || 'deepseek'}
+                        defaultValue={field.value}
+                        value={field.value}
                         disabled={!selectedProvider}
                       >
                         <FormControl>
@@ -374,6 +410,7 @@ export default function Configuration() {
                       <Select
                         onValueChange={field.onChange}
                         defaultValue={field.value}
+                        value={field.value}
                       >
                         <FormControl>
                           <SelectTrigger className="rounded-lg">
