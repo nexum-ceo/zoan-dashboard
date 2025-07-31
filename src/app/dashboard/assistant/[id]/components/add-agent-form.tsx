@@ -1,5 +1,5 @@
-'use client';
 import { Button } from '@/components/ui/button';
+import { Dialog, DialogContent } from '@/components/ui/dialog';
 import {
   Form,
   FormControl,
@@ -33,6 +33,9 @@ import { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 
 export default function AddAgentForm() {
+  const [jsonSchemaDialogOpen, setJsonSchemaDialogOpen] = useState(false);
+  const [jsonSchemaInput, setJsonSchemaInput] = useState('');
+  const [jsonSchemaError, setJsonSchemaError] = useState<string | null>(null);
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
@@ -312,7 +315,13 @@ export default function AddAgentForm() {
                         Response format
                       </FormLabel>
                       <Select
-                        onValueChange={field.onChange}
+                        onValueChange={(val) => {
+                          field.onChange(val);
+                          if (val === 'json_schema') {
+                            setJsonSchemaDialogOpen(true);
+                          }
+                        }}
+                        value={field.value}
                         defaultValue={field.value}
                       >
                         <FormControl>
@@ -323,12 +332,83 @@ export default function AddAgentForm() {
                         <SelectContent>
                           <SelectItem value="text">Text</SelectItem>
                           <SelectItem value="json">JSON</SelectItem>
+                          <SelectItem value="json_schema">
+                            JSON Schema
+                          </SelectItem>
                         </SelectContent>
                       </Select>
                       <FormMessage />
                     </FormItem>
                   )}
                 />
+                {/* Dialog nhập JSON schema */}
+                <Dialog
+                  open={jsonSchemaDialogOpen}
+                  onOpenChange={setJsonSchemaDialogOpen}
+                >
+                  <DialogContent
+                    style={{
+                      maxWidth: '60vw',
+                      width: '100%',
+                      maxHeight: '75vh',
+                      height: '100%',
+                    }}
+                  >
+                    <div className="text-lg font-semibold mb-2">
+                      Add response format
+                    </div>
+                    <div className="text-xs text-gray-500 mb-2">
+                      Use a JSON schema to define the structure of the
+                      model&apos;s response format.
+                    </div>
+                    <div className="mb-2">
+                      <label className="block text-xs font-medium mb-1">
+                        Definition
+                      </label>
+                      <Textarea
+                        className="w-full min-h-[220px] rounded border px-2 py-1 font-mono text-xs"
+                        value={jsonSchemaInput}
+                        onChange={(e) => setJsonSchemaInput(e.target.value)}
+                        placeholder={`{\n  "name": "...",\n  "schema": { ... }\n}`}
+                      />
+                      {jsonSchemaError && (
+                        <div className="text-xs text-red-500 mt-1">
+                          {jsonSchemaError}
+                        </div>
+                      )}
+                    </div>
+                    <div className="flex justify-end gap-2 mt-2">
+                      <Button
+                        type="button"
+                        variant="outline"
+                        onClick={() => {
+                          setJsonSchemaDialogOpen(false);
+                          setJsonSchemaError(null);
+                        }}
+                        className="h-8 px-3 text-sm"
+                      >
+                        Cancel
+                      </Button>
+                      <Button
+                        type="button"
+                        className="h-8 px-3 text-sm"
+                        onClick={() => {
+                          try {
+                            const parsed = JSON.parse(jsonSchemaInput);
+                            setJsonSchemaDialogOpen(false);
+                            setJsonSchemaError(null);
+                            // Save schema into react-hook-form if needed
+                            form.setValue('response_format', parsed);
+                          } catch {
+                            setJsonSchemaError('Invalid JSON');
+                          }
+                        }}
+                      >
+                        Save
+                      </Button>
+                    </div>
+                  </DialogContent>
+                </Dialog>
 
                 <FormField
                   control={form.control}

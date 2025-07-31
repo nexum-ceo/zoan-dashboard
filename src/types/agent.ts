@@ -1,5 +1,22 @@
 import { z } from 'zod';
 
+// Response format schemas
+const ResponseFormatText = z.object({
+  type: z.literal('text'),
+});
+const ResponseFormatJsonObject = z.object({
+  type: z.literal('json_object'),
+});
+const ResponseFormatJsonSchema = z.object({
+  type: z.literal('json_schema'),
+  json_schema: z.record(z.string(), z.any()),
+});
+export const ResponseFormatSchema = z.discriminatedUnion('type', [
+  ResponseFormatText,
+  ResponseFormatJsonObject,
+  ResponseFormatJsonSchema,
+]);
+
 export const AgentSchema = z.object({
   id: z.string(),
   user_id: z.string(),
@@ -12,9 +29,7 @@ export const AgentSchema = z.object({
     top_p: z.number(),
   }),
   model: z.string(),
-  response_format: z.object({
-    type: z.string(),
-  }),
+  response_format: ResponseFormatSchema,
   provider_id: z.string(),
   created_at: z.string(),
   updated_at: z.string(),
