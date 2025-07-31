@@ -1,3 +1,63 @@
+// // Example schemas for dropdown
+// const exampleSchemas: Record<string, string> = {
+//   math_response: `{
+//   "name": "math_response",
+//   "strict": true,
+//   "schema": {
+//     "type": "object",
+//     "properties": {
+//       "steps": {
+//         "type": "array",
+//         "items": {
+//           "type": "object",
+//           "properties": {
+//             "explanation": { "type": "string" },
+//             "output": { "type": "string" }
+//           },
+//           "required": ["explanation", "output"],
+//           "additionalProperties": false
+//         }
+//       },
+//       "final_answer": { "type": "string" }
+//     },
+//     "required": ["steps", "final_answer"],
+//     "additionalProperties": false
+//   }
+// }`,
+//   paper_metadata: `{
+//   "name": "paper_metadata",
+//   "strict": true,
+//   "schema": {
+//     "type": "object",
+//     "properties": {
+//       "title": { "type": "string" },
+//       "authors": {
+//         "type": "array",
+//         "items": { "type": "string" }
+//       },
+//       "abstract": { "type": "string" }
+//     },
+//     "required": ["title", "authors", "abstract"],
+//     "additionalProperties": false
+//   }
+// }`,
+//   moderation: `{
+//   "name": "moderation",
+//   "strict": true,
+//   "schema": {
+//     "type": "object",
+//     "properties": {
+//       "flagged": { "type": "boolean" },
+//       "categories": {
+//         "type": "array",
+//         "items": { "type": "string" }
+//       }
+//     },
+//     "required": ["flagged", "categories"],
+//     "additionalProperties": false
+//   }
+// }`,
+// };
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
@@ -361,18 +421,35 @@ export default function AddAgentForm() {
                     }}
                   >
                     <div className="flex flex-col flex-1 min-h-0 h-full w-full">
-                      <div className="px-2 py-2 pb-1">
-                        {/* <div className="text-lg font-semibold leading-tight">
-                          Add response format
-                        </div> */}
-                        <DialogTitle>Add response format</DialogTitle>
-                        <DialogDescription className="mt-1">
-                          Use a JSON schema to define the structure of the
-                          model&apos;s response format.
-                        </DialogDescription>
+                      <div className="px-2 py-2 pb-1 flex items-center justify-between">
+                        <div>
+                          <DialogTitle>Add response format</DialogTitle>
+                          <DialogDescription className="mt-1">
+                            Use a JSON schema to define the structure of the
+                            model&apos;s response format.
+                          </DialogDescription>
+                        </div>
                       </div>
                       <div className="flex flex-col flex-1 min-h-0 h-full w-full gap-1 px-2 pb-1 mt-4">
-                        <Label className="mb-1">Definition</Label>
+                        <div className="flex justify-between items-end mb-1">
+                          <Label className="mb-1">Definition</Label>
+                          <Select>
+                            <SelectTrigger className="rounded-md h-8">
+                              <SelectValue placeholder="Select JSON schema" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="math_response">
+                                Math Response
+                              </SelectItem>
+                              <SelectItem value="paper_metadata">
+                                Paper Metadata
+                              </SelectItem>
+                              <SelectItem value="moderation">
+                                Moderation
+                              </SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </div>
                         <div className="flex-1 min-h-0 flex flex-col">
                           <Textarea
                             className="w-full h-full flex-1 min-h-0 rounded border px-2 py-1 font-mono text-xs resize-none"
