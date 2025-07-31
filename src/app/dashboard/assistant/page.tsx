@@ -10,13 +10,15 @@ export default function AssistantPage() {
   const [agents, setAgents] = useState<AgentType[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
+  console.log('agents:', agents);
 
   useEffect(() => {
     const fetchAgents = async () => {
       try {
         const res = await fetch('/api/agent');
         const data: GetAgentResType = await res.json();
-        if (data.status === 'success' && data.data !== null) {
+        console.log('Fetched agents:', data);
+        if (data.status === 'success' && Array.isArray(data.data)) {
           setAgents(data.data);
         } else {
           setAgents([]);

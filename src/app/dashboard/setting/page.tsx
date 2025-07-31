@@ -49,7 +49,7 @@ export default function SettingPage() {
   );
 
   useEffect(() => {
-    const fetchAgents = async () => {
+    const fetchProviders = async () => {
       try {
         const res = await fetch('/api/provider');
         const data: GetProviderResType = await res.json();
@@ -69,7 +69,7 @@ export default function SettingPage() {
         setLoading(false);
       }
     };
-    fetchAgents();
+    fetchProviders();
   }, []);
 
   useEffect(() => {
@@ -120,6 +120,16 @@ export default function SettingPage() {
       const data = await response.json();
       if (data.status === 'success') {
         setProviders((prev) => [...prev, selectedProvider]);
+        // Fetch new list provider of user
+        const res = await fetch('/api/provider-user');
+        const data: GetProviderOfUserResType = await res.json();
+        if (data.data) {
+          console.log('Fetched providers:', data.data);
+          setProviderOfUser(data.data);
+        } else {
+          setProviderOfUser([]);
+          setError('No providers found.');
+        }
         setOpen(false);
         setSelectedProvider('');
         setApiToken('');
@@ -162,8 +172,8 @@ export default function SettingPage() {
                   <SelectValue placeholder="Select provider..." />
                 </SelectTrigger>
                 <SelectContent>
-                  {providers.map((provider) => (
-                    <SelectItem key={provider} value={provider}>
+                  {providers.map((provider, idx) => (
+                    <SelectItem key={idx} value={provider}>
                       {provider.charAt(0).toUpperCase() + provider.slice(1)}
                     </SelectItem>
                   ))}

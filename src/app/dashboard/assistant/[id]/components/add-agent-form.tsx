@@ -54,7 +54,7 @@ export default function AddAgentForm() {
       try {
         const res = await fetch('/api/provider-user');
         const data: GetProviderOfUserResType = await res.json();
-        if (data.status === 'success') {
+        if (data.status === 'success' && Array.isArray(data.data)) {
           setProviders(data.data);
         } else {
           setProviders([]);

@@ -77,6 +77,13 @@ export default function AppNavbar() {
         (typeof window !== 'undefined' && session === null) ||
         Number(session?.expires) < Date.now()
       ) {
+        console.log(
+          'why logout',
+          session,
+          Number(session?.expires),
+          Date.now(),
+        );
+
         await signOut();
       }
       console.log('Session expired, logging out...'); // Debug log
