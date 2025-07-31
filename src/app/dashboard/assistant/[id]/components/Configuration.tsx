@@ -20,9 +20,9 @@ import { Slider } from '@/components/ui/slider';
 import { Textarea } from '@/components/ui/textarea';
 import {
   AgentType,
+  CreateAgentBodySchema,
+  CreateAgentBodyType,
   CreateAgentResType,
-  UpdateAgentBodySchema,
-  UpdateAgentBodyType,
 } from '@/types/agent';
 import {
   GetModelResType,
@@ -30,10 +30,9 @@ import {
   ProviderOfUserType,
 } from '@/types/provider';
 import { zodResolver } from '@hookform/resolvers/zod';
+import { useParams } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
-
-import { useParams } from 'next/navigation';
 
 export default function Configuration() {
   const params = useParams();
@@ -50,17 +49,21 @@ export default function Configuration() {
   const [selectedProvider, setSelectedProvider] = useState<string>('');
   const [models, setModels] = useState<string[]>([]);
   const [agent, setAgent] = useState<AgentType>();
-  const form = useForm<UpdateAgentBodyType>({
-    resolver: zodResolver(UpdateAgentBodySchema),
+  const form = useForm<CreateAgentBodyType>({
+    resolver: zodResolver(CreateAgentBodySchema),
     defaultValues: {
       name: '',
       description: '',
       prompt: '',
       provider_id: '',
       model: 'deepseek',
-      response_format: {},
+      response_format: 'text',
+      max_tokens: 1000,
+      temperature: 0.7,
+      top_p: 1.0,
     },
   });
+
   // Fetch agent detail and fill form
   useEffect(() => {
     if (!id) return;
@@ -69,7 +72,6 @@ export default function Configuration() {
       try {
         const res = await fetch(`/api/agent/${id}`);
         const data = await res.json();
-        console.log('Fetched agent data:', data);
         if (data) {
           setAgent(data);
         }
@@ -86,7 +88,7 @@ export default function Configuration() {
     fetchAgent();
   }, [id, form]);
 
-  // Reset form chỉ khi models đã fetch xong và chứa agent.model
+  // Reset form only when models have fetched and contains agent.model
   useEffect(() => {
     const fetchModels = async (providerId: string) => {
       if (!providerId) return;
@@ -108,7 +110,11 @@ export default function Configuration() {
           setModels([]);
         }
       } catch (err) {
-        console.log('Error fetching models:', err);
+        if (err instanceof Error) {
+          setError(err.message);
+        } else {
+          setError('Fetch model failed');
+        }
         setModels([]);
       } finally {
         setLoading(false);
@@ -121,7 +127,7 @@ export default function Configuration() {
   }, [agent, providers]);
 
   useEffect(() => {
-    // Chỉ reset form khi models đã fetch xong và chứa agent.model
+    // Reset form only when models have fetched and contains agent.model
     if (
       agent &&
       models.length > 0 &&
@@ -135,14 +141,10 @@ export default function Configuration() {
         prompt: agent.prompt || '',
         provider_id: agent.provider_id || '',
         model: agent.model || '',
-        response_format: {
-          type: agent.response_format?.type || 'text',
-        },
-        model_kwargs: {
-          max_tokens: agent.model_kwargs?.max_tokens || 1000,
-          temperature: agent.model_kwargs?.temperature || 0.7,
-          top_p: agent.model_kwargs?.top_p || 1.0,
-        },
+        response_format: agent.response_format?.type || 'text',
+        max_tokens: agent.model_kwargs?.max_tokens || 1000,
+        temperature: agent.model_kwargs?.temperature || 0.7,
+        top_p: agent.model_kwargs?.top_p || 1.0,
       });
     }
   }, [models, agent, form]);
@@ -151,8 +153,6 @@ export default function Configuration() {
     fetchProvider();
   }, []);
 
-  console.log('Agent data:', agent);
-  console.log('form data', form.getValues());
   const handleProviderChange = async (providerId: string) => {
     setSelectedProvider(providerId);
     setLoading(true);
@@ -172,7 +172,6 @@ export default function Configuration() {
         setModels(data.data);
       } else {
         setModels([]);
-        // setError('No models found.');
       }
     } catch (err) {
       if (err instanceof Error) {
@@ -185,7 +184,7 @@ export default function Configuration() {
     }
   };
 
-  const onSubmit = async (data: UpdateAgentBodyType) => {
+  const onSubmit = async (data: CreateAgentBodyType) => {
     setLoading(true);
     setError(null);
     setSuccess(null);
@@ -215,6 +214,7 @@ export default function Configuration() {
       setLoading(false);
     }
   };
+
   const fetchProvider = async () => {
     try {
       const res = await fetch('/api/provider-user');
@@ -407,7 +407,7 @@ export default function Configuration() {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <FormField
                   control={form.control}
-                  name="response_format.type"
+                  name="response_format"
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel className="text-[13px] font-medium text-gray-700">
@@ -435,7 +435,42 @@ export default function Configuration() {
 
                 <FormField
                   control={form.control}
-                  name="model_kwargs.temperature"
+                  name="max_tokens"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel className="text-[13px] font-medium text-gray-700">
+                        Max Tokens
+                      </FormLabel>
+                      <div className="flex items-center gap-2">
+                        <FormControl>
+                          <Input
+                            type="number"
+                            step="1"
+                            className="w-15 rounded-lg no-spinner"
+                            value={field.value}
+                            onChange={(e) =>
+                              field.onChange(Number(e.target.value))
+                            }
+                          />
+                        </FormControl>
+                        <FormControl className="flex-1">
+                          <Slider
+                            max={8912}
+                            min={5}
+                            step={1}
+                            value={[field.value as number]}
+                            onValueChange={(value) => field.onChange(value[0])}
+                          />
+                        </FormControl>
+                      </div>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="temperature"
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel className="text-[13px] font-medium text-gray-700">
@@ -470,7 +505,7 @@ export default function Configuration() {
 
                 <FormField
                   control={form.control}
-                  name="model_kwargs.top_p"
+                  name="top_p"
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel className="text-[13px] font-medium text-gray-700">
