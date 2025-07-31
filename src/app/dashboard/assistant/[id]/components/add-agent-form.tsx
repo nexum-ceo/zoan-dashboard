@@ -84,6 +84,7 @@ import {
 } from '@/components/ui/select';
 import { Slider } from '@/components/ui/slider';
 import { Textarea } from '@/components/ui/textarea';
+// import { mongoTheme } from '@/lib/monacoTheme';
 import {
   CreateAgentBodySchema,
   CreateAgentBodyType,
@@ -95,6 +96,7 @@ import {
   ProviderOfUserType,
 } from '@/types/provider';
 import { zodResolver } from '@hookform/resolvers/zod';
+import MonacoEditor from '@monaco-editor/react';
 import { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 
@@ -431,7 +433,7 @@ export default function AddAgentForm() {
                         </div>
                       </div>
                       <div className="flex flex-col flex-1 min-h-0 h-full w-full gap-1 px-2 pb-1 mt-4">
-                        <div className="flex justify-between items-end mb-1">
+                        <div className="flex justify-between items-center mb-2">
                           <Label className="mb-1">Definition</Label>
                           <Select>
                             <SelectTrigger className="rounded-md h-8">
@@ -451,13 +453,37 @@ export default function AddAgentForm() {
                           </Select>
                         </div>
                         <div className="flex-1 min-h-0 flex flex-col">
-                          <Textarea
-                            className="w-full h-full flex-1 min-h-0 rounded border px-2 py-1 font-mono text-xs resize-none"
-                            style={{ minHeight: 0, height: '100%' }}
-                            value={jsonSchemaInput}
-                            onChange={(e) => setJsonSchemaInput(e.target.value)}
-                            placeholder={`{\n  "name": "...",\n  "schema": { ... }\n}`}
-                          />
+                          <div className="flex-1 min-h-0">
+                            <div
+                              className="rounded border border-gray-300 focus-within:border-primary bg-white overflow-hidden shadow-sm"
+                              style={{ height: '100%' }}
+                            >
+                              <MonacoEditor
+                                height="100%"
+                                defaultLanguage="json"
+                                language="json"
+                                value={jsonSchemaInput}
+                                onChange={(val) =>
+                                  setJsonSchemaInput(val ?? '')
+                                }
+                                options={{
+                                  minimap: { enabled: false },
+                                  fontSize: 13,
+                                  wordWrap: 'on',
+                                  scrollBeyondLastLine: false,
+                                  automaticLayout: true,
+                                  formatOnPaste: true,
+                                  formatOnType: true,
+                                  lineNumbers: 'off',
+                                  scrollbar: {
+                                    vertical: 'auto',
+                                    horizontal: 'auto',
+                                  },
+                                  padding: { top: 10, bottom: 10 },
+                                }}
+                              />
+                            </div>
+                          </div>
                           {jsonSchemaError && (
                             <div className="text-xs text-red-500 mt-1">
                               {jsonSchemaError}
