@@ -61,9 +61,7 @@ export const CreateAgentBodySchema = z.object({
     .optional(),
   provider_id: z.string().min(1, 'Provider is required'),
   model: z.string().min(1, 'Model is required'),
-  response_format: z.string().refine((val) => ['text', 'json'].includes(val), {
-    message: 'Please select a valid response format',
-  }),
+  response_format: ResponseFormatSchema,
   temperature: z
     .number()
     .min(0, 'Temperature must be at least 0')

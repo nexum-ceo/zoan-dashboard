@@ -174,7 +174,9 @@ export default function AddAgentForm() {
       prompt: '',
       provider_id: '',
       model: 'deepseek',
-      response_format: 'text',
+      response_format: {
+        type: 'text',
+      },
       temperature: 1.0,
       top_p: 1.0,
     },
@@ -384,13 +386,42 @@ export default function AddAgentForm() {
                       </FormLabel>
                       <Select
                         onValueChange={(val) => {
-                          field.onChange(val);
                           if (val === 'json_schema') {
+                            const current = form.getValues('response_format');
+                            if (
+                              typeof current === 'object' &&
+                              current !== null &&
+                              !('type' in current)
+                            ) {
+                              setJsonSchemaInput(
+                                JSON.stringify(current, null, 2),
+                              );
+                            } else {
+                              setJsonSchemaInput('');
+                            }
                             setJsonSchemaDialogOpen(true);
+                          } else {
+                            field.onChange({ type: val });
                           }
                         }}
-                        value={field.value}
-                        defaultValue={field.value}
+                        value={
+                          typeof field.value === 'object' &&
+                          !('type' in field.value)
+                            ? 'json_schema'
+                            : typeof field.value === 'object' &&
+                              'type' in field.value
+                            ? field.value.type
+                            : field.value
+                        }
+                        defaultValue={
+                          typeof field.value === 'object' &&
+                          !('type' in field.value)
+                            ? 'json_schema'
+                            : typeof field.value === 'object' &&
+                              'type' in field.value
+                            ? field.value.type
+                            : field.value
+                        }
                       >
                         <FormControl>
                           <SelectTrigger className="rounded-md h-8">
