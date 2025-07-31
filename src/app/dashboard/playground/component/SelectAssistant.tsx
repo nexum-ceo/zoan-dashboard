@@ -3,7 +3,6 @@ import {
   SelectContent,
   SelectItem,
   SelectTrigger,
-  SelectValue,
 } from '@/components/ui/select';
 import { AgentType } from '@/types/agent';
 import { GetChatListResType } from '@/types/chat';
@@ -90,7 +89,15 @@ const SelectAssistant: FC<SelectAssistantProps> = ({ onAgentChange }) => {
         <h3 className="text-sm font-medium text-gray-900 mb-2">Choose Agent</h3>
         <Select value={selectedAgent} onValueChange={handleAgentChange}>
           <SelectTrigger className="w-full">
-            <SelectValue placeholder="Choose agent..." />
+            {selectedAgent ? (
+              <span className="text-sm">
+                {agents.find((a) => a.id === selectedAgent)?.name || 'Agent'}
+              </span>
+            ) : (
+              <span className="text-sm text-muted-foreground">
+                Choose agent...
+              </span>
+            )}
           </SelectTrigger>
           <SelectContent>
             {agentLoading && (
@@ -108,12 +115,12 @@ const SelectAssistant: FC<SelectAssistantProps> = ({ onAgentChange }) => {
               !agentError &&
               agents.map((agent) => (
                 <SelectItem key={agent.id} value={agent.id}>
-                  <div>
+                  <div className="w-full">
                     <div className="font-medium text-sm">
-                      {agent.name || agent.name || 'Agent'}
+                      {agent.name || 'Agent'}
                     </div>
                     {agent.description && (
-                      <div className="text-xs text-gray-500">
+                      <div className="text-xs text-gray-500 truncate max-w-[250px] mt-0.5">
                         {agent.description}
                       </div>
                     )}

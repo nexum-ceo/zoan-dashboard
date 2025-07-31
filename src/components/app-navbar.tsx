@@ -19,6 +19,7 @@ import { Menu } from 'lucide-react';
 import { signIn } from 'next-auth/react';
 import Image from 'next/image';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { Button, buttonVariants } from './ui/button';
 
 interface RouteProps {
@@ -48,6 +49,7 @@ const routeList: RouteProps[] = [
 export default function AppNavbar() {
   const [isOpen, setIsOpen] = useState<boolean>(false);
   const [user, setUser] = useState<TUser | null>(null);
+  const router = useRouter();
 
   useEffect(() => {
     const fetchUser = async () => {
@@ -80,7 +82,7 @@ export default function AppNavbar() {
 
           if (res?.ok) {
             console.log('✅ Logged in');
-            window.location.href = '/dashboard';
+            router.push('/dashboard/playground');
           } else {
             console.log('❌ Login failed');
           }
