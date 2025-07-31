@@ -1,63 +1,3 @@
-// // Example schemas for dropdown
-// const exampleSchemas: Record<string, string> = {
-//   math_response: `{
-//   "name": "math_response",
-//   "strict": true,
-//   "schema": {
-//     "type": "object",
-//     "properties": {
-//       "steps": {
-//         "type": "array",
-//         "items": {
-//           "type": "object",
-//           "properties": {
-//             "explanation": { "type": "string" },
-//             "output": { "type": "string" }
-//           },
-//           "required": ["explanation", "output"],
-//           "additionalProperties": false
-//         }
-//       },
-//       "final_answer": { "type": "string" }
-//     },
-//     "required": ["steps", "final_answer"],
-//     "additionalProperties": false
-//   }
-// }`,
-//   paper_metadata: `{
-//   "name": "paper_metadata",
-//   "strict": true,
-//   "schema": {
-//     "type": "object",
-//     "properties": {
-//       "title": { "type": "string" },
-//       "authors": {
-//         "type": "array",
-//         "items": { "type": "string" }
-//       },
-//       "abstract": { "type": "string" }
-//     },
-//     "required": ["title", "authors", "abstract"],
-//     "additionalProperties": false
-//   }
-// }`,
-//   moderation: `{
-//   "name": "moderation",
-//   "strict": true,
-//   "schema": {
-//     "type": "object",
-//     "properties": {
-//       "flagged": { "type": "boolean" },
-//       "categories": {
-//         "type": "array",
-//         "items": { "type": "string" }
-//       }
-//     },
-//     "required": ["flagged", "categories"],
-//     "additionalProperties": false
-//   }
-// }`,
-// };
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
@@ -84,7 +24,6 @@ import {
 } from '@/components/ui/select';
 import { Slider } from '@/components/ui/slider';
 import { Textarea } from '@/components/ui/textarea';
-// import { mongoTheme } from '@/lib/monacoTheme';
 import {
   CreateAgentBodySchema,
   CreateAgentBodyType,
@@ -188,14 +127,25 @@ export default function AddAgentForm() {
     setSuccess(null);
 
     try {
+      // Validate data before sending
+      const validatedData = CreateAgentBodySchema.parse(data);
+
+      console.log('Sending agent data:', validatedData);
+
       const res = await fetch('/api/agent', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify(data),
+        body: JSON.stringify(validatedData),
       });
+
+      if (!res.ok) {
+        throw new Error(`HTTP error! status: ${res.status}`);
+      }
+
       const responseData: CreateAgentResType = await res.json();
+
       if (responseData.status === 'success') {
         setSuccess('Agent created successfully!');
         form.reset();
@@ -203,6 +153,7 @@ export default function AddAgentForm() {
         setError(responseData.message || 'Create failed');
       }
     } catch (err) {
+      console.error('Create agent error:', err);
       if (err instanceof Error) {
         setError(err.message || 'Create failed');
       } else {
@@ -214,9 +165,23 @@ export default function AddAgentForm() {
   };
 
   const handleCancel = () => {
-    form.reset();
+    form.reset({
+      name: '',
+      description: '',
+      max_tokens: 5,
+      prompt: '',
+      provider_id: '',
+      model: 'deepseek',
+      response_format: {
+        type: 'text',
+      },
+      temperature: 1.0,
+      top_p: 1.0,
+    });
     setError(null);
     setSuccess(null);
+    setJsonSchemaInput('');
+    setJsonSchemaError(null);
   };
 
   return (
@@ -320,7 +285,7 @@ export default function AddAgentForm() {
                       </FormLabel>
                       <Select
                         onValueChange={field.onChange}
-                        defaultValue={'deepseek'}
+                        value={field.value}
                       >
                         <FormControl>
                           <SelectTrigger className="rounded-md h-8">
@@ -391,13 +356,17 @@ export default function AddAgentForm() {
                             if (
                               typeof current === 'object' &&
                               current !== null &&
-                              !('type' in current)
+                              'type' in current &&
+                              current.type === 'json_schema' &&
+                              'json_schema' in current
                             ) {
                               setJsonSchemaInput(
-                                JSON.stringify(current, null, 2),
+                                JSON.stringify(current.json_schema, null, 2),
                               );
                             } else {
-                              setJsonSchemaInput('');
+                              setJsonSchemaInput(
+                                '{\n  "type": "object",\n  "properties": {\n    "result": {\n      "type": "string"\n    }\n  },\n  "required": ["result"]\n}',
+                              );
                             }
                             setJsonSchemaDialogOpen(true);
                           } else {
@@ -406,21 +375,10 @@ export default function AddAgentForm() {
                         }}
                         value={
                           typeof field.value === 'object' &&
-                          !('type' in field.value)
-                            ? 'json_schema'
-                            : typeof field.value === 'object' &&
-                              'type' in field.value
+                          field.value !== null &&
+                          'type' in field.value
                             ? field.value.type
-                            : field.value
-                        }
-                        defaultValue={
-                          typeof field.value === 'object' &&
-                          !('type' in field.value)
-                            ? 'json_schema'
-                            : typeof field.value === 'object' &&
-                              'type' in field.value
-                            ? field.value.type
-                            : field.value
+                            : 'text'
                         }
                       >
                         <FormControl>
@@ -430,7 +388,7 @@ export default function AddAgentForm() {
                         </FormControl>
                         <SelectContent>
                           <SelectItem value="text">Text</SelectItem>
-                          <SelectItem value="json">JSON</SelectItem>
+                          <SelectItem value="json_object">JSON</SelectItem>
                           <SelectItem value="json_schema">
                             JSON Schema
                           </SelectItem>
@@ -466,9 +424,78 @@ export default function AddAgentForm() {
                       <div className="flex flex-col flex-1 min-h-0 h-full w-full gap-1 px-2 pb-1 mt-4">
                         <div className="flex justify-between items-center mb-2">
                           <Label className="mb-1">Definition</Label>
-                          <Select>
+                          <Select
+                            onValueChange={(value) => {
+                              const templates = {
+                                math_response: {
+                                  type: 'object',
+                                  properties: {
+                                    steps: {
+                                      type: 'array',
+                                      items: {
+                                        type: 'object',
+                                        properties: {
+                                          explanation: { type: 'string' },
+                                          output: { type: 'string' },
+                                        },
+                                        required: ['explanation', 'output'],
+                                      },
+                                    },
+                                    final_answer: { type: 'string' },
+                                  },
+                                  required: ['steps', 'final_answer'],
+                                },
+                                paper_metadata: {
+                                  type: 'object',
+                                  properties: {
+                                    title: { type: 'string' },
+                                    authors: {
+                                      type: 'array',
+                                      items: { type: 'string' },
+                                    },
+                                    abstract: { type: 'string' },
+                                    keywords: {
+                                      type: 'array',
+                                      items: { type: 'string' },
+                                    },
+                                  },
+                                  required: ['title', 'authors', 'abstract'],
+                                },
+                                moderation: {
+                                  type: 'object',
+                                  properties: {
+                                    flagged: { type: 'boolean' },
+                                    categories: {
+                                      type: 'object',
+                                      properties: {
+                                        harassment: { type: 'boolean' },
+                                        hate: { type: 'boolean' },
+                                        violence: { type: 'boolean' },
+                                      },
+                                    },
+                                    confidence_scores: {
+                                      type: 'object',
+                                      properties: {
+                                        harassment: { type: 'number' },
+                                        hate: { type: 'number' },
+                                        violence: { type: 'number' },
+                                      },
+                                    },
+                                  },
+                                  required: ['flagged', 'categories'],
+                                },
+                              };
+                              const template =
+                                templates[value as keyof typeof templates];
+                              if (template) {
+                                setJsonSchemaInput(
+                                  JSON.stringify(template, null, 2),
+                                );
+                              }
+                            }}
+                          >
                             <SelectTrigger className="rounded-md h-8">
-                              <SelectValue placeholder="Select JSON schema" />
+                              <SelectValue placeholder="Select JSON schema template" />
                             </SelectTrigger>
                             <SelectContent>
                               <SelectItem value="math_response">
@@ -540,11 +567,33 @@ export default function AddAgentForm() {
                           onClick={() => {
                             try {
                               const parsed = JSON.parse(jsonSchemaInput);
+
+                              // Validate basic JSON Schema structure
+                              if (!parsed || typeof parsed !== 'object') {
+                                setJsonSchemaError(
+                                  'JSON Schema must be an object',
+                                );
+                                return;
+                              }
+
+                              // Basic validation for JSON Schema format
+                              if (!parsed.type || !parsed.properties) {
+                                setJsonSchemaError(
+                                  'JSON Schema must have "type" and "properties" fields',
+                                );
+                                return;
+                              }
+
                               setJsonSchemaDialogOpen(false);
                               setJsonSchemaError(null);
-                              form.setValue('response_format', parsed);
+
+                              // Set correct discriminated union format
+                              form.setValue('response_format', {
+                                type: 'json_schema' as const,
+                                json_schema: parsed,
+                              });
                             } catch {
-                              setJsonSchemaError('Invalid JSON');
+                              setJsonSchemaError('Invalid JSON format');
                             }
                           }}
                         >
