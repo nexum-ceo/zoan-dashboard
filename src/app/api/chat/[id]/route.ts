@@ -22,6 +22,7 @@ export async function GET(
         },
       },
     );
+    console.log('chat messages response:', response.data);
 
     return NextResponse.json(response.data);
   } catch (error) {

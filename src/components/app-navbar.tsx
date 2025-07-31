@@ -16,7 +16,7 @@ import { useEffect, useState } from 'react';
 
 import { TUser } from '@/const/types';
 import { Menu } from 'lucide-react';
-import { signIn } from 'next-auth/react';
+import { signIn, signOut, useSession } from 'next-auth/react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
@@ -50,15 +50,39 @@ export default function AppNavbar() {
   const [isOpen, setIsOpen] = useState<boolean>(false);
   const [user, setUser] = useState<TUser | null>(null);
   const router = useRouter();
+  const { data: session } = useSession();
 
   useEffect(() => {
     const fetchUser = async () => {
-      const response = await fetch('/api/user');
-      const data = await response.json();
-      setUser(data.data);
+      try {
+        const response = await fetch('/api/user');
+        if (response.status === 401) {
+          // Token hết hạn hoặc không hợp lệ, logout hoàn toàn
+          await signOut({ redirect: false });
+          router.push('/login');
+          return;
+        }
+        const data = await response.json();
+        setUser(data.data);
+      } catch {
+        setUser(null);
+      }
     };
 
     fetchUser();
+  }, [router]);
+  useEffect(() => {
+    const handleLogout = async () => {
+      if (
+        (typeof window !== 'undefined' && session === null) ||
+        Number(session?.expires) < Date.now()
+      ) {
+        await signOut();
+      }
+      console.log('Session expired, logging out...'); // Debug log
+    };
+    handleLogout();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const openLoginPopup = () => {
@@ -180,7 +204,7 @@ export default function AppNavbar() {
           </nav>
 
           <div className="hidden md:flex gap-2">
-            {user ? (
+            {user && session ? (
               <div className="flex items-center gap-2 border rounded-md px-4 py-2">
                 <div className="text-sm">{user.email}</div>
               </div>
