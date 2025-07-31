@@ -1,5 +1,10 @@
 import { Button } from '@/components/ui/button';
-import { Dialog, DialogContent } from '@/components/ui/dialog';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogTitle,
+} from '@/components/ui/dialog';
 import {
   Form,
   FormControl,
@@ -9,6 +14,7 @@ import {
   FormMessage,
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import {
   Select,
   SelectContent,
@@ -341,7 +347,7 @@ export default function AddAgentForm() {
                     </FormItem>
                   )}
                 />
-                {/* Dialog nhập JSON schema */}
+                {/* Dialog fill JSON schema */}
                 <Dialog
                   open={jsonSchemaDialogOpen}
                   onOpenChange={setJsonSchemaDialogOpen}
@@ -354,58 +360,63 @@ export default function AddAgentForm() {
                       height: '100%',
                     }}
                   >
-                    <div className="text-lg font-semibold mb-2">
-                      Add response format
-                    </div>
-                    <div className="text-xs text-gray-500 mb-2">
-                      Use a JSON schema to define the structure of the
-                      model&apos;s response format.
-                    </div>
-                    <div className="mb-2">
-                      <label className="block text-xs font-medium mb-1">
-                        Definition
-                      </label>
-                      <Textarea
-                        className="w-full min-h-[220px] rounded border px-2 py-1 font-mono text-xs"
-                        value={jsonSchemaInput}
-                        onChange={(e) => setJsonSchemaInput(e.target.value)}
-                        placeholder={`{\n  "name": "...",\n  "schema": { ... }\n}`}
-                      />
-                      {jsonSchemaError && (
-                        <div className="text-xs text-red-500 mt-1">
-                          {jsonSchemaError}
+                    <div className="flex flex-col flex-1 min-h-0 h-full w-full">
+                      <div className="px-2 py-2 pb-1">
+                        {/* <div className="text-lg font-semibold leading-tight">
+                          Add response format
+                        </div> */}
+                        <DialogTitle>Add response format</DialogTitle>
+                        <DialogDescription className="mt-1">
+                          Use a JSON schema to define the structure of the
+                          model&apos;s response format.
+                        </DialogDescription>
+                      </div>
+                      <div className="flex flex-col flex-1 min-h-0 h-full w-full gap-1 px-2 pb-1 mt-4">
+                        <Label className="mb-1">Definition</Label>
+                        <div className="flex-1 min-h-0 flex flex-col">
+                          <Textarea
+                            className="w-full h-full flex-1 min-h-0 rounded border px-2 py-1 font-mono text-xs resize-none"
+                            style={{ minHeight: 0, height: '100%' }}
+                            value={jsonSchemaInput}
+                            onChange={(e) => setJsonSchemaInput(e.target.value)}
+                            placeholder={`{\n  "name": "...",\n  "schema": { ... }\n}`}
+                          />
+                          {jsonSchemaError && (
+                            <div className="text-xs text-red-500 mt-1">
+                              {jsonSchemaError}
+                            </div>
+                          )}
                         </div>
-                      )}
-                    </div>
-                    <div className="flex justify-end gap-2 mt-2">
-                      <Button
-                        type="button"
-                        variant="outline"
-                        onClick={() => {
-                          setJsonSchemaDialogOpen(false);
-                          setJsonSchemaError(null);
-                        }}
-                        className="h-8 px-3 text-sm"
-                      >
-                        Cancel
-                      </Button>
-                      <Button
-                        type="button"
-                        className="h-8 px-3 text-sm"
-                        onClick={() => {
-                          try {
-                            const parsed = JSON.parse(jsonSchemaInput);
+                      </div>
+                      <div className="flex justify-end items-end gap-2 px-2 pb-2 mt-4">
+                        <Button
+                          type="button"
+                          variant="outline"
+                          onClick={() => {
                             setJsonSchemaDialogOpen(false);
                             setJsonSchemaError(null);
-                            // Save schema into react-hook-form if needed
-                            form.setValue('response_format', parsed);
-                          } catch {
-                            setJsonSchemaError('Invalid JSON');
-                          }
-                        }}
-                      >
-                        Save
-                      </Button>
+                          }}
+                          className="h-8 px-3 text-sm"
+                        >
+                          Cancel
+                        </Button>
+                        <Button
+                          type="button"
+                          className="h-8 px-3 text-sm"
+                          onClick={() => {
+                            try {
+                              const parsed = JSON.parse(jsonSchemaInput);
+                              setJsonSchemaDialogOpen(false);
+                              setJsonSchemaError(null);
+                              form.setValue('response_format', parsed);
+                            } catch {
+                              setJsonSchemaError('Invalid JSON');
+                            }
+                          }}
+                        >
+                          Save
+                        </Button>
+                      </div>
                     </div>
                   </DialogContent>
                 </Dialog>
