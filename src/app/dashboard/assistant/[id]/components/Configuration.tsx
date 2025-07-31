@@ -85,17 +85,56 @@ export default function Configuration() {
     };
     fetchAgent();
   }, [id, form]);
-  // console.log('agent', agent);
-  // console.log('form data', form.getValues());
+
+  // Reset form chỉ khi models đã fetch xong và chứa agent.model
+  useEffect(() => {
+    const fetchModels = async (providerId: string) => {
+      if (!providerId) return;
+      setLoading(true);
+      try {
+        const providerObj = providers.find((p) => p.id === providerId);
+        const providerName = providerObj ? providerObj.provider : providerId;
+        const res = await fetch('/api/model', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ name: providerName }),
+        });
+        const data: GetModelResType = await res.json();
+        if (data.status === 'success') {
+          setModels(data.data);
+        } else {
+          setModels([]);
+        }
+      } catch (err) {
+        console.log('Error fetching models:', err);
+        setModels([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+    if (agent && providers.length > 0) {
+      setSelectedProvider(agent.provider_id || '');
+      fetchModels(agent.provider_id || '');
+    }
+  }, [agent, providers]);
 
   useEffect(() => {
-    if (agent) {
+    // Chỉ reset form khi models đã fetch xong và chứa agent.model
+    if (
+      agent &&
+      models.length > 0 &&
+      (models.includes(agent.model) ||
+        agent.model === '' ||
+        agent.model === undefined)
+    ) {
       form.reset({
         name: agent.name || '',
         description: agent.description || '',
         prompt: agent.prompt || '',
         provider_id: agent.provider_id || '',
-        model: agent.model || 'deepseek',
+        model: agent.model || '',
         response_format: {
           type: agent.response_format?.type || 'text',
         },
@@ -105,48 +144,15 @@ export default function Configuration() {
           top_p: agent.model_kwargs?.top_p || 1.0,
         },
       });
-
-      // const fetchModels = async () => {
-      //   try {
-      //     // Find the provider object by id
-      //     const providerObj = providers.find((p) => p.id === agent.provider_id);
-      //     const providerName = providerObj
-      //       ? providerObj.provider
-      //       : agent.provider_id;
-      //     const res = await fetch('/api/model', {
-      //       method: 'POST',
-      //       headers: {
-      //         'Content-Type': 'application/json',
-      //       },
-      //       body: JSON.stringify({ name: providerName }),
-      //     });
-      //     const data: GetModelResType = await res.json();
-      //     if (data.status === 'success') {
-      //       setModels(data.data);
-      //     } else {
-      //       setModels([]);
-      //       // setError('No models found.');
-      //     }
-      //   } catch (err) {
-      //     if (err instanceof Error) {
-      //       setError(err.message);
-      //     } else {
-      //       setError('Fetch failed');
-      //     }
-      //   } finally {
-      //     setLoading(false);
-      //   }
-      // };
-
-      // fetchModels();
-      setSelectedProvider(agent.provider_id || '');
     }
-  }, [agent, form, providers]);
+  }, [models, agent, form]);
 
   useEffect(() => {
     fetchProvider();
   }, []);
 
+  console.log('Agent data:', agent);
+  console.log('form data', form.getValues());
   const handleProviderChange = async (providerId: string) => {
     setSelectedProvider(providerId);
     setLoading(true);
