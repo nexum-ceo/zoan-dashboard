@@ -459,7 +459,7 @@ export default function AddAgentForm() {
               disabled={loading}
               className="rounded-md h-8 px-3 text-sm"
             >
-              {loading ? 'Saving...' : 'Save Changes'}
+              {loading ? 'Saving...' : 'Create'}
             </Button>
           </div>
 

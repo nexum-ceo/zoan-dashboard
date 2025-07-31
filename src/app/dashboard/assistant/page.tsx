@@ -1,16 +1,7 @@
 'use client';
 import AddAgentForm from '@/app/dashboard/assistant/[id]/components/add-agent-form';
-import { Button } from '@/components/ui/button';
-import { Dialog, DialogContent } from '@/components/ui/dialog';
-import {
-  Table,
-  TableBody,
-  TableCaption,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@/components/ui/table';
+// ...existing code...
+// ...existing code...
 import { formatDate } from '@/lib/date';
 import { AgentType, GetAgentResType } from '@/types/agent';
 import { useRouter } from 'next/navigation';
@@ -21,7 +12,6 @@ export default function AssistantPage() {
   const [agents, setAgents] = useState<AgentType[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
-  const [editDialogOpen, setEditDialogOpen] = useState<boolean>(false);
 
   useEffect(() => {
     const fetchAgents = async () => {
@@ -55,71 +45,57 @@ export default function AssistantPage() {
     <div className="w-full h-full bg-sidebar flex flex-col p-4">
       <div className="p-4 flex justify-between text-2xl font-semibold border-b border-border bg-white rounded-t-lg w-full">
         Assistants
-        <Button
-          onClick={() => {
-            setEditDialogOpen(true);
-          }}
-        >
-          Add Agent
-        </Button>
       </div>
-      <div className="flex-1 flex flex-row gap-3 pt-3">
-        <Table className="w-full h-fit bg-white border border-border rounded-lg">
-          <TableCaption>A list of your agents.</TableCaption>
-          <TableHeader>
-            <TableRow>
-              <TableHead className="w-[100px]">ID</TableHead>
-              <TableHead className="w-[100px]">Name</TableHead>
-              <TableHead>Description</TableHead>
-              <TableHead>Created At</TableHead>
-              <TableHead className="text-right">Updated At</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {loading ? (
-              <TableRow>
-                <TableCell colSpan={5} className="text-center">
-                  Loading...
-                </TableCell>
-              </TableRow>
-            ) : error ? (
-              <TableRow>
-                <TableCell colSpan={5} className="text-center text-red-500">
-                  {error}
-                </TableCell>
-              </TableRow>
-            ) : agents.length === 0 ? (
-              <TableRow>
-                <TableCell colSpan={5} className="text-center">
-                  No agents found.
-                </TableCell>
-              </TableRow>
-            ) : (
-              agents.map((agent) => (
-                <TableRow
-                  key={agent.id}
-                  onClick={() => handleClick(agent.id)}
-                  className="cursor-pointer hover:bg-muted transition-colors"
-                >
-                  <TableCell className="font-medium">{agent.id}</TableCell>
-                  <TableCell className="font-medium">{agent.name}</TableCell>
-                  <TableCell>{agent.description}</TableCell>
-                  <TableCell>{formatDate(agent.created_at)}</TableCell>
-                  <TableCell className="text-right">
-                    {formatDate(agent.updated_at)}
-                  </TableCell>
-                </TableRow>
-              ))
-            )}
-          </TableBody>
-        </Table>
-      </div>
-      {/* Dialog show Configuration */}
-      <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
-        <DialogContent style={{ width: '900px', maxWidth: '85vw' }}>
+      <div className="flex-1 flex flex-row gap-6 pt-3">
+        {/* Left: Agent List as Card */}
+        <div className="w-[400px] min-w-[320px] max-w-[500px] flex flex-col gap-2">
+          <div className="text-xs text-gray-500 mb-2">
+            Today,{' '}
+            {new Date().toLocaleString('en-US', {
+              month: 'short',
+              day: 'numeric',
+            })}
+          </div>
+          {loading ? (
+            <div className="text-center text-gray-500 py-8">Loading...</div>
+          ) : error ? (
+            <div className="text-center text-red-500 py-8">{error}</div>
+          ) : agents.length === 0 ? (
+            <div className="text-center text-gray-500 py-8">
+              No agents found.
+            </div>
+          ) : (
+            agents.map((agent) => (
+              <div
+                key={agent.id}
+                onClick={() => handleClick(agent.id)}
+                className="bg-white border border-border rounded-lg px-4 py-3 mb-1 cursor-pointer hover:bg-gray-50 transition flex flex-col gap-1 shadow-sm"
+              >
+                <div className="flex items-center justify-between">
+                  <div className="font-semibold text-base text-gray-800 truncate max-w-[220px]">
+                    {agent.name || 'Untitled assistant'}
+                  </div>
+                  <div className="text-xs text-gray-400 ml-2 whitespace-nowrap">
+                    {formatDate(agent.created_at)}
+                  </div>
+                </div>
+                <div className="text-xs text-gray-500 truncate max-w-[260px]">
+                  {agent.id}
+                </div>
+                {agent.description && (
+                  <div className="text-xs text-gray-600 mt-1 line-clamp-2">
+                    {agent.description}
+                  </div>
+                )}
+              </div>
+            ))
+          )}
+        </div>
+        {/* Right: Add Agent Form, wider */}
+        <div className="flex-1 min-w-[500px]">
           <AddAgentForm />
-        </DialogContent>
-      </Dialog>
+        </div>
+      </div>
     </div>
   );
 }
