@@ -39,7 +39,6 @@ export async function POST(req: Request) {
   try {
     const body = await req.json();
 
-    console.log('Creating agent with body:', body);
     const response = await axiosInstance.post<CreateAgentResType>(
       '/agent',
       body,
@@ -49,14 +48,14 @@ export async function POST(req: Request) {
         },
       },
     );
-    console.log('First response:', response.data);
+
     return NextResponse.json(response.data);
   } catch (error) {
     let message = 'Create failed';
     if (error instanceof Error) {
       message = error.message;
     }
-    console.log('Error creating agent:', message);
+
     return NextResponse.json({ error: message }, { status: 500 });
   }
 }
