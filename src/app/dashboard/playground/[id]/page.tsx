@@ -39,7 +39,6 @@ export default function PlaygroundChatPage() {
       .then((res) => res.json())
       .then((data) => {
         setToken(data.accessToken);
-        console.log('[WS] Session:', data);
       });
   }, []);
 
@@ -59,12 +58,28 @@ export default function PlaygroundChatPage() {
     chatId: chatId,
   });
 
-  // Fetch chat detail if chatId exists
+  // Fetch chat detail để lấy agent_id
   useEffect(() => {
     if (chatId) {
       fetch(`/api/chat/${chatId}`)
         .then(async (res) => {
           if (!res.ok) throw new Error('Failed to fetch chat detail');
+          return res.json();
+        })
+        .then((data) => {
+          if (data && data.data && data.data.agent_id) {
+            setAgentId(data.data.agent_id);
+          }
+        });
+    }
+  }, [chatId]);
+
+  // Fetch chat messages detail nếu chatId tồn tại
+  useEffect(() => {
+    if (chatId) {
+      fetch(`/api/chat-message/${chatId}`)
+        .then(async (res) => {
+          if (!res.ok) throw new Error('Failed to fetch chat messages');
           return res.json() as Promise<GetChatMessagesResType>;
         })
         .then((data) => {
@@ -116,6 +131,8 @@ export default function PlaygroundChatPage() {
     }
   }, [messages.length, handleScroll]);
 
+  useEffect(() => {}, []);
+
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   };
@@ -142,7 +159,7 @@ export default function PlaygroundChatPage() {
           </Button>
         </div>
         <div className="flex-1 p-4">
-          <SelectAssistant onAgentChange={setAgentId} />
+          <SelectAssistant value={agentId} onAgentChange={setAgentId} />
         </div>
       </div>
 

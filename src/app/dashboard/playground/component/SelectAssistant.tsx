@@ -11,14 +11,19 @@ import { FC, useEffect, useState } from 'react';
 
 type SelectAssistantProps = {
   onAgentChange?: (agentId: string) => void;
+  value?: string;
 };
 
-const SelectAssistant: FC<SelectAssistantProps> = ({ onAgentChange }) => {
+const SelectAssistant: FC<SelectAssistantProps> = ({
+  onAgentChange,
+  value,
+}) => {
   const router = useRouter();
+
   // Agent state
   const [agents, setAgents] = useState<AgentType[]>([]);
   const [selectedAgent, setSelectedAgent] = useState<string | undefined>(
-    undefined,
+    value !== undefined ? value : undefined,
   );
   const [agentLoading, setAgentLoading] = useState<boolean>(false);
   const [agentError, setAgentError] = useState<string | null>(null);
@@ -27,6 +32,13 @@ const SelectAssistant: FC<SelectAssistantProps> = ({ onAgentChange }) => {
   const [chats, setChats] = useState<GetChatListResType['chats']>([]);
   const [chatLoading, setChatLoading] = useState<boolean>(false);
   const [chatError, setChatError] = useState<string | null>(null);
+
+  // Nếu có prop value thì controlled, nếu không thì uncontrolled
+  useEffect(() => {
+    if (value !== undefined && value !== selectedAgent) {
+      setSelectedAgent(value);
+    }
+  }, [value, selectedAgent]);
 
   // Fetch agents
   useEffect(() => {
@@ -78,9 +90,9 @@ const SelectAssistant: FC<SelectAssistantProps> = ({ onAgentChange }) => {
       .finally(() => setChatLoading(false));
   }, []);
 
-  const handleAgentChange = (value: string) => {
-    setSelectedAgent(value);
-    if (onAgentChange) onAgentChange(value);
+  const handleAgentChange = (agentId: string) => {
+    setSelectedAgent(agentId);
+    if (onAgentChange) onAgentChange(agentId);
   };
 
   return (

@@ -57,7 +57,7 @@ export default function AppNavbar() {
       try {
         const response = await fetch('/api/user');
         if (response.status === 401) {
-          // Token hết hạn hoặc không hợp lệ, logout hoàn toàn
+          // Token invald or expired, logout completely
           await signOut({ redirect: false });
           router.push('/login');
           return;
@@ -73,20 +73,13 @@ export default function AppNavbar() {
   }, [router]);
   useEffect(() => {
     const handleLogout = async () => {
+      const now = new Date().getTime() / 1000 - 1;
       if (
         (typeof window !== 'undefined' && session === null) ||
-        Number(session?.expires) < Date.now()
+        Number(session?.expires) <= now
       ) {
-        console.log(
-          'why logout',
-          session,
-          Number(session?.expires),
-          Date.now(),
-        );
-
         await signOut();
       }
-      console.log('Session expired, logging out...'); // Debug log
     };
     handleLogout();
     // eslint-disable-next-line react-hooks/exhaustive-deps

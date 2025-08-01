@@ -1,3 +1,4 @@
+import { jwtDecode } from 'jwt-decode';
 import { NextAuthOptions } from 'next-auth';
 import Credentials from 'next-auth/providers/credentials';
 
@@ -33,13 +34,15 @@ export const authOptions: NextAuthOptions = {
   callbacks: {
     async jwt({ token, user }) {
       if (user?.accessToken) {
+        const expireAccessToken = jwtDecode(user.accessToken)?.exp;
         token.accessToken = user.accessToken;
-        token.accessTokenExpires = Date.now() + 60 * 20 * 1000;
+        token.accessTokenExpires = expireAccessToken;
       }
       return token;
     },
     async session({ session, token }) {
       session.accessToken = token.accessToken;
+      session.expires = token.accessTokenExpires;
       return session;
     },
   },

@@ -14,15 +14,11 @@ export async function GET(
   }
 
   try {
-    const response = await axiosInstance.get(
-      `/chat/${(await params).id}/messages`,
-      {
-        headers: {
-          Authorization: `Bearer ${session.accessToken}`,
-        },
+    const response = await axiosInstance.get(`/chat/${(await params).id}`, {
+      headers: {
+        Authorization: `Bearer ${session.accessToken}`,
       },
-    );
-    console.log('chat messages response:', response.data);
+    });
 
     return NextResponse.json(response.data);
   } catch (error) {
