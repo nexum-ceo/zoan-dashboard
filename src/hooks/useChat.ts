@@ -49,11 +49,18 @@ export function useChat({
           if (data && data.role && data.content !== undefined) {
             return String(data.content);
           }
-        } catch {
-          // If JSON parsing fails, fallback to raw string
+        } catch (error) {
+          // JSON parse failed - log in development only
+          if (process.env.NODE_ENV === 'development') {
+            console.warn('[WS] Failed to parse JSON, using raw data:', error);
+          }
         }
         return String(event.data);
       })();
+
+      // Skip processing if chunk is empty
+      if (!chunk) return;
+
       setMessages((prev) => {
         if (
           prev.length > 0 &&

@@ -7,6 +7,8 @@ const ResponseFormatText = z.object({
 const ResponseFormatJsonObject = z.object({
   type: z.literal('json_object'),
 });
+
+// TODO: for future fix, currently uses `z.any()` for simplicity
 const ResponseFormatJsonSchema = z.object({
   type: z.literal('json_schema'),
   json_schema: z.record(z.string(), z.any()),
