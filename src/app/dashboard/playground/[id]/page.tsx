@@ -58,7 +58,7 @@ export default function PlaygroundChatPage() {
     chatId: chatId,
   });
 
-  // Fetch chat detail để lấy agent_id
+  // Fetch chat detail to get agent_id
   useEffect(() => {
     if (chatId) {
       fetch(`/api/chat/${chatId}`)
@@ -74,7 +74,7 @@ export default function PlaygroundChatPage() {
     }
   }, [chatId]);
 
-  // Fetch chat messages detail nếu chatId tồn tại
+  // Fetch chat messages detail
   useEffect(() => {
     if (chatId) {
       fetch(`/api/chat-message/${chatId}`)
