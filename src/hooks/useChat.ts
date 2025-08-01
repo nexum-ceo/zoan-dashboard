@@ -50,10 +50,8 @@ export function useChat({
             return String(data.content);
           }
         } catch (error) {
-          // JSON parse failed - log in development only
-          if (process.env.NODE_ENV === 'development') {
-            console.warn('[WS] Failed to parse JSON, using raw data:', error);
-          }
+          // TODO: handle error
+          console.warn('[WS] Failed to parse JSON, using raw data:', error);
         }
         return String(event.data);
       })();
