@@ -200,7 +200,7 @@ export default function PlaygroundChatPage() {
           <Button
             type="button"
             onClick={scrollToBottom}
-            className="absolute bottom-40 left-1/2 -translate-x-1/2 z-10 bg-gradient-to-r from-blue-500 to-purple-600 text-white rounded-full w-12 h-12 flex items-center justify-center shadow-lg hover:scale-110 transition-all"
+            className="absolute bottom-44 left-1/2 -translate-x-1/2 z-10 bg-gradient-to-r from-blue-500 to-purple-600 text-white rounded-full w-12 h-12 flex items-center justify-center shadow-lg hover:scale-110 transition-all"
             aria-label="Scroll to bottom"
           >
             <ArrowDown className="w-6 h-6" />

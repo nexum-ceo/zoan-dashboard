@@ -33,7 +33,8 @@ import { NextResponse } from 'next/server';
 
 export default withAuth(
   function middleware(req) {
-    if (Date.now() > Number(req.nextauth.token?.accessTokenExpires)) {
+    if (Date.now() > Number(req.nextauth.token?.expires)) {
+      console.log('Token expired, redirecting to login');
       return NextResponse.redirect(new URL('/login', req.url));
     }
   },

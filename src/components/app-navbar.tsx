@@ -132,6 +132,7 @@ export default function AppNavbar() {
       }
     }, 500);
   };
+  console.log('user in navbar:', user, session);
 
   return (
     <header className="sticky border-b-[1px] top-0 z-40 w-full bg-white dark:border-b-slate-700 dark:bg-background">
