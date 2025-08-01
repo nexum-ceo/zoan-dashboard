@@ -17,7 +17,7 @@ import {
 } from '@/components/ui/sidebar';
 import { IconDotsVertical, IconLogout } from '@tabler/icons-react';
 import { signOut } from 'next-auth/react';
-import { FC } from 'react';
+import { FC, useEffect } from 'react';
 
 export type NavUserProps = {
   user: {
@@ -28,6 +28,24 @@ export type NavUserProps = {
 
 export const NavUser: FC<NavUserProps> = ({ user }) => {
   const { isMobile } = useSidebar();
+
+  // BroadcastChannel allow logout across tabs
+  useEffect(() => {
+    const channel = new BroadcastChannel('auth');
+    channel.onmessage = (event) => {
+      if (event.data === 'logout') {
+        signOut();
+      }
+    };
+    return () => channel.close();
+  }, []);
+
+  const handleLogout = () => {
+    const channel = new BroadcastChannel('auth');
+    channel.postMessage('logout');
+    channel.close();
+    signOut();
+  };
 
   return (
     <SidebarMenu>
@@ -72,7 +90,7 @@ export const NavUser: FC<NavUserProps> = ({ user }) => {
               </div>
             </DropdownMenuLabel>
             <DropdownMenuSeparator />
-            <DropdownMenuItem onClick={() => signOut()}>
+            <DropdownMenuItem onClick={handleLogout}>
               <IconLogout />
               Log out
             </DropdownMenuItem>
