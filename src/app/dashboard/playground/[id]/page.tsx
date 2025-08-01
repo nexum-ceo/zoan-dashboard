@@ -39,7 +39,6 @@ export default function PlaygroundChatPage() {
       .then((res) => res.json())
       .then((data) => {
         setToken(data.accessToken);
-        console.log('[WS] Session:', data);
       });
   }, []);
 
@@ -59,12 +58,28 @@ export default function PlaygroundChatPage() {
     chatId: chatId,
   });
 
-  // Fetch chat detail if chatId exists
+  // Fetch chat detail to get agent_id
   useEffect(() => {
     if (chatId) {
       fetch(`/api/chat/${chatId}`)
         .then(async (res) => {
           if (!res.ok) throw new Error('Failed to fetch chat detail');
+          return res.json();
+        })
+        .then((data) => {
+          if (data && data.data && data.data.agent_id) {
+            setAgentId(data.data.agent_id);
+          }
+        });
+    }
+  }, [chatId]);
+
+  // Fetch chat messages detail
+  useEffect(() => {
+    if (chatId) {
+      fetch(`/api/chat-message/${chatId}`)
+        .then(async (res) => {
+          if (!res.ok) throw new Error('Failed to fetch chat messages');
           return res.json() as Promise<GetChatMessagesResType>;
         })
         .then((data) => {
@@ -142,7 +157,7 @@ export default function PlaygroundChatPage() {
           </Button>
         </div>
         <div className="flex-1 p-4">
-          <SelectAssistant onAgentChange={setAgentId} />
+          <SelectAssistant value={agentId} onAgentChange={setAgentId} />
         </div>
       </div>
 
@@ -200,7 +215,7 @@ export default function PlaygroundChatPage() {
           <Button
             type="button"
             onClick={scrollToBottom}
-            className="absolute bottom-40 left-1/2 -translate-x-1/2 z-10 bg-gradient-to-r from-blue-500 to-purple-600 text-white rounded-full w-12 h-12 flex items-center justify-center shadow-lg hover:scale-110 transition-all"
+            className="absolute bottom-44 left-1/2 -translate-x-1/2 z-10 bg-gradient-to-r from-blue-500 to-purple-600 text-white rounded-full w-12 h-12 flex items-center justify-center shadow-lg hover:scale-110 transition-all"
             aria-label="Scroll to bottom"
           >
             <ArrowDown className="w-6 h-6" />

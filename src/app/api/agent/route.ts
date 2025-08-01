@@ -48,12 +48,14 @@ export async function POST(req: Request) {
         },
       },
     );
+
     return NextResponse.json(response.data);
   } catch (error) {
     let message = 'Create failed';
     if (error instanceof Error) {
       message = error.message;
     }
+
     return NextResponse.json({ error: message }, { status: 500 });
   }
 }

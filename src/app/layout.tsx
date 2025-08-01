@@ -27,13 +27,13 @@ export default async function RootLayout({
   children: React.ReactNode;
 }>) {
   const session = await getServerSession(authOptions);
-  console.log('session root', session);
+  console.log('session root:', session);
   return (
     <html lang="en">
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased h-screen w-full m-0 p-0`}
       >
-        <SessionProvider session={session}>
+        <SessionProvider>
           <div className="h-full w-full">{children}</div>
           <Toaster />
         </SessionProvider>

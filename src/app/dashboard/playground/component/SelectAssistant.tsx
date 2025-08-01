@@ -3,7 +3,6 @@ import {
   SelectContent,
   SelectItem,
   SelectTrigger,
-  SelectValue,
 } from '@/components/ui/select';
 import { AgentType } from '@/types/agent';
 import { GetChatListResType } from '@/types/chat';
@@ -12,14 +11,19 @@ import { FC, useEffect, useState } from 'react';
 
 type SelectAssistantProps = {
   onAgentChange?: (agentId: string) => void;
+  value?: string;
 };
 
-const SelectAssistant: FC<SelectAssistantProps> = ({ onAgentChange }) => {
+const SelectAssistant: FC<SelectAssistantProps> = ({
+  onAgentChange,
+  value,
+}) => {
   const router = useRouter();
+
   // Agent state
   const [agents, setAgents] = useState<AgentType[]>([]);
   const [selectedAgent, setSelectedAgent] = useState<string | undefined>(
-    undefined,
+    value !== undefined ? value : undefined,
   );
   const [agentLoading, setAgentLoading] = useState<boolean>(false);
   const [agentError, setAgentError] = useState<string | null>(null);
@@ -28,6 +32,13 @@ const SelectAssistant: FC<SelectAssistantProps> = ({ onAgentChange }) => {
   const [chats, setChats] = useState<GetChatListResType['chats']>([]);
   const [chatLoading, setChatLoading] = useState<boolean>(false);
   const [chatError, setChatError] = useState<string | null>(null);
+
+  // Nếu có prop value thì controlled, nếu không thì uncontrolled
+  useEffect(() => {
+    if (value !== undefined && value !== selectedAgent) {
+      setSelectedAgent(value);
+    }
+  }, [value, selectedAgent]);
 
   // Fetch agents
   useEffect(() => {
@@ -79,9 +90,9 @@ const SelectAssistant: FC<SelectAssistantProps> = ({ onAgentChange }) => {
       .finally(() => setChatLoading(false));
   }, []);
 
-  const handleAgentChange = (value: string) => {
-    setSelectedAgent(value);
-    if (onAgentChange) onAgentChange(value);
+  const handleAgentChange = (agentId: string) => {
+    setSelectedAgent(agentId);
+    if (onAgentChange) onAgentChange(agentId);
   };
 
   return (
@@ -90,7 +101,15 @@ const SelectAssistant: FC<SelectAssistantProps> = ({ onAgentChange }) => {
         <h3 className="text-sm font-medium text-gray-900 mb-2">Choose Agent</h3>
         <Select value={selectedAgent} onValueChange={handleAgentChange}>
           <SelectTrigger className="w-full">
-            <SelectValue placeholder="Choose agent..." />
+            {selectedAgent ? (
+              <span className="text-sm">
+                {agents.find((a) => a.id === selectedAgent)?.name || 'Agent'}
+              </span>
+            ) : (
+              <span className="text-sm text-muted-foreground">
+                Choose agent...
+              </span>
+            )}
           </SelectTrigger>
           <SelectContent>
             {agentLoading && (
@@ -108,12 +127,12 @@ const SelectAssistant: FC<SelectAssistantProps> = ({ onAgentChange }) => {
               !agentError &&
               agents.map((agent) => (
                 <SelectItem key={agent.id} value={agent.id}>
-                  <div>
+                  <div className="w-full">
                     <div className="font-medium text-sm">
-                      {agent.name || agent.name || 'Agent'}
+                      {agent.name || 'Agent'}
                     </div>
                     {agent.description && (
-                      <div className="text-xs text-gray-500">
+                      <div className="text-xs text-gray-500 truncate max-w-[250px] mt-0.5">
                         {agent.description}
                       </div>
                     )}

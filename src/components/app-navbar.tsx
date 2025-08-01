@@ -16,9 +16,10 @@ import { useEffect, useState } from 'react';
 
 import { TUser } from '@/const/types';
 import { Menu } from 'lucide-react';
-import { signIn } from 'next-auth/react';
+import { signIn, signOut, useSession } from 'next-auth/react';
 import Image from 'next/image';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { Button, buttonVariants } from './ui/button';
 
 interface RouteProps {
@@ -48,15 +49,40 @@ const routeList: RouteProps[] = [
 export default function AppNavbar() {
   const [isOpen, setIsOpen] = useState<boolean>(false);
   const [user, setUser] = useState<TUser | null>(null);
+  const router = useRouter();
+  const { data: session } = useSession();
 
   useEffect(() => {
     const fetchUser = async () => {
-      const response = await fetch('/api/user');
-      const data = await response.json();
-      setUser(data.data);
+      try {
+        const response = await fetch('/api/user');
+        if (response.status === 401) {
+          // Token invald or expired, logout completely
+          await signOut({ redirect: false });
+          router.push('/login');
+          return;
+        }
+        const data = await response.json();
+        setUser(data.data);
+      } catch {
+        setUser(null);
+      }
     };
 
     fetchUser();
+  }, [router]);
+  useEffect(() => {
+    const handleLogout = async () => {
+      const now = new Date().getTime() / 1000 - 1;
+      if (
+        (typeof window !== 'undefined' && session === null) ||
+        Number(session?.expires) <= now
+      ) {
+        await signOut();
+      }
+    };
+    handleLogout();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const openLoginPopup = () => {
@@ -80,7 +106,7 @@ export default function AppNavbar() {
 
           if (res?.ok) {
             console.log('✅ Logged in');
-            window.location.href = '/dashboard';
+            router.push('/dashboard/playground');
           } else {
             console.log('❌ Login failed');
           }
@@ -99,6 +125,7 @@ export default function AppNavbar() {
       }
     }, 500);
   };
+  console.log('user in navbar:', user, session);
 
   return (
     <header className="sticky border-b-[1px] top-0 z-40 w-full bg-white dark:border-b-slate-700 dark:bg-background">
@@ -178,7 +205,7 @@ export default function AppNavbar() {
           </nav>
 
           <div className="hidden md:flex gap-2">
-            {user ? (
+            {user && session ? (
               <div className="flex items-center gap-2 border rounded-md px-4 py-2">
                 <div className="text-sm">{user.email}</div>
               </div>

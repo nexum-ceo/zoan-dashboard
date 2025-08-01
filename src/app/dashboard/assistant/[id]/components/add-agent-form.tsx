@@ -1,5 +1,10 @@
-'use client';
 import { Button } from '@/components/ui/button';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogTitle,
+} from '@/components/ui/dialog';
 import {
   Form,
   FormControl,
@@ -9,6 +14,7 @@ import {
   FormMessage,
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import {
   Select,
   SelectContent,
@@ -29,10 +35,14 @@ import {
   ProviderOfUserType,
 } from '@/types/provider';
 import { zodResolver } from '@hookform/resolvers/zod';
+import MonacoEditor from '@monaco-editor/react';
 import { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 
 export default function AddAgentForm() {
+  const [jsonSchemaDialogOpen, setJsonSchemaDialogOpen] = useState(false);
+  const [jsonSchemaInput, setJsonSchemaInput] = useState('');
+  const [jsonSchemaError, setJsonSchemaError] = useState<string | null>(null);
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
@@ -44,7 +54,7 @@ export default function AddAgentForm() {
       try {
         const res = await fetch('/api/provider-user');
         const data: GetProviderOfUserResType = await res.json();
-        if (data.status === 'success') {
+        if (data.status === 'success' && Array.isArray(data.data)) {
           setProviders(data.data);
         } else {
           setProviders([]);
@@ -63,7 +73,6 @@ export default function AddAgentForm() {
     fetchProvider();
   }, []);
 
-  // Chỉ fetch model khi user chọn provider
   const handleProviderChange = async (providerId: string) => {
     setLoading(true);
     try {
@@ -100,10 +109,13 @@ export default function AddAgentForm() {
     defaultValues: {
       name: '',
       description: '',
+      max_tokens: 5,
       prompt: '',
       provider_id: '',
       model: 'deepseek',
-      response_format: 'text',
+      response_format: {
+        type: 'text',
+      },
       temperature: 1.0,
       top_p: 1.0,
     },
@@ -115,14 +127,25 @@ export default function AddAgentForm() {
     setSuccess(null);
 
     try {
+      // Validate data before sending
+      const validatedData = CreateAgentBodySchema.parse(data);
+
+      console.log('Sending agent data:', validatedData);
+
       const res = await fetch('/api/agent', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify(data),
+        body: JSON.stringify(validatedData),
       });
+
+      if (!res.ok) {
+        throw new Error(`HTTP error! status: ${res.status}`);
+      }
+
       const responseData: CreateAgentResType = await res.json();
+
       if (responseData.status === 'success') {
         setSuccess('Agent created successfully!');
         form.reset();
@@ -130,6 +153,7 @@ export default function AddAgentForm() {
         setError(responseData.message || 'Create failed');
       }
     } catch (err) {
+      console.error('Create agent error:', err);
       if (err instanceof Error) {
         setError(err.message || 'Create failed');
       } else {
@@ -141,9 +165,23 @@ export default function AddAgentForm() {
   };
 
   const handleCancel = () => {
-    form.reset();
+    form.reset({
+      name: '',
+      description: '',
+      max_tokens: 5,
+      prompt: '',
+      provider_id: '',
+      model: 'deepseek',
+      response_format: {
+        type: 'text',
+      },
+      temperature: 1.0,
+      top_p: 1.0,
+    });
     setError(null);
     setSuccess(null);
+    setJsonSchemaInput('');
+    setJsonSchemaError(null);
   };
 
   return (
@@ -247,7 +285,7 @@ export default function AddAgentForm() {
                       </FormLabel>
                       <Select
                         onValueChange={field.onChange}
-                        defaultValue={'deepseek'}
+                        value={field.value}
                       >
                         <FormControl>
                           <SelectTrigger className="rounded-md h-8">
@@ -301,33 +339,307 @@ export default function AddAgentForm() {
             </div>
 
             <div className="space-y-3">
-              {/* Response format */}
-              <FormField
-                control={form.control}
-                name="response_format"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel className="text-xs font-medium text-gray-700">
-                      Response format
-                    </FormLabel>
-                    <Select
-                      onValueChange={field.onChange}
-                      defaultValue={field.value}
-                    >
-                      <FormControl>
-                        <SelectTrigger className="rounded-md h-8">
-                          <SelectValue placeholder="Select response format" />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        <SelectItem value="text">Text</SelectItem>
-                        <SelectItem value="json">JSON</SelectItem>
-                      </SelectContent>
-                    </Select>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+              <div className="grid grid-cols-2 gap-3">
+                {/* Response format */}
+                <FormField
+                  control={form.control}
+                  name="response_format"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel className="text-xs font-medium text-gray-700">
+                        Response format
+                      </FormLabel>
+                      <Select
+                        onValueChange={(val) => {
+                          if (val === 'json_schema') {
+                            const current = form.getValues('response_format');
+                            if (
+                              typeof current === 'object' &&
+                              current !== null &&
+                              'type' in current &&
+                              current.type === 'json_schema' &&
+                              'json_schema' in current
+                            ) {
+                              setJsonSchemaInput(
+                                JSON.stringify(current.json_schema, null, 2),
+                              );
+                            } else {
+                              setJsonSchemaInput(
+                                '{\n  "type": "object",\n  "properties": {\n    "result": {\n      "type": "string"\n    }\n  },\n  "required": ["result"]\n}',
+                              );
+                            }
+                            setJsonSchemaDialogOpen(true);
+                          } else {
+                            field.onChange({ type: val });
+                          }
+                        }}
+                        value={
+                          typeof field.value === 'object' &&
+                          field.value !== null &&
+                          'type' in field.value
+                            ? field.value.type
+                            : 'text'
+                        }
+                      >
+                        <FormControl>
+                          <SelectTrigger className="rounded-md h-8">
+                            <SelectValue placeholder="Select response format" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          <SelectItem value="text">Text</SelectItem>
+                          <SelectItem value="json_object">JSON</SelectItem>
+                          <SelectItem value="json_schema">
+                            JSON Schema
+                          </SelectItem>
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                {/* Dialog fill JSON schema */}
+                <Dialog
+                  open={jsonSchemaDialogOpen}
+                  onOpenChange={setJsonSchemaDialogOpen}
+                >
+                  <DialogContent
+                    style={{
+                      maxWidth: '60vw',
+                      width: '100%',
+                      maxHeight: '75vh',
+                      height: '100%',
+                    }}
+                  >
+                    <div className="flex flex-col flex-1 min-h-0 h-full w-full">
+                      <div className="px-2 py-2 pb-1 flex items-center justify-between">
+                        <div>
+                          <DialogTitle>Add response format</DialogTitle>
+                          <DialogDescription className="mt-1">
+                            Use a JSON schema to define the structure of the
+                            model&apos;s response format.
+                          </DialogDescription>
+                        </div>
+                      </div>
+                      <div className="flex flex-col flex-1 min-h-0 h-full w-full gap-1 px-2 pb-1 mt-4">
+                        <div className="flex justify-between items-center mb-2">
+                          <Label className="mb-1">Definition</Label>
+                          <Select
+                            onValueChange={(value) => {
+                              const templates = {
+                                math_response: {
+                                  type: 'object',
+                                  properties: {
+                                    steps: {
+                                      type: 'array',
+                                      items: {
+                                        type: 'object',
+                                        properties: {
+                                          explanation: { type: 'string' },
+                                          output: { type: 'string' },
+                                        },
+                                        required: ['explanation', 'output'],
+                                      },
+                                    },
+                                    final_answer: { type: 'string' },
+                                  },
+                                  required: ['steps', 'final_answer'],
+                                },
+                                paper_metadata: {
+                                  type: 'object',
+                                  properties: {
+                                    title: { type: 'string' },
+                                    authors: {
+                                      type: 'array',
+                                      items: { type: 'string' },
+                                    },
+                                    abstract: { type: 'string' },
+                                    keywords: {
+                                      type: 'array',
+                                      items: { type: 'string' },
+                                    },
+                                  },
+                                  required: ['title', 'authors', 'abstract'],
+                                },
+                                moderation: {
+                                  type: 'object',
+                                  properties: {
+                                    flagged: { type: 'boolean' },
+                                    categories: {
+                                      type: 'object',
+                                      properties: {
+                                        harassment: { type: 'boolean' },
+                                        hate: { type: 'boolean' },
+                                        violence: { type: 'boolean' },
+                                      },
+                                    },
+                                    confidence_scores: {
+                                      type: 'object',
+                                      properties: {
+                                        harassment: { type: 'number' },
+                                        hate: { type: 'number' },
+                                        violence: { type: 'number' },
+                                      },
+                                    },
+                                  },
+                                  required: ['flagged', 'categories'],
+                                },
+                              };
+                              const template =
+                                templates[value as keyof typeof templates];
+                              if (template) {
+                                setJsonSchemaInput(
+                                  JSON.stringify(template, null, 2),
+                                );
+                              }
+                            }}
+                          >
+                            <SelectTrigger className="rounded-md h-8">
+                              <SelectValue placeholder="Select JSON schema template" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="math_response">
+                                Math Response
+                              </SelectItem>
+                              <SelectItem value="paper_metadata">
+                                Paper Metadata
+                              </SelectItem>
+                              <SelectItem value="moderation">
+                                Moderation
+                              </SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </div>
+                        <div className="flex-1 min-h-0 flex flex-col">
+                          <div className="flex-1 min-h-0">
+                            <div
+                              className="rounded border border-gray-300 focus-within:border-primary bg-white overflow-hidden shadow-sm"
+                              style={{ height: '100%' }}
+                            >
+                              <MonacoEditor
+                                height="100%"
+                                defaultLanguage="json"
+                                language="json"
+                                value={jsonSchemaInput}
+                                onChange={(val) =>
+                                  setJsonSchemaInput(val ?? '')
+                                }
+                                options={{
+                                  minimap: { enabled: false },
+                                  fontSize: 13,
+                                  wordWrap: 'on',
+                                  scrollBeyondLastLine: false,
+                                  automaticLayout: true,
+                                  formatOnPaste: true,
+                                  formatOnType: true,
+                                  lineNumbers: 'off',
+                                  scrollbar: {
+                                    vertical: 'auto',
+                                    horizontal: 'auto',
+                                  },
+                                  padding: { top: 10, bottom: 10 },
+                                }}
+                              />
+                            </div>
+                          </div>
+                          {jsonSchemaError && (
+                            <div className="text-xs text-red-500 mt-1">
+                              {jsonSchemaError}
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                      <div className="flex justify-end items-end gap-2 px-2 pb-2 mt-4">
+                        <Button
+                          type="button"
+                          variant="outline"
+                          onClick={() => {
+                            setJsonSchemaDialogOpen(false);
+                            setJsonSchemaError(null);
+                          }}
+                          className="h-8 px-3 text-sm"
+                        >
+                          Cancel
+                        </Button>
+                        <Button
+                          type="button"
+                          className="h-8 px-3 text-sm"
+                          onClick={() => {
+                            try {
+                              const parsed = JSON.parse(jsonSchemaInput);
+
+                              // Validate basic JSON Schema structure
+                              if (!parsed || typeof parsed !== 'object') {
+                                setJsonSchemaError(
+                                  'JSON Schema must be an object',
+                                );
+                                return;
+                              }
+
+                              // Basic validation for JSON Schema format
+                              if (!parsed.type || !parsed.properties) {
+                                setJsonSchemaError(
+                                  'JSON Schema must have "type" and "properties" fields',
+                                );
+                                return;
+                              }
+
+                              setJsonSchemaDialogOpen(false);
+                              setJsonSchemaError(null);
+
+                              // Set correct discriminated union format
+                              form.setValue('response_format', {
+                                type: 'json_schema' as const,
+                                json_schema: parsed,
+                              });
+                            } catch {
+                              setJsonSchemaError('Invalid JSON format');
+                            }
+                          }}
+                        >
+                          Save
+                        </Button>
+                      </div>
+                    </div>
+                  </DialogContent>
+                </Dialog>
+
+                <FormField
+                  control={form.control}
+                  name="max_tokens"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel className="text-xs font-medium text-gray-700">
+                        Max Tokens
+                      </FormLabel>
+                      <div className="flex items-center gap-2">
+                        <FormControl>
+                          <Input
+                            type="number"
+                            step="1"
+                            className="w-15 h-6 text-xs rounded-md no-spinner"
+                            value={field.value}
+                            onChange={(e) =>
+                              field.onChange(Number(e.target.value))
+                            }
+                          />
+                        </FormControl>
+                        <FormControl className="flex-1">
+                          <Slider
+                            max={8192}
+                            min={5}
+                            step={1}
+                            value={[field.value ?? 5]}
+                            onValueChange={(value) => field.onChange(value[0])}
+                            className="h-4"
+                          />
+                        </FormControl>
+                      </div>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
 
               {/* Temperature and Top P in compact grid */}
               <div className="grid grid-cols-2 gap-3">
@@ -344,7 +656,7 @@ export default function AddAgentForm() {
                           <Input
                             type="number"
                             step="0.01"
-                            className="w-12 h-6 text-xs rounded-md no-spinner"
+                            className="w-13 h-6 text-xs rounded-md no-spinner"
                             value={field.value}
                             onChange={(e) =>
                               field.onChange(Number(e.target.value))
@@ -380,7 +692,7 @@ export default function AddAgentForm() {
                           <Input
                             type="number"
                             step="0.01"
-                            className="w-12 h-6 text-xs rounded-md no-spinner"
+                            className="w-13 h-6 text-xs rounded-md no-spinner"
                             value={field.value}
                             onChange={(e) =>
                               field.onChange(Number(e.target.value))
@@ -421,7 +733,7 @@ export default function AddAgentForm() {
               disabled={loading}
               className="rounded-md h-8 px-3 text-sm"
             >
-              {loading ? 'Saving...' : 'Save Changes'}
+              {loading ? 'Saving...' : 'Create'}
             </Button>
           </div>
 

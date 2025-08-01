@@ -1,15 +1,38 @@
 import { z } from 'zod';
 
+// Response format schemas
+const ResponseFormatText = z.object({
+  type: z.literal('text'),
+});
+const ResponseFormatJsonObject = z.object({
+  type: z.literal('json_object'),
+});
+
+// TODO: for future fix, currently uses `z.any()` for simplicity
+const ResponseFormatJsonSchema = z.object({
+  type: z.literal('json_schema'),
+  json_schema: z.record(z.string(), z.any()),
+});
+export const ResponseFormatSchema = z.discriminatedUnion('type', [
+  ResponseFormatText,
+  ResponseFormatJsonObject,
+  ResponseFormatJsonSchema,
+]);
+
 export const AgentSchema = z.object({
   id: z.string(),
   user_id: z.string(),
   name: z.string(),
   description: z.string(),
   prompt: z.string(),
+  model_kwargs: z.object({
+    max_tokens: z.number(),
+    temperature: z.number(),
+    top_p: z.number(),
+  }),
   model: z.string(),
-  response_format: z.string(),
-  temperature: z.number(),
-  top_p: z.number(),
+  response_format: ResponseFormatSchema,
+  provider_id: z.string(),
   created_at: z.string(),
   updated_at: z.string(),
 });
@@ -33,11 +56,14 @@ export const CreateAgentBodySchema = z.object({
     .min(1, 'Description is required')
     .max(500, 'Description must be less than 500 characters'),
   prompt: z.string().min(1, 'System instruction is required'),
+  max_tokens: z
+    .number()
+    .min(5, 'Max token must be at least 5')
+    .max(8192, 'Max token must be at most 8192')
+    .optional(),
   provider_id: z.string().min(1, 'Provider is required'),
   model: z.string().min(1, 'Model is required'),
-  response_format: z.string().refine((val) => ['text', 'json'].includes(val), {
-    message: 'Please select a valid response format',
-  }),
+  response_format: ResponseFormatSchema,
   temperature: z
     .number()
     .min(0, 'Temperature must be at least 0')
@@ -57,3 +83,7 @@ export const CreateAgentResSchema = z.object({
 });
 
 export type CreateAgentResType = z.infer<typeof CreateAgentResSchema>;
+
+export const UpdateAgentBodySchema = AgentSchema;
+
+export type UpdateAgentBodyType = z.infer<typeof UpdateAgentBodySchema>;

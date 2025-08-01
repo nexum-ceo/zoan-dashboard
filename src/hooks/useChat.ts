@@ -49,11 +49,16 @@ export function useChat({
           if (data && data.role && data.content !== undefined) {
             return String(data.content);
           }
-        } catch (err) {
-          console.error('[WS] Error parsing message:', err);
+        } catch (error) {
+          // TODO: handle error
+          console.warn('[WS] Failed to parse JSON, using raw data:', error);
         }
         return String(event.data);
       })();
+
+      // Skip processing if chunk is empty
+      if (!chunk) return;
+
       setMessages((prev) => {
         if (
           prev.length > 0 &&
