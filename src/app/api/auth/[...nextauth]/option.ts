@@ -19,6 +19,7 @@ export const authOptions: NextAuthOptions = {
             body: JSON.stringify({ auth_code: credentials?.authCode }),
           },
         );
+        console.log('res:', res);
 
         if (!res.ok) return null;
 

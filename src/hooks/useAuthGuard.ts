@@ -9,16 +9,14 @@ export const useAuthGuard = () => {
   useEffect(() => {
     const handleLogout = async () => {
       const now = new Date().getTime() / 1000 - 1;
-      if (
-        (typeof window !== 'undefined' && session === null) ||
-        Number(session?.expires) <= now
-      ) {
+      // Only auto-signout if session exists but is expired
+      // Don't signout if session is null (user might be on public route)
+      if (session && Number(session?.expires) <= now) {
         await signOut();
       }
     };
     handleLogout();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [session]);
 
   const handleFetchError = useCallback(
     async (response: Response) => {

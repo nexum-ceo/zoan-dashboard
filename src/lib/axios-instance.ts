@@ -2,6 +2,7 @@
 import axios from 'axios';
 import { cookies } from 'next/headers';
 import { redirect } from 'next/navigation';
+import { HttpError, type ApiResponse } from './utils';
 
 const baseURL =
   process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080/api/v1';
@@ -45,20 +46,29 @@ axiosInstance.interceptors.request.use(
 axiosInstance.interceptors.response.use(
   (response) => response,
   async (error) => {
+    // Handle 401 unauthorized
     if (error.response?.status === 401) {
-      // console.log("401");
-      // Attempt to refresh token
       redirect('/');
-      //   try {
-      //     const resData = await axiosInstance.post('/auth/refresh-token');
-
-      //     // Retry original request with new token
-      //     error.config.headers.Authorization = `Bearer ${resData.data.access_token}`;
-      //   } catch (refreshError) {
-      //     // Refresh failed, logout user
-      //   }
     }
-    return Promise.reject(error);
+
+    // If response has data in ApiResponse format, throw HttpError
+    if (error.response?.data) {
+      const apiResponse = error.response.data as ApiResponse<unknown>;
+
+      // Check if it's a valid ApiResponse format
+      if (apiResponse.status && apiResponse.message !== undefined) {
+        throw new HttpError(apiResponse);
+      }
+    }
+
+    // For other errors (network, timeout, etc.), create a generic HttpError
+    const genericError: ApiResponse<null> = {
+      status: 'ERROR',
+      data: null,
+      message: error.message || 'An unexpected error occurred',
+    };
+
+    throw new HttpError(genericError);
   },
 );
 

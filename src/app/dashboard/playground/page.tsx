@@ -4,6 +4,7 @@ import { ChatMessage } from '@/app/dashboard/playground/component/ChatMessage';
 import { Button } from '@/components/ui/button';
 import { useChat } from '@/hooks/useChat';
 import { useCreateChat } from '@/hooks/useCreateChat';
+import { handleErrorApi } from '@/lib/utils';
 import { ArrowDown, MessageSquare, Plus, Sparkles } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { FormEvent, useCallback, useEffect, useRef, useState } from 'react';
@@ -14,7 +15,6 @@ export default function PlaygroundPage() {
   const messagesContainerRef = useRef<HTMLDivElement>(null);
   const [showScrollButton, setShowScrollButton] = useState<boolean>(false);
   const [agentId, setAgentId] = useState<string | undefined>(undefined);
-  const [agentError, setAgentError] = useState<string | null>(null);
 
   const { messages, handleSubmit, isLoading } = useChat({
     initialMessages: [],
@@ -51,10 +51,11 @@ export default function PlaygroundPage() {
   const handleFirstSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (!agentId) {
-      setAgentError('Please select an agent before starting a chat.');
+      handleErrorApi({
+        error: new Error('Please select an agent before starting a chat.'),
+      });
       return;
     }
-    setAgentError(null);
     if (!pendingMessage.trim()) return;
     try {
       const chatId = await createChat({
@@ -64,11 +65,7 @@ export default function PlaygroundPage() {
       localStorage.setItem('pendingMessage', pendingMessage);
       router.push(`/dashboard/playground/${chatId}`);
     } catch (err) {
-      if (err instanceof Error) {
-        setAgentError(err.message);
-      } else {
-        setAgentError('Failed to create chat. Please try again.');
-      }
+      handleErrorApi({ error: err });
     }
   };
 
@@ -159,9 +156,6 @@ export default function PlaygroundPage() {
             onSubmit={messages.length === 0 ? handleFirstSubmit : handleSubmit}
             disabled={creatingChat || !agentId}
           />
-          {agentError && (
-            <div className="text-xs text-red-500 mt-2">{agentError}</div>
-          )}
         </div>
       </div>
     </div>
