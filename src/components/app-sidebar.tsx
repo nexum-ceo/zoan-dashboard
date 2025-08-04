@@ -15,10 +15,9 @@ import {
   SidebarMenuItem,
   useSidebar,
 } from '@/components/ui/sidebar';
-import { TUser } from '@/const/types';
+import { useAuthGuard } from '@/hooks/useAuthGuard';
 import Image from 'next/image';
 import Link from 'next/link';
-import { useEffect, useState } from 'react';
 
 // Menu items.
 const items = [
@@ -41,18 +40,10 @@ const items = [
 
 export function AppSidebar() {
   const { toggleSidebar } = useSidebar();
+  const { session } = useAuthGuard();
 
-  const [user, setUser] = useState<TUser | null>(null);
-
-  useEffect(() => {
-    const fetchUser = async () => {
-      const response = await fetch('/api/user');
-      const data = await response.json();
-      setUser(data.data);
-    };
-
-    fetchUser();
-  }, []);
+  // Get user data directly from session
+  const user = session?.user;
 
   return (
     <Sidebar collapsible="icon" variant="floating">

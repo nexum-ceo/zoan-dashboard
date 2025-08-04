@@ -46,6 +46,21 @@ export function useChat({
       const chunk = (() => {
         try {
           const data = JSON.parse(event.data);
+
+          // Filter out system/metadata/error messages that shouldn't be displayed
+          if (
+            data &&
+            data.type &&
+            (data.type === 'completion' ||
+              data.type === 'system' ||
+              data.type === 'metadata' ||
+              data.type === 'status' ||
+              data.type === 'error')
+          ) {
+            console.log('[WS] Filtered system message:', data);
+            return null; // Don't process these messages
+          }
+
           if (data && data.role && data.content !== undefined) {
             return String(data.content);
           }
@@ -56,7 +71,7 @@ export function useChat({
         return String(event.data);
       })();
 
-      // Skip processing if chunk is empty
+      // Skip processing if chunk is empty or filtered out
       if (!chunk) return;
 
       setMessages((prev) => {

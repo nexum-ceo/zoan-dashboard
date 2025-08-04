@@ -24,6 +24,7 @@ import { FormEvent, useEffect, useState } from 'react';
 import { toast } from 'sonner';
 
 import { Flow } from '@/app/dashboard/assistant/[id]/components/Flow';
+import { formatDate } from '@/lib/date';
 import type { CreateWorkflowType } from '@/types/workflow';
 import { WorkflowType } from '@/types/workflow';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
@@ -188,8 +189,7 @@ export default function Workflow() {
               <TableHeader>
                 <TableRow>
                   <TableHead>Name</TableHead>
-                  <TableHead>Publish Version</TableHead>
-                  <TableHead>Trigger Condition</TableHead>
+                  <TableHead>Description</TableHead>
                   <TableHead>Status</TableHead>
                   <TableHead>Updated At</TableHead>
                   <TableHead>Actions</TableHead>
@@ -212,8 +212,7 @@ export default function Workflow() {
                       <TableCell className="hover:bg-gray-100">
                         {wf.name || 'No name'}
                       </TableCell>
-                      <TableCell>{wf.publish_version || '-'}</TableCell>
-                      <TableCell>{wf.trigger_condition || '-'}</TableCell>
+                      <TableCell>{wf.description || '-'}</TableCell>
                       <TableCell>
                         <Badge
                           variant="secondary"
@@ -222,7 +221,7 @@ export default function Workflow() {
                           {wf.status || 'Published'}
                         </Badge>
                       </TableCell>
-                      <TableCell>{wf.updated_at || '-'}</TableCell>
+                      <TableCell>{formatDate(wf.updated_at) || '-'}</TableCell>
                       <TableCell>
                         <Button variant="ghost">
                           <FileDown />

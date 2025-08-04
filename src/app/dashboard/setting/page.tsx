@@ -28,6 +28,7 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { formatDate } from '@/lib/date';
+import { handleErrorApi } from '@/lib/utils';
 import {
   GetProviderOfUserResType,
   GetProviderResType,
@@ -60,11 +61,8 @@ export default function SettingPage() {
           setError('No providers found.');
         }
       } catch (err) {
-        if (err instanceof Error) {
-          setError(err.message || 'Fetch failed');
-        } else {
-          setError('Fetch failed');
-        }
+        handleErrorApi({ error: err });
+        setError('Failed to load providers');
       } finally {
         setLoading(false);
       }
@@ -84,11 +82,8 @@ export default function SettingPage() {
           setError('No providers found.');
         }
       } catch (err) {
-        if (err instanceof Error) {
-          setError(err.message || 'Fetch failed');
-        } else {
-          setError('Fetch failed');
-        }
+        handleErrorApi({ error: err });
+        setError('Failed to load user providers');
       } finally {
         setLoading(false);
       }
@@ -137,11 +132,8 @@ export default function SettingPage() {
         setCreateError(data.message || 'Failed to add provider');
       }
     } catch (error) {
-      if (error instanceof Error) {
-        setCreateError(error.message || 'Failed to add provider');
-      } else {
-        setCreateError('Failed to add provider');
-      }
+      handleErrorApi({ error });
+      setCreateError('Failed to add provider');
     } finally {
       setCreateLoading(false);
     }

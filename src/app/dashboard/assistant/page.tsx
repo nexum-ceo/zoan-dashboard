@@ -1,6 +1,7 @@
 'use client';
 import AddAgentForm from '@/app/dashboard/assistant/[id]/components/add-agent-form';
 import { formatDate } from '@/lib/date';
+import { handleErrorApi } from '@/lib/utils';
 import { AgentType, GetAgentResType } from '@/types/agent';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
@@ -17,7 +18,6 @@ export default function AssistantPage() {
       try {
         const res = await fetch('/api/agent');
         const data: GetAgentResType = await res.json();
-        console.log('Fetched agents:', data);
         if (data.status === 'success' && Array.isArray(data.data)) {
           setAgents(data.data);
         } else {
@@ -25,11 +25,8 @@ export default function AssistantPage() {
           setError('No agents found.');
         }
       } catch (err) {
-        if (err instanceof Error) {
-          setError(err.message);
-        } else {
-          setError('Fetch failed');
-        }
+        handleErrorApi({ error: err });
+        setError('Failed to load agents');
       } finally {
         setLoading(false);
       }
