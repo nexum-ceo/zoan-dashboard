@@ -98,7 +98,6 @@ export default function AppNavbar() {
         }
       }
     };
-
     // Add listener
     window.addEventListener('message', handleMessage, false);
 
@@ -110,6 +109,7 @@ export default function AppNavbar() {
       }
     }, 500);
   };
+  console.log('session:', session);
 
   return (
     <header className="sticky border-b-[1px] top-0 z-40 w-full bg-white dark:border-b-slate-700 dark:bg-background">

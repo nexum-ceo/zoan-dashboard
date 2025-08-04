@@ -12,7 +12,7 @@ export async function POST(req: Request) {
   try {
     const body = await req.json();
 
-    const response = await axiosInstance.post('/workflow-process/', body, {
+    const response = await axiosInstance.post('/workflow-process', body, {
       headers: {
         Authorization: `Bearer ${session.accessToken}`,
       },

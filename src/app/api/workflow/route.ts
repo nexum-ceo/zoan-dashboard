@@ -13,7 +13,7 @@ export async function GET() {
   }
 
   try {
-    const response = await axiosInstance.get<WorkflowType[]>('/workflow/', {
+    const response = await axiosInstance.get<WorkflowType[]>('/workflow', {
       headers: {
         Authorization: `Bearer ${session.accessToken}`,
       },
@@ -39,15 +39,11 @@ export async function POST(req: Request) {
   try {
     const body: CreateWorkflowType = await req.json();
 
-    const response = await axiosInstance.post<WorkflowType>(
-      '/workflow/',
-      body,
-      {
-        headers: {
-          Authorization: `Bearer ${session.accessToken}`,
-        },
+    const response = await axiosInstance.post<WorkflowType>('/workflow', body, {
+      headers: {
+        Authorization: `Bearer ${session.accessToken}`,
       },
-    );
+    });
     return NextResponse.json(response.data);
   } catch (error) {
     let message = 'Create failed';
