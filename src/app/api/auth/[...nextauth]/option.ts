@@ -19,7 +19,6 @@ export const authOptions: NextAuthOptions = {
             body: JSON.stringify({ auth_code: credentials?.authCode }),
           },
         );
-        console.log('res:', res);
 
         if (!res.ok) return null;
 
@@ -38,12 +37,6 @@ export const authOptions: NextAuthOptions = {
         const expireAccessToken = jwtDecode(user.accessToken)?.exp;
         token.accessToken = user.accessToken;
         token.accessTokenExpires = expireAccessToken;
-        // Store user data in token
-        token.user = {
-          id: user.id || undefined,
-          email: user.email || undefined,
-          name: user.name || undefined,
-        };
       }
       return token;
     },

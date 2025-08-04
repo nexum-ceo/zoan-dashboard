@@ -190,7 +190,6 @@ export default function Workflow() {
                 <TableRow>
                   <TableHead>Name</TableHead>
                   <TableHead>Description</TableHead>
-                  {/* <TableHead>Trigger Condition</TableHead> */}
                   <TableHead>Status</TableHead>
                   <TableHead>Updated At</TableHead>
                   <TableHead>Actions</TableHead>
@@ -214,7 +213,6 @@ export default function Workflow() {
                         {wf.name || 'No name'}
                       </TableCell>
                       <TableCell>{wf.description || '-'}</TableCell>
-                      {/* <TableCell>{wf.trigger_condition || '-'}</TableCell> */}
                       <TableCell>
                         <Badge
                           variant="secondary"
