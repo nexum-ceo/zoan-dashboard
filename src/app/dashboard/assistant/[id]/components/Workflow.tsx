@@ -11,6 +11,16 @@ import {
 } from '@/components/ui/table';
 
 import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
+import {
   Dialog,
   DialogClose,
   DialogContent,
@@ -25,6 +35,7 @@ import { toast } from 'sonner';
 
 import { Flow } from '@/app/dashboard/assistant/[id]/components/Flow';
 import { formatDate } from '@/lib/date';
+import { handleErrorApi } from '@/lib/utils';
 import type { CreateWorkflowType } from '@/types/workflow';
 import { WorkflowType } from '@/types/workflow';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
@@ -40,25 +51,35 @@ export default function Workflow() {
   const [selectedWorkflow, setSelectedWorkflow] = useState<WorkflowType | null>(
     null,
   );
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState<boolean>(false);
+  const [workflowToDelete, setWorkflowToDelete] = useState<WorkflowType | null>(
+    null,
+  );
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
 
-  useEffect(() => {
+  // Fetch workflows function
+  const fetchWorkflows = async () => {
     setLoading(true);
-    fetch('/api/workflow')
-      .then((res) => res.json())
-      .then((data) => {
-        if (Array.isArray(data)) setWorkflows(data);
-        else if (Array.isArray(data.data)) setWorkflows(data.data);
-        else setWorkflows([]);
-        setError(null);
-      })
-      .catch(() => {
-        setError('Error when fetching workflow');
-        setWorkflows([]);
-      })
-      .finally(() => setLoading(false));
+    try {
+      const res = await fetch('/api/workflow');
+      const data = await res.json();
+      if (Array.isArray(data)) setWorkflows(data);
+      else if (Array.isArray(data.data)) setWorkflows(data.data);
+      else setWorkflows([]);
+      setError(null);
+    } catch (err) {
+      setError('Error when fetching workflow');
+      setWorkflows([]);
+      handleErrorApi({ error: err });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchWorkflows();
   }, []);
 
   const handleFlowClick = (workflow: WorkflowType) => {
@@ -101,9 +122,7 @@ export default function Workflow() {
         setOpenDialog(false);
         setNewName('');
         setNewDesc('');
-        toast.success('Create workflow successfully!', {
-          position: 'top-center',
-        });
+        toast.success('Create workflow successfully!');
       } else {
         setError(data?.error || 'Failed to create workflow');
         toast.error(data?.error || 'Failed to create workflow');
@@ -115,6 +134,43 @@ export default function Workflow() {
       setError('Failed to create workflow');
     } finally {
       setLoading(false);
+    }
+  };
+
+  // Open delete confirmation dialog
+  const openDeleteDialog = (workflow: WorkflowType) => {
+    setWorkflowToDelete(workflow);
+    setDeleteDialogOpen(true);
+  };
+
+  // Call API delete workflow
+  const handleDeleteWorkflow = async () => {
+    if (!workflowToDelete) return;
+
+    try {
+      const res = await fetch(`/api/workflow/${workflowToDelete.id}`, {
+        method: 'DELETE',
+      });
+
+      if (res.ok) {
+        // Remove the deleted workflow from local state
+        setWorkflows((prev) =>
+          prev.filter((wf) => wf.id !== workflowToDelete.id),
+        );
+        toast.success('Workflow deleted successfully!');
+        // Refresh the workflow list
+        await fetchWorkflows();
+        // Close dialog and reset state
+        setDeleteDialogOpen(false);
+        setWorkflowToDelete(null);
+      } else {
+        const data = await res.json();
+        handleErrorApi({
+          error: new Error(data?.error || 'Failed to delete workflow'),
+        });
+      }
+    } catch (err) {
+      handleErrorApi({ error: err });
     }
   };
 
@@ -229,7 +285,13 @@ export default function Workflow() {
                         <Button variant="ghost">
                           <Edit />
                         </Button>
-                        <Button variant="ghost">
+                        <Button
+                          variant="ghost"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            openDeleteDialog(wf);
+                          }}
+                        >
                           <Trash color="red" />
                         </Button>
                       </TableCell>
@@ -262,6 +324,37 @@ export default function Workflow() {
           </div>
         </div>
       )}
+
+      {/* Delete Confirmation Dialog */}
+      <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete Workflow</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to delete &quot;
+              {workflowToDelete?.name || 'Untitled workflow'}&quot;? This action
+              cannot be undone and will permanently remove the workflow and all
+              its data.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel
+              onClick={() => {
+                setDeleteDialogOpen(false);
+                setWorkflowToDelete(null);
+              }}
+            >
+              Cancel
+            </AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleDeleteWorkflow}
+              className="bg-red-600 hover:bg-red-700 focus:ring-red-600"
+            >
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
