@@ -26,9 +26,9 @@ export const handleErrorApi = ({
   error: unknown;
   duration?: number;
 }) => {
-  if (error instanceof Error) {
+  if (error instanceof HttpError) {
     toast.error('Error', {
-      description: error?.payload?.message ?? 'Lỗi không xác định',
+      description: error?.message ?? 'Unknown error',
       duration: duration ?? 5000,
     });
   } else {

@@ -60,13 +60,9 @@ export const ChatMessage: FC<ChatMessageProps> = ({ message, isLoading }) => {
       </div>
 
       {/* Message Content */}
-      <div
-        className={`flex-1 whitespace-pre-wrap max-w-3xl ${
-          isUser ? 'flex justify-end' : ''
-        }`}
-      >
+      <div className={`flex-1 ${isUser ? 'flex justify-end' : ''}`}>
         <div
-          className={`relative ${
+          className={`relative max-w-3xl ${
             isUser
               ? 'bg-gray-100 rounded-2xl rounded-tr-md'
               : 'bg-gray-50 text-gray-900 rounded-2xl rounded-tl-md border border-gray-200'
