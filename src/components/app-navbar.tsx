@@ -15,8 +15,9 @@ import {
 import { useEffect, useState } from 'react';
 
 import { TUser } from '@/const/types';
+import { useAuthGuard } from '@/hooks/useAuthGuard';
 import { Menu } from 'lucide-react';
-import { signIn, signOut, useSession } from 'next-auth/react';
+import { signIn } from 'next-auth/react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
@@ -50,18 +51,15 @@ export default function AppNavbar() {
   const [isOpen, setIsOpen] = useState<boolean>(false);
   const [user, setUser] = useState<TUser | null>(null);
   const router = useRouter();
-  const { data: session } = useSession();
+  const { session, handleFetchError } = useAuthGuard();
 
   useEffect(() => {
     const fetchUser = async () => {
       try {
         const response = await fetch('/api/user');
-        if (response.status === 401) {
-          // Token invald or expired, logout completely
-          await signOut({ redirect: false });
-          router.push('/login');
-          return;
-        }
+        const isLoggedOut = await handleFetchError(response);
+        if (isLoggedOut) return;
+
         const data = await response.json();
         setUser(data.data);
       } catch {
@@ -70,20 +68,7 @@ export default function AppNavbar() {
     };
 
     fetchUser();
-  }, [router]);
-  useEffect(() => {
-    const handleLogout = async () => {
-      const now = new Date().getTime() / 1000 - 1;
-      if (
-        (typeof window !== 'undefined' && session === null) ||
-        Number(session?.expires) <= now
-      ) {
-        await signOut();
-      }
-    };
-    handleLogout();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [handleFetchError]);
 
   const openLoginPopup = () => {
     const popup = window.open(
@@ -125,7 +110,6 @@ export default function AppNavbar() {
       }
     }, 500);
   };
-  console.log('user in navbar:', user, session);
 
   return (
     <header className="sticky border-b-[1px] top-0 z-40 w-full bg-white dark:border-b-slate-700 dark:bg-background">

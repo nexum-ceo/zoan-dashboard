@@ -37,6 +37,12 @@ export const authOptions: NextAuthOptions = {
         const expireAccessToken = jwtDecode(user.accessToken)?.exp;
         token.accessToken = user.accessToken;
         token.accessTokenExpires = expireAccessToken;
+        // Store user data in token
+        token.user = {
+          id: user.id || undefined,
+          email: user.email || undefined,
+          name: user.name || undefined,
+        };
       }
       return token;
     },
