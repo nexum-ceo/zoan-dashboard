@@ -157,7 +157,11 @@ export default function PlaygroundChatPage() {
           </Button>
         </div>
         <div className="flex-1 p-4">
-          <SelectAssistant value={agentId} onAgentChange={setAgentId} />
+          <SelectAssistant
+            value={agentId}
+            onAgentChange={setAgentId}
+            activeChatId={params.id as string}
+          />
         </div>
       </div>
 

@@ -7,19 +7,22 @@ import {
 import { Skeleton } from '@/components/ui/skeleton';
 import { AgentType } from '@/types/agent';
 import { GetChatListResType } from '@/types/chat';
-import { useRouter } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import { FC, useEffect, useState } from 'react';
 
 type SelectAssistantProps = {
   onAgentChange?: (agentId: string) => void;
   value?: string;
+  activeChatId?: string;
 };
 
 const SelectAssistant: FC<SelectAssistantProps> = ({
   onAgentChange,
   value,
+  activeChatId,
 }) => {
   const router = useRouter();
+  const pathname = usePathname();
 
   // Agent state
   const [agents, setAgents] = useState<AgentType[]>([]);
@@ -34,7 +37,7 @@ const SelectAssistant: FC<SelectAssistantProps> = ({
   const [chatLoading, setChatLoading] = useState<boolean>(false);
   const [chatError, setChatError] = useState<string | null>(null);
 
-  // Nếu có prop value thì controlled, nếu không thì uncontrolled
+  // If has prop value, then controlled, if not then uncontrolled
   useEffect(() => {
     if (value !== undefined && value !== selectedAgent) {
       setSelectedAgent(value);
@@ -169,19 +172,36 @@ const SelectAssistant: FC<SelectAssistantProps> = ({
           )}
           {!chatLoading &&
             !chatError &&
-            chats.map((chat, index) => (
-              <button
-                key={chat.id || index}
-                className="w-full text-left px-3 py-2 text-sm text-gray-600 hover:bg-gray-50 rounded-lg transition-colors duration-150 truncate"
-                onClick={() => {
-                  if (chat.id) {
-                    router.push(`/dashboard/playground/${chat.id}`);
+            chats.map((chat, index) => {
+              // Auto-detect active chat from URL if activeChatId prop is not provided
+              const currentChatId = activeChatId || pathname.split('/').pop();
+              const isActive = currentChatId === chat.id;
+              return (
+                <button
+                  key={chat.id || index}
+                  className={`w-full text-left px-3 py-2 text-sm rounded-lg transition-all duration-200 truncate relative ${
+                    isActive
+                      ? 'bg-gray-200  border-l-4 border-gray-500 shadow-sm'
+                      : 'text-gray-700 hover:bg-gray-100 hover:text-gray-900 border-l-4 border-transparent'
+                  }`}
+                  style={
+                    isActive
+                      ? {
+                          backgroundColor: '#f3f4f6',
+                          borderLeftColor: '#d1d5db',
+                        }
+                      : {}
                   }
-                }}
-              >
-                {chat.title || 'Untitled Chat'}
-              </button>
-            ))}
+                  onClick={() => {
+                    if (chat.id) {
+                      router.push(`/dashboard/playground/${chat.id}`);
+                    }
+                  }}
+                >
+                  {chat.title || 'Untitled Chat'}
+                </button>
+              );
+            })}
         </div>
       </div>
     </div>
