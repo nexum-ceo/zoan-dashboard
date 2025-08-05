@@ -24,84 +24,67 @@ import {
 } from '@/components/ui/select';
 import { Slider } from '@/components/ui/slider';
 import { Textarea } from '@/components/ui/textarea';
+import { useGetModelByName } from '@/queries/useModel';
+import { useProviderOfUserList } from '@/queries/useProvider';
 import {
   CreateAgentBodySchema,
   CreateAgentBodyType,
   CreateAgentResType,
 } from '@/types/agent';
-import {
-  GetModelResType,
-  GetProviderOfUserResType,
-  ProviderOfUserType,
-} from '@/types/provider';
+
 import { zodResolver } from '@hookform/resolvers/zod';
 import MonacoEditor from '@monaco-editor/react';
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 
 export default function AddAgentForm() {
-  const [jsonSchemaDialogOpen, setJsonSchemaDialogOpen] = useState(false);
-  const [jsonSchemaInput, setJsonSchemaInput] = useState('');
+  const [jsonSchemaDialogOpen, setJsonSchemaDialogOpen] =
+    useState<boolean>(false);
+  const [jsonSchemaInput, setJsonSchemaInput] = useState<string>('');
   const [jsonSchemaError, setJsonSchemaError] = useState<string | null>(null);
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
-  const [providers, setProviders] = useState<ProviderOfUserType[]>([]);
   const [models, setModels] = useState<string[]>([]);
+  const {
+    data: providerData,
+    isLoading: providerLoading,
+    error: providerError,
+  } = useProviderOfUserList();
+  const providers = providerData?.data.data || [];
 
-  useEffect(() => {
-    const fetchProvider = async () => {
-      try {
-        const res = await fetch('/api/provider-user');
-        const data: GetProviderOfUserResType = await res.json();
-        if (data.status === 'success' && Array.isArray(data.data)) {
-          setProviders(data.data);
-        } else {
-          setProviders([]);
-          setError('No providers found.');
-        }
-      } catch (err) {
-        if (err instanceof Error) {
-          setError(err.message || 'Fetch failed');
-        } else {
-          setError('Fetch failed');
-        }
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchProvider();
-  }, []);
+  // Model mutation hook
+  const {
+    mutate: getModelByName,
+    isPending: modelLoading,
+    error: modelError,
+  } = useGetModelByName();
 
-  const handleProviderChange = async (providerId: string) => {
-    setLoading(true);
-    try {
-      // Find the provider object by id
-      const providerObj = providers.find((p) => p.id === providerId);
-      const providerName = providerObj ? providerObj.provider : providerId;
-      const res = await fetch('/api/model', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ name: providerName }),
-      });
-      const data: GetModelResType = await res.json();
-      if (data.status === 'success') {
-        setModels(data.data);
-      } else {
+  const handleProviderChange = (providerId: string) => {
+    // Find the provider object by id
+    const providerObj = providers.find((p) => p.id === providerId);
+    const providerName = providerObj ? providerObj.provider : providerId;
+
+    // Use mutation hook to get models
+    getModelByName(providerName, {
+      onSuccess: (data) => {
+        if (
+          data &&
+          data.data.status === 'success' &&
+          Array.isArray(data.data.data)
+        ) {
+          setModels(data.data.data);
+          setError(null);
+        } else {
+          setModels([]);
+          setError('No models found.');
+        }
+      },
+      onError: (err) => {
         setModels([]);
-        setError('No models found.');
-      }
-    } catch (err) {
-      if (err instanceof Error) {
-        setError(err.message || 'Fetch failed');
-      } else {
-        setError('Fetch failed');
-      }
-    } finally {
-      setLoading(false);
-    }
+        setError(err instanceof Error ? err.message : 'Failed to fetch models');
+      },
+    });
   };
 
   const form = useForm<CreateAgentBodyType>({
@@ -251,9 +234,9 @@ export default function AddAgentForm() {
                         Provider
                       </FormLabel>
                       <Select
-                        onValueChange={async (val) => {
+                        onValueChange={(val) => {
                           field.onChange(val);
-                          await handleProviderChange(val);
+                          handleProviderChange(val);
                         }}
                         value={field.value}
                       >
@@ -730,16 +713,30 @@ export default function AddAgentForm() {
             </Button>
             <Button
               type="submit"
-              disabled={loading}
+              disabled={loading || providerLoading || modelLoading}
               className="rounded-md h-8 px-3 text-sm"
             >
-              {loading ? 'Saving...' : 'Create'}
+              {loading
+                ? 'Saving...'
+                : providerLoading
+                ? 'Loading providers...'
+                : modelLoading
+                ? 'Loading models...'
+                : 'Create'}
             </Button>
           </div>
 
           {/* Error/Success messages */}
-          {error && (
-            <div className="text-red-500 text-xs text-right">{error}</div>
+          {(error || providerError || modelError) && (
+            <div className="text-red-500 text-xs text-right">
+              {error ||
+                (providerError instanceof Error
+                  ? providerError.message
+                  : 'Failed to load providers') ||
+                (modelError instanceof Error
+                  ? modelError.message
+                  : 'Failed to load models')}
+            </div>
           )}
           {success && (
             <div className="text-green-500 text-xs text-right">{success}</div>

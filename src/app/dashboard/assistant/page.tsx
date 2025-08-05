@@ -2,37 +2,13 @@
 import AddAgentForm from '@/app/dashboard/assistant/[id]/components/add-agent-form';
 import { Skeleton } from '@/components/ui/skeleton';
 import { formatDate } from '@/lib/date';
-import { handleErrorApi } from '@/lib/utils';
-import { AgentType, GetAgentResType } from '@/types/agent';
+import { useGetAgentList } from '@/queries/useAgent';
 import { useRouter } from 'next/navigation';
-import { useEffect, useState } from 'react';
 
 export default function AssistantPage() {
   const router = useRouter();
-  const [agents, setAgents] = useState<AgentType[]>([]);
-  const [loading, setLoading] = useState<boolean>(true);
-  const [error, setError] = useState<string | null>(null);
-
-  useEffect(() => {
-    const fetchAgents = async () => {
-      try {
-        const res = await fetch('/api/agent');
-        const data: GetAgentResType = await res.json();
-        if (data.status === 'success' && Array.isArray(data.data)) {
-          setAgents(data.data);
-        } else {
-          setAgents([]);
-          setError('No agents found.');
-        }
-      } catch (err) {
-        handleErrorApi({ error: err });
-        setError('Failed to load agents');
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchAgents();
-  }, []);
+  const { data: agentData, isLoading: loading, error } = useGetAgentList();
+  const agents = agentData?.data.data || [];
 
   const handleClick = (agentId: string) => {
     router.push(`/dashboard/assistant/${agentId}`);
@@ -77,7 +53,11 @@ export default function AssistantPage() {
                 </div>
               ))
             ) : error ? (
-              <div className="text-center text-red-500 py-8">{error}</div>
+              <div className="text-center text-red-500 py-8">
+                {error instanceof Error
+                  ? error.message
+                  : 'Failed to load agents'}
+              </div>
             ) : agents.length === 0 ? (
               <div className="text-center text-gray-500 py-8">
                 No agents found.
