@@ -5,8 +5,8 @@ import {
   SelectTrigger,
 } from '@/components/ui/select';
 import { Skeleton } from '@/components/ui/skeleton';
+import { useChatList } from '@/queries/useChat';
 import { AgentType } from '@/types/agent';
-import { GetChatListResType } from '@/types/chat';
 import { usePathname, useRouter } from 'next/navigation';
 import { FC, useEffect, useState } from 'react';
 
@@ -32,10 +32,11 @@ const SelectAssistant: FC<SelectAssistantProps> = ({
   const [agentLoading, setAgentLoading] = useState<boolean>(false);
   const [agentError, setAgentError] = useState<string | null>(null);
 
-  // Chat state
-  const [chats, setChats] = useState<GetChatListResType['chats']>([]);
-  const [chatLoading, setChatLoading] = useState<boolean>(false);
-  const [chatError, setChatError] = useState<string | null>(null);
+  const {
+    data: chatData,
+    isLoading: chatLoading,
+    error: chatError,
+  } = useChatList();
 
   // If has prop value, then controlled, if not then uncontrolled
   useEffect(() => {
@@ -68,31 +69,12 @@ const SelectAssistant: FC<SelectAssistantProps> = ({
       .finally(() => setAgentLoading(false));
   }, []);
 
-  // Fetch chats
-  useEffect(() => {
-    setChatLoading(true);
-    fetch('/api/chat')
-      .then(async (res) => {
-        if (!res.ok) throw new Error('Failed to fetch chat list');
-        return res.json() as Promise<GetChatListResType>;
-      })
-      .then((data) => {
-        if (Array.isArray(data?.chats)) {
-          setChats(
-            data.chats.sort(
-              (a, b) => Date.parse(b.created_at) - Date.parse(a.created_at),
-            ),
-          );
-        } else {
-          setChats([]);
-        }
-        setChatError(null);
-      })
-      .catch((err) => {
-        setChatError(err.message || 'Error fetching chats');
-      })
-      .finally(() => setChatLoading(false));
-  }, []);
+  // Process chat data
+  const chats = chatData?.data?.chats
+    ? [...chatData.data.chats].sort(
+        (a, b) => Date.parse(b.created_at) - Date.parse(a.created_at),
+      )
+    : [];
 
   const handleAgentChange = (agentId: string) => {
     setSelectedAgent(agentId);
@@ -163,7 +145,11 @@ const SelectAssistant: FC<SelectAssistantProps> = ({
               </div>
             ))}
           {chatError && (
-            <div className="text-xs text-red-500 px-3">{chatError}</div>
+            <div className="text-xs text-red-500 px-3">
+              {chatError instanceof Error
+                ? chatError.message
+                : 'Error fetching chats'}
+            </div>
           )}
           {!chatLoading && !chatError && chats.length === 0 && (
             <div className="px-3 py-2 text-xs text-gray-400">

@@ -1,0 +1,36 @@
+import axiosInstance from '@/lib/axios-instance';
+import {
+  CreateChatBodyType,
+  CreateChatResType,
+  GetChatListResType,
+  GetChatMessagesResType,
+  GetSpecificChatResType,
+} from '@/types/chat';
+
+const chatApiRequest = {
+  list: () => axiosInstance.get<GetChatListResType>('/chat'),
+  sList: () =>
+    axiosInstance.get<GetChatListResType>('/chat', {
+      baseURL: '',
+    }),
+  add: (body: CreateChatBodyType) =>
+    axiosInstance.post<CreateChatResType>('/chat', body),
+  sAdd: (body: CreateChatBodyType) =>
+    axiosInstance.post<CreateChatResType>('/chat', body, {
+      baseURL: '',
+    }),
+  getChat: (id: string) =>
+    axiosInstance.get<GetSpecificChatResType>(`/chat/${id}`),
+  sGetChat: (id: string) =>
+    axiosInstance.get<GetSpecificChatResType>(`/chat/${id}`, {
+      baseURL: '',
+    }),
+  getChatMessages: (id: string) =>
+    axiosInstance.get<GetChatMessagesResType>(`/chat/${id}/messages`),
+  sGetChatMessages: (id: string) =>
+    axiosInstance.get<GetChatMessagesResType>(`/chat-message/${id}`, {
+      baseURL: '',
+    }),
+};
+
+export default chatApiRequest;
