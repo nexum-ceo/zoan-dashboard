@@ -44,7 +44,7 @@ export default function AssistantPage({
   };
 
   return (
-    <div className="w-full h-full m-10 2xl:m-20 flex flex-col">
+    <div className="w-full h-full flex flex-col">
       {/* <div className="p-4 text-2xl font-semibold border-b border-border bg-white rounded-t-lg w-full">
         {agent?.name}
       </div> */}

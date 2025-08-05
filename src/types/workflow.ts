@@ -41,3 +41,13 @@ export const CreateWorkflowSchema = z.object({
 });
 
 export type CreateWorkflowType = z.infer<typeof CreateWorkflowSchema>;
+
+export const CreateWorkflowResSchema = z.object({
+  status: z.string(),
+  message: z.string(),
+  data: WorkflowSchema,
+});
+export type CreateWorkflowResType = z.infer<typeof CreateWorkflowResSchema>;
+
+export const GetWorkflowResSchema = z.array(WorkflowSchema);
+export type GetWorkflowResType = z.infer<typeof GetWorkflowResSchema>;

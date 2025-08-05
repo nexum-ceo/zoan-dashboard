@@ -250,8 +250,6 @@ export default function Configuration() {
       },
     };
 
-    console.log('Updating agent data:', updateData);
-
     // Use mutation hook to update agent
     updateAgent(updateData, {
       onSuccess: (responseData) => {
@@ -262,7 +260,6 @@ export default function Configuration() {
         }
       },
       onError: (err) => {
-        console.error('Update agent error:', err);
         setError(err instanceof Error ? err.message : 'Update failed');
       },
     });

@@ -30,21 +30,23 @@ import {
   DialogTrigger,
 } from '@/components/ui/dialog';
 import { Download, Edit, FileDown, List, Plus, Trash, X } from 'lucide-react';
-import { FormEvent, useEffect, useState } from 'react';
+import { FormEvent, useState } from 'react';
 import { toast } from 'sonner';
 
 import { Flow } from '@/app/dashboard/assistant/[id]/components/Flow';
 import { formatDate } from '@/lib/date';
 import { handleErrorApi } from '@/lib/utils';
+import {
+  useCreateWorkflowMutation,
+  useDeleteWorkflowMutation,
+  useGetWorkflowList,
+} from '@/queries/useWorkflow';
 import type { CreateWorkflowType } from '@/types/workflow';
 import { WorkflowType } from '@/types/workflow';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 
 export default function Workflow() {
   const [showFlow, setShowFlow] = useState<boolean>(false);
-  const [workflows, setWorkflows] = useState<WorkflowType[]>([]);
-  const [loading, setLoading] = useState<boolean>(false);
-  const [error, setError] = useState<string | null>(null);
   const [openDialog, setOpenDialog] = useState<boolean>(false);
   const [newName, setNewName] = useState<string>('');
   const [newDesc, setNewDesc] = useState<string>('');
@@ -59,28 +61,33 @@ export default function Workflow() {
   const pathname = usePathname();
   const searchParams = useSearchParams();
 
-  // Fetch workflows function
-  const fetchWorkflows = async () => {
-    setLoading(true);
-    try {
-      const res = await fetch('/api/workflow');
-      const data = await res.json();
-      if (Array.isArray(data)) setWorkflows(data);
-      else if (Array.isArray(data.data)) setWorkflows(data.data);
-      else setWorkflows([]);
-      setError(null);
-    } catch (err) {
-      setError('Error when fetching workflow');
-      setWorkflows([]);
-      handleErrorApi({ error: err });
-    } finally {
-      setLoading(false);
-    }
-  };
+  // Fetch workflows using hook
+  const {
+    data: workflowData,
+    isLoading: loading,
+    error,
+  } = useGetWorkflowList();
 
-  useEffect(() => {
-    fetchWorkflows();
-  }, []);
+  // Delete workflow mutation hook
+  const {
+    mutate: deleteWorkflow,
+    isPending: deleteLoading,
+    error: deleteError,
+  } = useDeleteWorkflowMutation();
+
+  // Create workflow mutation hook
+  const {
+    mutate: createWorkflow,
+    isPending: createLoading,
+    error: createError,
+  } = useCreateWorkflowMutation();
+
+  // Process workflow data
+  const workflows: WorkflowType[] = Array.isArray(workflowData?.data)
+    ? workflowData.data
+    : Array.isArray(workflowData)
+    ? workflowData
+    : [];
 
   const handleFlowClick = (workflow: WorkflowType) => {
     const params = new URLSearchParams(searchParams?.toString() || '');
@@ -102,39 +109,29 @@ export default function Workflow() {
   };
 
   // Call API create new workflow
-  const handleAddWorkflow = async (e?: FormEvent) => {
+  const handleAddWorkflow = (e?: FormEvent) => {
     if (e) e.preventDefault();
-    setLoading(true);
-    setError(null);
-    try {
-      const body: CreateWorkflowType = {
-        name: newName,
-        description: newDesc,
-      };
-      const res = await fetch('/api/workflow', {
-        method: 'POST',
-        body: JSON.stringify(body),
-      });
-      const data = await res.json();
-      if (res.ok) {
-        setWorkflows((prev) => [data, ...prev]);
+
+    const body: CreateWorkflowType = {
+      name: newName,
+      description: newDesc,
+    };
+
+    createWorkflow(body, {
+      onSuccess: () => {
         setShowFlow(true);
         setOpenDialog(false);
         setNewName('');
         setNewDesc('');
         toast.success('Create workflow successfully!');
-      } else {
-        setError(data?.error || 'Failed to create workflow');
-        toast.error(data?.error || 'Failed to create workflow');
-      }
-    } catch (err) {
-      if (err instanceof Error) {
-        setError(err.message);
-      }
-      setError('Failed to create workflow');
-    } finally {
-      setLoading(false);
-    }
+      },
+      onError: (err) => {
+        const errorMessage =
+          err instanceof Error ? err.message : 'Failed to create workflow';
+        toast.error(errorMessage);
+        handleErrorApi({ error: err });
+      },
+    });
   };
 
   // Open delete confirmation dialog
@@ -144,34 +141,22 @@ export default function Workflow() {
   };
 
   // Call API delete workflow
-  const handleDeleteWorkflow = async () => {
+  const handleDeleteWorkflow = () => {
     if (!workflowToDelete) return;
 
-    try {
-      const res = await fetch(`/api/workflow/${workflowToDelete.id}`, {
-        method: 'DELETE',
-      });
-
-      if (res.ok) {
-        // Remove the deleted workflow from local state
-        setWorkflows((prev) =>
-          prev.filter((wf) => wf.id !== workflowToDelete.id),
-        );
+    deleteWorkflow(workflowToDelete.id, {
+      onSuccess: () => {
         toast.success('Workflow deleted successfully!');
-        // Refresh the workflow list
-        await fetchWorkflows();
-        // Close dialog and reset state
         setDeleteDialogOpen(false);
         setWorkflowToDelete(null);
-      } else {
-        const data = await res.json();
+      },
+      onError: (err) => {
         handleErrorApi({
-          error: new Error(data?.error || 'Failed to delete workflow'),
+          error:
+            err instanceof Error ? err : new Error('Failed to delete workflow'),
         });
-      }
-    } catch (err) {
-      handleErrorApi({ error: err });
-    }
+      },
+    });
   };
 
   return (
@@ -221,8 +206,8 @@ export default function Workflow() {
                     />
                   </div>
                   <DialogFooter>
-                    <Button type="submit" disabled={loading}>
-                      {loading ? 'Creating...' : 'Create'}
+                    <Button type="submit" disabled={createLoading}>
+                      {createLoading ? 'Creating...' : 'Create'}
                     </Button>
                     <DialogClose asChild>
                       <Button type="button" variant="outline">
@@ -238,8 +223,18 @@ export default function Workflow() {
         <div className="flex flex-col gap-2">
           {loading ? (
             <div className="text-center py-8">Loading workflow...</div>
-          ) : error ? (
-            <div className="text-center text-red-500 py-8">{error}</div>
+          ) : error || deleteError || createError ? (
+            <div className="text-center text-red-500 py-8">
+              {error instanceof Error
+                ? error.message
+                : error ||
+                  (deleteError instanceof Error
+                    ? deleteError.message
+                    : 'Delete error') ||
+                  (createError instanceof Error
+                    ? createError.message
+                    : 'Create error')}
+            </div>
           ) : (
             <Table>
               <TableHeader>
@@ -287,6 +282,7 @@ export default function Workflow() {
                         </Button>
                         <Button
                           variant="ghost"
+                          disabled={deleteLoading}
                           onClick={(e) => {
                             e.stopPropagation();
                             openDeleteDialog(wf);
@@ -348,9 +344,10 @@ export default function Workflow() {
             </AlertDialogCancel>
             <AlertDialogAction
               onClick={handleDeleteWorkflow}
+              disabled={deleteLoading}
               className="bg-red-600 hover:bg-red-700 focus:ring-red-600"
             >
-              Delete
+              {deleteLoading ? 'Deleting...' : 'Delete'}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
