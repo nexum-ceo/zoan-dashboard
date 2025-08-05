@@ -29,8 +29,7 @@ export const useGetSpecificAgent = (id: string) => {
 export const useUpdateAgentMutation = (id: string) => {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: (body: UpdateAgentBodyType) =>
-      agentApiRequest.sUpdate(id, body),
+    mutationFn: (body: UpdateAgentBodyType) => agentApiRequest.sUpdate(body),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['agent', id] });
     },

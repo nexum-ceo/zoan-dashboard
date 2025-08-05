@@ -46,11 +46,7 @@ export const GetAgentResSchema = z.object({
 export type AgentType = z.infer<typeof AgentSchema>;
 export type GetAgentResType = z.infer<typeof GetAgentResSchema>;
 
-export const GetSpecificAgentResSchema = z.object({
-  status: z.string(),
-  message: z.string(),
-  data: AgentSchema,
-});
+export const GetSpecificAgentResSchema = AgentSchema;
 
 export type GetSpecificAgentResType = z.infer<typeof GetSpecificAgentResSchema>;
 

@@ -21,8 +21,8 @@ const agentApiRequest = {
     }),
   update: (id: string, body: UpdateAgentBodyType) =>
     axiosInstance.put<CreateAgentResType>(`/agent/${id}`, body),
-  sUpdate: (id: string, body: UpdateAgentBodyType) =>
-    axiosInstance.put<CreateAgentResType>(`/agent/${id}`, body, {
+  sUpdate: (body: UpdateAgentBodyType) =>
+    axiosInstance.put<CreateAgentResType>(`/agent`, body, {
       baseURL: '',
     }),
   getAgent: (id: string) =>
