@@ -5,6 +5,7 @@ import {
   SelectTrigger,
 } from '@/components/ui/select';
 import { Skeleton } from '@/components/ui/skeleton';
+import { useGetAgentList } from '@/queries/useAgent';
 import { useChatList } from '@/queries/useChat';
 import { AgentType } from '@/types/agent';
 import { usePathname, useRouter } from 'next/navigation';
@@ -25,12 +26,16 @@ const SelectAssistant: FC<SelectAssistantProps> = ({
   const pathname = usePathname();
 
   // Agent state
-  const [agents, setAgents] = useState<AgentType[]>([]);
   const [selectedAgent, setSelectedAgent] = useState<string | undefined>(
     value !== undefined ? value : undefined,
   );
-  const [agentLoading, setAgentLoading] = useState<boolean>(false);
-  const [agentError, setAgentError] = useState<string | null>(null);
+
+  const {
+    data: agentData,
+    isLoading: agentLoading,
+    error: agentError,
+  } = useGetAgentList();
+  const agents = agentData?.data.data || [];
 
   const {
     data: chatData,
@@ -44,30 +49,6 @@ const SelectAssistant: FC<SelectAssistantProps> = ({
       setSelectedAgent(value);
     }
   }, [value, selectedAgent]);
-
-  // Fetch agents
-  useEffect(() => {
-    setAgentLoading(true);
-    fetch('/api/agent')
-      .then(async (res) => {
-        if (!res.ok) throw new Error('Failed to fetch agent list');
-        return res.json();
-      })
-      .then((data) => {
-        if (Array.isArray(data?.data)) {
-          setAgents(data.data);
-        } else if (Array.isArray(data)) {
-          setAgents(data);
-        } else {
-          setAgents([]);
-        }
-        setAgentError(null);
-      })
-      .catch((err) => {
-        setAgentError(err.message || 'Error fetching agents');
-      })
-      .finally(() => setAgentLoading(false));
-  }, []);
 
   // Process chat data
   const chats = chatData?.data?.chats
@@ -89,7 +70,8 @@ const SelectAssistant: FC<SelectAssistantProps> = ({
           <SelectTrigger className="w-full">
             {selectedAgent ? (
               <span className="text-sm">
-                {agents.find((a) => a.id === selectedAgent)?.name || 'Agent'}
+                {agents.find((a: AgentType) => a.id === selectedAgent)?.name ||
+                  'Agent'}
               </span>
             ) : (
               <span className="text-sm text-muted-foreground">
@@ -107,7 +89,11 @@ const SelectAssistant: FC<SelectAssistantProps> = ({
                 </div>
               ))}
             {agentError && (
-              <div className="px-3 py-2 text-xs text-red-500">{agentError}</div>
+              <div className="px-3 py-2 text-xs text-red-500">
+                {agentError instanceof Error
+                  ? agentError.message
+                  : 'Error fetching agents'}
+              </div>
             )}
             {!agentLoading && !agentError && agents.length === 0 && (
               <div className="px-3 py-2 text-xs text-gray-400">
@@ -116,7 +102,7 @@ const SelectAssistant: FC<SelectAssistantProps> = ({
             )}
             {!agentLoading &&
               !agentError &&
-              agents.map((agent) => (
+              agents.map((agent: AgentType) => (
                 <SelectItem key={agent.id} value={agent.id}>
                   <div className="w-full">
                     <div className="font-medium text-sm">

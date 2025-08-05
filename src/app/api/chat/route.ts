@@ -4,24 +4,8 @@ import { CreateChatBodyType } from '@/types/chat';
 import { NextResponse } from 'next/server';
 
 export async function POST(req: Request) {
-  // const session = await getServerSession(authOptions);
-
-  // if (!session?.accessToken) {
-  //   return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-  // }
-
   try {
     const body: CreateChatBodyType = await req.json();
-
-    // const response = await axiosInstance.post<CreateChatResType>(
-    //   '/chat',
-    //   body,
-    //   {
-    //     headers: {
-    //       Authorization: `Bearer ${session.accessToken}`,
-    //     },
-    //   },
-    // );
     const response = await chatApiRequest.add(body);
 
     return NextResponse.json(response.data);
@@ -35,11 +19,6 @@ export async function POST(req: Request) {
 }
 
 export async function GET() {
-  // const session = await getServerSession(authOptions);
-  // if (!session?.accessToken) {
-  //   return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-  // }
-
   try {
     const response = await chatApiRequest.list();
 

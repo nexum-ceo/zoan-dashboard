@@ -3,6 +3,7 @@ import {
   CreateAgentBodyType,
   CreateAgentResType,
   GetAgentResType,
+  GetSpecificAgentResType,
   UpdateAgentBodyType,
 } from '@/types/agent';
 
@@ -22,6 +23,12 @@ const agentApiRequest = {
     axiosInstance.put<CreateAgentResType>(`/agent/${id}`, body),
   sUpdate: (id: string, body: UpdateAgentBodyType) =>
     axiosInstance.put<CreateAgentResType>(`/agent/${id}`, body, {
+      baseURL: '',
+    }),
+  getAgent: (id: string) =>
+    axiosInstance.get<GetSpecificAgentResType>(`/agent/${id}`),
+  sGetAgent: (id: string) =>
+    axiosInstance.get<GetSpecificAgentResType>(`/agent/${id}`, {
       baseURL: '',
     }),
 };
