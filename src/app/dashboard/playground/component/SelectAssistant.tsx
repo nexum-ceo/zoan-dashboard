@@ -4,6 +4,7 @@ import {
   SelectItem,
   SelectTrigger,
 } from '@/components/ui/select';
+import { Skeleton } from '@/components/ui/skeleton';
 import { AgentType } from '@/types/agent';
 import { GetChatListResType } from '@/types/chat';
 import { useRouter } from 'next/navigation';
@@ -112,9 +113,14 @@ const SelectAssistant: FC<SelectAssistantProps> = ({
             )}
           </SelectTrigger>
           <SelectContent>
-            {agentLoading && (
-              <div className="px-3 py-2 text-xs text-gray-400">Loading...</div>
-            )}
+            {agentLoading &&
+              // Skeleton loading for agents
+              Array.from({ length: 3 }).map((_, idx) => (
+                <div key={idx} className="px-3 py-2">
+                  <Skeleton className="h-4 w-32 mb-1" />
+                  <Skeleton className="h-3 w-48" />
+                </div>
+              ))}
             {agentError && (
               <div className="px-3 py-2 text-xs text-red-500">{agentError}</div>
             )}
@@ -146,14 +152,20 @@ const SelectAssistant: FC<SelectAssistantProps> = ({
       <div className="space-y-2">
         <h4 className="text-sm font-medium text-gray-900">Recent Chats</h4>
         <div className="space-y-1 h-full overflow-y-auto">
-          {chatLoading && (
-            <div className="text-xs text-gray-400 px-3">Loading...</div>
-          )}
+          {chatLoading &&
+            // Skeleton loading for recent chats
+            Array.from({ length: 5 }).map((_, idx) => (
+              <div key={idx} className="px-3 py-2">
+                <Skeleton className="h-4 w-full" />
+              </div>
+            ))}
           {chatError && (
             <div className="text-xs text-red-500 px-3">{chatError}</div>
           )}
           {!chatLoading && !chatError && chats.length === 0 && (
-            <div className="text-xs text-gray-400 px-3">No recent chats</div>
+            <div className="px-3 py-2 text-xs text-gray-400">
+              Do not have any chats
+            </div>
           )}
           {!chatLoading &&
             !chatError &&
