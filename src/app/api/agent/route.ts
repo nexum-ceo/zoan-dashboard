@@ -19,7 +19,6 @@ export async function GET() {
 export async function POST(req: Request) {
   try {
     const body: CreateAgentBodyType = await req.json();
-
     const response = await agentApiRequest.add(body);
 
     return NextResponse.json(response.data);
