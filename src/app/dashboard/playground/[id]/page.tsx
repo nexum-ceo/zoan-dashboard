@@ -2,13 +2,15 @@
 import { ChatInput } from '@/app/dashboard/playground/component/ChatInput';
 import { ChatMessage } from '@/app/dashboard/playground/component/ChatMessage';
 import { Button } from '@/components/ui/button';
+import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
+import { useIsMobile } from '@/hooks/use-mobile';
 import { useChat } from '@/hooks/useChat';
 import {
   ChatMessageType,
   ChatRole,
   GetChatMessagesResType,
 } from '@/types/chat';
-import { ArrowDown, MessageSquare, Plus, Sparkles } from 'lucide-react';
+import { ArrowDown, Menu, MessageSquare, Plus, Sparkles } from 'lucide-react';
 import { useParams, useRouter } from 'next/navigation';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import SelectAssistant from '../component/SelectAssistant';
@@ -16,6 +18,8 @@ import SelectAssistant from '../component/SelectAssistant';
 export default function PlaygroundChatPage() {
   // State for selected agent
   const [agentId, setAgentId] = useState<string | undefined>(undefined);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+  const isMobile = useIsMobile();
   const router = useRouter();
   const params = useParams();
   const chatId =
@@ -135,38 +139,67 @@ export default function PlaygroundChatPage() {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   };
 
+  // Sidebar content component
+  const SidebarContent = () => (
+    <div className="h-full bg-white flex flex-col">
+      <div className="p-6 border-b border-gray-100">
+        <div className="flex items-center gap-3 mb-4">
+          <div className="w-8 h-8 rounded-lg flex items-center justify-center">
+            <Sparkles className="w-4 h-4 text-black" />
+          </div>
+          <h1 className="text-xl font-semibold text-gray-900">AI Playground</h1>
+        </div>
+        <Button
+          onClick={() => {
+            router.push('/dashboard/playground');
+            setSidebarOpen(false);
+          }}
+          className="w-full border-0 shadow-md hover:shadow-lg transition-all duration-200"
+        >
+          <Plus className="w-4 h-4 mr-2" />
+          New Chat
+        </Button>
+      </div>
+      <div className="flex-1 p-4">
+        <SelectAssistant
+          value={agentId}
+          onAgentChange={setAgentId}
+          activeChatId={params.id as string}
+        />
+      </div>
+    </div>
+  );
+
   return (
     <div className="w-full h-full bg-gradient-to-br from-gray-50 to-gray-100 flex">
-      {/* Sidebar */}
-      <div className="w-80 bg-white border-r border-gray-200 flex flex-col shadow-sm ">
-        <div className="p-6 border-b border-gray-100">
-          <div className="flex items-center gap-3 mb-4">
-            <div className="w-8 h-8  rounded-lg flex items-center justify-center">
-              <Sparkles className="w-4 h-4 text-black" />
-            </div>
-            <h1 className="text-xl font-semibold text-gray-900">
-              AI Playground
-            </h1>
-          </div>
-          <Button
-            onClick={() => router.push('/dashboard/playground')}
-            className="w-full  border-0 shadow-md hover:shadow-lg transition-all duration-200"
-          >
-            <Plus className="w-4 h-4 mr-2" />
-            New Chat
-          </Button>
+      {/* Desktop Sidebar */}
+      {!isMobile && (
+        <div className="w-80 border-r border-gray-200 shadow-sm">
+          <SidebarContent />
         </div>
-        <div className="flex-1 p-4">
-          <SelectAssistant
-            value={agentId}
-            onAgentChange={setAgentId}
-            activeChatId={params.id as string}
-          />
-        </div>
-      </div>
+      )}
 
       {/* Main Chat Area */}
       <div className="flex-1 flex flex-col bg-white relative">
+        {/* Mobile Header with Menu Button */}
+        {isMobile && (
+          <div className="flex items-center p-4 border-b border-gray-200">
+            <Sheet open={sidebarOpen} onOpenChange={setSidebarOpen}>
+              <SheetTrigger asChild>
+                <Button variant="ghost" size="sm" className="mr-2">
+                  <Menu className="w-5 h-5" />
+                </Button>
+              </SheetTrigger>
+              <SheetContent side="left" className="w-80 p-0">
+                <SidebarContent />
+              </SheetContent>
+            </Sheet>
+            <h1 className="text-lg font-semibold text-gray-900">
+              AI Playground
+            </h1>
+          </div>
+        )}
+
         {/* Messages */}
         <div
           ref={messagesContainerRef}
