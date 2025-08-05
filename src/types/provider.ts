@@ -19,7 +19,6 @@ export type GetModelResType = z.infer<typeof GetModelResSchema>;
 export const CreateProviderBodySchema = z.object({
   api_token: z.string(),
   provider: z.string(),
-  // user_id: z.string().optional(),
 });
 
 export type CreateProviderBodyType = z.infer<typeof CreateProviderBodySchema>;
@@ -34,6 +33,13 @@ export const ProviderOfUserSchema = z.object({
 });
 
 export type ProviderOfUserType = z.infer<typeof ProviderOfUserSchema>;
+export const CreateProviderResSchema = z.object({
+  status: z.string(),
+  message: z.string(),
+  data: ProviderOfUserSchema,
+});
+
+export type CreateProviderResType = z.infer<typeof CreateProviderResSchema>;
 
 export const GetProviderOfUserResSchema = z.object({
   status: z.string(),

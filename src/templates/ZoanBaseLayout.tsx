@@ -1,4 +1,5 @@
 'use client';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { SessionProvider } from 'next-auth/react';
 
 export default function ZoanBaseLayout({
@@ -6,12 +7,18 @@ export default function ZoanBaseLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const queryClient = new QueryClient({
+    defaultOptions: {
+      queries: {
+        refetchOnWindowFocus: false,
+      },
+    },
+  });
   return (
     <>
-      <SessionProvider>
-        {/* <AppNavbar /> */}
-        {children}
-      </SessionProvider>
+      <QueryClientProvider client={queryClient}>
+        <SessionProvider>{children}</SessionProvider>
+      </QueryClientProvider>
     </>
   );
 }

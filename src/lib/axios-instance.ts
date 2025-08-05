@@ -1,6 +1,7 @@
 // "use server";
+import { authOptions } from '@/app/api/auth/[...nextauth]/option';
 import axios from 'axios';
-import { cookies } from 'next/headers';
+import { getServerSession } from 'next-auth';
 import { redirect } from 'next/navigation';
 import { HttpError, type ApiResponse } from './utils';
 
@@ -24,15 +25,22 @@ axiosInstance.interceptors.request.use(
     const isServer = typeof window === 'undefined';
 
     if (isServer) {
-      const cookieStore = await cookies();
-      const authCookie = cookieStore.get('auth-token');
-      token = authCookie?.value;
+      // const cookieStore = await cookies();
+      // const authCookie = cookieStore.get('auth-token');
+      // token = authCookie?.value;
+      const session = await getServerSession(authOptions);
+      token = session?.accessToken;
     } else {
       token = localStorage.getItem('access_token') || undefined;
     }
 
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
+    }
+
+    if (!config.baseURL || config.baseURL === '') {
+      config.baseURL =
+        process.env.NEXT_PUBLIC_NEXT_SERVER_URL || 'http://localhost:3000/api';
     }
 
     return config;
@@ -48,7 +56,15 @@ axiosInstance.interceptors.response.use(
   async (error) => {
     // Handle 401 unauthorized
     if (error.response?.status === 401) {
-      redirect('/');
+      const isServer = typeof window === 'undefined';
+
+      if (!isServer) {
+        // Client-side: redirect using window.location
+        window.location.href = '/';
+        return Promise.reject(error);
+      } else {
+        redirect('/');
+      }
     }
 
     // If response has data in ApiResponse format, throw HttpError
