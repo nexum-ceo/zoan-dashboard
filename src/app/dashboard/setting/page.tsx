@@ -18,6 +18,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import { Skeleton } from '@/components/ui/skeleton';
 import {
   Table,
   TableBody,
@@ -42,7 +43,7 @@ export default function SettingPage() {
   const [selectedProvider, setSelectedProvider] = useState<string>('');
   const [apiToken, setApiToken] = useState<string>('');
   const [createError, setCreateError] = useState<string | null>(null);
-  const { data: providers } = useProviderList();
+  const { data: providers, isLoading: providersLoading } = useProviderList();
   const { data: providerOfUser, isLoading: providerOfUserLoading } =
     useProviderOfUserList();
   const addProviderMutation = useAddProviderMutation();
@@ -95,13 +96,21 @@ export default function SettingPage() {
                   <SelectValue placeholder="Select provider..." />
                 </SelectTrigger>
                 <SelectContent>
-                  {providers?.data?.data?.map(
-                    (provider: string, idx: number) => (
-                      <SelectItem key={idx} value={provider}>
-                        {provider.charAt(0).toUpperCase() + provider.slice(1)}
-                      </SelectItem>
-                    ),
-                  )}
+                  {providersLoading
+                    ? // Skeleton loading for select options
+                      Array.from({ length: 3 }).map((_, idx) => (
+                        <div key={idx} className="px-2 py-1.5">
+                          <Skeleton className="h-4 w-20" />
+                        </div>
+                      ))
+                    : providers?.data?.data?.map(
+                        (provider: string, idx: number) => (
+                          <SelectItem key={idx} value={provider}>
+                            {provider.charAt(0).toUpperCase() +
+                              provider.slice(1)}
+                          </SelectItem>
+                        ),
+                      )}
                 </SelectContent>
               </Select>
               <Input
@@ -159,14 +168,29 @@ export default function SettingPage() {
             </TableHeader>
             <TableBody className="rounded-xl">
               {providerOfUserLoading ? (
-                <TableRow>
-                  <TableCell
-                    colSpan={6}
-                    className="text-center py-6 text-gray-400"
-                  >
-                    Loading...
-                  </TableCell>
-                </TableRow>
+                // Skeleton loading rows
+                Array.from({ length: 5 }).map((_, index) => (
+                  <TableRow key={index}>
+                    <TableCell className="text-center align-middle">
+                      <Skeleton className="h-4 w-6 mx-auto" />
+                    </TableCell>
+                    <TableCell className="align-middle">
+                      <Skeleton className="h-4 w-48" />
+                    </TableCell>
+                    <TableCell className="align-middle">
+                      <Skeleton className="h-4 w-20" />
+                    </TableCell>
+                    <TableCell className="align-middle">
+                      <Skeleton className="h-4 w-32" />
+                    </TableCell>
+                    <TableCell className="align-middle">
+                      <Skeleton className="h-4 w-24" />
+                    </TableCell>
+                    <TableCell className="align-middle">
+                      <Skeleton className="h-4 w-24" />
+                    </TableCell>
+                  </TableRow>
+                ))
               ) : !providerOfUser?.data?.data ? (
                 <TableRow>
                   <TableCell
