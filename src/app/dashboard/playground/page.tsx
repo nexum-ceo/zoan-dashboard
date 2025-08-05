@@ -3,8 +3,8 @@ import { ChatInput } from '@/app/dashboard/playground/component/ChatInput';
 import { ChatMessage } from '@/app/dashboard/playground/component/ChatMessage';
 import { Button } from '@/components/ui/button';
 import { useChat } from '@/hooks/useChat';
-import { useCreateChat } from '@/hooks/useCreateChat';
 import { handleErrorApi } from '@/lib/utils';
+import { useCreateChatMutation } from '@/queries/useChat';
 import { ArrowDown, MessageSquare, Plus, Sparkles } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { FormEvent, useCallback, useEffect, useRef, useState } from 'react';
@@ -24,7 +24,7 @@ export default function PlaygroundPage() {
 
   // State for pending first message
   const [pendingMessage, setPendingMessage] = useState<string>('');
-  const { createChat, loading: creatingChat } = useCreateChat();
+  const createChatMutation = useCreateChatMutation();
   const router = useRouter();
 
   useEffect(() => {
@@ -57,16 +57,23 @@ export default function PlaygroundPage() {
       return;
     }
     if (!pendingMessage.trim()) return;
-    try {
-      const chatId = await createChat({
+
+    createChatMutation.mutate(
+      {
         agent_id: agentId,
         title: pendingMessage,
-      });
-      localStorage.setItem('pendingMessage', pendingMessage);
-      router.push(`/dashboard/playground/${chatId}`);
-    } catch (err) {
-      handleErrorApi({ error: err });
-    }
+      },
+      {
+        onSuccess: (data) => {
+          const chatId = data.data.chat.id;
+          localStorage.setItem('pendingMessage', pendingMessage);
+          router.push(`/dashboard/playground/${chatId}`);
+        },
+        onError: (error) => {
+          handleErrorApi({ error });
+        },
+      },
+    );
   };
 
   const scrollToBottom = () => {
@@ -154,7 +161,7 @@ export default function PlaygroundPage() {
             value={pendingMessage}
             onChange={(e) => setPendingMessage(e.target.value)}
             onSubmit={messages.length === 0 ? handleFirstSubmit : handleSubmit}
-            disabled={creatingChat || !agentId}
+            disabled={createChatMutation.isPending || !agentId}
           />
         </div>
       </div>
