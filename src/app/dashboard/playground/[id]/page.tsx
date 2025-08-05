@@ -1,8 +1,11 @@
 'use client';
 import { ChatInput } from '@/app/dashboard/playground/component/ChatInput';
 import { ChatMessage } from '@/app/dashboard/playground/component/ChatMessage';
+
+import { NavUser } from '@/components/nav-user';
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
+import { SidebarProvider } from '@/components/ui/sidebar';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { useChat } from '@/hooks/useChat';
 import {
@@ -18,7 +21,6 @@ import {
   Plus,
   Settings,
   Sparkles,
-  User,
   Users,
 } from 'lucide-react';
 import { useParams, usePathname, useRouter } from 'next/navigation';
@@ -174,8 +176,36 @@ export default function PlaygroundChatPage() {
     },
   ];
 
-  // Sidebar content component
-  const SidebarContent = () => (
+  // Desktop sidebar content (original)
+  const DesktopSidebarContent = () => (
+    <div className="h-full bg-white flex flex-col">
+      <div className="p-6 border-b border-gray-100">
+        <div className="flex items-center gap-3 mb-4">
+          <div className="w-8 h-8 rounded-lg flex items-center justify-center">
+            <Sparkles className="w-4 h-4 text-black" />
+          </div>
+          <h1 className="text-xl font-semibold text-gray-900">AI Playground</h1>
+        </div>
+        <Button
+          onClick={() => router.push('/dashboard/playground')}
+          className="w-full border-0 shadow-md hover:shadow-lg transition-all duration-200"
+        >
+          <Plus className="w-4 h-4 mr-2" />
+          New Chat
+        </Button>
+      </div>
+      <div className="flex-1 p-4">
+        <SelectAssistant
+          value={agentId}
+          onAgentChange={setAgentId}
+          activeChatId={params.id as string}
+        />
+      </div>
+    </div>
+  );
+
+  // Mobile sidebar content (with navigation and user info)
+  const MobileSidebarContent = () => (
     <div className="h-full bg-white flex flex-col">
       {/* Header */}
       <div className="p-4 border-b border-gray-100">
@@ -240,25 +270,15 @@ export default function PlaygroundChatPage() {
       </div>
 
       {/* User Info */}
-      <div className="p-4 border-t border-gray-100 bg-gray-50">
-        <div className="flex items-center gap-3">
-          <div className="w-9 h-9 rounded-full bg-gradient-to-br from-orange-400 to-orange-600 flex items-center justify-center shadow-sm">
-            <User className="w-4 h-4 text-white" />
-          </div>
-          <div className="flex-1 min-w-0">
-            <div className="text-sm font-medium text-gray-900 truncate">
-              aiheheopen@gmail.com
-            </div>
-            <div className="text-xs text-gray-500 font-medium">Free Plan</div>
-          </div>
-          <Button
-            variant="ghost"
-            size="sm"
-            className="w-8 h-8 p-0 hover:bg-gray-200"
-          >
-            <MessageSquare className="w-4 h-4 text-gray-600" />
-          </Button>
-        </div>
+      <div className="border-t border-gray-100">
+        <SidebarProvider>
+          <NavUser
+            user={{
+              email: 'aiheheopen@gmail.com',
+              avatar: '/avatar-placeholder.png',
+            }}
+          />
+        </SidebarProvider>
       </div>
     </div>
   );
@@ -268,7 +288,7 @@ export default function PlaygroundChatPage() {
       {/* Desktop Sidebar */}
       {!isMobile && (
         <div className="w-80 border-r border-gray-200 shadow-sm">
-          <SidebarContent />
+          <DesktopSidebarContent />
         </div>
       )}
 
@@ -284,7 +304,7 @@ export default function PlaygroundChatPage() {
                 </Button>
               </SheetTrigger>
               <SheetContent side="left" className="w-80 p-0">
-                <SidebarContent />
+                <MobileSidebarContent />
               </SheetContent>
             </Sheet>
             <h1 className="text-lg font-semibold text-gray-900">
