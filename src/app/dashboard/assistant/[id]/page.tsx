@@ -44,10 +44,10 @@ export default function AssistantPage({
   };
 
   return (
-    <div className="w-full h-full bg-sidebar rounded-lg border border-border flex flex-col">
-      <div className="p-4 text-2xl font-semibold border-b border-border bg-white rounded-t-lg w-full">
+    <div className="w-full h-full flex flex-col">
+      {/* <div className="p-4 text-2xl font-semibold border-b border-border bg-white rounded-t-lg w-full">
         {agent?.name}
-      </div>
+      </div> */}
 
       <Tabs className="m-2 rounded-lg flex-1 flex flex-row gap-3" value={tab}>
         <div className="flex bg-white flex-1 rounded-lg flex-col gap-6 p-2 border border-border">

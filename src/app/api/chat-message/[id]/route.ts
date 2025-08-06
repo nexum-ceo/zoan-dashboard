@@ -1,28 +1,14 @@
-import { authOptions } from '@/app/api/auth/[...nextauth]/option';
-import axiosInstance from '@/lib/axios-instance';
-import { getServerSession } from 'next-auth';
+import chatApiRequest from '@/api-requests/chat';
 import { NextResponse } from 'next/server';
 
 export async function GET(
   req: Request,
   { params }: { params: Promise<{ id: string }> },
 ) {
-  const session = await getServerSession(authOptions);
-
-  if (!session?.accessToken) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-  }
-
   try {
-    const response = await axiosInstance.get(
-      `/chat/${(await params).id}/messages`,
-      {
-        headers: {
-          Authorization: `Bearer ${session.accessToken}`,
-        },
-      },
+    const response = await chatApiRequest.getChatMessages(
+      `${(await params).id}`,
     );
-    console.log('chat messages response:', response.data);
 
     return NextResponse.json(response.data);
   } catch (error) {

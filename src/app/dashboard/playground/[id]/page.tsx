@@ -1,22 +1,39 @@
 'use client';
 import { ChatInput } from '@/app/dashboard/playground/component/ChatInput';
 import { ChatMessage } from '@/app/dashboard/playground/component/ChatMessage';
+
+import { NavUser } from '@/components/nav-user';
 import { Button } from '@/components/ui/button';
+import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
+import { SidebarProvider } from '@/components/ui/sidebar';
+import { useIsMobile } from '@/hooks/use-mobile';
 import { useChat } from '@/hooks/useChat';
 import {
   ChatMessageType,
   ChatRole,
   GetChatMessagesResType,
 } from '@/types/chat';
-import { ArrowDown, MessageSquare, Plus, Sparkles } from 'lucide-react';
-import { useParams, useRouter } from 'next/navigation';
+import {
+  ArrowDown,
+  Bot,
+  Menu,
+  MessageSquare,
+  Plus,
+  Settings,
+  Sparkles,
+  Users,
+} from 'lucide-react';
+import { useParams, usePathname, useRouter } from 'next/navigation';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import SelectAssistant from '../component/SelectAssistant';
 
 export default function PlaygroundChatPage() {
   // State for selected agent
   const [agentId, setAgentId] = useState<string | undefined>(undefined);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+  const isMobile = useIsMobile();
   const router = useRouter();
+  const pathname = usePathname();
   const params = useParams();
   const chatId =
     typeof params?.id === 'string'
@@ -135,34 +152,167 @@ export default function PlaygroundChatPage() {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   };
 
-  return (
-    <div className="w-full h-full bg-gradient-to-br from-gray-50 to-gray-100 flex">
-      {/* Sidebar */}
-      <div className="w-80 bg-white border-r border-gray-200 flex flex-col shadow-sm ">
-        <div className="p-6 border-b border-gray-100">
-          <div className="flex items-center gap-3 mb-4">
-            <div className="w-8 h-8  rounded-lg flex items-center justify-center">
-              <Sparkles className="w-4 h-4 text-black" />
-            </div>
-            <h1 className="text-xl font-semibold text-gray-900">
-              AI Playground
-            </h1>
+  // Navigation items with dynamic active state
+  const navigationItems = [
+    {
+      icon: Bot,
+      label: 'Playground',
+      href: '/dashboard/playground',
+      isActive: (pathname: string) =>
+        pathname.startsWith('/dashboard/playground'),
+    },
+    {
+      icon: Users,
+      label: 'Assistants',
+      href: '/dashboard/assistant',
+      isActive: (pathname: string) =>
+        pathname.startsWith('/dashboard/assistant'),
+    },
+    {
+      icon: Settings,
+      label: 'Settings',
+      href: '/dashboard/setting',
+      isActive: (pathname: string) => pathname.startsWith('/dashboard/setting'),
+    },
+  ];
+
+  // Desktop sidebar content (original)
+  const DesktopSidebarContent = () => (
+    <div className="h-full bg-white flex flex-col">
+      <div className="p-6 border-b border-gray-100">
+        <div className="flex items-center gap-3 mb-4">
+          <div className="w-8 h-8 rounded-lg flex items-center justify-center">
+            <Sparkles className="w-4 h-4 text-black" />
           </div>
-          <Button
-            onClick={() => router.push('/dashboard/playground')}
-            className="w-full  border-0 shadow-md hover:shadow-lg transition-all duration-200"
-          >
-            <Plus className="w-4 h-4 mr-2" />
-            New Chat
-          </Button>
+          <h1 className="text-xl font-semibold text-gray-900">AI Playground</h1>
         </div>
-        <div className="flex-1 p-4">
-          <SelectAssistant value={agentId} onAgentChange={setAgentId} />
+        <Button
+          onClick={() => router.push('/dashboard/playground')}
+          className="w-full border-0 shadow-md hover:shadow-lg transition-all duration-200"
+        >
+          <Plus className="w-4 h-4 mr-2" />
+          New Chat
+        </Button>
+      </div>
+      <div className="flex-1 p-4">
+        <SelectAssistant
+          value={agentId}
+          onAgentChange={setAgentId}
+          activeChatId={params.id as string}
+        />
+      </div>
+    </div>
+  );
+
+  // Mobile sidebar content (with navigation and user info)
+  const MobileSidebarContent = () => (
+    <div className="h-full bg-white flex flex-col">
+      {/* Header */}
+      <div className="p-4 border-b border-gray-100">
+        <div className="flex items-center gap-3">
+          <div className="w-8 h-8 rounded-lg bg-black flex items-center justify-center">
+            <Sparkles className="w-4 h-4 text-white" />
+          </div>
+          <h1 className="text-lg font-semibold text-gray-900">AI Playground</h1>
         </div>
       </div>
 
+      {/* Navigation */}
+      <div className="px-3 py-3">
+        <div className="mb-6">
+          <Button
+            onClick={() => {
+              router.push('/dashboard/playground');
+              if (isMobile) setSidebarOpen(false);
+            }}
+            className="w-full justify-start gap-3 h-10 bg-gray-100 hover:bg-gray-200 text-gray-700 border-0 font-medium"
+          >
+            <Plus className="w-4 h-4" />
+            New Chat
+          </Button>
+        </div>
+
+        <div className="space-y-1">
+          <div className="px-3 py-2 text-xs font-semibold text-gray-500 uppercase tracking-wider">
+            Application
+          </div>
+          {navigationItems.map((item, index) => {
+            const isActive = item.isActive(pathname);
+            return (
+              <Button
+                key={index}
+                variant="ghost"
+                className={`w-full justify-start gap-3 h-10 text-sm ${
+                  isActive
+                    ? 'bg-gray-100 text-gray-900 font-medium'
+                    : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
+                }`}
+                onClick={() => {
+                  router.push(item.href);
+                  if (isMobile) setSidebarOpen(false);
+                }}
+              >
+                <item.icon className="w-4 h-4" />
+                {item.label}
+              </Button>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* Assistant Selection */}
+      <div className="flex-1 px-3 py-2 border-t border-gray-100">
+        <SelectAssistant
+          value={agentId}
+          onAgentChange={setAgentId}
+          activeChatId={params.id as string}
+        />
+      </div>
+
+      {/* User Info */}
+      <div className="border-t border-gray-100">
+        <SidebarProvider>
+          <NavUser
+            user={{
+              email: 'aiheheopen@gmail.com',
+              avatar: '/avatar-placeholder.png',
+            }}
+          />
+        </SidebarProvider>
+      </div>
+    </div>
+  );
+
+  return (
+    <div className="w-full h-full bg-gradient-to-br from-gray-50 to-gray-100 flex">
+      {/* Desktop Sidebar */}
+      {!isMobile && (
+        <div className="w-80 border-r border-gray-200 shadow-sm">
+          <DesktopSidebarContent />
+        </div>
+      )}
+
       {/* Main Chat Area */}
       <div className="flex-1 flex flex-col bg-white relative">
+        {/* Mobile Header with Menu Button */}
+        {isMobile && (
+          <div className="flex items-center p-4 border-b border-gray-200 bg-white">
+            <Sheet open={sidebarOpen} onOpenChange={setSidebarOpen}>
+              <SheetTrigger asChild>
+                <Button variant="ghost" size="sm" className="mr-3">
+                  <Menu className="w-5 h-5" />
+                </Button>
+              </SheetTrigger>
+              <SheetContent side="left" className="w-80 p-0">
+                <MobileSidebarContent />
+              </SheetContent>
+            </Sheet>
+            <h1 className="text-lg font-semibold text-gray-900">
+              AI Playground
+            </h1>
+          </div>
+        )}
+
         {/* Messages */}
         <div
           ref={messagesContainerRef}

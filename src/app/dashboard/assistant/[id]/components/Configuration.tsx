@@ -26,20 +26,21 @@ import {
 import { Slider } from '@/components/ui/slider';
 import { Textarea } from '@/components/ui/textarea';
 import {
-  AgentType,
+  useGetSpecificAgent,
+  useUpdateAgentMutation,
+} from '@/queries/useAgent';
+import { useGetModelByName } from '@/queries/useModel';
+import { useProviderOfUserList } from '@/queries/useProvider';
+import {
   CreateAgentBodySchema,
   CreateAgentBodyType,
-  CreateAgentResType,
+  UpdateAgentBodyType,
 } from '@/types/agent';
-import {
-  GetModelResType,
-  GetProviderOfUserResType,
-  ProviderOfUserType,
-} from '@/types/provider';
+
 import { zodResolver } from '@hookform/resolvers/zod';
 import MonacoEditor from '@monaco-editor/react';
 import { useParams } from 'next/navigation';
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useForm } from 'react-hook-form';
 
 export default function Configuration() {
@@ -53,13 +54,42 @@ export default function Configuration() {
   const [jsonSchemaDialogOpen, setJsonSchemaDialogOpen] = useState(false);
   const [jsonSchemaInput, setJsonSchemaInput] = useState('');
   const [jsonSchemaError, setJsonSchemaError] = useState<string | null>(null);
-  const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
-  const [providers, setProviders] = useState<ProviderOfUserType[]>([]);
   const [selectedProvider, setSelectedProvider] = useState<string>('');
   const [models, setModels] = useState<string[]>([]);
-  const [agent, setAgent] = useState<AgentType>();
+
+  // Fetch hooks
+  const {
+    data: providerData,
+    isLoading: providerLoading,
+    error: providerError,
+  } = useProviderOfUserList();
+
+  const {
+    data: agentData,
+    isLoading: agentLoading,
+    error: agentError,
+  } = useGetSpecificAgent(id);
+
+  const {
+    mutate: getModelByName,
+    isPending: modelLoading,
+    error: modelError,
+  } = useGetModelByName();
+
+  const {
+    mutate: updateAgent,
+    isPending: updateLoading,
+    error: updateError,
+  } = useUpdateAgentMutation(id);
+
+  // Process data
+  const providers = useMemo(
+    () => providerData?.data.data || [],
+    [providerData],
+  );
+  const agent = agentData?.data;
   const form = useForm<CreateAgentBodyType>({
     resolver: zodResolver(CreateAgentBodySchema),
     defaultValues: {
@@ -77,67 +107,34 @@ export default function Configuration() {
     },
   });
 
-  // Fetch agent detail and fill form
+  // Fetch models when agent and providers are loaded
   useEffect(() => {
-    if (!id) return;
-    const fetchAgent = async () => {
-      setLoading(true);
-      try {
-        const res = await fetch(`/api/agent/${id}`);
-        const data = await res.json();
-        if (data) {
-          setAgent(data);
-        }
-      } catch (err) {
-        if (err instanceof Error) {
-          setError(err.message);
-        } else {
-          setError('Fetch agent failed');
-        }
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchAgent();
-  }, [id, form]);
+    if (agent && providers.length > 0 && agent.provider_id) {
+      setSelectedProvider(agent.provider_id);
+      const providerObj = providers.find((p) => p.id === agent.provider_id);
+      const providerName = providerObj
+        ? providerObj.provider
+        : agent.provider_id;
 
-  // Reset form only when models have fetched and contains agent.model
-  useEffect(() => {
-    const fetchModels = async (providerId: string) => {
-      if (!providerId) return;
-      setLoading(true);
-      try {
-        const providerObj = providers.find((p) => p.id === providerId);
-        const providerName = providerObj ? providerObj.provider : providerId;
-        const res = await fetch('/api/model', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({ name: providerName }),
-        });
-        const data: GetModelResType = await res.json();
-        if (data.status === 'success') {
-          setModels(data.data);
-        } else {
+      getModelByName(providerName, {
+        onSuccess: (data) => {
+          if (
+            data &&
+            data.data.status === 'success' &&
+            Array.isArray(data.data.data)
+          ) {
+            setModels(data.data.data);
+          } else {
+            setModels([]);
+          }
+        },
+        onError: () => {
           setModels([]);
-        }
-      } catch (err) {
-        if (err instanceof Error) {
-          setError(err.message);
-        } else {
-          setError('Fetch model failed');
-        }
-        setModels([]);
-      } finally {
-        setLoading(false);
-      }
-    };
-    if (agent && providers.length > 0) {
-      setSelectedProvider(agent.provider_id || '');
-      fetchModels(agent.provider_id || '');
+          setError('Failed to fetch models');
+        },
+      });
     }
-  }, [agent, providers]);
+  }, [agent, providers, getModelByName]);
 
   useEffect(() => {
     // Reset form only when models have fetched and contains agent.model
@@ -175,10 +172,6 @@ export default function Configuration() {
     }
   }, [models, agent, form]);
 
-  useEffect(() => {
-    fetchProvider();
-  }, []);
-
   // Watch for response_format changes to update JSON schema input
   useEffect(() => {
     const subscription = form.watch((value, { name }) => {
@@ -200,103 +193,79 @@ export default function Configuration() {
     return () => subscription.unsubscribe();
   }, [form]);
 
-  const handleProviderChange = async (providerId: string) => {
+  const handleProviderChange = (providerId: string) => {
     setSelectedProvider(providerId);
-    setLoading(true);
-    try {
-      // Find the provider object by id
-      const providerObj = providers.find((p) => p.id === providerId);
-      const providerName = providerObj ? providerObj.provider : providerId;
-      const res = await fetch('/api/model', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ name: providerName }),
-      });
-      const data: GetModelResType = await res.json();
-      if (data.status === 'success') {
-        setModels(data.data);
-      } else {
+
+    // Find the provider object by id
+    const providerObj = providers.find((p) => p.id === providerId);
+    const providerName = providerObj ? providerObj.provider : providerId;
+
+    // Use mutation hook to get models
+    getModelByName(providerName, {
+      onSuccess: (data) => {
+        if (
+          data &&
+          data.data.status === 'success' &&
+          Array.isArray(data.data.data)
+        ) {
+          setModels(data.data.data);
+          setError(null);
+        } else {
+          setModels([]);
+          setError('No models found.');
+        }
+      },
+      onError: (err) => {
         setModels([]);
-      }
-    } catch (err) {
-      if (err instanceof Error) {
-        setError(err.message);
-      } else {
-        setError('Fetch failed');
-      }
-    } finally {
-      setLoading(false);
-    }
+        setError(err instanceof Error ? err.message : 'Failed to fetch models');
+      },
+    });
   };
 
-  const onSubmit = async (data: CreateAgentBodyType) => {
-    setLoading(true);
+  const onSubmit = (data: CreateAgentBodyType) => {
     setError(null);
     setSuccess(null);
 
-    try {
-      // Validate data before sending
-      const validatedData = CreateAgentBodySchema.parse(data);
+    // Validate data before sending
+    const validatedData = CreateAgentBodySchema.parse(data);
 
-      console.log('Updating agent data:', validatedData);
-
-      const res = await fetch(`/api/agent/${id}`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(validatedData),
-      });
-
-      if (!res.ok) {
-        throw new Error(`HTTP error! status: ${res.status}`);
-      }
-
-      const responseData: CreateAgentResType = await res.json();
-
-      if (responseData.status === 'success') {
-        setSuccess('Agent updated successfully!');
-        // Don't reset form in edit mode - keep current values
-      } else {
-        setError(responseData.message || 'Update failed');
-      }
-    } catch (err) {
-      console.error('Update agent error:', err);
-      if (err instanceof Error) {
-        setError(err.message || 'Update failed');
-      } else {
-        setError('Update failed');
-      }
-    } finally {
-      setLoading(false);
+    // Transform form data to update format
+    if (!agent) {
+      setError('Agent data not loaded');
+      return;
     }
-  };
 
-  const fetchProvider = async () => {
-    try {
-      const res = await fetch('/api/provider-user');
-      const data: GetProviderOfUserResType = await res.json();
-      if (data.status === 'success') {
-        setProviders(data.data);
-      } else {
-        setProviders([]);
-        setError('No providers found.');
-      }
-    } catch (err) {
-      if (err instanceof Error) {
-        setError(err.message);
-      } else {
-        setError('Fetch failed');
-      }
-    } finally {
-      setLoading(false);
-    }
+    const updateData: UpdateAgentBodyType = {
+      ...agent,
+      name: validatedData.name,
+      description: validatedData.description,
+      prompt: validatedData.prompt,
+      provider_id: validatedData.provider_id,
+      model: validatedData.model,
+      response_format: validatedData.response_format,
+      model_kwargs: {
+        max_tokens: validatedData.max_tokens || 1000,
+        temperature: validatedData.temperature,
+        top_p: validatedData.top_p,
+      },
+    };
+
+    // Use mutation hook to update agent
+    updateAgent(updateData, {
+      onSuccess: (responseData) => {
+        if (responseData?.data?.status === 'success') {
+          setSuccess('Agent updated successfully!');
+        } else {
+          setError(responseData?.data?.message || 'Update failed');
+        }
+      },
+      onError: (err) => {
+        setError(err instanceof Error ? err.message : 'Update failed');
+      },
+    });
   };
 
   const handleCancel = () => {
-    // Reset form to original agent values in edit mode
     if (agent) {
       form.reset({
         name: agent.name || '',
@@ -317,7 +286,7 @@ export default function Configuration() {
   };
 
   return (
-    <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-gray-50 to-white p-2">
+    <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-gray-50 to-white">
       <div className="w-full h-full rounded-2xl shadow-xl bg-white/90 border border-gray-200 p-4">
         <Form {...form}>
           <form
@@ -385,9 +354,9 @@ export default function Configuration() {
                         Provider
                       </FormLabel>
                       <Select
-                        onValueChange={async (val) => {
+                        onValueChange={(val) => {
                           field.onChange(val);
-                          await handleProviderChange(val);
+                          handleProviderChange(val);
                         }}
                         defaultValue={field.value}
                         value={field.value}
@@ -898,13 +867,46 @@ export default function Configuration() {
               >
                 Cancel
               </Button>
-              <Button type="submit" disabled={loading} className="rounded-lg">
-                {loading ? 'Saving...' : 'Save Changes'}
+              <Button
+                type="submit"
+                disabled={
+                  updateLoading ||
+                  agentLoading ||
+                  providerLoading ||
+                  modelLoading
+                }
+                className="rounded-lg"
+              >
+                {updateLoading
+                  ? 'Saving...'
+                  : agentLoading
+                  ? 'Loading agent...'
+                  : providerLoading
+                  ? 'Loading providers...'
+                  : modelLoading
+                  ? 'Loading models...'
+                  : 'Save Changes'}
               </Button>
             </div>
-            {error && (
+            {(error ||
+              agentError ||
+              providerError ||
+              modelError ||
+              updateError) && (
               <div className="text-red-500 text-sm mt-2 text-right">
-                {error}
+                {error ||
+                  (agentError instanceof Error
+                    ? agentError.message
+                    : 'Failed to load agent') ||
+                  (providerError instanceof Error
+                    ? providerError.message
+                    : 'Failed to load providers') ||
+                  (modelError instanceof Error
+                    ? modelError.message
+                    : 'Failed to load models') ||
+                  (updateError instanceof Error
+                    ? updateError.message
+                    : 'Failed to update agent')}
               </div>
             )}
             {success && (

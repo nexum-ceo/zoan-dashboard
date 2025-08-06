@@ -8,10 +8,7 @@ export default function ZoanBaseLayout({
 }>) {
   return (
     <>
-      <SessionProvider>
-        {/* <AppNavbar /> */}
-        {children}
-      </SessionProvider>
+      <SessionProvider>{children}</SessionProvider>
     </>
   );
 }

@@ -1,24 +1,13 @@
-import { authOptions } from '@/app/api/auth/[...nextauth]/option';
-import axiosInstance from '@/lib/axios-instance';
-import { getServerSession } from 'next-auth';
+import agentApiRequest from '@/api-requests/agent';
+import { UpdateAgentBodyType } from '@/types/agent';
 import { NextResponse } from 'next/server';
 
 export async function GET(
   req: Request,
   { params }: { params: Promise<{ id: string }> },
 ) {
-  const session = await getServerSession(authOptions);
-
-  if (!session?.accessToken) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-  }
-
   try {
-    const response = await axiosInstance.get(`/agent/${(await params).id}`, {
-      headers: {
-        Authorization: `Bearer ${session.accessToken}`,
-      },
-    });
+    const response = await agentApiRequest.getAgent(`${(await params).id}`);
 
     return NextResponse.json(response.data);
   } catch (error) {
@@ -35,24 +24,10 @@ export async function PUT(
 
   { params }: { params: Promise<{ id: string }> },
 ) {
-  const session = await getServerSession(authOptions);
-
-  if (!session?.accessToken) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-  }
-
   try {
-    const body = await req.json();
+    const body: UpdateAgentBodyType = await req.json();
 
-    const response = await axiosInstance.put(
-      `/agent/${(await params).id}`,
-      body,
-      {
-        headers: {
-          Authorization: `Bearer ${session.accessToken}`,
-        },
-      },
-    );
+    const response = await agentApiRequest.update(`${(await params).id}`, body);
 
     return NextResponse.json(response.data);
   } catch (error) {

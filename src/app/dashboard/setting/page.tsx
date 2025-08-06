@@ -18,6 +18,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import { Skeleton } from '@/components/ui/skeleton';
 import {
   Table,
   TableBody,
@@ -30,66 +31,22 @@ import {
 import { formatDate } from '@/lib/date';
 import { handleErrorApi } from '@/lib/utils';
 import {
-  GetProviderOfUserResType,
-  GetProviderResType,
-  ProviderOfUserType,
-} from '@/types/provider';
-import { useEffect, useState } from 'react';
+  useAddProviderMutation,
+  useProviderList,
+  useProviderOfUserList,
+} from '@/queries/useProvider';
+import { ProviderOfUserType } from '@/types/provider';
+import { useState } from 'react';
 
 export default function SettingPage() {
-  const [providers, setProviders] = useState<string[]>([]);
-  const [loading, setLoading] = useState<boolean>(true);
-  const [error, setError] = useState<string | null>(null);
   const [open, setOpen] = useState<boolean>(false);
   const [selectedProvider, setSelectedProvider] = useState<string>('');
   const [apiToken, setApiToken] = useState<string>('');
-  const [createLoading, setCreateLoading] = useState<boolean>(false);
   const [createError, setCreateError] = useState<string | null>(null);
-  const [providerOfUser, setProviderOfUser] = useState<ProviderOfUserType[]>(
-    [],
-  );
-
-  useEffect(() => {
-    const fetchProviders = async () => {
-      try {
-        const res = await fetch('/api/provider');
-        const data: GetProviderResType = await res.json();
-        if (data.status === 'success') {
-          setProviders(data.data);
-        } else {
-          setProviders([]);
-          setError('No providers found.');
-        }
-      } catch (err) {
-        handleErrorApi({ error: err });
-        setError('Failed to load providers');
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchProviders();
-  }, []);
-
-  useEffect(() => {
-    const fetchListProviderOfUser = async () => {
-      try {
-        const res = await fetch('/api/provider-user');
-        const data: GetProviderOfUserResType = await res.json();
-        if (data.data) {
-          setProviderOfUser(data.data);
-        } else {
-          setProviderOfUser([]);
-          setError('No providers found.');
-        }
-      } catch (err) {
-        handleErrorApi({ error: err });
-        setError('Failed to load user providers');
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchListProviderOfUser();
-  }, []);
+  const { data: providers, isLoading: providersLoading } = useProviderList();
+  const { data: providerOfUser, isLoading: providerOfUserLoading } =
+    useProviderOfUserList();
+  const addProviderMutation = useAddProviderMutation();
 
   const handleAddProvider = async () => {
     if (!selectedProvider || !apiToken) {
@@ -97,45 +54,20 @@ export default function SettingPage() {
       return;
     }
 
-    setCreateLoading(true);
     setCreateError(null);
 
     try {
-      const response = await fetch('/api/provider', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          provider: selectedProvider,
-          api_token: apiToken,
-        }),
+      await addProviderMutation.mutateAsync({
+        provider: selectedProvider,
+        api_token: apiToken,
       });
 
-      const data = await response.json();
-      if (data.status === 'success') {
-        setProviders((prev) => [...prev, selectedProvider]);
-        // Fetch new list provider of user
-        const res = await fetch('/api/provider-user');
-        const data: GetProviderOfUserResType = await res.json();
-        if (data.data) {
-          console.log('Fetched providers:', data.data);
-          setProviderOfUser(data.data);
-        } else {
-          setProviderOfUser([]);
-          setError('No providers found.');
-        }
-        setOpen(false);
-        setSelectedProvider('');
-        setApiToken('');
-      } else {
-        setCreateError(data.message || 'Failed to add provider');
-      }
+      setOpen(false);
+      setSelectedProvider('');
+      setApiToken('');
     } catch (error) {
       handleErrorApi({ error });
       setCreateError('Failed to add provider');
-    } finally {
-      setCreateLoading(false);
     }
   };
 
@@ -158,24 +90,34 @@ export default function SettingPage() {
               <Select
                 value={selectedProvider}
                 onValueChange={setSelectedProvider}
-                disabled={createLoading}
+                disabled={addProviderMutation.isPending}
               >
                 <SelectTrigger className="w-full" autoFocus>
                   <SelectValue placeholder="Select provider..." />
                 </SelectTrigger>
                 <SelectContent>
-                  {providers.map((provider, idx) => (
-                    <SelectItem key={idx} value={provider}>
-                      {provider.charAt(0).toUpperCase() + provider.slice(1)}
-                    </SelectItem>
-                  ))}
+                  {providersLoading
+                    ? // Skeleton loading for select options
+                      Array.from({ length: 3 }).map((_, idx) => (
+                        <div key={idx} className="px-2 py-1.5">
+                          <Skeleton className="h-4 w-20" />
+                        </div>
+                      ))
+                    : providers?.data?.data?.map(
+                        (provider: string, idx: number) => (
+                          <SelectItem key={idx} value={provider}>
+                            {provider.charAt(0).toUpperCase() +
+                              provider.slice(1)}
+                          </SelectItem>
+                        ),
+                      )}
                 </SelectContent>
               </Select>
               <Input
                 placeholder="API Token..."
                 value={apiToken}
                 onChange={(e) => setApiToken(e.target.value)}
-                disabled={createLoading}
+                disabled={addProviderMutation.isPending}
                 name="api_token"
               />
             </div>
@@ -199,9 +141,9 @@ export default function SettingPage() {
               <Button
                 type="button"
                 onClick={handleAddProvider}
-                disabled={createLoading}
+                disabled={addProviderMutation.isPending}
               >
-                {createLoading ? 'Adding...' : 'Add'}
+                {addProviderMutation.isPending ? 'Adding...' : 'Add'}
               </Button>
             </DialogFooter>
           </DialogContent>
@@ -225,54 +167,71 @@ export default function SettingPage() {
               </TableRow>
             </TableHeader>
             <TableBody className="rounded-xl">
-              {loading ? (
-                <TableRow>
-                  <TableCell
-                    colSpan={6}
-                    className="text-center py-6 text-gray-400"
-                  >
-                    Loading...
-                  </TableCell>
-                </TableRow>
-              ) : error ? (
+              {providerOfUserLoading ? (
+                // Skeleton loading rows
+                Array.from({ length: 5 }).map((_, index) => (
+                  <TableRow key={index}>
+                    <TableCell className="text-center align-middle">
+                      <Skeleton className="h-4 w-6 mx-auto" />
+                    </TableCell>
+                    <TableCell className="align-middle">
+                      <Skeleton className="h-4 w-48" />
+                    </TableCell>
+                    <TableCell className="align-middle">
+                      <Skeleton className="h-4 w-20" />
+                    </TableCell>
+                    <TableCell className="align-middle">
+                      <Skeleton className="h-4 w-32" />
+                    </TableCell>
+                    <TableCell className="align-middle">
+                      <Skeleton className="h-4 w-24" />
+                    </TableCell>
+                    <TableCell className="align-middle">
+                      <Skeleton className="h-4 w-24" />
+                    </TableCell>
+                  </TableRow>
+                ))
+              ) : !providerOfUser?.data?.data ? (
                 <TableRow>
                   <TableCell
                     colSpan={6}
                     className="text-center text-red-500 py-6"
                   >
-                    {error}
+                    No providers found
                   </TableCell>
                 </TableRow>
               ) : (
-                providerOfUser.map((provider, index) => (
-                  <TableRow
-                    key={provider.id}
-                    className={`cursor-pointer transition-colors rounded-xl ${
-                      index % 2 === 0 ? 'bg-white' : 'bg-gray-50'
-                    } hover:bg-primary/5`}
-                  >
-                    <TableCell className="font-medium text-center align-middle">
-                      {index + 1}
-                    </TableCell>
-                    <TableCell className="font-medium break-all max-w-[200px] truncate align-middle">
-                      {provider.id}
-                    </TableCell>
-                    <TableCell className="font-medium capitalize align-middle">
-                      {provider.provider}
-                    </TableCell>
-                    <TableCell className="font-medium max-w-[180px] break-all truncate line-clamp-1 align-middle">
-                      <span title={provider.api_token}>
-                        {provider.api_token}
-                      </span>
-                    </TableCell>
-                    <TableCell className="font-medium whitespace-nowrap align-middle">
-                      {formatDate(provider.created_at)}
-                    </TableCell>
-                    <TableCell className="font-medium whitespace-nowrap align-middle">
-                      {formatDate(provider.updated_at)}
-                    </TableCell>
-                  </TableRow>
-                ))
+                providerOfUser.data.data.map(
+                  (provider: ProviderOfUserType, index: number) => (
+                    <TableRow
+                      key={provider.id}
+                      className={`cursor-pointer transition-colors rounded-xl ${
+                        index % 2 === 0 ? 'bg-white' : 'bg-gray-50'
+                      } hover:bg-primary/5`}
+                    >
+                      <TableCell className="font-medium text-center align-middle">
+                        {index + 1}
+                      </TableCell>
+                      <TableCell className="font-medium break-all max-w-[200px] truncate align-middle">
+                        {provider.id}
+                      </TableCell>
+                      <TableCell className="font-medium capitalize align-middle">
+                        {provider.provider}
+                      </TableCell>
+                      <TableCell className="font-medium max-w-[180px] break-all truncate line-clamp-1 align-middle">
+                        <span title={provider.api_token}>
+                          {provider.api_token}
+                        </span>
+                      </TableCell>
+                      <TableCell className="font-medium whitespace-nowrap align-middle">
+                        {formatDate(provider.created_at)}
+                      </TableCell>
+                      <TableCell className="font-medium whitespace-nowrap align-middle">
+                        {formatDate(provider.updated_at)}
+                      </TableCell>
+                    </TableRow>
+                  ),
+                )
               )}
             </TableBody>
           </Table>

@@ -1,33 +1,12 @@
 // import { authOptions } from '@/app/api/auth/[...nextauth]/route';
-import { authOptions } from '@/app/api/auth/[...nextauth]/option';
-import axiosInstance from '@/lib/axios-instance';
-import {
-  CreateChatBodyType,
-  CreateChatResType,
-  GetChatListResType,
-} from '@/types/chat';
-import { getServerSession } from 'next-auth';
+import chatApiRequest from '@/api-requests/chat';
+import { CreateChatBodyType } from '@/types/chat';
 import { NextResponse } from 'next/server';
 
 export async function POST(req: Request) {
-  const session = await getServerSession(authOptions);
-
-  if (!session?.accessToken) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-  }
-
   try {
     const body: CreateChatBodyType = await req.json();
-
-    const response = await axiosInstance.post<CreateChatResType>(
-      '/chat',
-      body,
-      {
-        headers: {
-          Authorization: `Bearer ${session.accessToken}`,
-        },
-      },
-    );
+    const response = await chatApiRequest.add(body);
 
     return NextResponse.json(response.data);
   } catch (error) {
@@ -40,17 +19,8 @@ export async function POST(req: Request) {
 }
 
 export async function GET() {
-  const session = await getServerSession(authOptions);
-  if (!session?.accessToken) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-  }
-
   try {
-    const response = await axiosInstance.get<GetChatListResType>(`/chat`, {
-      headers: {
-        Authorization: `Bearer ${session.accessToken}`,
-      },
-    });
+    const response = await chatApiRequest.list();
 
     return NextResponse.json(response.data);
   } catch (error) {

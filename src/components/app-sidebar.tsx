@@ -15,7 +15,7 @@ import {
   SidebarMenuItem,
   useSidebar,
 } from '@/components/ui/sidebar';
-import { useAuthGuard } from '@/hooks/useAuthGuard';
+import { useSession } from 'next-auth/react';
 import Image from 'next/image';
 import Link from 'next/link';
 
@@ -40,8 +40,7 @@ const items = [
 
 export function AppSidebar() {
   const { toggleSidebar } = useSidebar();
-  const { session } = useAuthGuard();
-
+  const { data: session } = useSession();
   // Get user data directly from session
   const user = session?.user;
 
