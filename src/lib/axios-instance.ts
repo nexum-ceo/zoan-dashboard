@@ -2,7 +2,7 @@
 import { authOptions } from '@/app/api/auth/[...nextauth]/option';
 import axios from 'axios';
 import { getServerSession } from 'next-auth';
-import { redirect } from 'next/navigation';
+import { signOut } from 'next-auth/react';
 import { HttpError, type ApiResponse } from './utils';
 
 const baseURL =
@@ -25,9 +25,6 @@ axiosInstance.interceptors.request.use(
     const isServer = typeof window === 'undefined';
 
     if (isServer) {
-      // const cookieStore = await cookies();
-      // const authCookie = cookieStore.get('auth-token');
-      // token = authCookie?.value;
       const session = await getServerSession(authOptions);
       token = session?.accessToken;
     } else {
@@ -58,12 +55,9 @@ axiosInstance.interceptors.response.use(
     if (error.response?.status === 401) {
       const isServer = typeof window === 'undefined';
 
+      // If unauthenticated, sign out for client-side
       if (!isServer) {
-        // Client-side: redirect using window.location
-        window.location.href = '/';
-        return Promise.reject(error);
-      } else {
-        redirect('/');
+        signOut();
       }
     }
 

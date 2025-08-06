@@ -15,9 +15,8 @@ import {
 import { useEffect, useState } from 'react';
 
 import { TUser } from '@/const/types';
-import { useAuthGuard } from '@/hooks/useAuthGuard';
 import { Menu } from 'lucide-react';
-import { signIn } from 'next-auth/react';
+import { signIn, useSession } from 'next-auth/react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
@@ -49,26 +48,14 @@ const routeList: RouteProps[] = [
 
 export default function AppNavbar() {
   const [isOpen, setIsOpen] = useState<boolean>(false);
-  const [user, setUser] = useState<TUser | null>(null);
   const router = useRouter();
-  const { session, handleFetchError } = useAuthGuard();
-
+  const { data: session } = useSession();
+  const [user, setUser] = useState<TUser | null>(null);
   useEffect(() => {
-    const fetchUser = async () => {
-      try {
-        const response = await fetch('/api/user');
-        const isLoggedOut = await handleFetchError(response);
-        if (isLoggedOut) return;
-
-        const data = await response.json();
-        setUser(data.data);
-      } catch {
-        setUser(null);
-      }
-    };
-
-    fetchUser();
-  }, [handleFetchError]);
+    if (session) {
+      setUser(session.user as TUser);
+    }
+  }, [session]);
 
   const openLoginPopup = () => {
     const popup = window.open(
@@ -188,7 +175,7 @@ export default function AppNavbar() {
           </nav>
 
           <div className="hidden md:flex gap-2">
-            {user && session ? (
+            {user ? (
               <div className="flex items-center gap-2 border rounded-md px-4 py-2">
                 <div className="text-sm">{user.email}</div>
               </div>
