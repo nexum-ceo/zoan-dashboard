@@ -12,9 +12,8 @@ import {
   SheetTitle,
   SheetTrigger,
 } from '@/components/ui/sheet';
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 
-import { TUser } from '@/const/types';
 import { Menu } from 'lucide-react';
 import { signIn, useSession } from 'next-auth/react';
 import Image from 'next/image';
@@ -50,12 +49,7 @@ export default function AppNavbar() {
   const [isOpen, setIsOpen] = useState<boolean>(false);
   const router = useRouter();
   const { data: session } = useSession();
-  const [user, setUser] = useState<TUser | null>(null);
-  useEffect(() => {
-    if (session) {
-      setUser(session.user as TUser);
-    }
-  }, [session]);
+  const user = session?.user;
 
   const openLoginPopup = () => {
     const popup = window.open(
