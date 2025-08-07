@@ -48,10 +48,6 @@ export const ChatSettings: FC<ChatSettingsProps> = ({ isOpen, onClose }) => {
   const [intentDetection, setIntentDetection] = useState<boolean>(false);
   const [agentSwitching, setAgentSwitching] = useState<boolean>(true);
 
-  const handleAgentChange = (agentId: string) => {
-    setSelectedAgentId(agentId);
-  };
-
   if (!isOpen) return null;
 
   return (
@@ -84,7 +80,7 @@ export const ChatSettings: FC<ChatSettingsProps> = ({ isOpen, onClose }) => {
           </p>
           <Select
             value={selectedAgentId}
-            onValueChange={handleAgentChange}
+            onValueChange={(value) => setSelectedAgentId(value)}
             disabled={agentLoading}
           >
             <SelectTrigger>
