@@ -79,7 +79,6 @@ const renderSidebarContent = (pathname: string) => {
     );
   }
 
-  // Default empty content
   return (
     <div className="px-3 py-4 text-center text-gray-500 text-sm">
       Select a section
