@@ -69,7 +69,25 @@ export function useChat({
         wsRef.current.close();
       }
 
-      wsRef.current = new WebSocket(wsUrl);
+      try {
+        wsRef.current = new WebSocket(wsUrl);
+      } catch (error) {
+        console.error(
+          '[WS] Failed to create WebSocket during reconnect:',
+          error,
+        );
+        isReconnectingRef.current = false;
+        setMessages((prev) => [
+          ...prev,
+          {
+            id: Date.now().toString() + '-error',
+            role: ChatRole.ASSISTANT,
+            content:
+              '⚠️ Agent is experiencing an error. Please check your connection and try again.',
+          },
+        ]);
+        return;
+      }
 
       wsRef.current.onopen = () => {
         setWsConnected(true);
@@ -97,8 +115,137 @@ export function useChat({
 
       wsRef.current.onmessage = (event) => {
         const chunk = (() => {
+          const rawData = String(event.data);
+
+          // Check if it's JSON by looking for JSON indicators
+          if (rawData.trim().startsWith('{') && rawData.trim().endsWith('}')) {
+            try {
+              const data = JSON.parse(rawData);
+
+              if (
+                data &&
+                data.type &&
+                (data.type === 'completion' ||
+                  data.type === 'system' ||
+                  data.type === 'metadata' ||
+                  data.type === 'status' ||
+                  data.type === 'error')
+              ) {
+                console.log('[WS] Filtered system message:', data);
+                return null;
+              }
+
+              if (data && data.role && data.content !== undefined) {
+                return String(data.content);
+              }
+
+              // If JSON but doesn't match expected structure, return raw
+              return rawData;
+            } catch (err) {
+              // JSON-like but invalid, return raw data
+              console.warn('[WS] Invalid JSON structure, err:', err);
+              return rawData;
+            }
+          }
+
+          // For streaming text chunks (most common case)
+          return rawData;
+        })();
+
+        if (!chunk) return;
+
+        try {
+          setMessages((prev) => {
+            if (
+              prev.length > 0 &&
+              prev[prev.length - 1].role === ChatRole.ASSISTANT
+            ) {
+              const updated = [...prev];
+              updated[updated.length - 1] = {
+                ...updated[updated.length - 1],
+                content: String(updated[updated.length - 1].content) + chunk,
+              };
+              return updated;
+            } else {
+              return [
+                ...prev,
+                {
+                  id: Date.now().toString() + '-ws',
+                  role: ChatRole.ASSISTANT,
+                  content: chunk,
+                },
+              ];
+            }
+          });
+        } catch (error) {
+          console.error('[WS] Error updating messages:', error);
+          // Add error message to chat
+          setMessages((prev) => [
+            ...prev,
+            {
+              id: Date.now().toString() + '-error',
+              role: ChatRole.ASSISTANT,
+              content:
+                '⚠️ Agent is experiencing an error. Please try refreshing the page.',
+            },
+          ]);
+        }
+      };
+    } else if (wsConnected) {
+      console.log('[WS] Already connected, no need to reconnect');
+    } else if (timeSinceLastActive <= INACTIVE_THRESHOLD) {
+      console.log('[WS] User was not inactive long enough, skipping reconnect');
+    }
+
+    // Update last active time
+    lastActiveTimeRef.current = now;
+  }, [wsConnected, wsUrl]);
+
+  // Initial connection - only create once when component mounts
+  useEffect(() => {
+    if (!wsUrl) return;
+
+    console.log('[WS] Initial connection to:', wsUrl);
+
+    try {
+      wsRef.current = new WebSocket(wsUrl);
+    } catch (error) {
+      console.error('[WS] Failed to create WebSocket:', error);
+      setMessages((prev) => [
+        ...prev,
+        {
+          id: Date.now().toString() + '-error',
+          role: ChatRole.ASSISTANT,
+          content:
+            '⚠️ Agent is experiencing an error. Please check your connection and try again.',
+        },
+      ]);
+      return;
+    }
+
+    wsRef.current.onopen = () => {
+      setWsConnected(true);
+      console.log('[WS] Initial connection successful');
+    };
+
+    wsRef.current.onclose = (event) => {
+      setWsConnected(false);
+      console.log('[WS] Initial connection closed:', event.code, event.reason);
+    };
+
+    wsRef.current.onerror = (err) => {
+      setWsConnected(false);
+      console.error('[WS] Initial connection error:', err);
+    };
+
+    wsRef.current.onmessage = (event) => {
+      const chunk = (() => {
+        const rawData = String(event.data);
+
+        // Check if it's JSON by looking for JSON indicators
+        if (rawData.trim().startsWith('{') && rawData.trim().endsWith('}')) {
           try {
-            const data = JSON.parse(event.data);
+            const data = JSON.parse(rawData);
 
             if (
               data &&
@@ -116,14 +263,23 @@ export function useChat({
             if (data && data.role && data.content !== undefined) {
               return String(data.content);
             }
-          } catch (error) {
-            console.warn('[WS] Failed to parse JSON, using raw data:', error);
+
+            // If JSON but doesn't match expected structure, return raw
+            return rawData;
+          } catch (err) {
+            // JSON-like but invalid, return raw data
+            console.warn('[WS] Invalid JSON structure, err: ', err);
+            return rawData;
           }
-          return String(event.data);
-        })();
+        }
 
-        if (!chunk) return;
+        // For streaming text chunks (most common case)
+        return rawData;
+      })();
 
+      if (!chunk) return;
+
+      try {
         setMessages((prev) => {
           if (
             prev.length > 0 &&
@@ -146,90 +302,19 @@ export function useChat({
             ];
           }
         });
-      };
-    } else if (wsConnected) {
-      console.log('[WS] Already connected, no need to reconnect');
-    } else if (timeSinceLastActive <= INACTIVE_THRESHOLD) {
-      console.log('[WS] User was not inactive long enough, skipping reconnect');
-    }
-
-    // Update last active time
-    lastActiveTimeRef.current = now;
-  }, [wsConnected, wsUrl]);
-
-  // Initial connection - only create once when component mounts
-  useEffect(() => {
-    if (!wsUrl) return;
-
-    console.log('[WS] Initial connection to:', wsUrl);
-    wsRef.current = new WebSocket(wsUrl);
-
-    wsRef.current.onopen = () => {
-      setWsConnected(true);
-      console.log('[WS] Initial connection successful');
-    };
-
-    wsRef.current.onclose = (event) => {
-      setWsConnected(false);
-      console.log('[WS] Initial connection closed:', event.code, event.reason);
-    };
-
-    wsRef.current.onerror = (err) => {
-      setWsConnected(false);
-      console.error('[WS] Initial connection error:', err);
-    };
-
-    wsRef.current.onmessage = (event) => {
-      const chunk = (() => {
-        try {
-          const data = JSON.parse(event.data);
-
-          if (
-            data &&
-            data.type &&
-            (data.type === 'completion' ||
-              data.type === 'system' ||
-              data.type === 'metadata' ||
-              data.type === 'status' ||
-              data.type === 'error')
-          ) {
-            console.log('[WS] Filtered system message:', data);
-            return null;
-          }
-
-          if (data && data.role && data.content !== undefined) {
-            return String(data.content);
-          }
-        } catch (error) {
-          console.warn('[WS] Failed to parse JSON, using raw data:', error);
-        }
-        return String(event.data);
-      })();
-
-      if (!chunk) return;
-
-      setMessages((prev) => {
-        if (
-          prev.length > 0 &&
-          prev[prev.length - 1].role === ChatRole.ASSISTANT
-        ) {
-          const updated = [...prev];
-          updated[updated.length - 1] = {
-            ...updated[updated.length - 1],
-            content: String(updated[updated.length - 1].content) + chunk,
-          };
-          return updated;
-        } else {
-          return [
-            ...prev,
-            {
-              id: Date.now().toString() + '-ws',
-              role: ChatRole.ASSISTANT,
-              content: chunk,
-            },
-          ];
-        }
-      });
+      } catch (error) {
+        console.error('[WS] Error updating messages:', error);
+        // Add error message to chat
+        setMessages((prev) => [
+          ...prev,
+          {
+            id: Date.now().toString() + '-error',
+            role: ChatRole.ASSISTANT,
+            content:
+              '⚠️ Agent is experiencing an error. Please try refreshing the page.',
+          },
+        ]);
+      }
     };
 
     return () => {
