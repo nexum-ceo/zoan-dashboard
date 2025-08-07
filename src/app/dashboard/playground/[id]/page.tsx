@@ -1,7 +1,7 @@
 'use client';
 import { ChatInput } from '@/app/dashboard/playground/component/ChatInput';
 import { ChatMessage } from '@/app/dashboard/playground/component/ChatMessage';
-import { ChatSettings } from '@/app/dashboard/playground/component/ChatSettings';
+import { ChatSettings } from '@/app/dashboard/playground/component/chat-setting';
 
 import { NavUser } from '@/components/nav-user';
 import { Button } from '@/components/ui/button';
@@ -48,7 +48,6 @@ export default function PlaygroundChatPage() {
   const messagesContainerRef = useRef<HTMLDivElement>(null);
   const [showScrollButton, setShowScrollButton] = useState<boolean>(false);
   const [settingsOpen, setSettingsOpen] = useState<boolean>(true);
-
   // Get agent list to display selected agent info
   const { data: agentData } = useGetAgentList();
   const agents = agentData?.data.data || [];
@@ -243,11 +242,7 @@ export default function PlaygroundChatPage() {
 
       {/* Assistant Selection */}
       <div className="flex-1 px-3 py-2 border-t border-gray-100">
-        <SelectAssistant
-          value={selectedAgentId}
-          onAgentChange={setSelectedAgentId}
-          activeChatId={params.id as string}
-        />
+        <SelectAssistant activeChatId={params.id as string} />
       </div>
 
       {/* User Info */}

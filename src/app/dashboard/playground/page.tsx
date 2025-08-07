@@ -1,7 +1,7 @@
 'use client';
 import { ChatInput } from '@/app/dashboard/playground/component/ChatInput';
 import { ChatMessage } from '@/app/dashboard/playground/component/ChatMessage';
-import { ChatSettings } from '@/app/dashboard/playground/component/ChatSettings';
+import { ChatSettings } from '@/app/dashboard/playground/component/chat-setting';
 import { Button } from '@/components/ui/button';
 import { useAgent } from '@/contexts/AgentContext';
 import { useChat } from '@/hooks/useChat';
