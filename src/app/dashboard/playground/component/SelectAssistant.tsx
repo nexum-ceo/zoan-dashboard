@@ -1,54 +1,20 @@
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-} from '@/components/ui/select';
 import { Skeleton } from '@/components/ui/skeleton';
-import { useGetAgentList } from '@/queries/useAgent';
 import { useChatList } from '@/queries/useChat';
-import { AgentType } from '@/types/agent';
 import { usePathname, useRouter } from 'next/navigation';
-import { FC, useEffect, useState } from 'react';
+import { FC } from 'react';
 
 type SelectAssistantProps = {
-  onAgentChange?: (agentId: string) => void;
-  value?: string;
   activeChatId?: string;
 };
 
-const SelectAssistant: FC<SelectAssistantProps> = ({
-  onAgentChange,
-  value,
-  activeChatId,
-}) => {
+const SelectAssistant: FC<SelectAssistantProps> = ({ activeChatId }) => {
   const router = useRouter();
   const pathname = usePathname();
-
-  // Agent state
-  const [selectedAgent, setSelectedAgent] = useState<string | undefined>(
-    value !== undefined ? value : undefined,
-  );
-
-  const {
-    data: agentData,
-    isLoading: agentLoading,
-    error: agentError,
-  } = useGetAgentList();
-  const agents = agentData?.data.data || [];
-
   const {
     data: chatData,
     isLoading: chatLoading,
     error: chatError,
   } = useChatList();
-
-  // If has prop value, then controlled, if not then uncontrolled
-  useEffect(() => {
-    if (value !== undefined && value !== selectedAgent) {
-      setSelectedAgent(value);
-    }
-  }, [value, selectedAgent]);
 
   // Process chat data
   const chats = chatData?.data?.chats
@@ -57,69 +23,8 @@ const SelectAssistant: FC<SelectAssistantProps> = ({
       )
     : [];
 
-  const handleAgentChange = (agentId: string) => {
-    setSelectedAgent(agentId);
-    if (onAgentChange) onAgentChange(agentId);
-  };
-
   return (
     <div className="space-y-4">
-      <div>
-        <h3 className="text-sm font-medium text-gray-900 mb-2">Choose Agent</h3>
-        <Select value={selectedAgent} onValueChange={handleAgentChange}>
-          <SelectTrigger className="w-full">
-            {selectedAgent ? (
-              <span className="text-sm">
-                {agents.find((a: AgentType) => a.id === selectedAgent)?.name ||
-                  'Agent'}
-              </span>
-            ) : (
-              <span className="text-sm text-muted-foreground">
-                Choose agent...
-              </span>
-            )}
-          </SelectTrigger>
-          <SelectContent>
-            {agentLoading &&
-              // Skeleton loading for agents
-              Array.from({ length: 3 }).map((_, idx) => (
-                <div key={idx} className="px-3 py-2">
-                  <Skeleton className="h-4 w-32 mb-1" />
-                  <Skeleton className="h-3 w-48" />
-                </div>
-              ))}
-            {agentError && (
-              <div className="px-3 py-2 text-xs text-red-500">
-                {agentError instanceof Error
-                  ? agentError.message
-                  : 'Error fetching agents'}
-              </div>
-            )}
-            {!agentLoading && !agentError && agents.length === 0 && (
-              <div className="px-3 py-2 text-xs text-gray-400">
-                Do not have any agents
-              </div>
-            )}
-            {!agentLoading &&
-              !agentError &&
-              agents.map((agent: AgentType) => (
-                <SelectItem key={agent.id} value={agent.id}>
-                  <div className="w-full">
-                    <div className="font-medium text-sm">
-                      {agent.name || 'Agent'}
-                    </div>
-                    {agent.description && (
-                      <div className="text-xs text-gray-500 truncate max-w-[250px] mt-0.5">
-                        {agent.description}
-                      </div>
-                    )}
-                  </div>
-                </SelectItem>
-              ))}
-          </SelectContent>
-        </Select>
-      </div>
-
       <div className="space-y-2">
         <h4 className="text-sm font-medium text-gray-900">Recent Chats</h4>
         <div className="space-y-1 h-full overflow-y-auto">

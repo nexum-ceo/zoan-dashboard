@@ -5,7 +5,6 @@ import SelectAssistant from '@/app/dashboard/playground/component/SelectAssistan
 import { NavUser } from '@/components/nav-user';
 import { Button } from '@/components/ui/button';
 import { Sidebar, SidebarContent } from '@/components/ui/sidebar';
-import { useAgent } from '@/contexts/AgentContext';
 import { IconBuildingCommunity } from '@tabler/icons-react';
 import { useSession } from 'next-auth/react';
 import Image from 'next/image';
@@ -40,12 +39,58 @@ const navigationItems = [
   },
 ];
 
+// Function to render dynamic sidebar content based on current route
+const renderSidebarContent = (pathname: string) => {
+  if (pathname.startsWith('/dashboard/playground')) {
+    return (
+      <div className="px-3 py-2">
+        <SelectAssistant activeChatId="" />
+      </div>
+    );
+  }
+
+  if (pathname.startsWith('/dashboard/assistant')) {
+    return (
+      <div className="px-3 py-4 text-center text-gray-500 text-sm">
+        Assistant management context
+        <br />
+        <span className="text-xs">(Coming soon)</span>
+      </div>
+    );
+  }
+
+  if (pathname.startsWith('/dashboard/community')) {
+    return (
+      <div className="px-3 py-4 text-center text-gray-500 text-sm">
+        Community context
+        <br />
+        <span className="text-xs">(Coming soon)</span>
+      </div>
+    );
+  }
+
+  if (pathname.startsWith('/dashboard/setting')) {
+    return (
+      <div className="px-3 py-4 text-center text-gray-500 text-sm">
+        Settings context
+        <br />
+        <span className="text-xs">(Coming soon)</span>
+      </div>
+    );
+  }
+
+  // Default empty content
+  return (
+    <div className="px-3 py-4 text-center text-gray-500 text-sm">
+      Select a section
+    </div>
+  );
+};
+
 export function AppSidebar() {
   const { data: session } = useSession();
   const router = useRouter();
   const pathname = usePathname();
-  const { selectedAgentId, setSelectedAgentId } = useAgent();
-  // Get user data directly from session
   const user = session?.user;
 
   return (
@@ -107,13 +152,9 @@ export function AppSidebar() {
             </div>
           </div>
 
-          {/* Assistant Selection */}
-          <div className="flex-1 px-3 py-2 border-t border-gray-100">
-            <SelectAssistant
-              value={selectedAgentId}
-              onAgentChange={setSelectedAgentId}
-              activeChatId=""
-            />
+          {/* Dynamic Content Based on Active Tab */}
+          <div className="flex-1 border-t border-gray-100">
+            {renderSidebarContent(pathname)}
           </div>
 
           {/* User Info */}
