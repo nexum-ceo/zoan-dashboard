@@ -1,6 +1,7 @@
 'use client';
 import { ChatInput } from '@/app/dashboard/playground/component/ChatInput';
 import { ChatMessage } from '@/app/dashboard/playground/component/ChatMessage';
+import { ChatSettings } from '@/app/dashboard/playground/component/ChatSettings';
 
 import { NavUser } from '@/components/nav-user';
 import { Button } from '@/components/ui/button';
@@ -45,6 +46,7 @@ export default function PlaygroundChatPage() {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const messagesContainerRef = useRef<HTMLDivElement>(null);
   const [showScrollButton, setShowScrollButton] = useState<boolean>(false);
+  const [settingsOpen, setSettingsOpen] = useState<boolean>(true);
 
   // Get the first message from localStorage if it exists
   const [pendingMsg, setPendingMsg] = useState<string>(() => {
@@ -293,7 +295,12 @@ export default function PlaygroundChatPage() {
                 <p className="text-xs text-gray-500">Primary Agent</p>
               </div>
             </div>
-            <Button variant="ghost" size="icon">
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => setSettingsOpen(!settingsOpen)}
+              className={settingsOpen ? 'bg-gray-100' : ''}
+            >
               <Settings className="w-4 h-4 text-gray-500" />
             </Button>
           </div>
@@ -368,6 +375,12 @@ export default function PlaygroundChatPage() {
           />
         </div>
       </div>
+
+      {/* Chat Settings Panel */}
+      <ChatSettings
+        isOpen={settingsOpen}
+        onClose={() => setSettingsOpen(false)}
+      />
     </div>
   );
 }
