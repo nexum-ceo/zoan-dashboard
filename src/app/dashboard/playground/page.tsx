@@ -2,13 +2,14 @@
 import { ChatInput } from '@/app/dashboard/playground/component/ChatInput';
 import { ChatMessage } from '@/app/dashboard/playground/component/ChatMessage';
 import { ChatSettings } from '@/app/dashboard/playground/component/chat-setting';
+import { Explore } from '@/app/dashboard/playground/component/explore';
 import { Button } from '@/components/ui/button';
 import { useAgent } from '@/contexts/AgentContext';
 import { useChat } from '@/hooks/useChat';
 import { handleErrorApi } from '@/lib/utils';
 import { useGetAgentList } from '@/queries/useAgent';
 import { useCreateChatMutation } from '@/queries/useChat';
-import { ArrowDown, MessageSquare, Settings } from 'lucide-react';
+import { ArrowDown, Gamepad2, MessageSquare, Settings } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { FormEvent, useCallback, useEffect, useRef, useState } from 'react';
 
@@ -17,6 +18,7 @@ export default function PlaygroundPage() {
   const messagesContainerRef = useRef<HTMLDivElement>(null);
   const [showScrollButton, setShowScrollButton] = useState<boolean>(false);
   const [settingsOpen, setSettingsOpen] = useState<boolean>(true);
+  const [exploreOpen, setExploreOpen] = useState<boolean>(false);
   const { selectedAgentId } = useAgent();
 
   // Get agent list to display selected agent info
@@ -108,14 +110,24 @@ export default function PlaygroundPage() {
                 </p>
               </div>
             </div>
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={() => setSettingsOpen(!settingsOpen)}
-              className={settingsOpen ? 'bg-gray-100' : ''}
-            >
-              <Settings className="w-4 h-4 text-gray-500" />
-            </Button>
+            <div className="flex gap-1">
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => setExploreOpen(!exploreOpen)}
+                className={exploreOpen ? 'bg-gray-100' : ''}
+              >
+                <Gamepad2 className="w-4 h-4 text-gray-500" />
+              </Button>
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => setSettingsOpen(!settingsOpen)}
+                className={settingsOpen ? 'bg-gray-100' : ''}
+              >
+                <Settings className="w-4 h-4 text-gray-500" />
+              </Button>
+            </div>
           </div>
         </div>
         {/* Messages */}
@@ -181,6 +193,9 @@ export default function PlaygroundPage() {
         isOpen={settingsOpen}
         onClose={() => setSettingsOpen(false)}
       />
+
+      {/* Explore Panel */}
+      <Explore isOpen={exploreOpen} onClose={() => setExploreOpen(false)} />
     </div>
   );
 }

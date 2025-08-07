@@ -24,14 +24,14 @@ import {
   X,
   Zap,
 } from 'lucide-react';
-import { useState } from 'react';
+import { FC, useState } from 'react';
 
-interface ChatSettingsProps {
+type ChatSettingsProps = {
   isOpen: boolean;
   onClose: () => void;
-}
+};
 
-export function ChatSettings({ isOpen, onClose }: ChatSettingsProps) {
+export const ChatSettings: FC<ChatSettingsProps> = ({ isOpen, onClose }) => {
   const { data: agentData, isLoading: agentLoading } = useGetAgentList();
   const agents = agentData?.data.data || [];
 
@@ -345,4 +345,4 @@ export function ChatSettings({ isOpen, onClose }: ChatSettingsProps) {
       </div>
     </div>
   );
-}
+};

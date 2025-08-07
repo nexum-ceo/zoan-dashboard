@@ -2,6 +2,7 @@
 import { ChatInput } from '@/app/dashboard/playground/component/ChatInput';
 import { ChatMessage } from '@/app/dashboard/playground/component/ChatMessage';
 import { ChatSettings } from '@/app/dashboard/playground/component/chat-setting';
+import { Explore } from '@/app/dashboard/playground/component/explore';
 
 import { NavUser } from '@/components/nav-user';
 import { Button } from '@/components/ui/button';
@@ -19,6 +20,7 @@ import {
 import {
   ArrowDown,
   Bot,
+  Gamepad2,
   Menu,
   MessageSquare,
   Plus,
@@ -48,6 +50,7 @@ export default function PlaygroundChatPage() {
   const messagesContainerRef = useRef<HTMLDivElement>(null);
   const [showScrollButton, setShowScrollButton] = useState<boolean>(false);
   const [settingsOpen, setSettingsOpen] = useState<boolean>(true);
+  const [exploreOpen, setExploreOpen] = useState<boolean>(false);
   // Get agent list to display selected agent info
   const { data: agentData } = useGetAgentList();
   const agents = agentData?.data.data || [];
@@ -298,14 +301,24 @@ export default function PlaygroundChatPage() {
                 </p>
               </div>
             </div>
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={() => setSettingsOpen(!settingsOpen)}
-              className={settingsOpen ? 'bg-gray-100' : ''}
-            >
-              <Settings className="w-4 h-4 text-gray-500" />
-            </Button>
+            <div className="flex gap-1">
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => setExploreOpen(!exploreOpen)}
+                className={exploreOpen ? 'bg-gray-100' : ''}
+              >
+                <Gamepad2 className="w-4 h-4 text-gray-500" />
+              </Button>
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => setSettingsOpen(!settingsOpen)}
+                className={settingsOpen ? 'bg-gray-100' : ''}
+              >
+                <Settings className="w-4 h-4 text-gray-500" />
+              </Button>
+            </div>
           </div>
         </div>
 
@@ -384,6 +397,9 @@ export default function PlaygroundChatPage() {
         isOpen={settingsOpen}
         onClose={() => setSettingsOpen(false)}
       />
+
+      {/* Explore Panel */}
+      <Explore isOpen={exploreOpen} onClose={() => setExploreOpen(false)} />
     </div>
   );
 }
