@@ -1,24 +1,34 @@
 'use client';
 import { ChatInput } from '@/app/dashboard/playground/component/ChatInput';
 import { ChatMessage } from '@/app/dashboard/playground/component/ChatMessage';
+import { ChatSettings } from '@/app/dashboard/playground/component/chat-setting';
+import { Explore } from '@/app/dashboard/playground/component/explore';
 import { Button } from '@/components/ui/button';
+import { useAgent } from '@/contexts/AgentContext';
 import { useChat } from '@/hooks/useChat';
 import { handleErrorApi } from '@/lib/utils';
+import { useGetAgentList } from '@/queries/useAgent';
 import { useCreateChatMutation } from '@/queries/useChat';
-import { ArrowDown, MessageSquare, Plus, Sparkles } from 'lucide-react';
+import { ArrowDown, Gamepad2, MessageSquare, Settings } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { FormEvent, useCallback, useEffect, useRef, useState } from 'react';
-import SelectAssistant from './component/SelectAssistant';
 
 export default function PlaygroundPage() {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const messagesContainerRef = useRef<HTMLDivElement>(null);
   const [showScrollButton, setShowScrollButton] = useState<boolean>(false);
-  const [agentId, setAgentId] = useState<string | undefined>(undefined);
+  const [settingsOpen, setSettingsOpen] = useState<boolean>(true);
+  const [exploreOpen, setExploreOpen] = useState<boolean>(false);
+  const { selectedAgentId } = useAgent();
+
+  // Get agent list to display selected agent info
+  const { data: agentData } = useGetAgentList();
+  const agents = agentData?.data.data || [];
+  const selectedAgent = agents.find((agent) => agent.id === selectedAgentId);
 
   const { messages, handleSubmit, isLoading } = useChat({
     initialMessages: [],
-    agentId: agentId || '',
+    agentId: selectedAgentId || '',
     chatId: '',
   });
 
@@ -50,7 +60,7 @@ export default function PlaygroundPage() {
 
   const handleFirstSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    if (!agentId) {
+    if (!selectedAgentId) {
       handleErrorApi({
         error: new Error('Please select an agent before starting a chat.'),
       });
@@ -60,7 +70,7 @@ export default function PlaygroundPage() {
 
     createChatMutation.mutate(
       {
-        agent_id: agentId,
+        agent_id: selectedAgentId,
         title: pendingMessage,
       },
       {
@@ -82,32 +92,44 @@ export default function PlaygroundPage() {
 
   return (
     <div className="w-full h-full bg-gradient-to-br from-gray-50 to-gray-100 flex">
-      {/* Sidebar */}
-      <div className="w-80 bg-white border-r border-gray-200 flex flex-col shadow-sm ">
-        <div className="p-6 border-b border-gray-100">
-          <div className="flex items-center gap-3 mb-4">
-            <div className="w-8 h-8  rounded-lg flex items-center justify-center">
-              <Sparkles className="w-4 h-4 text-white" />
-            </div>
-            <h1 className="text-xl font-semibold text-gray-900">
-              AI Playground
-            </h1>
-          </div>
-          <Button
-            onClick={() => router.push('/dashboard/playground')}
-            className="w-full border-0 shadow-md hover:shadow-lg transition-all duration-200"
-          >
-            <Plus className="w-4 h-4 mr-2" />
-            New Chat
-          </Button>
-        </div>
-        <div className="flex-1 p-4">
-          <SelectAssistant onAgentChange={setAgentId} />
-        </div>
-      </div>
-
       {/* Main Chat Area */}
       <div className="flex-1 flex flex-col bg-white relative">
+        {/* Header */}
+        <div className="w-full px-6 py-4 border-b border-gray-200 bg-white">
+          <div className="flex items-center justify-between w-full">
+            <div className="flex items-center gap-3">
+              <div className="w-8 h-8 rounded-lg bg-blue-100 flex items-center justify-center">
+                <MessageSquare className="w-4 h-4 text-blue-600" />
+              </div>
+              <div>
+                <h2 className="text-sm font-medium text-gray-900">
+                  {selectedAgent?.name || 'No Agent Selected'}
+                </h2>
+                <p className="text-xs text-gray-500">
+                  {selectedAgent?.description || 'Please select an agent'}
+                </p>
+              </div>
+            </div>
+            <div className="flex gap-1">
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => setExploreOpen(!exploreOpen)}
+                className={exploreOpen ? 'bg-gray-100' : ''}
+              >
+                <Gamepad2 className="w-4 h-4 text-gray-500" />
+              </Button>
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => setSettingsOpen(!settingsOpen)}
+                className={settingsOpen ? 'bg-gray-100' : ''}
+              >
+                <Settings className="w-4 h-4 text-gray-500" />
+              </Button>
+            </div>
+          </div>
+        </div>
         {/* Messages */}
         <div
           ref={messagesContainerRef}
@@ -161,10 +183,19 @@ export default function PlaygroundPage() {
             value={pendingMessage}
             onChange={(e) => setPendingMessage(e.target.value)}
             onSubmit={messages.length === 0 ? handleFirstSubmit : handleSubmit}
-            disabled={createChatMutation.isPending || !agentId}
+            disabled={createChatMutation.isPending || !selectedAgentId}
           />
         </div>
       </div>
+
+      {/* Chat Settings Panel */}
+      <ChatSettings
+        isOpen={settingsOpen}
+        onClose={() => setSettingsOpen(false)}
+      />
+
+      {/* Explore Panel */}
+      <Explore isOpen={exploreOpen} onClose={() => setExploreOpen(false)} />
     </div>
   );
 }
