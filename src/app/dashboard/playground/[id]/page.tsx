@@ -279,6 +279,26 @@ export default function PlaygroundChatPage() {
           </div>
         )}
 
+        {/* Header */}
+        <div className="w-full px-6 py-4 border-b border-gray-200 bg-white">
+          <div className="flex items-center justify-between w-full">
+            <div className="flex items-center gap-3">
+              <div className="w-8 h-8 rounded-lg bg-blue-100 flex items-center justify-center">
+                <MessageSquare className="w-4 h-4 text-blue-600" />
+              </div>
+              <div>
+                <h2 className="text-sm font-medium text-gray-900">
+                  General Assistant
+                </h2>
+                <p className="text-xs text-gray-500">Primary Agent</p>
+              </div>
+            </div>
+            <Button variant="ghost" size="icon">
+              <Settings className="w-4 h-4 text-gray-500" />
+            </Button>
+          </div>
+        </div>
+
         {/* Messages */}
         <div
           ref={messagesContainerRef}

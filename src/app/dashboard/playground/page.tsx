@@ -6,7 +6,7 @@ import { useAgent } from '@/contexts/AgentContext';
 import { useChat } from '@/hooks/useChat';
 import { handleErrorApi } from '@/lib/utils';
 import { useCreateChatMutation } from '@/queries/useChat';
-import { ArrowDown, MessageSquare } from 'lucide-react';
+import { ArrowDown, MessageSquare, Settings } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { FormEvent, useCallback, useEffect, useRef, useState } from 'react';
 
@@ -82,32 +82,27 @@ export default function PlaygroundPage() {
 
   return (
     <div className="w-full h-full bg-gradient-to-br from-gray-50 to-gray-100 flex">
-      {/* Sidebar */}
-      {/* <div className="w-80 bg-white border-r border-gray-200 flex flex-col shadow-sm ">
-        <div className="p-6 border-b border-gray-100">
-          <div className="flex items-center gap-3 mb-4">
-            <div className="w-8 h-8  rounded-lg flex items-center justify-center">
-              <Sparkles className="w-4 h-4 text-white" />
-            </div>
-            <h1 className="text-xl font-semibold text-gray-900">
-              AI Playground
-            </h1>
-          </div>
-          <Button
-            onClick={() => router.push('/dashboard/playground')}
-            className="w-full border-0 shadow-md hover:shadow-lg transition-all duration-200"
-          >
-            <Plus className="w-4 h-4 mr-2" />
-            New Chat
-          </Button>
-        </div>
-        <div className="flex-1 p-4">
-          <SelectAssistant onAgentChange={setAgentId} />
-        </div>
-      </div> */}
-
       {/* Main Chat Area */}
       <div className="flex-1 flex flex-col bg-white relative">
+        {/* Header */}
+        <div className="w-full px-6 py-4 border-b border-gray-200 bg-white">
+          <div className="flex items-center justify-between w-full">
+            <div className="flex items-center gap-3">
+              <div className="w-8 h-8 rounded-lg bg-blue-100 flex items-center justify-center">
+                <MessageSquare className="w-4 h-4 text-blue-600" />
+              </div>
+              <div>
+                <h2 className="text-sm font-medium text-gray-900">
+                  General Assistant
+                </h2>
+                <p className="text-xs text-gray-500">Primary Agent</p>
+              </div>
+            </div>
+            <Button variant="ghost" size="icon">
+              <Settings className="w-4 h-4 text-gray-500" />
+            </Button>
+          </div>
+        </div>
         {/* Messages */}
         <div
           ref={messagesContainerRef}
