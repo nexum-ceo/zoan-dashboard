@@ -96,14 +96,16 @@ export const Explore: FC<ExploreProps> = ({ isOpen, onClose }) => {
                   Play Game
                 </Button>
               </DialogTrigger>
-              <DialogContent className="w-[90vw] h-[95vh] p-0">
+              <DialogContent className="min-w-full h-[95vh] p-0">
                 <div className="w-full h-full p-4">
+                  <div className="h-3"></div>
                   <iframe
                     src="https://minio.buymed.site/builds/truck_town/index.html"
                     className="w-full h-full border-0 rounded"
                     title="Truck Town Game"
                     allowFullScreen
                   />
+                  <div className="h-4"></div>
                 </div>
               </DialogContent>
             </Dialog>
