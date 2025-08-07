@@ -35,7 +35,7 @@ import SelectAssistant from '../component/SelectAssistant';
 export default function PlaygroundChatPage() {
   // Use agent from context
   const { selectedAgentId, setSelectedAgentId } = useAgent();
-  const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [sidebarOpen, setSidebarOpen] = useState<boolean>(false);
   const isMobile = useIsMobile();
   const router = useRouter();
   const pathname = usePathname();

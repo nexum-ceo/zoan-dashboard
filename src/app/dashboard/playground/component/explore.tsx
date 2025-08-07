@@ -17,7 +17,7 @@ type ExploreProps = {
 };
 
 export const Explore: FC<ExploreProps> = ({ isOpen, onClose }) => {
-  const [isGameModalOpen, setIsGameModalOpen] = useState(false);
+  const [isGameModalOpen, setIsGameModalOpen] = useState<boolean>(false);
 
   if (!isOpen) return null;
 

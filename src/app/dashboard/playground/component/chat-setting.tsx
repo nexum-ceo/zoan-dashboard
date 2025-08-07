@@ -38,15 +38,15 @@ export const ChatSettings: FC<ChatSettingsProps> = ({ isOpen, onClose }) => {
   const { selectedAgentId, setSelectedAgentId } = useAgent();
 
   // Chat Parameters State
-  const [creativity, setCreativity] = useState([0.4]);
-  const [responseLength, setResponseLength] = useState([2048]);
-  const [memory, setMemory] = useState([4000]);
+  const [creativity, setCreativity] = useState<number[]>([0.4]);
+  const [responseLength, setResponseLength] = useState<number[]>([2048]);
+  const [memory, setMemory] = useState<number[]>([4000]);
 
   // Preferences State
-  const [autoSave, setAutoSave] = useState(true);
-  const [showTyping, setShowTyping] = useState(true);
-  const [intentDetection, setIntentDetection] = useState(false);
-  const [agentSwitching, setAgentSwitching] = useState(true);
+  const [autoSave, setAutoSave] = useState<boolean>(true);
+  const [showTyping, setShowTyping] = useState<boolean>(true);
+  const [intentDetection, setIntentDetection] = useState<boolean>(false);
+  const [agentSwitching, setAgentSwitching] = useState<boolean>(true);
 
   const handleAgentChange = (agentId: string) => {
     setSelectedAgentId(agentId);
