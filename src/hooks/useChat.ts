@@ -1,6 +1,13 @@
 'use client';
 import { ChatRole } from '@/types/chat';
-import { ChangeEvent, FormEvent, useEffect, useRef, useState } from 'react';
+import {
+  ChangeEvent,
+  FormEvent,
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+} from 'react';
 
 export type ChatMessage = {
   id: string;
@@ -27,27 +34,156 @@ export function useChat({
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const wsRef = useRef<WebSocket | null>(null);
   const [wsConnected, setWsConnected] = useState<boolean>(false);
+  const lastActiveTimeRef = useRef<number>(Date.now());
+  const reconnectTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const isReconnectingRef = useRef<boolean>(false);
 
+  // Function to check and reconnect if needed
+  const checkAndReconnect = useCallback(() => {
+    const now = Date.now();
+    const timeSinceLastActive = now - lastActiveTimeRef.current;
+    const INACTIVE_THRESHOLD = 30000; // 30 seconds
+
+    console.log(`[WS] Time since last active: ${timeSinceLastActive}ms`);
+
+    // Only reconnect if:
+    // 1. User was inactive for more than threshold
+    // 2. WebSocket is not connected
+    // 3. Not already reconnecting
+    if (
+      timeSinceLastActive > INACTIVE_THRESHOLD &&
+      !wsConnected &&
+      !isReconnectingRef.current &&
+      wsUrl
+    ) {
+      console.log('[WS] User was inactive, attempting reconnect...');
+
+      // Inline reconnect logic to avoid dependency issues
+      if (!wsUrl || isReconnectingRef.current) return;
+
+      isReconnectingRef.current = true;
+      console.log('[WS] Creating connection to:', wsUrl);
+
+      // Close existing connection if any
+      if (wsRef.current) {
+        wsRef.current.close();
+      }
+
+      wsRef.current = new WebSocket(wsUrl);
+
+      wsRef.current.onopen = () => {
+        setWsConnected(true);
+        isReconnectingRef.current = false;
+        console.log('[WS] Connected successfully');
+      };
+
+      wsRef.current.onclose = (event) => {
+        setWsConnected(false);
+        isReconnectingRef.current = false;
+        console.log('[WS] Connection closed:', event.code, event.reason);
+
+        if (event.code !== 1000) {
+          console.log(
+            '[WS] Connection lost, will reconnect when user becomes active',
+          );
+        }
+      };
+
+      wsRef.current.onerror = (err) => {
+        setWsConnected(false);
+        isReconnectingRef.current = false;
+        console.error('[WS] Connection error:', err);
+      };
+
+      wsRef.current.onmessage = (event) => {
+        const chunk = (() => {
+          try {
+            const data = JSON.parse(event.data);
+
+            if (
+              data &&
+              data.type &&
+              (data.type === 'completion' ||
+                data.type === 'system' ||
+                data.type === 'metadata' ||
+                data.type === 'status' ||
+                data.type === 'error')
+            ) {
+              console.log('[WS] Filtered system message:', data);
+              return null;
+            }
+
+            if (data && data.role && data.content !== undefined) {
+              return String(data.content);
+            }
+          } catch (error) {
+            console.warn('[WS] Failed to parse JSON, using raw data:', error);
+          }
+          return String(event.data);
+        })();
+
+        if (!chunk) return;
+
+        setMessages((prev) => {
+          if (
+            prev.length > 0 &&
+            prev[prev.length - 1].role === ChatRole.ASSISTANT
+          ) {
+            const updated = [...prev];
+            updated[updated.length - 1] = {
+              ...updated[updated.length - 1],
+              content: String(updated[updated.length - 1].content) + chunk,
+            };
+            return updated;
+          } else {
+            return [
+              ...prev,
+              {
+                id: Date.now().toString() + '-ws',
+                role: ChatRole.ASSISTANT,
+                content: chunk,
+              },
+            ];
+          }
+        });
+      };
+    } else if (wsConnected) {
+      console.log('[WS] Already connected, no need to reconnect');
+    } else if (timeSinceLastActive <= INACTIVE_THRESHOLD) {
+      console.log('[WS] User was not inactive long enough, skipping reconnect');
+    }
+
+    // Update last active time
+    lastActiveTimeRef.current = now;
+  }, [wsConnected, wsUrl]);
+
+  // Initial connection - only create once when component mounts
   useEffect(() => {
-    wsRef.current = new WebSocket(wsUrl || '');
+    if (!wsUrl) return;
+
+    console.log('[WS] Initial connection to:', wsUrl);
+    wsRef.current = new WebSocket(wsUrl);
+
     wsRef.current.onopen = () => {
       setWsConnected(true);
-      console.log('[WS] Connected:', wsUrl);
+      console.log('[WS] Initial connection successful');
     };
+
     wsRef.current.onclose = (event) => {
       setWsConnected(false);
-      console.log('[WS] Closed:', event);
+      console.log('[WS] Initial connection closed:', event.code, event.reason);
     };
+
     wsRef.current.onerror = (err) => {
       setWsConnected(false);
-      console.error('[WS] Error:', err);
+      console.error('[WS] Initial connection error:', err);
     };
+
     wsRef.current.onmessage = (event) => {
       const chunk = (() => {
         try {
           const data = JSON.parse(event.data);
 
-          // Filter out system/metadata/error messages that shouldn't be displayed
           if (
             data &&
             data.type &&
@@ -58,20 +194,18 @@ export function useChat({
               data.type === 'error')
           ) {
             console.log('[WS] Filtered system message:', data);
-            return null; // Don't process these messages
+            return null;
           }
 
           if (data && data.role && data.content !== undefined) {
             return String(data.content);
           }
         } catch (error) {
-          // TODO: handle error
           console.warn('[WS] Failed to parse JSON, using raw data:', error);
         }
         return String(event.data);
       })();
 
-      // Skip processing if chunk is empty or filtered out
       if (!chunk) return;
 
       setMessages((prev) => {
@@ -97,10 +231,63 @@ export function useChat({
         }
       });
     };
+
     return () => {
-      wsRef.current?.close();
+      // Only close connection when component unmounts (page change/component destroy)
+      console.log('[WS] Component unmounting, closing connection');
+
+      // Clear any pending timeouts
+      if (reconnectTimeoutRef.current) {
+        clearTimeout(reconnectTimeoutRef.current);
+        reconnectTimeoutRef.current = null;
+      }
+
+      // Close WebSocket connection
+      if (wsRef.current) {
+        wsRef.current.close(1000); // Normal closure
+        wsRef.current = null;
+      }
     };
   }, [wsUrl]);
+
+  // Handle page visibility change for smart reconnect
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      if (document.hidden) {
+        // Tab became hidden - just update last active time, don't close connection
+        lastActiveTimeRef.current = Date.now();
+      } else {
+        // Tab became visible - check if we need to reconnect after being inactive
+        // Small delay to ensure tab is fully active
+        setTimeout(() => {
+          checkAndReconnect();
+        }, 500);
+      }
+    };
+
+    // Track user activity to update last active time
+    const handleUserActivity = () => {
+      lastActiveTimeRef.current = Date.now();
+    };
+
+    // Add event listeners
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+
+    // Track user activity
+    document.addEventListener('mousedown', handleUserActivity);
+    document.addEventListener('keydown', handleUserActivity);
+    document.addEventListener('scroll', handleUserActivity);
+    document.addEventListener('touchstart', handleUserActivity);
+
+    return () => {
+      // Cleanup event listeners
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+      document.removeEventListener('mousedown', handleUserActivity);
+      document.removeEventListener('keydown', handleUserActivity);
+      document.removeEventListener('scroll', handleUserActivity);
+      document.removeEventListener('touchstart', handleUserActivity);
+    };
+  }, [checkAndReconnect]);
 
   const handleInputChange = (e: ChangeEvent<HTMLTextAreaElement>) => {
     setInput(e.target.value);
