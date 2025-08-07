@@ -1,5 +1,6 @@
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { Dialog, DialogContent, DialogTrigger } from '@/components/ui/dialog';
 import {
   Select,
   SelectContent,
@@ -8,7 +9,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Download, Eye, Play, X } from 'lucide-react';
-import { FC } from 'react';
+import { FC, useState } from 'react';
 
 type ExploreProps = {
   isOpen: boolean;
@@ -16,6 +17,8 @@ type ExploreProps = {
 };
 
 export const Explore: FC<ExploreProps> = ({ isOpen, onClose }) => {
+  const [isGameModalOpen, setIsGameModalOpen] = useState(false);
+
   if (!isOpen) return null;
 
   return (
@@ -86,10 +89,24 @@ export const Explore: FC<ExploreProps> = ({ isOpen, onClose }) => {
 
           {/* Action Buttons */}
           <div className="space-y-3">
-            <Button className="w-full bg-gray-900 hover:bg-gray-800 text-white">
-              <Play className="w-4 h-4 mr-2" />
-              Play Game
-            </Button>
+            <Dialog open={isGameModalOpen} onOpenChange={setIsGameModalOpen}>
+              <DialogTrigger asChild>
+                <Button className="w-full bg-gray-900 hover:bg-gray-800 text-white">
+                  <Play className="w-4 h-4 mr-2" />
+                  Play Game
+                </Button>
+              </DialogTrigger>
+              <DialogContent className="w-[90vw] h-[95vh] p-0">
+                <div className="w-full h-full p-4">
+                  <iframe
+                    src="https://minio.buymed.site/builds/truck_town/index.html"
+                    className="w-full h-full border-0 rounded"
+                    title="Truck Town Game"
+                    allowFullScreen
+                  />
+                </div>
+              </DialogContent>
+            </Dialog>
 
             <div className="flex gap-2">
               <Button variant="outline" className="flex-1">
