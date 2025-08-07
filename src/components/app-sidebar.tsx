@@ -64,7 +64,9 @@ export function AppSidebar() {
                   className="rounded-lg"
                 />
               </div>
-              <h1 className="text-lg font-semibold text-gray-900">Zoan AI</h1>
+              <h1 className="text-lg font-semibold text-gray-900">
+                Zoan Agent
+              </h1>
             </div>
           </div>
 
