@@ -2,23 +2,23 @@
 import { ChatInput } from '@/app/dashboard/playground/component/ChatInput';
 import { ChatMessage } from '@/app/dashboard/playground/component/ChatMessage';
 import { Button } from '@/components/ui/button';
+import { useAgent } from '@/contexts/AgentContext';
 import { useChat } from '@/hooks/useChat';
 import { handleErrorApi } from '@/lib/utils';
 import { useCreateChatMutation } from '@/queries/useChat';
-import { ArrowDown, MessageSquare, Plus, Sparkles } from 'lucide-react';
+import { ArrowDown, MessageSquare } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { FormEvent, useCallback, useEffect, useRef, useState } from 'react';
-import SelectAssistant from './component/SelectAssistant';
 
 export default function PlaygroundPage() {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const messagesContainerRef = useRef<HTMLDivElement>(null);
   const [showScrollButton, setShowScrollButton] = useState<boolean>(false);
-  const [agentId, setAgentId] = useState<string | undefined>(undefined);
+  const { selectedAgentId } = useAgent();
 
   const { messages, handleSubmit, isLoading } = useChat({
     initialMessages: [],
-    agentId: agentId || '',
+    agentId: selectedAgentId || '',
     chatId: '',
   });
 
@@ -50,7 +50,7 @@ export default function PlaygroundPage() {
 
   const handleFirstSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    if (!agentId) {
+    if (!selectedAgentId) {
       handleErrorApi({
         error: new Error('Please select an agent before starting a chat.'),
       });
@@ -60,7 +60,7 @@ export default function PlaygroundPage() {
 
     createChatMutation.mutate(
       {
-        agent_id: agentId,
+        agent_id: selectedAgentId,
         title: pendingMessage,
       },
       {
@@ -83,7 +83,7 @@ export default function PlaygroundPage() {
   return (
     <div className="w-full h-full bg-gradient-to-br from-gray-50 to-gray-100 flex">
       {/* Sidebar */}
-      <div className="w-80 bg-white border-r border-gray-200 flex flex-col shadow-sm ">
+      {/* <div className="w-80 bg-white border-r border-gray-200 flex flex-col shadow-sm ">
         <div className="p-6 border-b border-gray-100">
           <div className="flex items-center gap-3 mb-4">
             <div className="w-8 h-8  rounded-lg flex items-center justify-center">
@@ -104,7 +104,7 @@ export default function PlaygroundPage() {
         <div className="flex-1 p-4">
           <SelectAssistant onAgentChange={setAgentId} />
         </div>
-      </div>
+      </div> */}
 
       {/* Main Chat Area */}
       <div className="flex-1 flex flex-col bg-white relative">
@@ -161,7 +161,7 @@ export default function PlaygroundPage() {
             value={pendingMessage}
             onChange={(e) => setPendingMessage(e.target.value)}
             onSubmit={messages.length === 0 ? handleFirstSubmit : handleSubmit}
-            disabled={createChatMutation.isPending || !agentId}
+            disabled={createChatMutation.isPending || !selectedAgentId}
           />
         </div>
       </div>

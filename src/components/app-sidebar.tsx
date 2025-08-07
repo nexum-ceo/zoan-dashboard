@@ -1,11 +1,14 @@
 'use client';
-import { Bot, Plus, Settings, Sparkles, Users } from 'lucide-react';
+import { Bot, Plus, Settings, Users } from 'lucide-react';
 
 import SelectAssistant from '@/app/dashboard/playground/component/SelectAssistant';
 import { NavUser } from '@/components/nav-user';
 import { Button } from '@/components/ui/button';
 import { Sidebar, SidebarContent } from '@/components/ui/sidebar';
+import { useAgent } from '@/contexts/AgentContext';
+import { IconBuildingCommunity } from '@tabler/icons-react';
 import { useSession } from 'next-auth/react';
+import Image from 'next/image';
 import { usePathname, useRouter } from 'next/navigation';
 
 // Navigation items with dynamic active state
@@ -24,6 +27,12 @@ const navigationItems = [
     isActive: (pathname: string) => pathname.startsWith('/dashboard/assistant'),
   },
   {
+    icon: IconBuildingCommunity,
+    label: 'Community',
+    href: '/dashboard/community',
+    isActive: (pathname: string) => pathname.startsWith('/dashboard/community'),
+  },
+  {
     icon: Settings,
     label: 'Settings',
     href: '/dashboard/setting',
@@ -35,6 +44,7 @@ export function AppSidebar() {
   const { data: session } = useSession();
   const router = useRouter();
   const pathname = usePathname();
+  const { selectedAgentId, setSelectedAgentId } = useAgent();
   // Get user data directly from session
   const user = session?.user;
 
@@ -45,12 +55,16 @@ export function AppSidebar() {
           {/* Header */}
           <div className="p-4 border-b border-gray-100">
             <div className="flex items-center gap-3">
-              <div className="w-8 h-8 rounded-lg bg-black flex items-center justify-center">
-                <Sparkles className="w-4 h-4 text-white" />
+              <div className="w-8 h-8 rounded-lg flex items-center justify-center">
+                <Image
+                  src="/icon.png"
+                  alt="Logo"
+                  width={32}
+                  height={32}
+                  className="rounded-lg"
+                />
               </div>
-              <h1 className="text-lg font-semibold text-gray-900">
-                AI Playground
-              </h1>
+              <h1 className="text-lg font-semibold text-gray-900">Zoan AI</h1>
             </div>
           </div>
 
@@ -94,8 +108,8 @@ export function AppSidebar() {
           {/* Assistant Selection */}
           <div className="flex-1 px-3 py-2 border-t border-gray-100">
             <SelectAssistant
-              value={undefined}
-              onAgentChange={() => {}}
+              value={selectedAgentId}
+              onAgentChange={setSelectedAgentId}
               activeChatId=""
             />
           </div>

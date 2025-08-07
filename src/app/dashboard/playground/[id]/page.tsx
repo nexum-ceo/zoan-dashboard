@@ -6,6 +6,7 @@ import { NavUser } from '@/components/nav-user';
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import { SidebarProvider } from '@/components/ui/sidebar';
+import { useAgent } from '@/contexts/AgentContext';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { useChat } from '@/hooks/useChat';
 import {
@@ -28,8 +29,8 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import SelectAssistant from '../component/SelectAssistant';
 
 export default function PlaygroundChatPage() {
-  // State for selected agent
-  const [agentId, setAgentId] = useState<string | undefined>(undefined);
+  // Use agent from context
+  const { selectedAgentId, setSelectedAgentId } = useAgent();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const isMobile = useIsMobile();
   const router = useRouter();
@@ -71,7 +72,7 @@ export default function PlaygroundChatPage() {
   } = useChat({
     wsUrl: `${process.env.NEXT_PUBLIC_WS_URL}/${chatId}?token=${token}`,
     initialMessages: [],
-    agentId: agentId || '',
+    agentId: selectedAgentId || '',
     chatId: chatId,
   });
 
@@ -85,11 +86,11 @@ export default function PlaygroundChatPage() {
         })
         .then((data) => {
           if (data && data.data && data.data.agent_id) {
-            setAgentId(data.data.agent_id);
+            setSelectedAgentId(data.data.agent_id);
           }
         });
     }
-  }, [chatId]);
+  }, [chatId, setSelectedAgentId]);
 
   // Fetch chat messages detail
   useEffect(() => {
@@ -176,34 +177,6 @@ export default function PlaygroundChatPage() {
     },
   ];
 
-  // Desktop sidebar content (original)
-  const DesktopSidebarContent = () => (
-    <div className="h-full bg-white flex flex-col">
-      <div className="p-6 border-b border-gray-100">
-        <div className="flex items-center gap-3 mb-4">
-          <div className="w-8 h-8 rounded-lg flex items-center justify-center">
-            <Sparkles className="w-4 h-4 text-black" />
-          </div>
-          <h1 className="text-xl font-semibold text-gray-900">AI Playground</h1>
-        </div>
-        <Button
-          onClick={() => router.push('/dashboard/playground')}
-          className="w-full border-0 shadow-md hover:shadow-lg transition-all duration-200"
-        >
-          <Plus className="w-4 h-4 mr-2" />
-          New Chat
-        </Button>
-      </div>
-      <div className="flex-1 p-4">
-        <SelectAssistant
-          value={agentId}
-          onAgentChange={setAgentId}
-          activeChatId={params.id as string}
-        />
-      </div>
-    </div>
-  );
-
   // Mobile sidebar content (with navigation and user info)
   const MobileSidebarContent = () => (
     <div className="h-full bg-white flex flex-col">
@@ -263,8 +236,8 @@ export default function PlaygroundChatPage() {
       {/* Assistant Selection */}
       <div className="flex-1 px-3 py-2 border-t border-gray-100">
         <SelectAssistant
-          value={agentId}
-          onAgentChange={setAgentId}
+          value={selectedAgentId}
+          onAgentChange={setSelectedAgentId}
           activeChatId={params.id as string}
         />
       </div>
@@ -285,13 +258,6 @@ export default function PlaygroundChatPage() {
 
   return (
     <div className="w-full h-full bg-gradient-to-br from-gray-50 to-gray-100 flex">
-      {/* Desktop Sidebar */}
-      {!isMobile && (
-        <div className="w-80 border-r border-gray-200 shadow-sm">
-          <DesktopSidebarContent />
-        </div>
-      )}
-
       {/* Main Chat Area */}
       <div className="flex-1 flex flex-col bg-white relative">
         {/* Mobile Header with Menu Button */}
@@ -318,7 +284,7 @@ export default function PlaygroundChatPage() {
           ref={messagesContainerRef}
           className="flex-1 px-6 py-4 space-y-6 w-full overflow-y-auto h-full"
         >
-          {!agentId ? (
+          {!selectedAgentId ? (
             <div className="flex flex-col items-center justify-center h-full text-center">
               <div className="w-16 h-16 rounded-2xl flex items-center justify-center mb-4">
                 <MessageSquare className="w-8 h-8 text-black" />
@@ -378,7 +344,7 @@ export default function PlaygroundChatPage() {
             value={input}
             onChange={handleInputChange}
             onSubmit={handleSubmit}
-            disabled={!agentId}
+            disabled={!selectedAgentId}
           />
         </div>
       </div>

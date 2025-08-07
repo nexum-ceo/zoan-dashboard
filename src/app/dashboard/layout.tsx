@@ -1,5 +1,6 @@
 import { AppSidebar } from '@/components/app-sidebar';
 import { SidebarInset, SidebarProvider } from '@/components/ui/sidebar';
+import { AgentProvider } from '@/contexts/AgentContext';
 import ZoanBaseLayout from '@/templates/ZoanBaseLayout';
 import type { Metadata } from 'next';
 
@@ -15,10 +16,12 @@ export default function RootLayout({
 }>) {
   return (
     <ZoanBaseLayout>
-      <SidebarProvider>
-        <AppSidebar />
-        <SidebarInset>{children}</SidebarInset>
-      </SidebarProvider>
+      <AgentProvider>
+        <SidebarProvider>
+          <AppSidebar />
+          <SidebarInset>{children}</SidebarInset>
+        </SidebarProvider>
+      </AgentProvider>
     </ZoanBaseLayout>
   );
 }
