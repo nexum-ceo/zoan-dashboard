@@ -10,6 +10,7 @@ import { SidebarProvider } from '@/components/ui/sidebar';
 import { useAgent } from '@/contexts/AgentContext';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { useChat } from '@/hooks/useChat';
+import { useGetAgentList } from '@/queries/useAgent';
 import {
   ChatMessageType,
   ChatRole,
@@ -47,6 +48,11 @@ export default function PlaygroundChatPage() {
   const messagesContainerRef = useRef<HTMLDivElement>(null);
   const [showScrollButton, setShowScrollButton] = useState<boolean>(false);
   const [settingsOpen, setSettingsOpen] = useState<boolean>(true);
+
+  // Get agent list to display selected agent info
+  const { data: agentData } = useGetAgentList();
+  const agents = agentData?.data.data || [];
+  const selectedAgent = agents.find((agent) => agent.id === selectedAgentId);
 
   // Get the first message from localStorage if it exists
   const [pendingMsg, setPendingMsg] = useState<string>(() => {
@@ -290,9 +296,11 @@ export default function PlaygroundChatPage() {
               </div>
               <div>
                 <h2 className="text-sm font-medium text-gray-900">
-                  General Assistant
+                  {selectedAgent?.name || 'No Agent Selected'}
                 </h2>
-                <p className="text-xs text-gray-500">Primary Agent</p>
+                <p className="text-xs text-gray-500">
+                  {selectedAgent?.description || 'Please select an agent'}
+                </p>
               </div>
             </div>
             <Button

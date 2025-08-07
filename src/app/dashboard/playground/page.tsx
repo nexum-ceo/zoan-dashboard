@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { useAgent } from '@/contexts/AgentContext';
 import { useChat } from '@/hooks/useChat';
 import { handleErrorApi } from '@/lib/utils';
+import { useGetAgentList } from '@/queries/useAgent';
 import { useCreateChatMutation } from '@/queries/useChat';
 import { ArrowDown, MessageSquare, Settings } from 'lucide-react';
 import { useRouter } from 'next/navigation';
@@ -17,6 +18,11 @@ export default function PlaygroundPage() {
   const [showScrollButton, setShowScrollButton] = useState<boolean>(false);
   const [settingsOpen, setSettingsOpen] = useState<boolean>(true);
   const { selectedAgentId } = useAgent();
+
+  // Get agent list to display selected agent info
+  const { data: agentData } = useGetAgentList();
+  const agents = agentData?.data.data || [];
+  const selectedAgent = agents.find((agent) => agent.id === selectedAgentId);
 
   const { messages, handleSubmit, isLoading } = useChat({
     initialMessages: [],
@@ -95,9 +101,11 @@ export default function PlaygroundPage() {
               </div>
               <div>
                 <h2 className="text-sm font-medium text-gray-900">
-                  General Assistant
+                  {selectedAgent?.name || 'No Agent Selected'}
                 </h2>
-                <p className="text-xs text-gray-500">Primary Agent</p>
+                <p className="text-xs text-gray-500">
+                  {selectedAgent?.description || 'Please select an agent'}
+                </p>
               </div>
             </div>
             <Button
