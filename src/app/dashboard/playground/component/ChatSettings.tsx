@@ -11,6 +11,8 @@ import {
 } from '@/components/ui/select';
 import { Switch } from '@/components/ui/switch';
 import { Textarea } from '@/components/ui/textarea';
+import { useAgent } from '@/contexts/AgentContext';
+import { useGetAgentList } from '@/queries/useAgent';
 import { Bot, Settings, Sparkles, Users, X, Zap } from 'lucide-react';
 
 interface ChatSettingsProps {
@@ -19,6 +21,14 @@ interface ChatSettingsProps {
 }
 
 export function ChatSettings({ isOpen, onClose }: ChatSettingsProps) {
+  const { data: agentData, isLoading: agentLoading } = useGetAgentList();
+  const agents = agentData?.data.data || [];
+
+  const { selectedAgentId, setSelectedAgentId } = useAgent();
+  const handleAgentChange = (agentId: string) => {
+    setSelectedAgentId(agentId);
+  };
+
   if (!isOpen) return null;
 
   return (
@@ -42,13 +52,18 @@ export function ChatSettings({ isOpen, onClose }: ChatSettingsProps) {
         <div className="space-y-3">
           <div className="flex items-center gap-2">
             <Bot className="w-4 h-4" />
-            <h3 className="font-medium">Primary Agent</h3>
+            <h3 className="font-medium">
+              {agents.find((agent) => agent.id === selectedAgentId)?.name}
+            </h3>
           </div>
           <p className="text-sm text-gray-600">
-            The main agent that handles general queries and coordinates with
-            specialized agents.
+            {agents.find((agent) => agent.id === selectedAgentId)?.description}
           </p>
-          <Select defaultValue="general-assistant">
+          <Select
+            value={selectedAgentId}
+            onValueChange={handleAgentChange}
+            disabled={agentLoading}
+          >
             <SelectTrigger>
               <div className="flex items-center gap-2">
                 <Bot className="w-4 h-4 text-blue-600" />
@@ -56,15 +71,11 @@ export function ChatSettings({ isOpen, onClose }: ChatSettingsProps) {
               </div>
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="general-assistant">
-                <div className="flex items-center gap-2">
-                  <Bot className="w-4 h-4 text-blue-600" />
-                  <div>
-                    <div className="font-medium">General Assistant</div>
-                    <div className="text-xs text-gray-500">General</div>
-                  </div>
-                </div>
-              </SelectItem>
+              {agents.map((agent) => (
+                <SelectItem key={agent.id} value={agent.id}>
+                  {agent.name}
+                </SelectItem>
+              ))}
             </SelectContent>
           </Select>
         </div>
