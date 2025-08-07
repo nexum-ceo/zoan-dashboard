@@ -23,6 +23,15 @@ export type UseCustomChatProps = {
   wsConnected?: boolean;
 };
 
+// System message types that should be filtered out
+const FILTERED_MESSAGE_TYPES = new Set([
+  'completion',
+  'system',
+  'metadata',
+  'status',
+  'error',
+]);
+
 export function useChat({
   wsUrl,
   chatId,
@@ -122,15 +131,7 @@ export function useChat({
             try {
               const data = JSON.parse(rawData);
 
-              if (
-                data &&
-                data.type &&
-                (data.type === 'completion' ||
-                  data.type === 'system' ||
-                  data.type === 'metadata' ||
-                  data.type === 'status' ||
-                  data.type === 'error')
-              ) {
+              if (data?.type && FILTERED_MESSAGE_TYPES.has(data.type)) {
                 console.log('[WS] Filtered system message:', data);
                 return null;
               }
@@ -247,15 +248,7 @@ export function useChat({
           try {
             const data = JSON.parse(rawData);
 
-            if (
-              data &&
-              data.type &&
-              (data.type === 'completion' ||
-                data.type === 'system' ||
-                data.type === 'metadata' ||
-                data.type === 'status' ||
-                data.type === 'error')
-            ) {
+            if (data?.type && FILTERED_MESSAGE_TYPES.has(data.type)) {
               console.log('[WS] Filtered system message:', data);
               return null;
             }
