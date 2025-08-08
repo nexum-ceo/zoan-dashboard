@@ -169,7 +169,7 @@ export function AppSidebar() {
                 ) : (
                   <Button
                     onClick={() => router.push('/dashboard/playground')}
-                    className="w-full h-10 bg-gray-100 hover:bg-gray-200 text-gray-700 border-0 font-medium justify-start gap-3"
+                    className="text-center w-full h-10 bg-gray-100 hover:bg-gray-200 text-gray-700 border-0 font-medium justify-center gap-1"
                   >
                     <Plus className="w-4 h-4" />
                     New Chat
