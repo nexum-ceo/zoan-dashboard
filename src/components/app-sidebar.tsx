@@ -1,5 +1,5 @@
 'use client';
-import { Bot, Plus, Settings, Users } from 'lucide-react';
+import { Bot, Plus, Settings, User, Users } from 'lucide-react';
 
 import SelectAssistant from '@/app/dashboard/playground/component/SelectAssistant';
 import { NavUser } from '@/components/nav-user';
@@ -41,6 +41,13 @@ const navigationItems = [
     label: 'Community',
     href: '/dashboard/community',
     isActive: (pathname: string) => pathname.startsWith('/dashboard/community'),
+  },
+  {
+    icon: User,
+    label: 'Personal Space',
+    href: '/dashboard/personal-space',
+    isActive: (pathname: string) =>
+      pathname.startsWith('/dashboard/personal-space'),
   },
   {
     icon: Settings,
