@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Activity, Clock, Plus, Search, TrendingUp, Zap } from 'lucide-react';
+import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 
 export type InstalledAgent = {
@@ -88,7 +89,7 @@ export default function PersonalSpace() {
     'agents' | 'analytics' | 'settings'
   >('agents');
   const [searchQuery, setSearchQuery] = useState('');
-
+  const router = useRouter();
   const totalChats = installedAgents.reduce(
     (sum, agent) => sum + agent.totalChats,
     0,
@@ -104,8 +105,7 @@ export default function PersonalSpace() {
 
   const handleAgentClick = (agent: InstalledAgent) => {
     if (agent.hasWorkflow) {
-      // Navigate to workflow detail - for now just log
-      console.log(`Navigate to workflow for ${agent.name}`);
+      router.push(`/dashboard/personal-space/agents/${agent.id}`);
     }
   };
 

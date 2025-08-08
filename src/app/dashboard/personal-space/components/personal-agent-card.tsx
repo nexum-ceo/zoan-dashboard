@@ -12,16 +12,17 @@ import {
   Workflow,
 } from 'lucide-react';
 import { motion } from 'motion/react';
+import { FC } from 'react';
 
 type PersonalAgentCardProps = {
   agent: InstalledAgent;
   onAgentClick: (agent: InstalledAgent) => void;
 };
 
-export const PersonalAgentCard = ({
+export const PersonalAgentCard: FC<PersonalAgentCardProps> = ({
   agent,
   onAgentClick,
-}: PersonalAgentCardProps) => {
+}) => {
   const usagePercentage = Math.min((agent.totalChats / 20) * 100, 100); // Max 20 chats = 100%
 
   return (
