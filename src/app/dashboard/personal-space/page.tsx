@@ -1,27 +1,13 @@
 'use client';
 
-import { Badge } from '@/components/ui/badge';
+import { PersonalAgentCard } from '@/app/dashboard/personal-space/components/personal-agent-card';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
-import {
-  Activity,
-  Clock,
-  Edit,
-  ExternalLink,
-  MessageSquare,
-  Plus,
-  Power,
-  PowerOff,
-  Search,
-  Settings,
-  Trash2,
-  TrendingUp,
-  Zap,
-} from 'lucide-react';
+import { Activity, Clock, Plus, Search, TrendingUp, Zap } from 'lucide-react';
 import { useState } from 'react';
 
-type InstalledAgent = {
+export type InstalledAgent = {
   id: number;
   name: string;
   version: string;
@@ -265,99 +251,11 @@ export default function PersonalSpace() {
         {activeTab === 'agents' && (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {filteredAgents.map((agent) => (
-              <Card
+              <PersonalAgentCard
                 key={agent.id}
-                className="hover:shadow-lg transition-shadow duration-200 cursor-pointer"
-                onClick={() => handleAgentClick(agent)}
-              >
-                <CardContent className="p-6">
-                  {/* Agent Header */}
-                  <div className="flex items-start gap-3 mb-4">
-                    <div
-                      className={`w-12 h-12 rounded-xl bg-gradient-to-r ${agent.color} flex items-center justify-center text-white text-xl`}
-                    >
-                      {agent.avatar}
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center justify-between">
-                        <h3 className="font-semibold text-gray-900 truncate">
-                          {agent.name}
-                        </h3>
-                        <div className="flex items-center space-x-1">
-                          {agent.isActive ? (
-                            <Power className="w-4 h-4 text-green-500" />
-                          ) : (
-                            <PowerOff className="w-4 h-4 text-gray-400" />
-                          )}
-                        </div>
-                      </div>
-                      <p className="text-sm text-gray-600">{agent.version}</p>
-                    </div>
-                  </div>
-
-                  {/* Category Badge */}
-                  <Badge variant="secondary" className="mb-3">
-                    {agent.category}
-                  </Badge>
-
-                  {/* Description */}
-                  <p className="text-sm text-gray-600 mb-4 line-clamp-2">
-                    {agent.description}
-                  </p>
-
-                  {/* Usage Stats */}
-                  <div className="flex items-center justify-between text-sm text-gray-600 mb-4">
-                    <div className="flex items-center gap-1">
-                      <MessageSquare className="w-4 h-4" />
-                      <span>{agent.totalChats} chats</span>
-                    </div>
-                    <div className="flex items-center gap-1">
-                      <Clock className="w-4 h-4" />
-                      <span>Used {agent.lastUsed}</span>
-                    </div>
-                  </div>
-
-                  {/* Status and Actions */}
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center space-x-2">
-                      <Badge
-                        variant={agent.isActive ? 'default' : 'secondary'}
-                        className={
-                          agent.isActive ? 'bg-green-100 text-green-800' : ''
-                        }
-                      >
-                        {agent.isActive ? 'Active' : 'Inactive'}
-                      </Badge>
-                    </div>
-                    <div className="flex items-center space-x-1">
-                      {agent.hasWorkflow && (
-                        <Button variant="ghost" size="sm">
-                          <ExternalLink className="w-4 h-4" />
-                        </Button>
-                      )}
-                      <Button variant="ghost" size="sm">
-                        <Settings className="w-4 h-4" />
-                      </Button>
-                      <Button variant="ghost" size="sm">
-                        <Edit className="w-4 h-4" />
-                      </Button>
-                      <Button variant="ghost" size="sm">
-                        <Trash2 className="w-4 h-4" />
-                      </Button>
-                    </div>
-                  </div>
-
-                  {/* Workflow Link */}
-                  {agent.hasWorkflow && (
-                    <div className="mt-3 pt-3 border-t border-gray-200">
-                      <button className="text-sm text-blue-600 hover:text-blue-800 flex items-center gap-1">
-                        <ExternalLink className="w-3 h-3" />
-                        Click to view processing workflow
-                      </button>
-                    </div>
-                  )}
-                </CardContent>
-              </Card>
+                agent={agent}
+                onAgentClick={handleAgentClick}
+              />
             ))}
           </div>
         )}
