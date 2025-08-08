@@ -113,7 +113,7 @@ export function AppSidebar() {
 
   return (
     <TooltipProvider>
-      <Sidebar collapsible="icon" variant="floating">
+      <Sidebar collapsible="icon" variant="floating" className="rounded-none">
         <SidebarContent>
           <div className="h-full bg-white flex flex-col">
             {/* Header */}
