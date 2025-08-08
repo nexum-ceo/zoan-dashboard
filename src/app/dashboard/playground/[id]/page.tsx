@@ -71,7 +71,9 @@ export default function PlaygroundChatPage() {
     wsConnected,
     sendMessageDirect,
   } = useChat({
-    wsUrl: `${process.env.NEXT_PUBLIC_WS_URL}/${chatId}?token=${token}`,
+    wsUrl: token
+      ? `${process.env.NEXT_PUBLIC_WS_URL}/${chatId}?token=${token}`
+      : '',
     initialMessages: [],
     agentId: selectedAgentId || '',
     chatId: chatId,
@@ -80,8 +82,11 @@ export default function PlaygroundChatPage() {
   const { data: chatData } = useGetChat(chatId);
 
   useEffect(() => {
-    if (chatMessageData) {
-      const safeMessages = chatMessageData?.data.data.map(
+    if (
+      chatMessageData?.data?.data &&
+      Array.isArray(chatMessageData.data.data)
+    ) {
+      const safeMessages = chatMessageData.data.data.map(
         (msg: ChatMessageType) => ({
           ...msg,
           content: msg.content ?? '',
@@ -95,8 +100,8 @@ export default function PlaygroundChatPage() {
   }, [chatMessageData, setMessages]);
 
   useEffect(() => {
-    if (chatData) {
-      setSelectedAgentId(chatData?.data.data.agent_id);
+    if (chatData?.data?.data?.agent_id) {
+      setSelectedAgentId(chatData.data.data.agent_id);
     }
   }, [chatData, setSelectedAgentId]);
 
