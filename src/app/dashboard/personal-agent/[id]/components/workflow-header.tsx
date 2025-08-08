@@ -2,18 +2,19 @@
 
 import { Button } from '@/components/ui/button';
 import { Code, Play, RotateCcw, Settings, Zap } from 'lucide-react';
+import { FC } from 'react';
 
-interface WorkflowHeaderProps {
+export type WorkflowHeaderProps = {
   completedSteps: number;
   totalSteps: number;
   overallProgress: number;
-}
+};
 
-export function WorkflowHeader({
+export const WorkflowHeader: FC<WorkflowHeaderProps> = ({
   completedSteps,
   totalSteps,
   overallProgress,
-}: WorkflowHeaderProps) {
+}) => {
   return (
     <div className="bg-white border-b border-gray-200 px-10 py-6 flex-shrink-0">
       <div className="mx-auto">
@@ -52,7 +53,7 @@ export function WorkflowHeader({
             </div>
           </div>
           <div className="flex items-center gap-2">
-            <Button className="bg-black text-white hover:bg-gray-800">
+            <Button className="bg-black text-white">
               <Play className="w-4 h-4 mr-2" />
               Run Workflow
             </Button>
@@ -69,4 +70,4 @@ export function WorkflowHeader({
       </div>
     </div>
   );
-}
+};

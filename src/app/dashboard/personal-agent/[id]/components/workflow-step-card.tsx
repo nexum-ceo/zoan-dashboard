@@ -4,7 +4,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { CheckCircle, ChevronDown, MoreHorizontal } from 'lucide-react';
-import { ReactNode } from 'react';
+import { FC, ReactNode } from 'react';
 
 export type WorkflowStep = {
   id: number;
@@ -17,12 +17,15 @@ export type WorkflowStep = {
   dependsOn?: number;
 };
 
-interface WorkflowStepCardProps {
+export type WorkflowStepCardProps = {
   step: WorkflowStep;
   isLast: boolean;
-}
+};
 
-export function WorkflowStepCard({ step, isLast }: WorkflowStepCardProps) {
+export const WorkflowStepCard: FC<WorkflowStepCardProps> = ({
+  step,
+  isLast,
+}) => {
   return (
     <div className="relative">
       <Card
@@ -143,4 +146,4 @@ export function WorkflowStepCard({ step, isLast }: WorkflowStepCardProps) {
       )}
     </div>
   );
-}
+};

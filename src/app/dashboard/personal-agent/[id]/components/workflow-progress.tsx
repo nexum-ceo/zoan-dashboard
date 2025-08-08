@@ -1,18 +1,19 @@
 'use client';
 
 import { Card } from '@/components/ui/card';
+import { FC } from 'react';
 
-interface WorkflowProgressProps {
+export type WorkflowProgressProps = {
   completedSteps: number;
   totalSteps: number;
   overallProgress: number;
-}
+};
 
-export function WorkflowProgress({
+export const WorkflowProgress: FC<WorkflowProgressProps> = ({
   completedSteps,
   totalSteps,
   overallProgress,
-}: WorkflowProgressProps) {
+}) => {
   return (
     <Card className="bg-blue-50 border-blue-200 p-6 mt-8">
       <div className="flex items-center justify-between">
@@ -41,4 +42,4 @@ export function WorkflowProgress({
       </div>
     </Card>
   );
-}
+};
