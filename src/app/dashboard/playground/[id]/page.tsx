@@ -12,11 +12,9 @@ import { useAgent } from '@/contexts/AgentContext';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { useChat } from '@/hooks/useChat';
 import { useGetAgentList } from '@/queries/useAgent';
-import {
-  ChatMessageType,
-  ChatRole,
-  GetChatMessagesResType,
-} from '@/types/chat';
+import { useGetChat, useGetChatMessages } from '@/queries/useChat';
+import { ChatMessageType, ChatRole } from '@/types/chat';
+import { motion } from 'framer-motion';
 import {
   ArrowDown,
   Bot,
@@ -62,13 +60,6 @@ export default function PlaygroundChatPage() {
   });
   const [firstMsgSent, setFirstMsgSent] = useState<boolean>(false);
   const [token, setToken] = useState<string>('');
-  useEffect(() => {
-    fetch('/api/auth/session')
-      .then((res) => res.json())
-      .then((data) => {
-        setToken(data.accessToken);
-      });
-  }, []);
 
   const {
     messages,
@@ -85,46 +76,37 @@ export default function PlaygroundChatPage() {
     agentId: selectedAgentId || '',
     chatId: chatId,
   });
+  const { data: chatMessageData } = useGetChatMessages(chatId);
+  const { data: chatData } = useGetChat(chatId);
 
-  // Fetch chat detail to get agent_id
   useEffect(() => {
-    if (chatId) {
-      fetch(`/api/chat/${chatId}`)
-        .then(async (res) => {
-          if (!res.ok) throw new Error('Failed to fetch chat detail');
-          return res.json();
-        })
-        .then((data) => {
-          if (data && data.data && data.data.agent_id) {
-            setSelectedAgentId(data.data.agent_id);
-          }
-        });
+    if (chatMessageData) {
+      const safeMessages = chatMessageData?.data.data.map(
+        (msg: ChatMessageType) => ({
+          ...msg,
+          content: msg.content ?? '',
+          role: Object.values(ChatRole).includes(msg.role)
+            ? msg.role
+            : ChatRole.USER,
+        }),
+      );
+      setMessages(safeMessages || []);
     }
-  }, [chatId, setSelectedAgentId]);
+  }, [chatMessageData, setMessages]);
 
-  // Fetch chat messages detail
   useEffect(() => {
-    if (chatId) {
-      fetch(`/api/chat-message/${chatId}`)
-        .then(async (res) => {
-          if (!res.ok) throw new Error('Failed to fetch chat messages');
-          return res.json() as Promise<GetChatMessagesResType>;
-        })
-        .then((data) => {
-          if (Array.isArray(data?.data)) {
-            const safeMessages = data.data.map((msg: ChatMessageType) => ({
-              ...msg,
-              content: msg.content ?? '',
-              role: Object.values(ChatRole).includes(msg.role)
-                ? msg.role
-                : ChatRole.USER,
-            }));
-            setMessages(safeMessages);
-          }
-        });
+    if (chatData) {
+      setSelectedAgentId(chatData?.data.data.agent_id);
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [chatId]);
+  }, [chatData, setSelectedAgentId]);
+
+  useEffect(() => {
+    fetch('/api/auth/session')
+      .then((res) => res.json())
+      .then((data) => {
+        setToken(data.accessToken);
+      });
+  }, []);
 
   // Only send the first message when WebSocket is connected, otherwise keep it to send later
   useEffect(() => {
@@ -302,22 +284,32 @@ export default function PlaygroundChatPage() {
               </div>
             </div>
             <div className="flex gap-1">
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={() => setExploreOpen(!exploreOpen)}
-                className={exploreOpen ? 'bg-gray-100' : ''}
+              <motion.div
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
               >
-                <Gamepad2 className="w-4 h-4 text-gray-500" />
-              </Button>
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={() => setSettingsOpen(!settingsOpen)}
-                className={settingsOpen ? 'bg-gray-100' : ''}
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => setExploreOpen(!exploreOpen)}
+                  className={exploreOpen ? 'bg-gray-100' : ''}
+                >
+                  <Gamepad2 className="w-4 h-4 text-gray-500" />
+                </Button>
+              </motion.div>
+              <motion.div
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
               >
-                <Settings className="w-4 h-4 text-gray-500" />
-              </Button>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => setSettingsOpen(!settingsOpen)}
+                  className={settingsOpen ? 'bg-gray-100' : ''}
+                >
+                  <Settings className="w-4 h-4 text-gray-500" />
+                </Button>
+              </motion.div>
             </div>
           </div>
         </div>

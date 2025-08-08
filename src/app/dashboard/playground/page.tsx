@@ -9,6 +9,7 @@ import { useChat } from '@/hooks/useChat';
 import { handleErrorApi } from '@/lib/utils';
 import { useGetAgentList } from '@/queries/useAgent';
 import { useCreateChatMutation } from '@/queries/useChat';
+import { motion } from 'framer-motion';
 import { ArrowDown, Gamepad2, MessageSquare, Settings } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { FormEvent, useCallback, useEffect, useRef, useState } from 'react';
@@ -111,22 +112,32 @@ export default function PlaygroundPage() {
               </div>
             </div>
             <div className="flex gap-1">
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={() => setExploreOpen(!exploreOpen)}
-                className={exploreOpen ? 'bg-gray-100' : ''}
+              <motion.div
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
               >
-                <Gamepad2 className="w-4 h-4 text-gray-500" />
-              </Button>
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={() => setSettingsOpen(!settingsOpen)}
-                className={settingsOpen ? 'bg-gray-100' : ''}
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => setExploreOpen(!exploreOpen)}
+                  className={exploreOpen ? 'bg-gray-100' : ''}
+                >
+                  <Gamepad2 className="w-4 h-4 text-gray-500" />
+                </Button>
+              </motion.div>
+              <motion.div
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
               >
-                <Settings className="w-4 h-4 text-gray-500" />
-              </Button>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => setSettingsOpen(!settingsOpen)}
+                  className={settingsOpen ? 'bg-gray-100' : ''}
+                >
+                  <Settings className="w-4 h-4 text-gray-500" />
+                </Button>
+              </motion.div>
             </div>
           </div>
         </div>
