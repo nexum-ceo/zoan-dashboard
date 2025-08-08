@@ -29,7 +29,7 @@ export type CreateChatResType = z.infer<typeof CreateChatResSchema>;
 export const GetSpecificChatResSchema = z.object({
   status: z.string(),
   message: z.string(),
-  chat: z.object({
+  data: z.object({
     id: z.string(),
     user_id: z.string(),
     agent_id: z.string(),

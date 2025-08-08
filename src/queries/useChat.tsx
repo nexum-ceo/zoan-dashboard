@@ -26,3 +26,10 @@ export const useGetChatMessages = (id: string) => {
     queryFn: () => chatApiRequest.sGetChatMessages(id),
   });
 };
+
+export const useGetChat = (id: string) => {
+  return useQuery({
+    queryKey: ['chat', id],
+    queryFn: () => chatApiRequest.sGetChat(id),
+  });
+};
