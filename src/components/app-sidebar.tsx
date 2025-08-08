@@ -196,6 +196,9 @@ export function AppSidebar() {
             </div>
           )}
 
+          {/* Spacer khi collapsed để đẩy NavUser xuống dưới */}
+          {state === 'collapsed' && <div className="flex-1" />}
+
           {/* User Info */}
           <div className="border-t border-gray-100">
             <NavUser
