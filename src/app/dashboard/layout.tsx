@@ -1,8 +1,9 @@
 import { AppSidebar } from '@/components/app-sidebar';
-import { SidebarInset, SidebarProvider } from '@/components/ui/sidebar';
+import { SidebarProvider } from '@/components/ui/sidebar';
 import { AgentProvider } from '@/contexts/AgentContext';
 import ZoanBaseLayout from '@/templates/ZoanBaseLayout';
 import type { Metadata } from 'next';
+import { ReactNode } from 'react';
 
 export const metadata: Metadata = {
   title: 'Create Next App',
@@ -12,14 +13,14 @@ export const metadata: Metadata = {
 export default function RootLayout({
   children,
 }: Readonly<{
-  children: React.ReactNode;
+  children: ReactNode;
 }>) {
   return (
     <ZoanBaseLayout>
       <AgentProvider>
         <SidebarProvider>
           <AppSidebar />
-          <SidebarInset>{children}</SidebarInset>
+          <div className="bg-gray-50 h-screen w-full">{children}</div>
         </SidebarProvider>
       </AgentProvider>
     </ZoanBaseLayout>

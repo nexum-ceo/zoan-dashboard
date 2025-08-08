@@ -132,3 +132,7 @@
 .no-spinner {
   -moz-appearance: textfield;
 }
+
+::-webkit-scrollbar-track {
+  background: transparent; /* Remove background */
+}
