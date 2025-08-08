@@ -125,7 +125,16 @@ export function AppSidebar() {
                   </div>
                   {/* Trigger - hiển thị khi hover */}
                   <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-200">
-                    <SidebarTrigger />
+                    <TooltipProvider>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <SidebarTrigger className="h-8 w-8" />
+                        </TooltipTrigger>
+                        <TooltipContent side="right">
+                          <p>Toggle Sidebar (Ctrl + B)</p>
+                        </TooltipContent>
+                      </Tooltip>
+                    </TooltipProvider>
                   </div>
                 </div>
               ) : (
