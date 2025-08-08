@@ -112,7 +112,7 @@ export const Explore: FC<ExploreProps> = ({ isOpen, onClose }) => {
                     </Button>
                   </DialogTrigger>
                   <DialogContent className="min-w-full h-[95vh] p-0">
-                    <div className="w-full h-full p-4">
+                    <div className="w-full h-full px-4 py-6">
                       <div className="h-3"></div>
                       <iframe
                         src="https://minio.buymed.site/builds/truck_town/index.html"
