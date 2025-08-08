@@ -4,7 +4,11 @@ import { Bot, Plus, Settings, Users } from 'lucide-react';
 import SelectAssistant from '@/app/dashboard/playground/component/SelectAssistant';
 import { NavUser } from '@/components/nav-user';
 import { Button } from '@/components/ui/button';
-import { Sidebar, SidebarContent } from '@/components/ui/sidebar';
+import {
+  Sidebar,
+  SidebarContent,
+  SidebarTrigger,
+} from '@/components/ui/sidebar';
 import { IconBuildingCommunity } from '@tabler/icons-react';
 import { useSession } from 'next-auth/react';
 import Image from 'next/image';
@@ -98,19 +102,22 @@ export function AppSidebar() {
         <div className="h-full bg-white flex flex-col">
           {/* Header */}
           <div className="p-4 border-b border-gray-100">
-            <div className="flex items-center gap-3">
-              <div className="w-8 h-8 rounded-lg flex items-center justify-center">
-                <Image
-                  src="/icon.png"
-                  alt="Logo"
-                  width={32}
-                  height={32}
-                  className="rounded-lg"
-                />
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className="w-8 h-8 rounded-lg flex items-center justify-center">
+                  <Image
+                    src="/icon.png"
+                    alt="Logo"
+                    width={32}
+                    height={32}
+                    className="rounded-lg"
+                  />
+                </div>
+                <h1 className="text-lg font-semibold text-gray-900">
+                  Zoan Agent
+                </h1>
               </div>
-              <h1 className="text-lg font-semibold text-gray-900">
-                Zoan Agent
-              </h1>
+              <SidebarTrigger className="ml-auto" />
             </div>
           </div>
 
