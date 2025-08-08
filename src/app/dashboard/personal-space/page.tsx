@@ -88,7 +88,7 @@ export default function PersonalSpace() {
   const [activeTab, setActiveTab] = useState<
     'agents' | 'analytics' | 'settings'
   >('agents');
-  const [searchQuery, setSearchQuery] = useState('');
+  const [searchQuery, setSearchQuery] = useState<string>('');
   const router = useRouter();
   const totalChats = installedAgents.reduce(
     (sum, agent) => sum + agent.totalChats,
@@ -105,7 +105,7 @@ export default function PersonalSpace() {
 
   const handleAgentClick = (agent: InstalledAgent) => {
     if (agent.hasWorkflow) {
-      router.push(`/dashboard/personal-space/agents/${agent.id}`);
+      router.push(`/dashboard/personal-agent/${agent.id}`);
     }
   };
 
