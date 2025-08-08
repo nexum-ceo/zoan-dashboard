@@ -18,8 +18,9 @@ export default function PlaygroundPage() {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const messagesContainerRef = useRef<HTMLDivElement>(null);
   const [showScrollButton, setShowScrollButton] = useState<boolean>(false);
-  const [settingsOpen, setSettingsOpen] = useState<boolean>(true);
-  const [exploreOpen, setExploreOpen] = useState<boolean>(false);
+  const [activePanel, setActivePanel] = useState<'settings' | 'explore' | null>(
+    'settings',
+  );
   const { selectedAgentId } = useAgent();
 
   // Get agent list to display selected agent info
@@ -119,8 +120,10 @@ export default function PlaygroundPage() {
                 <Button
                   variant="ghost"
                   size="icon"
-                  onClick={() => setExploreOpen(!exploreOpen)}
-                  className={exploreOpen ? 'bg-gray-100' : ''}
+                  onClick={() =>
+                    setActivePanel(activePanel === 'explore' ? null : 'explore')
+                  }
+                  className={activePanel === 'explore' ? 'bg-gray-100' : ''}
                 >
                   <Gamepad2 className="w-4 h-4 text-gray-500" />
                 </Button>
@@ -132,8 +135,12 @@ export default function PlaygroundPage() {
                 <Button
                   variant="ghost"
                   size="icon"
-                  onClick={() => setSettingsOpen(!settingsOpen)}
-                  className={settingsOpen ? 'bg-gray-100' : ''}
+                  onClick={() =>
+                    setActivePanel(
+                      activePanel === 'settings' ? null : 'settings',
+                    )
+                  }
+                  className={activePanel === 'settings' ? 'bg-gray-100' : ''}
                 >
                   <Settings className="w-4 h-4 text-gray-500" />
                 </Button>
@@ -201,12 +208,15 @@ export default function PlaygroundPage() {
 
       {/* Chat Settings Panel */}
       <ChatSettings
-        isOpen={settingsOpen}
-        onClose={() => setSettingsOpen(false)}
+        isOpen={activePanel === 'settings'}
+        onClose={() => setActivePanel(null)}
       />
 
       {/* Explore Panel */}
-      <Explore isOpen={exploreOpen} onClose={() => setExploreOpen(false)} />
+      <Explore
+        isOpen={activePanel === 'explore'}
+        onClose={() => setActivePanel(null)}
+      />
     </div>
   );
 }

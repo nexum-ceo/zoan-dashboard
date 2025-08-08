@@ -296,7 +296,14 @@ export default function PlaygroundChatPage() {
                 <Button
                   variant="ghost"
                   size="icon"
-                  onClick={() => setExploreOpen(!exploreOpen)}
+                  onClick={() => {
+                    if (exploreOpen) {
+                      setExploreOpen(false);
+                    } else {
+                      setExploreOpen(true);
+                      setSettingsOpen(false); // Close settings when opening explore
+                    }
+                  }}
                   className={exploreOpen ? 'bg-gray-100' : ''}
                 >
                   <Gamepad2 className="w-4 h-4 text-gray-500" />
@@ -309,7 +316,14 @@ export default function PlaygroundChatPage() {
                 <Button
                   variant="ghost"
                   size="icon"
-                  onClick={() => setSettingsOpen(!settingsOpen)}
+                  onClick={() => {
+                    if (settingsOpen) {
+                      setSettingsOpen(false);
+                    } else {
+                      setSettingsOpen(true);
+                      setExploreOpen(false); // Close explore when opening settings
+                    }
+                  }}
                   className={settingsOpen ? 'bg-gray-100' : ''}
                 >
                   <Settings className="w-4 h-4 text-gray-500" />
