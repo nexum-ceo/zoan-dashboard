@@ -1,4 +1,8 @@
+'use client';
+
 import { CheckCircle, Code, FileText, TestTube, Zap } from 'lucide-react';
+import { useState } from 'react';
+import { WorkflowGridView } from './components/workflow-grid-view';
 import { WorkflowHeader } from './components/workflow-header';
 import { WorkflowNavigation } from './components/workflow-navigation';
 import { WorkflowProgress } from './components/workflow-progress';
@@ -56,6 +60,8 @@ const workflowSteps: WorkflowStep[] = [
 ];
 
 export default function AgentWorkflow() {
+  const [activeTab, setActiveTab] = useState<'workflow' | 'grid'>('workflow');
+
   const completedSteps = workflowSteps.filter(
     (step) => step.status === 'completed',
   ).length;
@@ -73,27 +79,44 @@ export default function AgentWorkflow() {
         overallProgress={overallProgress}
       />
 
-      <WorkflowNavigation inProgressSteps={inProgressSteps} />
+      <WorkflowNavigation
+        inProgressSteps={inProgressSteps}
+        activeTab={activeTab}
+        onTabChange={setActiveTab}
+      />
 
-      {/* Workflow Steps - Scrollable */}
+      {/* Content - Scrollable */}
       <div className="flex-1 overflow-y-auto bg-gray-50">
         <div className="px-20 py-6">
           <div className="mx-auto">
-            <div className="space-y-4">
-              {workflowSteps.map((step, index) => (
-                <WorkflowStepCard
-                  key={step.id}
-                  step={step}
-                  isLast={index === workflowSteps.length - 1}
-                />
-              ))}
+            {activeTab === 'workflow' ? (
+              <div className="space-y-4">
+                {workflowSteps.map((step, index) => (
+                  <WorkflowStepCard
+                    key={step.id}
+                    step={step}
+                    isLast={index === workflowSteps.length - 1}
+                    index={index}
+                  />
+                ))}
 
-              <WorkflowProgress
-                completedSteps={completedSteps}
-                totalSteps={totalSteps}
-                overallProgress={overallProgress}
-              />
-            </div>
+                <WorkflowProgress
+                  completedSteps={completedSteps}
+                  totalSteps={totalSteps}
+                  overallProgress={overallProgress}
+                />
+              </div>
+            ) : (
+              <div className="space-y-6">
+                <WorkflowGridView steps={workflowSteps} />
+
+                <WorkflowProgress
+                  completedSteps={completedSteps}
+                  totalSteps={totalSteps}
+                  overallProgress={overallProgress}
+                />
+              </div>
+            )}
           </div>
         </div>
       </div>

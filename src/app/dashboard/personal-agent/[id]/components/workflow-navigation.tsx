@@ -6,16 +6,26 @@ import { FC } from 'react';
 
 export type WorkflowNavigationProps = {
   inProgressSteps: number;
+  activeTab?: 'workflow' | 'grid';
+  onTabChange?: (value: 'workflow' | 'grid') => void;
 };
 
 export const WorkflowNavigation: FC<WorkflowNavigationProps> = ({
   inProgressSteps,
+  activeTab = 'workflow',
+  onTabChange,
 }) => {
   return (
     <div className="bg-gray-50 px-20 py-4 flex-shrink-0">
       <div className="mx-auto">
         <div className="flex items-center justify-between">
-          <Tabs defaultValue="workflow" className="w-fit">
+          <Tabs
+            value={activeTab}
+            onValueChange={(value) =>
+              onTabChange?.(value as 'workflow' | 'grid')
+            }
+            className="w-fit"
+          >
             <TabsList className="bg-white border border-gray-200 p-1 h-auto rounded-lg shadow-sm">
               <TabsTrigger
                 value="workflow"

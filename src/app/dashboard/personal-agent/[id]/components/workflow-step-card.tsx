@@ -3,6 +3,7 @@
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
+import { motion } from 'framer-motion';
 import { CheckCircle, ChevronDown, MoreHorizontal } from 'lucide-react';
 import { FC, ReactNode } from 'react';
 
@@ -20,14 +21,26 @@ export type WorkflowStep = {
 export type WorkflowStepCardProps = {
   step: WorkflowStep;
   isLast: boolean;
+  index?: number;
 };
 
 export const WorkflowStepCard: FC<WorkflowStepCardProps> = ({
   step,
   isLast,
+  index = 0,
 }) => {
   return (
-    <div className="relative">
+    <motion.div
+      className="relative"
+      initial={{ opacity: 0, y: 50 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true, margin: '-100px' }}
+      transition={{
+        duration: 0.6,
+        delay: index * 0.1,
+        ease: [0.25, 0.25, 0, 1] as const,
+      }}
+    >
       <Card
         className={`p-6 ${
           step.status === 'completed'
@@ -140,10 +153,20 @@ export const WorkflowStepCard: FC<WorkflowStepCardProps> = ({
 
       {/* Connecting Arrow */}
       {!isLast && (
-        <div className="flex justify-center py-2">
+        <motion.div
+          className="flex justify-center py-2"
+          initial={{ opacity: 0, scale: 0.8 }}
+          whileInView={{ opacity: 1, scale: 1 }}
+          viewport={{ once: true }}
+          transition={{
+            duration: 0.4,
+            delay: index * 0.1 + 0.3,
+            ease: 'easeOut',
+          }}
+        >
           <ChevronDown className="w-6 h-6 text-gray-400" />
-        </div>
+        </motion.div>
       )}
-    </div>
+    </motion.div>
   );
 };
