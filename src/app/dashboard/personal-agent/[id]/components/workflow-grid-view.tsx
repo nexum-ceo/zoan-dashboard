@@ -27,29 +27,29 @@ const getItemVariants = (index: number, totalColumns: number = 3) => {
   const col = index % totalColumns;
 
   // Delay based on position: left to right, top to bottom
-  const delay = (row * totalColumns + col) * 0.15;
+  const delay = row * 0.3 + col * 0.15;
+
+  // Calculate distance from start of row to current position
+  // Each column is approximately 300px + gap (assuming standard card width + gap)
+  const slideDistance = col * -350; // Negative because we slide from left
 
   return {
     hidden: {
       opacity: 0,
-      y: 40,
-      x: -20,
+      x: slideDistance, // Slide from start of row to current position
+      y: 0, // Keep same row level
       scale: 0.9,
-      rotateY: -15,
     },
     visible: {
       opacity: 1,
-      y: 0,
       x: 0,
+      y: 0,
       scale: 1,
-      rotateY: 0,
       transition: {
         duration: 0.6,
         delay,
         ease: [0.25, 0.46, 0.45, 0.94] as const,
-        type: 'spring' as const,
-        stiffness: 100,
-        damping: 15,
+        type: 'tween' as const,
       },
     },
   };
