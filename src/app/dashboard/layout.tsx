@@ -1,5 +1,5 @@
 import { AppSidebar } from '@/components/app-sidebar';
-import { SidebarInset, SidebarProvider } from '@/components/ui/sidebar';
+import { SidebarProvider } from '@/components/ui/sidebar';
 import { AgentProvider } from '@/contexts/AgentContext';
 import ZoanBaseLayout from '@/templates/ZoanBaseLayout';
 import type { Metadata } from 'next';
@@ -19,7 +19,7 @@ export default function RootLayout({
       <AgentProvider>
         <SidebarProvider>
           <AppSidebar />
-          <SidebarInset>{children}</SidebarInset>
+          <div className="bg-gray-50 h-fit w-full">{children}</div>
         </SidebarProvider>
       </AgentProvider>
     </ZoanBaseLayout>

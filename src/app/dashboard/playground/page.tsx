@@ -92,7 +92,7 @@ export default function PlaygroundPage() {
   };
 
   return (
-    <div className="w-full h-full bg-gradient-to-br from-gray-50 to-gray-100 flex">
+    <div className="w-full h-screen bg-gradient-to-br from-gray-50 to-gray-100 flex">
       {/* Main Chat Area */}
       <div className="flex-1 flex flex-col bg-white relative">
         {/* Header */}

@@ -110,23 +110,15 @@ export default function PersonalSpace() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="h-full bg-gray-50">
       {/* Header */}
-      <div className="bg-white border-b border-gray-200">
+      <div className="bg-gray-50">
         <div className="max-w-7xl mx-auto px-6 py-6">
-          <div className="flex items-start justify-between">
-            <div>
-              <h1 className="text-3xl font-bold text-gray-900">
-                Personal Space
-              </h1>
-              <p className="text-gray-600 mt-1">
-                Manage your installed agents and workspace settings
-              </p>
-            </div>
-            <Button className="bg-gray-900 hover:bg-gray-800 text-white">
-              <Plus className="w-4 h-4 mr-2" />
-              Install Agent
-            </Button>
+          <div>
+            <h1 className="text-3xl font-bold text-gray-900">Personal Space</h1>
+            <p className="text-gray-600 mt-1">
+              Manage your installed agents and workspace settings
+            </p>
           </div>
 
           {/* Stats Overview */}
@@ -232,6 +224,10 @@ export default function PersonalSpace() {
               Settings
             </button>
           </div>
+          <Button className="bg-gray-900 hover:bg-gray-800 text-white">
+            <Plus className="w-4 h-4" />
+            Install Agent
+          </Button>
         </div>
 
         {/* Search Bar */}
