@@ -71,6 +71,19 @@ const categories = [
 export default function CommunityPage() {
   const [selectedCategory, setSelectedCategory] = useState('All');
   const [selectedTab, setSelectedTab] = useState('Featured');
+  const [favorites, setFavorites] = useState<Set<number>>(new Set());
+
+  const toggleFavorite = (agentId: number) => {
+    setFavorites((prev) => {
+      const newFavorites = new Set(prev);
+      if (newFavorites.has(agentId)) {
+        newFavorites.delete(agentId);
+      } else {
+        newFavorites.add(agentId);
+      }
+      return newFavorites;
+    });
+  };
 
   return (
     <motion.div
@@ -124,9 +137,12 @@ export default function CommunityPage() {
             />
           </motion.div>
           <motion.div
-            whileHover={{ scale: 1.05 }}
+            whileHover={{
+              scale: 1.05,
+              transition: { duration: 0.15 },
+            }}
             whileTap={{ scale: 0.95 }}
-            transition={{ duration: 0.2 }}
+            transition={{ duration: 0 }}
           >
             <Button variant="outline" className="h-12 px-6">
               <Filter className="w-4 h-4 mr-2" />
@@ -153,9 +169,17 @@ export default function CommunityPage() {
               }`}
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.4, delay: 0.6 + index * 0.1 }}
-              whileHover={{ scale: 1.05, y: -2 }}
+              whileHover={{
+                scale: 1.05,
+                y: -2,
+                transition: { duration: 0.15 },
+              }}
               whileTap={{ scale: 0.95 }}
+              transition={{
+                duration: 0.4,
+                delay: 0.6 + index * 0.1,
+                default: { duration: 0 },
+              }}
               layout
             >
               {category.name} ({category.count})
@@ -197,34 +221,35 @@ export default function CommunityPage() {
                   {mockAgents.map((agent, index) => (
                     <motion.div
                       key={agent.id}
-                      className="bg-white rounded-xl p-6 shadow-sm border border-gray-200 hover:shadow-md transition-shadow"
+                      className="bg-white rounded-xl p-6 shadow-sm border border-gray-200 hover:shadow-lg transition-shadow duration-200"
                       initial={{ opacity: 0, y: 50, scale: 0.9 }}
                       animate={{ opacity: 1, y: 0, scale: 1 }}
                       exit={{ opacity: 0, y: -50, scale: 0.9 }}
+                      whileHover={{
+                        y: -6,
+                        scale: 1.01,
+                        transition: { duration: 0.15, ease: 'easeOut' },
+                      }}
                       transition={{
                         duration: 0.5,
                         delay: 1.0 + index * 0.1,
                         type: 'spring',
                         stiffness: 100,
+                        default: { duration: 0, ease: 'easeOut' },
                       }}
-                      whileHover={{
-                        y: -8,
-                        scale: 1.02,
-                        boxShadow:
-                          '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)',
+                      whileTap={{
+                        scale: 0.98,
+                        transition: { duration: 0.1 },
                       }}
-                      whileTap={{ scale: 0.98 }}
                       layout
                     >
                       {/* Agent Header */}
                       <div className="flex items-start gap-3 mb-4">
-                        <motion.div
+                        <div
                           className={`w-12 h-12 rounded-xl bg-gradient-to-r ${agent.color} flex items-center justify-center text-white text-xl`}
-                          whileHover={{ rotate: 360, scale: 1.1 }}
-                          transition={{ duration: 0.6 }}
                         >
                           {agent.avatar}
-                        </motion.div>
+                        </div>
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center justify-between">
                             <motion.h3
@@ -239,17 +264,47 @@ export default function CommunityPage() {
                               {agent.name}
                             </motion.h3>
                             <motion.button
-                              className="text-gray-400 hover:text-red-500 transition-colors"
-                              whileHover={{ scale: 1.2 }}
-                              whileTap={{ scale: 0.9 }}
+                              className={`transition-colors ${
+                                favorites.has(agent.id)
+                                  ? 'text-red-500'
+                                  : 'text-gray-400 hover:text-red-500'
+                              }`}
+                              onClick={() => toggleFavorite(agent.id)}
+                              whileHover={{
+                                scale: 1.2,
+                                transition: { duration: 0.15 },
+                              }}
+                              whileTap={{
+                                scale: 0.9,
+                                transition: { duration: 0.1 },
+                              }}
                               initial={{ opacity: 0, scale: 0 }}
                               animate={{ opacity: 1, scale: 1 }}
                               transition={{
                                 duration: 0.3,
                                 delay: 1.3 + index * 0.1,
+                                default: { duration: 0 },
                               }}
                             >
-                              <Heart className="w-5 h-5" />
+                              <motion.div
+                                animate={{
+                                  scale: favorites.has(agent.id)
+                                    ? [1, 1.3, 1]
+                                    : 1,
+                                }}
+                                transition={{
+                                  duration: 0.3,
+                                  ease: 'easeInOut',
+                                }}
+                              >
+                                <Heart
+                                  className={`w-5 h-5 ${
+                                    favorites.has(agent.id)
+                                      ? 'fill-red-500 stroke-red-500'
+                                      : 'fill-none stroke-current'
+                                  }`}
+                                />
+                              </motion.div>
                             </motion.button>
                           </div>
                           <motion.p
@@ -391,8 +446,12 @@ export default function CommunityPage() {
                         {agent.type === 'Free' ? (
                           <motion.div
                             className="flex-1"
-                            whileHover={{ scale: 1.05 }}
+                            whileHover={{
+                              scale: 1.05,
+                              transition: { duration: 0.15 },
+                            }}
                             whileTap={{ scale: 0.95 }}
+                            transition={{ duration: 0 }}
                           >
                             <Button className="w-full bg-green-600 hover:bg-green-700">
                               Install Free
@@ -401,8 +460,12 @@ export default function CommunityPage() {
                         ) : agent.type === 'Premium' ? (
                           <motion.div
                             className="flex-1"
-                            whileHover={{ scale: 1.05 }}
+                            whileHover={{
+                              scale: 1.05,
+                              transition: { duration: 0.15 },
+                            }}
                             whileTap={{ scale: 0.95 }}
+                            transition={{ duration: 0 }}
                           >
                             <Button className="w-full bg-gray-900 hover:bg-gray-800">
                               Buy Now
@@ -411,8 +474,12 @@ export default function CommunityPage() {
                         ) : (
                           <motion.div
                             className="flex-1"
-                            whileHover={{ scale: 1.05 }}
+                            whileHover={{
+                              scale: 1.05,
+                              transition: { duration: 0.15 },
+                            }}
                             whileTap={{ scale: 0.95 }}
+                            transition={{ duration: 0 }}
                           >
                             <Button className="w-full bg-blue-600 hover:bg-blue-700">
                               Subscribe
@@ -420,8 +487,13 @@ export default function CommunityPage() {
                           </motion.div>
                         )}
                         <motion.div
-                          whileHover={{ scale: 1.1, rotate: 5 }}
+                          whileHover={{
+                            scale: 1.1,
+                            rotate: 5,
+                            transition: { duration: 0.15 },
+                          }}
                           whileTap={{ scale: 0.9 }}
+                          transition={{ duration: 0 }}
                         >
                           <Button variant="outline" size="icon">
                             <Eye className="w-4 h-4" />
