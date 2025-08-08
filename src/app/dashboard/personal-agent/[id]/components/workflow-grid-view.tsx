@@ -27,7 +27,11 @@ const getItemVariants = (index: number, totalColumns: number = 3) => {
   const col = index % totalColumns;
 
   // Delay based on position: left to right, top to bottom
-  const delay = row * 0.3 + col * 0.15;
+  // Row delay: wait for previous row to finish + extra delay
+  // Column delay: stagger within the same row
+  const rowDelay = row * 0.8; // Each row waits 0.8s (0.6s animation + 0.2s extra)
+  const columnDelay = col * 0.15; // Stagger within row
+  const delay = rowDelay + columnDelay;
 
   // Calculate distance from start of row to current position
   // Each column is approximately 300px + gap (assuming standard card width + gap)
