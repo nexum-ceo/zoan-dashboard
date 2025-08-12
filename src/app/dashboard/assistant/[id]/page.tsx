@@ -10,7 +10,7 @@ const getAssistant = cache((id: string) =>
 );
 
 type PageProps = {
-  params: { id: string };
+  params: Promise<{ id: string }>;
 };
 
 export async function generateMetadata(props: PageProps): Promise<Metadata> {
