@@ -1,5 +1,5 @@
 'use client';
-import { ChatInput } from '@/app/dashboard/playground/components/ChatInput';
+import { ChatInput } from '@/app/dashboard/playground/components/chat-input';
 import { ChangeEvent } from 'react';
 
 interface PlaygroundInputProps {

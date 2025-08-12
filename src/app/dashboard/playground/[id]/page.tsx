@@ -1,8 +1,8 @@
 'use client';
 import { SelectAssistant } from '@/app/dashboard/playground/components';
+import { ChatInput } from '@/app/dashboard/playground/components/chat-input';
+import { ChatMessage } from '@/app/dashboard/playground/components/chat-message';
 import { ChatSettings } from '@/app/dashboard/playground/components/chat-setting';
-import { ChatInput } from '@/app/dashboard/playground/components/ChatInput';
-import { ChatMessage } from '@/app/dashboard/playground/components/ChatMessage';
 import { Explore } from '@/app/dashboard/playground/components/explore';
 
 import { NavUser } from '@/components/nav-user';

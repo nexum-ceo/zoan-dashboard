@@ -1,5 +1,5 @@
 'use client';
-import { ChatMessage } from '@/app/dashboard/playground/components/ChatMessage';
+import { ChatMessage } from '@/app/dashboard/playground/components/chat-message';
 import { Button } from '@/components/ui/button';
 import { ArrowDown, MessageSquare } from 'lucide-react';
 import { RefObject } from 'react';
