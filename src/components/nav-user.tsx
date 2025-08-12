@@ -1,6 +1,7 @@
 'use client';
 
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Button } from '@/components/ui/button';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -15,8 +16,20 @@ import {
   SidebarMenuItem,
   useSidebar,
 } from '@/components/ui/sidebar';
-import { IconDotsVertical, IconLogout } from '@tabler/icons-react';
+import { IconLogout } from '@tabler/icons-react';
+import {
+  BookOpen,
+  DollarSign,
+  MessageSquare,
+  Monitor,
+  Moon,
+  Settings,
+  Sun,
+  User,
+  Users,
+} from 'lucide-react';
 import { signOut } from 'next-auth/react';
+import { useTheme } from 'next-themes';
 import { FC, useEffect } from 'react';
 
 export type NavUserProps = {
@@ -28,6 +41,7 @@ export type NavUserProps = {
 
 export const NavUser: FC<NavUserProps> = ({ user }) => {
   const { isMobile } = useSidebar();
+  const { theme, setTheme } = useTheme();
 
   // BroadcastChannel allow logout across tabs
   useEffect(() => {
@@ -54,19 +68,12 @@ export const NavUser: FC<NavUserProps> = ({ user }) => {
           <DropdownMenuTrigger asChild>
             <SidebarMenuButton
               size="lg"
-              className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
+              className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground w-fit"
             >
               <Avatar className="h-8 w-8 rounded-lg grayscale">
                 <AvatarImage src={user.avatar} alt={user.email} />
                 <AvatarFallback className="rounded-lg">CN</AvatarFallback>
               </Avatar>
-              <div className="grid flex-1 text-left text-sm leading-tight">
-                <span className="truncate font-medium">{user.email}</span>
-                <span className="text-muted-foreground truncate text-xs">
-                  {user.email}
-                </span>
-              </div>
-              <IconDotsVertical className="ml-auto size-4" />
             </SidebarMenuButton>
           </DropdownMenuTrigger>
           <DropdownMenuContent
@@ -89,6 +96,85 @@ export const NavUser: FC<NavUserProps> = ({ user }) => {
                 </div>
               </div>
             </DropdownMenuLabel>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem>
+              <User className="mr-2 h-4 w-4" />
+              <span>Profile</span>
+            </DropdownMenuItem>
+
+            <DropdownMenuItem>
+              <Settings className="mr-2 h-4 w-4" />
+              <span>Settings</span>
+            </DropdownMenuItem>
+
+            <DropdownMenuItem>
+              <DollarSign className="mr-2 h-4 w-4" />
+              <span>Pricing</span>
+            </DropdownMenuItem>
+
+            <DropdownMenuItem>
+              <BookOpen className="mr-2 h-4 w-4" />
+              <span>Documentation</span>
+            </DropdownMenuItem>
+
+            <DropdownMenuItem>
+              <Users className="mr-2 h-4 w-4" />
+              <span>Community Forum</span>
+            </DropdownMenuItem>
+
+            <DropdownMenuItem>
+              <MessageSquare className="mr-2 h-4 w-4" />
+              <span>Feedback</span>
+            </DropdownMenuItem>
+
+            <DropdownMenuSeparator />
+            <div className="px-2 py-2">
+              <div className="text-xs font-medium text-muted-foreground">
+                Preferences
+              </div>
+
+              <div className="flex items-center justify-between py-2">
+                <span className="text-sm">Theme</span>
+                <div className="flex items-center bg-muted rounded-lg p-1">
+                  <Button
+                    size="sm"
+                    className={`h-6 w-6 p-0 rounded-full transition-all duration-200 ${
+                      theme === 'light'
+                        ? 'bg-primary text-primary-foreground shadow-sm'
+                        : 'bg-background text-muted-foreground hover:bg-accent'
+                    }`}
+                    variant="ghost"
+                    onClick={() => setTheme('light')}
+                  >
+                    <Sun className="h-3 w-3" />
+                  </Button>
+                  <Button
+                    size="sm"
+                    className={`h-6 w-6 p-0 rounded-full transition-all duration-200 ${
+                      theme === 'system'
+                        ? 'bg-primary text-primary-foreground shadow-sm'
+                        : 'bg-background text-muted-foreground hover:bg-accent'
+                    }`}
+                    variant="ghost"
+                    onClick={() => setTheme('system')}
+                  >
+                    <Monitor className="h-3 w-3" />
+                  </Button>
+                  <Button
+                    size="sm"
+                    className={`h-6 w-6 p-0 rounded-full transition-all duration-200 ${
+                      theme === 'dark'
+                        ? 'bg-primary text-primary-foreground shadow-sm'
+                        : 'bg-background text-muted-foreground hover:bg-accent'
+                    }`}
+                    variant="ghost"
+                    onClick={() => setTheme('dark')}
+                  >
+                    <Moon className="h-3 w-3" />
+                  </Button>
+                </div>
+              </div>
+            </div>
             <DropdownMenuSeparator />
             <DropdownMenuItem onClick={handleLogout}>
               <IconLogout />

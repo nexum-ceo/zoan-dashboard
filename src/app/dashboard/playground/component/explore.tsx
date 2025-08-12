@@ -24,15 +24,32 @@ export const Explore: FC<ExploreProps> = ({ isOpen, onClose }) => {
     <AnimatePresence>
       {isOpen && (
         <motion.div
-          initial={{ x: '100%' }}
-          animate={{ x: 0 }}
-          exit={{ x: '100%' }}
-          transition={{
-            type: 'tween',
-            ease: [0.25, 0.1, 0.25, 1],
-            duration: 0.3,
+          initial={{
+            x: '100%',
+            opacity: 0,
+            scale: 0.98,
           }}
-          className="w-96 border-l border-gray-200 bg-white flex flex-col h-full"
+          animate={{
+            x: 0,
+            opacity: 1,
+            scale: 1,
+          }}
+          exit={{
+            x: '100%',
+            opacity: 0,
+            scale: 0.98,
+          }}
+          transition={{
+            type: 'spring',
+            stiffness: 400,
+            damping: 35,
+            mass: 0.9,
+            duration: 0.5,
+          }}
+          className="w-96 border-l border-gray-200 bg-white/95 backdrop-blur-sm shadow-2xl flex flex-col h-full"
+          style={{
+            boxShadow: '0 20px 40px -12px rgba(0, 0, 0, 0.15)',
+          }}
         >
           {/* Header */}
           <div className="px-6 py-4 border-b border-gray-200">

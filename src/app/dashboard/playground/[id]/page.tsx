@@ -71,7 +71,9 @@ export default function PlaygroundChatPage() {
     wsConnected,
     sendMessageDirect,
   } = useChat({
-    wsUrl: `${process.env.NEXT_PUBLIC_WS_URL}/${chatId}?token=${token}`,
+    wsUrl: token
+      ? `${process.env.NEXT_PUBLIC_WS_URL}/${chatId}?token=${token}`
+      : '',
     initialMessages: [],
     agentId: selectedAgentId || '',
     chatId: chatId,
@@ -79,26 +81,27 @@ export default function PlaygroundChatPage() {
   const { data: chatMessageData } = useGetChatMessages(chatId);
   const { data: chatData } = useGetChat(chatId);
 
-  useEffect(() => {
-    if (chatMessageData) {
-      const safeMessages = chatMessageData?.data.data.map(
-        (msg: ChatMessageType) => ({
-          ...msg,
-          content: msg.content ?? '',
-          role: Object.values(ChatRole).includes(msg.role)
-            ? msg.role
-            : ChatRole.USER,
-        }),
-      );
-      setMessages(safeMessages || []);
-    }
-  }, [chatMessageData, setMessages]);
+  const chatMessages = chatMessageData?.data?.data;
+  const chatInfo = chatData?.data?.data;
 
   useEffect(() => {
-    if (chatData) {
-      setSelectedAgentId(chatData?.data.data.agent_id);
+    if (chatMessages && Array.isArray(chatMessages)) {
+      const safeMessages = chatMessages.map((msg: ChatMessageType) => ({
+        ...msg,
+        content: msg.content ?? '',
+        role: Object.values(ChatRole).includes(msg.role)
+          ? msg.role
+          : ChatRole.USER,
+      }));
+      setMessages(safeMessages || []);
     }
-  }, [chatData, setSelectedAgentId]);
+  }, [chatMessages, setMessages]);
+
+  useEffect(() => {
+    if (chatInfo?.agent_id) {
+      setSelectedAgentId(chatInfo.agent_id);
+    }
+  }, [chatInfo, setSelectedAgentId]);
 
   useEffect(() => {
     fetch('/api/auth/session')
@@ -291,7 +294,14 @@ export default function PlaygroundChatPage() {
                 <Button
                   variant="ghost"
                   size="icon"
-                  onClick={() => setExploreOpen(!exploreOpen)}
+                  onClick={() => {
+                    if (exploreOpen) {
+                      setExploreOpen(false);
+                    } else {
+                      setExploreOpen(true);
+                      setSettingsOpen(false); // Close settings when opening explore
+                    }
+                  }}
                   className={exploreOpen ? 'bg-gray-100' : ''}
                 >
                   <Gamepad2 className="w-4 h-4 text-gray-500" />
@@ -304,7 +314,14 @@ export default function PlaygroundChatPage() {
                 <Button
                   variant="ghost"
                   size="icon"
-                  onClick={() => setSettingsOpen(!settingsOpen)}
+                  onClick={() => {
+                    if (settingsOpen) {
+                      setSettingsOpen(false);
+                    } else {
+                      setSettingsOpen(true);
+                      setExploreOpen(false); // Close explore when opening settings
+                    }
+                  }}
                   className={settingsOpen ? 'bg-gray-100' : ''}
                 >
                   <Settings className="w-4 h-4 text-gray-500" />

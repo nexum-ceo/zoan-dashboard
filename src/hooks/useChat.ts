@@ -68,7 +68,7 @@ export function useChat({
       console.log('[WS] User was inactive, attempting reconnect...');
 
       // Inline reconnect logic to avoid dependency issues
-      if (!wsUrl || isReconnectingRef.current) return;
+      if (!wsUrl || wsUrl.trim() === '' || isReconnectingRef.current) return;
 
       isReconnectingRef.current = true;
       console.log('[WS] Creating connection to:', wsUrl);
@@ -204,7 +204,10 @@ export function useChat({
 
   // Initial connection - only create once when component mounts
   useEffect(() => {
-    if (!wsUrl) return;
+    if (!wsUrl || wsUrl.trim() === '') {
+      console.log('[WS] No valid wsUrl provided, skipping connection');
+      return;
+    }
 
     console.log('[WS] Initial connection to:', wsUrl);
 

@@ -41,6 +41,20 @@ export const authOptions: NextAuthOptions = {
       return token;
     },
     async session({ session, token }) {
+      // Check if accessToken is expired
+      if (
+        token.accessTokenExpires &&
+        token.accessTokenExpires < Date.now() / 1000
+      ) {
+        console.log('AccessToken expired - clearing session data');
+        return {
+          ...session,
+          user: undefined,
+          accessToken: undefined,
+          expires: undefined,
+        };
+      }
+
       session.accessToken = token.accessToken;
       session.expires = token.accessTokenExpires;
       return session;
