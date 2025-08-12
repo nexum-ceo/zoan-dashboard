@@ -57,7 +57,9 @@ axiosInstance.interceptors.response.use(
 
       // If unauthenticated, sign out for client-side
       if (!isServer) {
-        signOut();
+        signOut({
+          callbackUrl: '/login',
+        });
       }
     }
 

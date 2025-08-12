@@ -10,10 +10,6 @@ export default withAuth(
       req.nextauth.token = null; // Clear token to prevent further access
       const redirectUrl = new URL('/login', req.url);
       redirectUrl.searchParams.set('callbackUrl', req.url);
-      console.log(
-        'Token expired, redirecting to login:',
-        redirectUrl.toString(),
-      );
       return NextResponse.redirect(redirectUrl);
     }
   },
