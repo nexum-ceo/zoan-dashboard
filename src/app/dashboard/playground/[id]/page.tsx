@@ -1,8 +1,9 @@
 'use client';
-import { ChatInput } from '@/app/dashboard/playground/component/ChatInput';
-import { ChatMessage } from '@/app/dashboard/playground/component/ChatMessage';
-import { ChatSettings } from '@/app/dashboard/playground/component/chat-setting';
-import { Explore } from '@/app/dashboard/playground/component/explore';
+import { SelectAssistant } from '@/app/dashboard/playground/components';
+import { ChatSettings } from '@/app/dashboard/playground/components/chat-setting';
+import { ChatInput } from '@/app/dashboard/playground/components/ChatInput';
+import { ChatMessage } from '@/app/dashboard/playground/components/ChatMessage';
+import { Explore } from '@/app/dashboard/playground/components/explore';
 
 import { NavUser } from '@/components/nav-user';
 import { Button } from '@/components/ui/button';
@@ -28,7 +29,6 @@ import {
 } from 'lucide-react';
 import { useParams, usePathname, useRouter } from 'next/navigation';
 import { useCallback, useEffect, useRef, useState } from 'react';
-import SelectAssistant from '../component/SelectAssistant';
 
 export default function PlaygroundChatPage() {
   // Use agent from context

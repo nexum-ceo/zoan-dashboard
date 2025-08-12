@@ -1,7 +1,7 @@
 'use client';
 import { Bot, Plus, Settings, User, Users } from 'lucide-react';
 
-import SelectAssistant from '@/app/dashboard/playground/component/SelectAssistant';
+import { SelectAssistant } from '@/app/dashboard/playground/components';
 import { NavUser } from '@/components/nav-user';
 import { Button } from '@/components/ui/button';
 import {
