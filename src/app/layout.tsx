@@ -20,8 +20,11 @@ const geistMono = Geist_Mono({
 
 export async function generateMetadata(): Promise<Metadata> {
   return {
-    title: 'Zoan AI Assistant',
-    description: 'Zoan AI Assistant',
+    title: {
+      template: '%s | Zoan AI',
+      default: 'Zoan AI',
+    },
+    description: 'Zoan AI',
     openGraph: {
       ...baseOpenGraph,
     },

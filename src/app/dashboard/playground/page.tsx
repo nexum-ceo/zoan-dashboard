@@ -4,7 +4,7 @@ import { PlaygroundClient } from './components/playground-client';
 export async function generateMetadata(): Promise<Metadata> {
   const url = process.env.NEXTAUTH_URL + `/playground`;
   return {
-    title: 'Playground - Zoan AI',
+    title: 'Playground',
     description: 'Chat and interact with AI agents in the playground',
     alternates: {
       canonical: url,
