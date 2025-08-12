@@ -118,51 +118,22 @@ export function AppSidebar() {
           <div className="h-full bg-white flex flex-col">
             {/* Header */}
             <div className="p-4 border-b border-gray-100">
-              {state === 'collapsed' ? (
-                <div className="group relative flex items-center justify-center w-full">
-                  {/* Logo - hiển thị mặc định */}
-                  <div className="w-8 h-8 rounded-lg flex items-center justify-center group-hover:opacity-0 transition-opacity duration-200">
-                    <Image
-                      src="/icon.png"
-                      alt="Logo"
-                      width={32}
-                      height={32}
-                      className="rounded-lg"
-                    />
-                  </div>
-                  {/* Trigger - hiển thị khi hover */}
-                  <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-200">
-                    <TooltipProvider>
-                      <Tooltip>
-                        <TooltipTrigger asChild>
-                          <SidebarTrigger className="h-8 w-8" />
-                        </TooltipTrigger>
-                        <TooltipContent side="right">
-                          <p>Toggle Sidebar (Ctrl + B)</p>
-                        </TooltipContent>
-                      </Tooltip>
-                    </TooltipProvider>
-                  </div>
+              <div className="flex items-center gap-3">
+                <div className="w-8 h-8 rounded-lg flex items-center justify-center">
+                  <Image
+                    src="/icon.png"
+                    alt="Logo"
+                    width={32}
+                    height={32}
+                    className="rounded-lg"
+                  />
                 </div>
-              ) : (
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                    <div className="w-8 h-8 rounded-lg flex items-center justify-center">
-                      <Image
-                        src="/icon.png"
-                        alt="Logo"
-                        width={32}
-                        height={32}
-                        className="rounded-lg"
-                      />
-                    </div>
-                    <h1 className="text-lg font-semibold text-gray-900">
-                      Zoan Agent
-                    </h1>
-                  </div>
-                  <SidebarTrigger className="ml-auto" />
-                </div>
-              )}
+                {state !== 'collapsed' && (
+                  <h1 className="text-lg font-semibold text-gray-900">
+                    Zoan Agent
+                  </h1>
+                )}
+              </div>
             </div>
 
             {/* Navigation */}
@@ -251,17 +222,48 @@ export function AppSidebar() {
               </div>
             )}
 
-            {/* Spacer khi collapsed để đẩy NavUser xuống dưới */}
-            {state === 'collapsed' && <div className="flex-1" />}
+            {/* Spacer for user and trigger */}
+            <div className="flex-1" />
 
-            {/* User Info */}
-            <div className="border-t border-gray-100 mx-auto -translate-y-2">
-              <NavUser
-                user={{
-                  email: user?.email || '',
-                  avatar: '/avatar-placeholder.png',
-                }}
-              />
+            {/* User Info and Sidebar Trigger */}
+            <div className="border-t border-gray-100">
+              {state === 'collapsed' ? (
+                // When collapsed: Avatar on top, Trigger below
+                <div className="p-4 space-y-3">
+                  {/* Avatar */}
+                  <NavUser
+                    user={{
+                      email: user?.email || '',
+                      avatar: '/avatar-placeholder.png',
+                    }}
+                  />
+                  {/* Sidebar Trigger */}
+                  <div className="flex justify-center">
+                    <TooltipProvider>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <SidebarTrigger className="h-8 w-8" />
+                        </TooltipTrigger>
+                        <TooltipContent side="right">
+                          <p>Toggle Sidebar (Ctrl + B)</p>
+                        </TooltipContent>
+                      </Tooltip>
+                    </TooltipProvider>
+                  </div>
+                </div>
+              ) : (
+                // When not collapsed: NavUser and Trigger below
+                <div className="space-y-3 flex items-center">
+                  <NavUser
+                    user={{
+                      email: user?.email || '',
+                      avatar: '/avatar-placeholder.png',
+                    }}
+                  />
+                  {/* Sidebar Trigger at the bottom */}
+                  <SidebarTrigger size={'lg'} />
+                </div>
+              )}
             </div>
           </div>
         </SidebarContent>
