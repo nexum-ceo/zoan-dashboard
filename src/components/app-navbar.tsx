@@ -14,8 +14,30 @@ import {
 } from '@/components/ui/sheet';
 import { useState } from 'react';
 
-import { Menu } from 'lucide-react';
-import { signIn, useSession } from 'next-auth/react';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
+import { IconLogout } from '@tabler/icons-react';
+import {
+  BookOpen,
+  DollarSign,
+  Menu,
+  MessageSquare,
+  Monitor,
+  Moon,
+  Settings,
+  Sun,
+  User,
+  Users,
+} from 'lucide-react';
+import { signIn, signOut, useSession } from 'next-auth/react';
+import { useTheme } from 'next-themes';
 import Image from 'next/image';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
@@ -50,6 +72,7 @@ export default function AppNavbar() {
   const router = useRouter();
   const { data: session } = useSession();
   const user = session?.user;
+  const { theme, setTheme } = useTheme();
 
   const openLoginPopup = () => {
     const popup = window.open(
@@ -170,9 +193,124 @@ export default function AppNavbar() {
 
           <div className="hidden md:flex gap-2">
             {user ? (
-              <div className="flex items-center gap-2 border rounded-md px-4 py-2">
-                <div className="text-sm">{user.email}</div>
-              </div>
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    className="relative h-8 w-8 rounded-full"
+                  >
+                    <Avatar className="h-8 w-8 rounded-lg">
+                      <AvatarImage
+                        src={user.image || ''}
+                        alt={user.email || ''}
+                      />
+                      <AvatarFallback className="rounded-lg">
+                        {user.name?.[0] || user.email?.[0] || 'U'}
+                      </AvatarFallback>
+                    </Avatar>
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent className="w-56" align="end" forceMount>
+                  <DropdownMenuLabel className="p-0 font-normal">
+                    <div className="flex items-center gap-2 px-1 py-1.5 text-left text-sm">
+                      <Avatar className="h-8 w-8 rounded-lg">
+                        <AvatarImage
+                          src={user?.image || ''}
+                          alt={user?.email || ''}
+                        />
+                        <AvatarFallback className="rounded-lg">
+                          CN
+                        </AvatarFallback>
+                      </Avatar>
+                      <div className="grid flex-1 text-left text-sm leading-tight">
+                        <span className="truncate font-medium">
+                          {user.email}
+                        </span>
+                        <span className="text-muted-foreground truncate text-xs">
+                          {user.email}
+                        </span>
+                      </div>
+                    </div>
+                  </DropdownMenuLabel>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem>
+                    <User className="mr-2 h-4 w-4" />
+                    <span>Profile</span>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem>
+                    <Settings className="mr-2 h-4 w-4" />
+                    <span>Settings</span>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem>
+                    <DollarSign className="mr-2 h-4 w-4" />
+                    <span>Pricing</span>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem>
+                    <BookOpen className="mr-2 h-4 w-4" />
+                    <span>Documentation</span>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem>
+                    <Users className="mr-2 h-4 w-4" />
+                    <span>Community Forum</span>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem>
+                    <MessageSquare className="mr-2 h-4 w-4" />
+                    <span>Feedback</span>
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator />
+                  <div className="px-2 py-2">
+                    <div className="text-xs font-medium text-muted-foreground">
+                      Preferences
+                    </div>
+                    <div className="flex items-center justify-between py-2">
+                      <span className="text-sm">Theme</span>
+                      <div className="flex items-center bg-muted rounded-lg p-1">
+                        <Button
+                          size="sm"
+                          className={`h-6 w-6 p-0 rounded-full transition-all duration-200 ${
+                            theme === 'light'
+                              ? 'bg-primary text-primary-foreground shadow-sm'
+                              : 'bg-background text-muted-foreground hover:bg-accent'
+                          }`}
+                          variant="ghost"
+                          onClick={() => setTheme('light')}
+                        >
+                          <Sun className="h-3 w-3" />
+                        </Button>
+                        <Button
+                          size="sm"
+                          className={`h-6 w-6 p-0 rounded-full transition-all duration-200 ${
+                            theme === 'system'
+                              ? 'bg-primary text-primary-foreground shadow-sm'
+                              : 'bg-background text-muted-foreground hover:bg-accent'
+                          }`}
+                          variant="ghost"
+                          onClick={() => setTheme('system')}
+                        >
+                          <Monitor className="h-3 w-3" />
+                        </Button>
+                        <Button
+                          size="sm"
+                          className={`h-6 w-6 p-0 rounded-full transition-all duration-200 ${
+                            theme === 'dark'
+                              ? 'bg-primary text-primary-foreground shadow-sm'
+                              : 'bg-background text-muted-foreground hover:bg-accent'
+                          }`}
+                          variant="ghost"
+                          onClick={() => setTheme('dark')}
+                        >
+                          <Moon className="h-3 w-3" />
+                        </Button>
+                      </div>
+                    </div>
+                  </div>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem onClick={() => signOut()}>
+                    <IconLogout className="mr-2 h-4 w-4" />
+                    <span>Log out</span>
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
             ) : (
               <Button
                 onClick={openLoginPopup}

@@ -19,6 +19,7 @@ import {
 import { IconBuildingCommunity } from '@tabler/icons-react';
 import { useSession } from 'next-auth/react';
 import Image from 'next/image';
+import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 
 // Navigation items with dynamic active state
@@ -119,7 +120,10 @@ export function AppSidebar() {
             {/* Header */}
             <div className="p-4 border-b border-gray-100">
               <div className="flex items-center gap-3">
-                <div className="w-8 h-8 rounded-lg flex items-center justify-center">
+                <Link
+                  href="/"
+                  className="w-8 h-8 rounded-lg flex items-center justify-center"
+                >
                   <Image
                     src="/icon.png"
                     alt="Logo"
@@ -127,7 +131,7 @@ export function AppSidebar() {
                     height={32}
                     className="rounded-lg"
                   />
-                </div>
+                </Link>
                 {state !== 'collapsed' && (
                   <h1 className="text-lg font-semibold text-gray-900">
                     Zoan Agent
