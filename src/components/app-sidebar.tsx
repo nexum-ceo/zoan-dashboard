@@ -221,7 +221,7 @@ export function AppSidebar() {
 
             {/* Dynamic Content Based on Active Tab */}
             {state !== 'collapsed' && (
-              <div className="flex-1 border-t border-gray-100">
+              <div className="border-t border-gray-100 overflow-y-auto">
                 {renderSidebarContent(pathname)}
               </div>
             )}
