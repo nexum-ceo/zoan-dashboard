@@ -66,3 +66,17 @@ export const handleErrorApi = <T = unknown>({
     });
   }
 };
+
+export const wrapServerApi = async <T>(fn: () => Promise<T>) => {
+  let result = null;
+  try {
+    result = await fn();
+  } catch (error: unknown) {
+    if (error instanceof Error) {
+      if (error.message.includes('NEXT_REDIRECT')) {
+        throw error;
+      }
+    }
+  }
+  return result;
+};

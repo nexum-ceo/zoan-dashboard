@@ -7,7 +7,7 @@ type SelectAssistantProps = {
   activeChatId?: string;
 };
 
-const SelectAssistant: FC<SelectAssistantProps> = ({ activeChatId }) => {
+export const SelectAssistant: FC<SelectAssistantProps> = ({ activeChatId }) => {
   const router = useRouter();
   const pathname = usePathname();
   const {
@@ -84,5 +84,3 @@ const SelectAssistant: FC<SelectAssistantProps> = ({ activeChatId }) => {
     </div>
   );
 };
-
-export default SelectAssistant;
