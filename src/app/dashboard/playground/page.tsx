@@ -123,9 +123,13 @@ export default function PlaygroundPage() {
                   onClick={() =>
                     setActivePanel(activePanel === 'explore' ? null : 'explore')
                   }
-                  className={activePanel === 'explore' ? 'bg-gray-100' : ''}
+                  className={`transition-all duration-300 ${
+                    activePanel === 'explore'
+                      ? 'bg-blue-100 text-blue-600 shadow-lg ring-2 ring-blue-200'
+                      : 'hover:bg-gray-100'
+                  }`}
                 >
-                  <Gamepad2 className="w-4 h-4 text-gray-500" />
+                  <Gamepad2 className="w-4 h-4" />
                 </Button>
               </motion.div>
               <motion.div
@@ -140,9 +144,13 @@ export default function PlaygroundPage() {
                       activePanel === 'settings' ? null : 'settings',
                     )
                   }
-                  className={activePanel === 'settings' ? 'bg-gray-100' : ''}
+                  className={`transition-all duration-300 ${
+                    activePanel === 'settings'
+                      ? 'bg-blue-100 text-blue-600 shadow-lg ring-2 ring-blue-200'
+                      : 'hover:bg-gray-100'
+                  }`}
                 >
-                  <Settings className="w-4 h-4 text-gray-500" />
+                  <Settings className="w-4 h-4" />
                 </Button>
               </motion.div>
             </div>
