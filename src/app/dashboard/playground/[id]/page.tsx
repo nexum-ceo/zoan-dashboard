@@ -81,29 +81,27 @@ export default function PlaygroundChatPage() {
   const { data: chatMessageData } = useGetChatMessages(chatId);
   const { data: chatData } = useGetChat(chatId);
 
-  useEffect(() => {
-    if (
-      chatMessageData?.data?.data &&
-      Array.isArray(chatMessageData.data.data)
-    ) {
-      const safeMessages = chatMessageData.data.data.map(
-        (msg: ChatMessageType) => ({
-          ...msg,
-          content: msg.content ?? '',
-          role: Object.values(ChatRole).includes(msg.role)
-            ? msg.role
-            : ChatRole.USER,
-        }),
-      );
-      setMessages(safeMessages || []);
-    }
-  }, [chatMessageData, setMessages]);
+  const chatMessages = chatMessageData?.data?.data;
+  const chatInfo = chatData?.data?.data;
 
   useEffect(() => {
-    if (chatData?.data?.data?.agent_id) {
-      setSelectedAgentId(chatData.data.data.agent_id);
+    if (chatMessages && Array.isArray(chatMessages)) {
+      const safeMessages = chatMessages.map((msg: ChatMessageType) => ({
+        ...msg,
+        content: msg.content ?? '',
+        role: Object.values(ChatRole).includes(msg.role)
+          ? msg.role
+          : ChatRole.USER,
+      }));
+      setMessages(safeMessages || []);
     }
-  }, [chatData, setSelectedAgentId]);
+  }, [chatMessages, setMessages]);
+
+  useEffect(() => {
+    if (chatInfo?.agent_id) {
+      setSelectedAgentId(chatInfo.agent_id);
+    }
+  }, [chatInfo, setSelectedAgentId]);
 
   useEffect(() => {
     fetch('/api/auth/session')
