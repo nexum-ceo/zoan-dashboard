@@ -12,7 +12,7 @@ import {
   SheetTitle,
   SheetTrigger,
 } from '@/components/ui/sheet';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import {
@@ -73,6 +73,23 @@ export default function AppNavbar() {
   const { data: session } = useSession();
   const user = session?.user;
   const { theme, setTheme } = useTheme();
+  // BroadcastChannel allow logout across tabs
+  useEffect(() => {
+    const channel = new BroadcastChannel('auth');
+    channel.onmessage = (event) => {
+      if (event.data === 'logout') {
+        signOut();
+      }
+    };
+    return () => channel.close();
+  }, []);
+
+  const handleLogout = () => {
+    const channel = new BroadcastChannel('auth');
+    channel.postMessage('logout');
+    channel.close();
+    signOut();
+  };
 
   const openLoginPopup = () => {
     const popup = window.open(
@@ -305,7 +322,7 @@ export default function AppNavbar() {
                     </div>
                   </div>
                   <DropdownMenuSeparator />
-                  <DropdownMenuItem onClick={() => signOut()}>
+                  <DropdownMenuItem onClick={handleLogout}>
                     <IconLogout className="mr-2 h-4 w-4" />
                     <span>Log out</span>
                   </DropdownMenuItem>
