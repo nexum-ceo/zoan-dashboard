@@ -1,10 +1,16 @@
 import { Metadata } from 'next';
 import { PlaygroundClient } from './components/playground-client';
 
-export const metadata: Metadata = {
-  title: 'Playground - Zoan Dashboard',
-  description: 'Chat and interact with AI agents in the playground',
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const url = process.env.NEXTAUTH_URL + `/playground`;
+  return {
+    title: 'Playground - Zoan AI',
+    description: 'Chat and interact with AI agents in the playground',
+    alternates: {
+      canonical: url,
+    },
+  };
+}
 
 export default function PlaygroundPage() {
   return (

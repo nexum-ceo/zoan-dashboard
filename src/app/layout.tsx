@@ -2,6 +2,7 @@
 import { authOptions } from '@/app/api/auth/[...nextauth]/option';
 import AppProvider from '@/components/app-provider';
 import SessionProvider from '@/components/session-provider';
+import { baseOpenGraph } from '@/shared-metadata';
 import type { Metadata } from 'next';
 import { getServerSession } from 'next-auth';
 import { Geist, Geist_Mono } from 'next/font/google';
@@ -17,10 +18,15 @@ const geistMono = Geist_Mono({
   subsets: ['latin'],
 });
 
-export const metadata: Metadata = {
-  title: 'Zoan AI',
-  description: 'Zoan AI',
-};
+export async function generateMetadata(): Promise<Metadata> {
+  return {
+    title: 'Zoan AI Assistant',
+    description: 'Zoan AI Assistant',
+    openGraph: {
+      ...baseOpenGraph,
+    },
+  };
+}
 
 export default async function RootLayout({
   children,
