@@ -61,13 +61,13 @@ export const ChatInput: FC<ChatInputProps> = ({
 
   return (
     <div className="w-full max-w-4xl mx-auto px-4 py-4">
-      <div className="border border-gray-200 rounded-2xl bg-white shadow-sm focus-within:border-gray-300 focus-within:shadow-md transition-all duration-200">
+      <div className="border border-border rounded-2xl bg-card text-card-foreground shadow-sm focus-within:border-ring focus-within:shadow-md transition-all duration-200">
         {/* Textarea area - takes available space */}
         <div className="px-4 pt-4 pb-2">
           <Textarea
             ref={textareaRef}
             placeholder="Enter your message..."
-            className="leading-6 min-h-[24px] border-0 focus:border-0 focus:ring-0 focus:outline-none resize-none w-full bg-transparent"
+            className="leading-6 min-h-[24px] border-0 focus:border-0 focus:ring-0 focus:outline-none resize-none w-full bg-transparent placeholder:text-muted-foreground"
             style={{ lineHeight: '1.5' }}
             value={value}
             onChange={onChange}
@@ -77,7 +77,7 @@ export const ChatInput: FC<ChatInputProps> = ({
         </div>
 
         {/* Actions bar - always at bottom */}
-        <div className="flex items-center justify-between px-4 pb-4 pt-2 border-t border-gray-100">
+        <div className="flex items-center justify-between px-4 pb-4 pt-2 border-t border-border">
           {/* Left Icons */}
           <div className="flex items-center gap-1">
             <Button
@@ -86,7 +86,7 @@ export const ChatInput: FC<ChatInputProps> = ({
               type="button"
               disabled={disabled}
             >
-              <Paperclip className="w-4 h-4" />
+              <Paperclip className="w-4 h-4 text-muted-foreground" />
             </Button>
             <Button
               variant="ghost"
@@ -94,7 +94,7 @@ export const ChatInput: FC<ChatInputProps> = ({
               type="button"
               disabled={disabled}
             >
-              <MessageSquare className="w-4 h-4" />
+              <MessageSquare className="w-4 h-4 text-muted-foreground" />
             </Button>
             <Button
               variant="ghost"
@@ -102,7 +102,7 @@ export const ChatInput: FC<ChatInputProps> = ({
               type="button"
               disabled={disabled}
             >
-              <Settings className="w-4 h-4" />
+              <Settings className="w-4 h-4 text-muted-foreground" />
             </Button>
           </div>
 
@@ -114,16 +114,16 @@ export const ChatInput: FC<ChatInputProps> = ({
               type="button"
               disabled={disabled}
             >
-              <Plus className="w-4 h-4" />
+              <Plus className="w-4 h-4 text-muted-foreground" />
             </Button>
             <Button
               variant="secondary"
-              className="text-sm px-4 py-2 rounded-lg bg-gray-100 hover:bg-gray-200 disabled:opacity-50"
+              className="text-sm px-4 py-2 rounded-lg bg-accent text-accent-foreground hover:opacity-90 disabled:opacity-50"
               onClick={handleRunClick}
               disabled={disabled || !value.trim()}
             >
               Run
-              <span className="ml-1 text-xs text-gray-400">↵</span>
+              <span className="ml-1 text-xs text-muted-foreground">↵</span>
             </Button>
           </div>
         </div>
