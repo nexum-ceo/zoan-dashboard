@@ -75,22 +75,22 @@ export const ChatSettings: FC<ChatSettingsProps> = ({ isOpen, onClose }) => {
             mass: 0.9,
             duration: 0.5,
           }}
-          className="w-96 border-l border-gray-200 bg-white/95 backdrop-blur-sm shadow-2xl flex flex-col h-full dark:border-sidebar-border dark:bg-black"
+          className="w-96 border-l border-border bg-background backdrop-blur-sm shadow-2xl flex flex-col h-full"
           style={{
             boxShadow: '0 20px 40px -12px rgba(0, 0, 0, 0.15)',
           }}
         >
           {/* Header */}
-          <div className="px-6 py-4 border-b border-gray-200 dark:border-gray-800">
+          <div className="px-6 py-4 border-b border-border">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <Settings className="w-5 h-5" />
-                <h2 className="text-lg font-semibold dark:text-gray-100">
+                <h2 className="text-lg font-semibold text-foreground">
                   Chat Settings
                 </h2>
               </div>
               <Button variant="ghost" size="icon" onClick={onClose}>
-                <X className="w-4 h-4 text-gray-500 dark:text-gray-400" />
+                <X className="w-4 h-4 text-muted-foreground" />
               </Button>
             </div>
           </div>
@@ -98,14 +98,14 @@ export const ChatSettings: FC<ChatSettingsProps> = ({ isOpen, onClose }) => {
           {/* Content */}
           <div className="flex-1 overflow-y-auto p-6 space-y-6">
             {/* Primary Agent Section */}
-            <div className="space-y-3 rounded-xl border border-gray-200 dark:border-gray-800 p-6">
+            <div className="space-y-3 rounded-xl border border-border bg-card p-6 text-card-foreground">
               <div className="flex items-center gap-2">
                 <Bot className="w-4 h-4" />
-                <h3 className="font-medium dark:text-gray-100">
+                <h3 className="font-medium text-foreground">
                   {agents.find((agent) => agent.id === selectedAgentId)?.name}
                 </h3>
               </div>
-              <p className="text-sm text-gray-600 dark:text-gray-400">
+              <p className="text-sm text-muted-foreground">
                 {
                   agents.find((agent) => agent.id === selectedAgentId)
                     ?.description
@@ -133,32 +133,32 @@ export const ChatSettings: FC<ChatSettingsProps> = ({ isOpen, onClose }) => {
             </div>
 
             {/* Primary Prompt Section */}
-            <div className="space-y-3 rounded-xl border border-gray-200 dark:border-gray-800 p-6">
+            <div className="space-y-3 rounded-xl border border-border bg-card p-6 text-card-foreground">
               <div className="flex items-center gap-2">
                 <Sparkles className="w-4 h-4" />
                 <h3 className="font-medium dark:text-gray-100">
                   Primary Prompt
                 </h3>
               </div>
-              <p className="text-sm text-gray-600 dark:text-gray-400">
+              <p className="text-sm text-muted-foreground">
                 Set the context and behavior for your chat session.
               </p>
               <Textarea
                 placeholder="You are a helpful assistant that specializes in..."
-                className="min-h-[100px] resize-none dark:bg-black/30 dark:border-gray-800 dark:text-gray-100"
+                className="min-h-[100px] resize-none"
                 defaultValue="You are a helpful assistant that specializes in..."
               />
             </div>
 
             {/* Intent Detection Section */}
-            <div className="space-y-3 rounded-xl border border-gray-200 dark:border-gray-800 p-6">
+            <div className="space-y-3 rounded-xl border border-border bg-card p-6 text-card-foreground">
               <div className="flex items-center gap-2">
                 <Zap className="w-4 h-4" />
                 <h3 className="font-medium dark:text-gray-100">
                   Intent Detection
                 </h3>
               </div>
-              <div className="bg-green-50 border border-green-200 rounded-lg p-4 dark:bg-emerald-900/30 dark:border-emerald-800">
+              <div className="rounded-lg p-4 border border-green-200 bg-green-50 dark:border-emerald-800 dark:bg-emerald-900/30">
                 <div className="flex items-center gap-2 mb-2">
                   <div className="w-2 h-2 bg-green-500 rounded-full"></div>
                   <span className="font-medium text-green-800 dark:text-emerald-300">
@@ -170,26 +170,26 @@ export const ChatSettings: FC<ChatSettingsProps> = ({ isOpen, onClose }) => {
                   appropriate agent.
                 </p>
               </div>
-              <p className="text-sm text-gray-600 dark:text-gray-400">
+              <p className="text-sm text-muted-foreground">
                 <strong>Active Agents:</strong> 4 of 5
               </p>
             </div>
 
             {/* Available Agents Section */}
-            <div className="space-y-3 rounded-xl border border-gray-200 dark:border-gray-800 p-6">
+            <div className="space-y-3 rounded-xl border border-border bg-card p-6 text-card-foreground">
               <div className="flex items-center gap-2">
                 <Users className="w-4 h-4" />
                 <h3 className="font-medium dark:text-gray-100">
                   Available Agents
                 </h3>
               </div>
-              <p className="text-sm text-gray-600 dark:text-gray-400">
+              <p className="text-sm text-muted-foreground">
                 Enable agents that can respond to specific intents in your
                 conversation.
               </p>
 
               {/* Agent Item */}
-              <div className="border border-gray-200 rounded-lg p-4 space-y-3 dark:border-gray-800">
+              <div className="border border-border rounded-lg p-4 space-y-3">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-3">
                     <Bot className="w-6 h-6 text-blue-600" />
@@ -204,7 +204,7 @@ export const ChatSettings: FC<ChatSettingsProps> = ({ isOpen, onClose }) => {
                   </div>
                   <Switch defaultChecked />
                 </div>
-                <div className="text-sm text-gray-600 dark:text-gray-400">
+                <div className="text-sm text-muted-foreground">
                   <div className="mb-2">General</div>
                   <p>
                     Primary AI assistant that handles general queries and
@@ -242,7 +242,7 @@ export const ChatSettings: FC<ChatSettingsProps> = ({ isOpen, onClose }) => {
             </div>
 
             {/* Chat Parameters Section */}
-            <div className="space-y-4 rounded-xl border border-gray-200 dark:border-gray-800 p-6">
+            <div className="space-y-4 rounded-xl border border-border bg-card p-6 text-card-foreground">
               <div className="flex items-center gap-2">
                 <MessageSquare className="w-4 h-4" />
                 <h3 className="font-medium dark:text-gray-100">
@@ -256,7 +256,7 @@ export const ChatSettings: FC<ChatSettingsProps> = ({ isOpen, onClose }) => {
                   <Label htmlFor="creativity" className="text-sm font-medium">
                     Creativity
                   </Label>
-                  <span className="text-sm text-gray-500 dark:text-gray-400">
+                  <span className="text-sm text-muted-foreground">
                     {creativity[0]}
                   </span>
                 </div>
@@ -269,7 +269,7 @@ export const ChatSettings: FC<ChatSettingsProps> = ({ isOpen, onClose }) => {
                   onValueChange={setCreativity}
                   className="w-full"
                 />
-                <p className="text-xs text-gray-500 dark:text-gray-400">
+                <p className="text-xs text-muted-foreground">
                   Higher values make responses more creative
                 </p>
               </div>
@@ -283,7 +283,7 @@ export const ChatSettings: FC<ChatSettingsProps> = ({ isOpen, onClose }) => {
                   >
                     Response Length
                   </Label>
-                  <span className="text-sm text-gray-500 dark:text-gray-400">
+                  <span className="text-sm text-muted-foreground">
                     {responseLength[0]}
                   </span>
                 </div>
@@ -296,7 +296,7 @@ export const ChatSettings: FC<ChatSettingsProps> = ({ isOpen, onClose }) => {
                   onValueChange={setResponseLength}
                   className="w-full"
                 />
-                <p className="text-xs text-gray-500 dark:text-gray-400">
+                <p className="text-xs text-muted-foreground">
                   Maximum length of AI responses
                 </p>
               </div>
@@ -307,7 +307,7 @@ export const ChatSettings: FC<ChatSettingsProps> = ({ isOpen, onClose }) => {
                   <Label htmlFor="memory" className="text-sm font-medium">
                     Memory
                   </Label>
-                  <span className="text-sm text-gray-500 dark:text-gray-400">
+                  <span className="text-sm text-muted-foreground">
                     {memory[0]}
                   </span>
                 </div>
@@ -320,15 +320,15 @@ export const ChatSettings: FC<ChatSettingsProps> = ({ isOpen, onClose }) => {
                   onValueChange={setMemory}
                   className="w-full"
                 />
-                <p className="text-xs text-gray-500 dark:text-gray-400">
+                <p className="text-xs text-muted-foreground">
                   How much conversation history to remember
                 </p>
               </div>
             </div>
 
             {/* Preferences Section */}
-            <div className="space-y-4 rounded-xl border border-gray-200 dark:border-gray-800 p-6">
-              <h3 className="font-medium dark:text-gray-100">Preferences</h3>
+            <div className="space-y-4 rounded-xl border border-border bg-card p-6 text-card-foreground">
+              <h3 className="font-medium text-foreground">Preferences</h3>
 
               {/* Auto-save conversations */}
               <div className="flex items-center justify-between">
@@ -336,7 +336,7 @@ export const ChatSettings: FC<ChatSettingsProps> = ({ isOpen, onClose }) => {
                   <Label className="text-sm font-medium">
                     Auto-save conversations
                   </Label>
-                  <p className="text-xs text-gray-500 dark:text-gray-400">
+                  <p className="text-xs text-muted-foreground">
                     Automatically save chat history
                   </p>
                 </div>
@@ -349,7 +349,7 @@ export const ChatSettings: FC<ChatSettingsProps> = ({ isOpen, onClose }) => {
                   <Label className="text-sm font-medium">
                     Show typing indicator
                   </Label>
-                  <p className="text-xs text-gray-500 dark:text-gray-400">
+                  <p className="text-xs text-muted-foreground">
                     Display when AI is thinking
                   </p>
                 </div>
@@ -362,7 +362,7 @@ export const ChatSettings: FC<ChatSettingsProps> = ({ isOpen, onClose }) => {
                   <Label className="text-sm font-medium">
                     Intent detection
                   </Label>
-                  <p className="text-xs text-gray-500 dark:text-gray-400">
+                  <p className="text-xs text-muted-foreground">
                     Automatically route to specialized agents
                   </p>
                 </div>
@@ -376,7 +376,7 @@ export const ChatSettings: FC<ChatSettingsProps> = ({ isOpen, onClose }) => {
               <div className="flex items-center justify-between">
                 <div className="space-y-0.5">
                   <Label className="text-sm font-medium">Agent switching</Label>
-                  <p className="text-xs text-gray-500 dark:text-gray-400">
+                  <p className="text-xs text-muted-foreground">
                     Allow mid-conversation agent changes
                   </p>
                 </div>
@@ -388,7 +388,7 @@ export const ChatSettings: FC<ChatSettingsProps> = ({ isOpen, onClose }) => {
             </div>
 
             {/* Action Buttons */}
-            <div className="flex gap-3 pt-4 border-t border-gray-200 dark:border-gray-800">
+            <div className="flex gap-3 pt-4 border-t border-border">
               <Button variant="outline" onClick={onClose} className="flex-1">
                 Cancel
               </Button>

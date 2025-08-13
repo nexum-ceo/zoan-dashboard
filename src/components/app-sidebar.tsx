@@ -116,7 +116,7 @@ export function AppSidebar() {
     <TooltipProvider>
       <Sidebar collapsible="icon" variant="floating" className="rounded-none">
         <SidebarContent>
-          <div className="h-full bg-white dark:bg-sidebar flex flex-col">
+          <div className="h-full bg-background flex flex-col">
             {/* Header */}
             <div className="p-4 border-b border-gray-100 dark:border-sidebar-border">
               <div className="flex items-center gap-3 justify-between">

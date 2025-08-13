@@ -26,9 +26,7 @@ export const SelectAssistant: FC<SelectAssistantProps> = ({ activeChatId }) => {
   return (
     <div className="space-y-4">
       <div className="space-y-2">
-        <h4 className="text-sm font-medium text-gray-900 dark:text-gray-100">
-          Recent Chats
-        </h4>
+        <h4 className="text-sm font-medium text-foreground">Recent Chats</h4>
         <div className="space-y-1 h-full overflow-y-auto">
           {chatLoading &&
             // Skeleton loading for recent chats
@@ -45,7 +43,7 @@ export const SelectAssistant: FC<SelectAssistantProps> = ({ activeChatId }) => {
             </div>
           )}
           {!chatLoading && !chatError && chats.length === 0 && (
-            <div className="px-3 py-2 text-xs text-gray-400 dark:text-gray-500">
+            <div className="px-3 py-2 text-xs text-muted-foreground">
               Do not have any chats
             </div>
           )}
@@ -60,8 +58,8 @@ export const SelectAssistant: FC<SelectAssistantProps> = ({ activeChatId }) => {
                   key={chat.id || index}
                   className={`w-full text-left px-3 py-2 text-sm rounded-lg transition-all duration-200 truncate relative ${
                     isActive
-                      ? 'bg-gray-200 text-gray-900 dark:bg-neutral-800 dark:text-gray-100'
-                      : 'text-gray-700 hover:bg-gray-100 hover:text-gray-900 dark:text-gray-300 dark:hover:bg-neutral-800/70 dark:hover:text-gray-100'
+                      ? 'bg-accent text-accent-foreground'
+                      : 'text-foreground/80 hover:bg-muted hover:text-foreground'
                   }`}
                   onClick={() => {
                     if (chat.id) {
