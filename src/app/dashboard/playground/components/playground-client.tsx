@@ -96,7 +96,7 @@ export function PlaygroundClient() {
   return (
     <>
       {/* Main Chat Area */}
-      <div className="flex-1 flex flex-col bg-white relative">
+      <div className="flex-1 flex flex-col bg-sidebar relative">
         {/* Header */}
         <PlaygroundHeader
           selectedAgent={selectedAgent}
