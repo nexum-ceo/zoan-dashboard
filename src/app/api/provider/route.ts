@@ -14,6 +14,10 @@ export async function GET() {
       message = error.message;
     }
 
+    if (message === 'Request failed with status code 401') {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
     return NextResponse.json({ error: message }, { status: 500 });
   }
 }

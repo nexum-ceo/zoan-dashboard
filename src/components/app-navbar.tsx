@@ -286,7 +286,7 @@ export default function AppNavbar() {
                       <span className="text-sm">Theme</span>
                       <div className="flex gap-1 items-center bg-muted rounded-lg p-1">
                         <ThemeToggleButton
-                          className={`rounded-full ${
+                          className={`rounded-full p-1 w-fit h-fit ${
                             theme === 'light' ? 'text-primary' : 'text-gray-400'
                           }`}
                           theme="light"
@@ -297,7 +297,7 @@ export default function AppNavbar() {
                           start="top-right"
                         />
                         <ThemeToggleButton
-                          className={`rounded-full ${
+                          className={`rounded-full p-1 w-fit h-fit ${
                             theme === 'system'
                               ? 'text-primary'
                               : 'text-gray-400'
@@ -310,7 +310,7 @@ export default function AppNavbar() {
                           start="top-right"
                         />
                         <ThemeToggleButton
-                          className={`rounded-full ${
+                          className={`rounded-full p-1 w-fit h-fit ${
                             theme === 'dark' ? 'text-primary' : 'text-gray-400'
                           }`}
                           theme="dark"

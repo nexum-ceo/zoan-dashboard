@@ -1,6 +1,6 @@
 // "use server";
 import { authOptions } from '@/app/api/auth/[...nextauth]/option';
-import axios, { AxiosError } from 'axios';
+import axios from 'axios';
 import { getServerSession } from 'next-auth';
 import { signOut } from 'next-auth/react';
 import { HttpError, type ApiResponse } from './utils';
@@ -52,13 +52,11 @@ axiosInstance.interceptors.response.use(
   async (error) => {
     // Handle 401 unauthorized
     if (error.response?.status === 401) {
-      console.log('error axios here');
-
       // If unauthenticated, sign out for client-side
-      if (isServer) {
-        throw new AxiosError('Unauthorized', '401');
-      } else {
-        signOut();
+      if (!isServer) {
+        await signOut({
+          callbackUrl: '/login',
+        });
       }
     }
 
