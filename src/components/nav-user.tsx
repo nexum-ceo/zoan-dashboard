@@ -1,7 +1,6 @@
 'use client';
 
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Button } from '@/components/ui/button';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -10,6 +9,10 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+import {
+  ThemeToggleButton,
+  useThemeTransition,
+} from '@/components/ui/shadcn-io/theme-toggle-button';
 import {
   SidebarMenu,
   SidebarMenuButton,
@@ -21,10 +24,7 @@ import {
   BookOpen,
   DollarSign,
   MessageSquare,
-  Monitor,
-  Moon,
   Settings,
-  Sun,
   User,
   Users,
 } from 'lucide-react';
@@ -42,6 +42,7 @@ export type NavUserProps = {
 export const NavUser: FC<NavUserProps> = ({ user }) => {
   const { isMobile } = useSidebar();
   const { theme, setTheme } = useTheme();
+  const { startTransition } = useThemeTransition();
 
   // BroadcastChannel allow logout across tabs
   useEffect(() => {
@@ -135,43 +136,34 @@ export const NavUser: FC<NavUserProps> = ({ user }) => {
 
               <div className="flex items-center justify-between py-2">
                 <span className="text-sm">Theme</span>
-                <div className="flex items-center bg-muted rounded-lg p-1">
-                  <Button
-                    size="sm"
-                    className={`h-6 w-6 p-0 rounded-full transition-all duration-200 ${
-                      theme === 'light'
-                        ? 'bg-primary text-primary-foreground shadow-sm'
-                        : 'bg-background text-muted-foreground hover:bg-accent'
+                <div className="flex items-center bg-muted rounded-lg p-1 gap-1">
+                  <ThemeToggleButton
+                    theme="light"
+                    className={`rounded-full p-0 ${
+                      theme === 'light' ? 'text-primary' : 'text-gray-400'
                     }`}
-                    variant="ghost"
-                    onClick={() => setTheme('light')}
-                  >
-                    <Sun className="h-3 w-3" />
-                  </Button>
-                  <Button
-                    size="sm"
-                    className={`h-6 w-6 p-0 rounded-full transition-all duration-200 ${
-                      theme === 'system'
-                        ? 'bg-primary text-primary-foreground shadow-sm'
-                        : 'bg-background text-muted-foreground hover:bg-accent'
+                    onClick={() => startTransition(() => setTheme('light'))}
+                    variant="circle"
+                    start="bottom-left"
+                  />
+                  <ThemeToggleButton
+                    theme="system"
+                    className={`rounded-full p-0 ${
+                      theme === 'system' ? 'text-primary' : 'text-gray-400'
                     }`}
-                    variant="ghost"
-                    onClick={() => setTheme('system')}
-                  >
-                    <Monitor className="h-3 w-3" />
-                  </Button>
-                  <Button
-                    size="sm"
-                    className={`h-6 w-6 p-0 rounded-full transition-all duration-200 ${
-                      theme === 'dark'
-                        ? 'bg-primary text-primary-foreground shadow-sm'
-                        : 'bg-background text-muted-foreground hover:bg-accent'
+                    onClick={() => startTransition(() => setTheme('system'))}
+                    variant="circle"
+                    start="bottom-left"
+                  />
+                  <ThemeToggleButton
+                    className={`rounded-full p-0 ${
+                      theme === 'dark' ? 'text-primary' : 'text-gray-400'
                     }`}
-                    variant="ghost"
-                    onClick={() => setTheme('dark')}
-                  >
-                    <Moon className="h-3 w-3" />
-                  </Button>
+                    theme="dark"
+                    onClick={() => startTransition(() => setTheme('dark'))}
+                    variant="circle"
+                    start="bottom-left"
+                  />
                 </div>
               </div>
             </div>
