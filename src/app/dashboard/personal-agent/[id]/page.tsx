@@ -72,7 +72,7 @@ export default function AgentWorkflow() {
   ).length;
 
   return (
-    <div className="h-screen bg-gray-50 flex flex-col">
+    <div className="h-screen bg-background flex flex-col transition-colors duration-200">
       <WorkflowHeader
         completedSteps={completedSteps}
         totalSteps={totalSteps}
@@ -86,7 +86,7 @@ export default function AgentWorkflow() {
       />
 
       {/* Content - Scrollable */}
-      <div className="flex-1 overflow-y-auto bg-gray-50">
+      <div className="flex-1 overflow-y-auto bg-background transition-colors duration-200">
         <div className="px-20 py-6">
           <div className="mx-auto">
             {activeTab === 'workflow' ? (

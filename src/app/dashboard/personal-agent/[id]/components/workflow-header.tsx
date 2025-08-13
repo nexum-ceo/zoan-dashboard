@@ -16,36 +16,38 @@ export const WorkflowHeader: FC<WorkflowHeaderProps> = ({
   overallProgress,
 }) => {
   return (
-    <div className="bg-white border-b border-gray-200 px-10 py-6 flex-shrink-0">
+    <div className="bg-card border-b border-border px-10 py-6 flex-shrink-0 transition-colors duration-200">
       <div className="mx-auto">
         <div className="flex items-start justify-between">
           <div className="flex items-start gap-4">
-            <div className="w-16 h-16 bg-blue-600 rounded-2xl flex items-center justify-center">
+            <div className="w-16 h-16 bg-blue-600 dark:bg-blue-500 rounded-2xl flex items-center justify-center transition-colors duration-200">
               <Code className="w-8 h-8 text-white" />
             </div>
             <div>
-              <h1 className="text-2xl font-bold text-gray-900 mb-1">
+              <h1 className="text-2xl font-bold text-foreground mb-1 transition-colors duration-200">
                 Code Assistant Pro
               </h1>
-              <p className="text-gray-600 mb-4">
+              <p className="text-muted-foreground mb-4 transition-colors duration-200">
                 Advanced coding assistant for React and Next.js development
               </p>
               <div className="flex items-center gap-4">
                 <div className="flex items-center gap-2">
-                  <Zap className="w-4 h-4 text-blue-600" />
-                  <span className="text-sm text-gray-600">Development</span>
+                  <Zap className="w-4 h-4 text-blue-600 dark:text-blue-400 transition-colors duration-200" />
+                  <span className="text-sm text-muted-foreground transition-colors duration-200">
+                    Development
+                  </span>
                 </div>
                 <div className="flex items-center gap-2">
-                  <span className="text-sm text-gray-600">
+                  <span className="text-sm text-muted-foreground transition-colors duration-200">
                     {completedSteps} of {totalSteps} steps completed
                   </span>
-                  <div className="w-16 h-2 bg-gray-200 rounded-full">
+                  <div className="w-16 h-2 bg-muted rounded-full transition-colors duration-200">
                     <div
-                      className="h-full bg-blue-600 rounded-full transition-all duration-300"
+                      className="h-full bg-blue-600 dark:bg-blue-500 rounded-full transition-all duration-300"
                       style={{ width: `${overallProgress}%` }}
                     />
                   </div>
-                  <span className="text-sm font-medium text-blue-600">
+                  <span className="text-sm font-medium text-blue-600 dark:text-blue-400 transition-colors duration-200">
                     {Math.round(overallProgress)}%
                   </span>
                 </div>
@@ -53,15 +55,21 @@ export const WorkflowHeader: FC<WorkflowHeaderProps> = ({
             </div>
           </div>
           <div className="flex items-center gap-2">
-            <Button className="bg-black text-white">
+            <Button className="bg-primary hover:bg-primary/90 text-primary-foreground transition-colors duration-200">
               <Play className="w-4 h-4 mr-2" />
               Run Workflow
             </Button>
-            <Button variant="outline">
+            <Button
+              variant="outline"
+              className="border-border bg-card hover:bg-accent text-foreground transition-colors duration-200"
+            >
               <RotateCcw className="w-4 h-4 mr-2" />
               Reset
             </Button>
-            <Button variant="outline">
+            <Button
+              variant="outline"
+              className="border-border bg-card hover:bg-accent text-foreground transition-colors duration-200"
+            >
               <Settings className="w-4 h-4 mr-2" />
               Configure
             </Button>
