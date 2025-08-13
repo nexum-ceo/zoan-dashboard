@@ -3,6 +3,7 @@ import { authOptions } from '@/app/api/auth/[...nextauth]/option';
 import axios from 'axios';
 import { getServerSession } from 'next-auth';
 import { signOut } from 'next-auth/react';
+import { NextResponse } from 'next/server';
 import { HttpError, type ApiResponse } from './utils';
 
 const baseURL =
@@ -58,6 +59,8 @@ axiosInstance.interceptors.response.use(
           callbackUrl: '/login',
         });
       }
+
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
     // If response has data in ApiResponse format, throw HttpError
