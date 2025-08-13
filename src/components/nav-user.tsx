@@ -139,7 +139,7 @@ export const NavUser: FC<NavUserProps> = ({ user }) => {
                 <div className="flex items-center bg-muted rounded-lg p-1 gap-1">
                   <ThemeToggleButton
                     theme="light"
-                    className={`rounded-full p-0 ${
+                    className={`rounded-full p-1 w-fit h-fit ${
                       theme === 'light' ? 'text-primary' : 'text-gray-400'
                     }`}
                     onClick={() => startTransition(() => setTheme('light'))}
@@ -148,7 +148,7 @@ export const NavUser: FC<NavUserProps> = ({ user }) => {
                   />
                   <ThemeToggleButton
                     theme="system"
-                    className={`rounded-full p-0 ${
+                    className={`rounded-full p-1 w-fit h-fit ${
                       theme === 'system' ? 'text-primary' : 'text-gray-400'
                     }`}
                     onClick={() => startTransition(() => setTheme('system'))}
@@ -156,7 +156,7 @@ export const NavUser: FC<NavUserProps> = ({ user }) => {
                     start="bottom-left"
                   />
                   <ThemeToggleButton
-                    className={`rounded-full p-0 ${
+                    className={`rounded-full p-1 w-fit h-fit ${
                       theme === 'dark' ? 'text-primary' : 'text-gray-400'
                     }`}
                     theme="dark"
