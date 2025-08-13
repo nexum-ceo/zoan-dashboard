@@ -109,59 +109,67 @@ export default function PersonalSpace() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-background transition-colors duration-200">
       {/* Header */}
-      <div className="bg-gray-50">
+      <div className="bg-background">
         <div className="max-w-7xl mx-auto px-6 py-6">
-          <div>
-            <h1 className="text-3xl font-bold text-gray-900">Personal Space</h1>
-            <p className="text-gray-600 mt-1">
-              Manage your installed agents and workspace settings
-            </p>
+          <div className="flex justify-between items-start">
+            <div>
+              <h1 className="text-3xl font-bold text-foreground transition-colors duration-200">
+                Personal Space
+              </h1>
+              <p className="text-muted-foreground mt-1 transition-colors duration-200">
+                Manage your installed agents and workspace settings
+              </p>
+            </div>
           </div>
 
           {/* Stats Overview */}
           <div className="mt-8 grid grid-cols-1 md:grid-cols-4 gap-6">
-            <Card>
+            <Card className="bg-card border-border transition-colors duration-200">
               <CardContent className="p-6">
                 <div className="flex items-center">
-                  <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
-                    <Activity className="w-6 h-6 text-blue-600" />
+                  <div className="w-12 h-12 bg-blue-100 dark:bg-blue-900/20 rounded-lg flex items-center justify-center transition-colors duration-200">
+                    <Activity className="w-6 h-6 text-blue-600 dark:text-blue-400" />
                   </div>
                   <div className="ml-4">
-                    <p className="text-2xl font-bold text-gray-900">
+                    <p className="text-2xl font-bold text-foreground transition-colors duration-200">
                       <CountUp end={totalChats} duration={2000} />
                     </p>
-                    <p className="text-sm text-gray-600">Total Chats</p>
+                    <p className="text-sm text-muted-foreground transition-colors duration-200">
+                      Total Chats
+                    </p>
                   </div>
                 </div>
               </CardContent>
             </Card>
 
-            <Card>
+            <Card className="bg-card border-border transition-colors duration-200">
               <CardContent className="p-6">
                 <div className="flex items-center">
-                  <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
-                    <Zap className="w-6 h-6 text-green-600" />
+                  <div className="w-12 h-12 bg-green-100 dark:bg-green-900/20 rounded-lg flex items-center justify-center transition-colors duration-200">
+                    <Zap className="w-6 h-6 text-green-600 dark:text-green-400" />
                   </div>
                   <div className="ml-4">
-                    <p className="text-2xl font-bold text-gray-900">
+                    <p className="text-2xl font-bold text-foreground transition-colors duration-200">
                       <CountUp end={activeAgents} duration={2200} />
                     </p>
-                    <p className="text-sm text-gray-600">Active Agents</p>
+                    <p className="text-sm text-muted-foreground transition-colors duration-200">
+                      Active Agents
+                    </p>
                   </div>
                 </div>
               </CardContent>
             </Card>
 
-            <Card>
+            <Card className="bg-card border-border transition-colors duration-200">
               <CardContent className="p-6">
                 <div className="flex items-center">
-                  <div className="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center">
-                    <Clock className="w-6 h-6 text-purple-600" />
+                  <div className="w-12 h-12 bg-purple-100 dark:bg-purple-900/20 rounded-lg flex items-center justify-center transition-colors duration-200">
+                    <Clock className="w-6 h-6 text-purple-600 dark:text-purple-400" />
                   </div>
                   <div className="ml-4">
-                    <p className="text-2xl font-bold text-gray-900">
+                    <p className="text-2xl font-bold text-foreground transition-colors duration-200">
                       <CountUp
                         end={12.5}
                         duration={2400}
@@ -169,23 +177,27 @@ export default function PersonalSpace() {
                         suffix="h"
                       />
                     </p>
-                    <p className="text-sm text-gray-600">Usage Time</p>
+                    <p className="text-sm text-muted-foreground transition-colors duration-200">
+                      Usage Time
+                    </p>
                   </div>
                 </div>
               </CardContent>
             </Card>
 
-            <Card>
+            <Card className="bg-card border-border transition-colors duration-200">
               <CardContent className="p-6">
                 <div className="flex items-center">
-                  <div className="w-12 h-12 bg-orange-100 rounded-lg flex items-center justify-center">
-                    <TrendingUp className="w-6 h-6 text-orange-600" />
+                  <div className="w-12 h-12 bg-orange-100 dark:bg-orange-900/20 rounded-lg flex items-center justify-center transition-colors duration-200">
+                    <TrendingUp className="w-6 h-6 text-orange-600 dark:text-orange-400" />
                   </div>
                   <div className="ml-4">
-                    <p className="text-2xl font-bold text-gray-900">
+                    <p className="text-2xl font-bold text-foreground transition-colors duration-200">
                       {topCategory}
                     </p>
-                    <p className="text-sm text-gray-600">Top Category</p>
+                    <p className="text-sm text-muted-foreground transition-colors duration-200">
+                      Top Category
+                    </p>
                   </div>
                 </div>
               </CardContent>
@@ -199,27 +211,27 @@ export default function PersonalSpace() {
         <Tabs defaultValue="agents" className="w-full">
           {/* Navigation Tabs */}
           <div className="flex items-center justify-between mb-6">
-            <TabsList className="bg-white border border-gray-200 p-1 h-auto rounded-lg shadow-sm">
+            <TabsList className="p-1 h-auto rounded-lg shadow-sm transition-colors duration-200">
               <TabsTrigger
                 value="agents"
-                className="text-gray-700 font-medium px-4 py-2 data-[state=active]:bg-gray-100 data-[state=active]:text-gray-900 data-[state=active]:shadow-sm rounded-md"
+                className="font-medium px-4 py-2 data-[state=active]:shadow-sm rounded-md transition-colors duration-200"
               >
                 My Agents
               </TabsTrigger>
               <TabsTrigger
                 value="analytics"
-                className="text-gray-700 font-medium px-4 py-2 data-[state=active]:bg-gray-100 data-[state=active]:text-gray-900 data-[state=active]:shadow-sm rounded-md"
+                className="font-medium px-4 py-2 data-[state=active]:shadow-sm rounded-md transition-colors duration-200"
               >
                 Analytics
               </TabsTrigger>
               <TabsTrigger
                 value="settings"
-                className="text-gray-700 font-medium px-4 py-2 data-[state=active]:bg-gray-100 data-[state=active]:text-gray-900 data-[state=active]:shadow-sm rounded-md"
+                className="font-medium px-4 py-2 data-[state=active]:shadow-sm rounded-md transition-colors duration-200"
               >
                 Settings
               </TabsTrigger>
             </TabsList>
-            <Button className="bg-gray-900 hover:bg-gray-800 text-white">
+            <Button className="bg-primary hover:bg-primary/90 text-primary-foreground transition-colors duration-200">
               <Plus className="w-4 h-4 mr-2" />
               Install Agent
             </Button>
@@ -229,12 +241,12 @@ export default function PersonalSpace() {
           <TabsContent value="agents" className="mt-0">
             {/* Search Bar */}
             <div className="relative mb-6">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
               <Input
                 placeholder="Search your agents..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-10 h-12 text-base"
+                className="pl-10 h-12 text-base bg-card border-border text-foreground placeholder:text-muted-foreground transition-colors duration-200"
               />
             </div>
 
@@ -253,7 +265,7 @@ export default function PersonalSpace() {
           {/* Analytics Tab Content */}
           <TabsContent value="analytics" className="mt-0 min-h-[60vh]">
             <div className="flex items-center justify-center h-full">
-              <p className="text-gray-500">
+              <p className="text-muted-foreground transition-colors duration-200">
                 Analytics dashboard will be displayed here
               </p>
             </div>
@@ -262,7 +274,7 @@ export default function PersonalSpace() {
           {/* Settings Tab Content */}
           <TabsContent value="settings" className="mt-0 min-h-[60vh]">
             <div className="flex items-center justify-center h-full">
-              <p className="text-gray-500">
+              <p className="text-muted-foreground transition-colors duration-200">
                 Settings panel will be displayed here
               </p>
             </div>

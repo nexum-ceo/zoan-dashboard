@@ -208,22 +208,22 @@ export default function CommunityPage() {
               animate={{ opacity: 1, scale: 1 }}
               transition={{ duration: 0.5, delay: 0.8 }}
             >
-              <TabsList className="grid w-full grid-cols-3 max-w-md mb-8 bg-card border-border">
+              <TabsList className="grid w-full grid-cols-3 max-w-md mb-8">
                 <TabsTrigger
                   value="Featured"
-                  className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground transition-colors duration-200"
+                  className="transition-colors duration-200"
                 >
                   Featured
                 </TabsTrigger>
                 <TabsTrigger
                   value="Trending"
-                  className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground transition-colors duration-200"
+                  className="transition-colors duration-200"
                 >
                   Trending
                 </TabsTrigger>
                 <TabsTrigger
                   value="Recent"
-                  className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground transition-colors duration-200"
+                  className="transition-colors duration-200"
                 >
                   Recent
                 </TabsTrigger>
