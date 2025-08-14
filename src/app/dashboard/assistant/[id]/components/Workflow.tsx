@@ -160,10 +160,10 @@ export default function Workflow() {
   };
 
   return (
-    <div className="flex flex-col gap-4 w-full h-full p-4">
+    <div className="flex flex-col gap-4 w-full h-full p-4 bg-background text-foreground">
       <div className="flex flex-col gap-4">
         <div className="flex flex-row gap-2 justify-between items-center">
-          <div className="text-lg font-medium flex flex-row gap-2 items-center">
+          <div className="text-lg font-medium flex flex-row gap-2 items-center text-foreground">
             <List />
             Flow list
           </div>
@@ -186,9 +186,11 @@ export default function Workflow() {
                     <DialogTitle>Create New Workflow</DialogTitle>
                   </DialogHeader>
                   <div className="flex flex-col gap-2">
-                    <label className="text-sm font-medium">Name</label>
+                    <label className="text-sm font-medium text-foreground">
+                      Name
+                    </label>
                     <input
-                      className="border rounded px-3 py-2"
+                      className="border border-border rounded px-3 py-2 bg-background text-foreground focus:ring-2 focus:ring-ring focus:border-transparent"
                       value={newName}
                       onChange={(e) => setNewName(e.target.value)}
                       required
@@ -196,9 +198,11 @@ export default function Workflow() {
                     />
                   </div>
                   <div className="flex flex-col gap-2">
-                    <label className="text-sm font-medium">Description</label>
+                    <label className="text-sm font-medium text-foreground">
+                      Description
+                    </label>
                     <textarea
-                      className="border rounded px-3 py-2"
+                      className="border border-border rounded px-3 py-2 bg-background text-foreground focus:ring-2 focus:ring-ring focus:border-transparent resize-none"
                       value={newDesc}
                       onChange={(e) => setNewDesc(e.target.value)}
                       required
@@ -222,9 +226,11 @@ export default function Workflow() {
         </div>
         <div className="flex flex-col gap-2">
           {loading ? (
-            <div className="text-center py-8">Loading workflow...</div>
+            <div className="text-center py-8 text-muted-foreground">
+              Loading workflow...
+            </div>
           ) : error || deleteError || createError ? (
-            <div className="text-center text-red-500 py-8">
+            <div className="text-center text-destructive py-8">
               {error instanceof Error
                 ? error.message
                 : error ||
@@ -236,20 +242,23 @@ export default function Workflow() {
                     : 'Create error')}
             </div>
           ) : (
-            <Table>
+            <Table className="border border-border rounded-lg">
               <TableHeader>
-                <TableRow>
-                  <TableHead>Name</TableHead>
-                  <TableHead>Description</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead>Updated At</TableHead>
-                  <TableHead>Actions</TableHead>
+                <TableRow className="bg-muted/50">
+                  <TableHead className="text-foreground">Name</TableHead>
+                  <TableHead className="text-foreground">Description</TableHead>
+                  <TableHead className="text-foreground">Status</TableHead>
+                  <TableHead className="text-foreground">Updated At</TableHead>
+                  <TableHead className="text-foreground">Actions</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {workflows.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={6} className="text-center">
+                    <TableCell
+                      colSpan={6}
+                      className="text-center text-muted-foreground"
+                    >
                       No workflows found
                     </TableCell>
                   </TableRow>
@@ -258,21 +267,25 @@ export default function Workflow() {
                     <TableRow
                       key={wf.id || idx}
                       onClick={() => handleFlowClick(wf)}
-                      style={{ cursor: 'pointer' }}
+                      className="cursor-pointer hover:bg-muted/50 transition-colors"
                     >
-                      <TableCell className="hover:bg-gray-100">
+                      <TableCell className="text-foreground">
                         {wf.name || 'No name'}
                       </TableCell>
-                      <TableCell>{wf.description || '-'}</TableCell>
+                      <TableCell className="text-muted-foreground">
+                        {wf.description || '-'}
+                      </TableCell>
                       <TableCell>
                         <Badge
                           variant="secondary"
-                          className="bg-green-100 text-green-600 dark:bg-green-600"
+                          className="bg-green-100 text-green-600 dark:bg-green-900/30 dark:text-green-400"
                         >
                           {wf.status || 'Published'}
                         </Badge>
                       </TableCell>
-                      <TableCell>{formatDate(wf.updated_at) || '-'}</TableCell>
+                      <TableCell className="text-muted-foreground">
+                        {formatDate(wf.updated_at) || '-'}
+                      </TableCell>
                       <TableCell>
                         <Button variant="ghost">
                           <FileDown />
@@ -282,13 +295,14 @@ export default function Workflow() {
                         </Button>
                         <Button
                           variant="ghost"
+                          className="hover:bg-muted"
                           disabled={deleteLoading}
                           onClick={(e) => {
                             e.stopPropagation();
                             openDeleteDialog(wf);
                           }}
                         >
-                          <Trash color="red" />
+                          <Trash className="text-destructive hover:text-destructive/80" />
                         </Button>
                       </TableCell>
                     </TableRow>
@@ -301,14 +315,14 @@ export default function Workflow() {
       </div>
 
       {showFlow && selectedWorkflow && (
-        <div className="fixed inset-0 w-screen h-screen bg-black/50 z-[2000] flex items-center justify-center">
-          <div className="relative w-screen h-screen bg-white rounded-2xl overflow-hidden shadow-2xl flex flex-col">
+        <div className="fixed inset-0 w-screen h-screen bg-black/50 dark:bg-black/70 z-[2000] flex items-center justify-center">
+          <div className="relative w-screen h-screen bg-background border border-border rounded-2xl overflow-hidden shadow-2xl flex flex-col">
             <button
               onClick={handleCloseFlow}
-              className="absolute top-4 right-4 z-10 bg-black/5 border-none rounded-lg p-2 cursor-pointer flex items-center justify-center"
+              className="absolute top-4 right-4 z-10 bg-muted/80 hover:bg-muted border border-border rounded-lg p-2 cursor-pointer flex items-center justify-center transition-colors"
               title="Đóng"
             >
-              <X size={24} />
+              <X size={24} className="text-foreground" />
             </button>
             <div className="flex-1 min-h-0">
               <Flow
