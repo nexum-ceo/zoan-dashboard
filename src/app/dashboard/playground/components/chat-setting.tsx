@@ -109,33 +109,54 @@ export const ChatSettings: FC<ChatSettingsProps> = ({ isOpen, onClose }) => {
           <div className="flex-1 overflow-y-auto p-6 space-y-6">
             {/* Primary Agent Section */}
             <div className="space-y-4 rounded-xl border border-border bg-card p-6 text-card-foreground">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <div className="h-9 w-9 p-2 rounded-lg bg-blue-50 dark:bg-blue-400/10 text-blue-600 dark:text-blue-300 ring-1 ring-blue-200 dark:ring-blue-400/20 flex items-center justify-center shadow-sm">
-                    <Bot className="w-4 h-4" />
+              {primaryAgent ? (
+                <>
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <div className="h-9 w-9 p-2 rounded-lg bg-blue-50 dark:bg-blue-400/10 text-blue-600 dark:text-blue-300 ring-1 ring-blue-200 dark:ring-blue-400/20 flex items-center justify-center shadow-sm">
+                        <Bot className="w-4 h-4" />
+                      </div>
+                      <div className="min-w-0">
+                        <h3 className="font-semibold text-foreground leading-tight line-clamp-1">
+                          {primaryAgent.name}
+                        </h3>
+                        <p className="text-xs text-muted-foreground mt-0.5">
+                          Primary Agent
+                        </p>
+                      </div>
+                    </div>
+                    <Badge
+                      variant="secondary"
+                      className="gap-1.5 rounded-full bg-emerald-600/10 text-emerald-700 ring-1 ring-emerald-600/20 hover:bg-emerald-600/15 transition-colors dark:bg-emerald-400/10 dark:text-emerald-300 dark:ring-emerald-400/20"
+                    >
+                      <span className="inline-block w-1.5 h-1.5 rounded-full bg-emerald-500 dark:bg-emerald-400" />
+                      Active
+                    </Badge>
                   </div>
-                  <div className="min-w-0">
-                    <h3 className="font-semibold text-foreground leading-tight line-clamp-1">
-                      {primaryAgent?.name}
-                    </h3>
-                    <p className="text-xs text-muted-foreground mt-0.5">
-                      Primary Agent
-                    </p>
-                  </div>
-                </div>
-                <Badge
-                  variant="secondary"
-                  className="gap-1.5 rounded-full bg-emerald-600/10 text-emerald-700 ring-1 ring-emerald-600/20 hover:bg-emerald-600/15 transition-colors dark:bg-emerald-400/10 dark:text-emerald-300 dark:ring-emerald-400/20"
-                >
-                  <span className="inline-block w-1.5 h-1.5 rounded-full bg-emerald-500 dark:bg-emerald-400" />
-                  Active
-                </Badge>
-              </div>
 
-              <p className="text-sm text-muted-foreground line-clamp-2">
-                {primaryAgent?.description}
-              </p>
-              {/* Model Selection */}
+                  <p className="text-sm text-muted-foreground line-clamp-2">
+                    {primaryAgent.description}
+                  </p>
+                </>
+              ) : (
+                <div className="text-center py-6">
+                  <div className="h-12 w-12 mx-auto mb-3 p-3 rounded-lg bg-gray-50 dark:bg-gray-800 text-gray-400 flex items-center justify-center">
+                    <Bot className="w-6 h-6" />
+                  </div>
+                  <h3 className="font-medium text-foreground mb-2">
+                    No Agent Selected
+                  </h3>
+                  <p className="text-sm text-muted-foreground mb-4">
+                    Start a conversation to see your primary agent here
+                  </p>
+                  <Button variant="outline" size="sm" className="gap-2">
+                    <Users className="w-4 h-4" />
+                    Select Agent
+                  </Button>
+                </div>
+              )}
+
+              {/* Model Selection - Always show */}
               <div className="space-y-2">
                 <Label htmlFor="model" className="text-sm font-medium">
                   AI Model
@@ -169,11 +190,22 @@ export const ChatSettings: FC<ChatSettingsProps> = ({ isOpen, onClose }) => {
               <p className="text-sm text-muted-foreground">
                 Set the context and behavior for your chat session.
               </p>
-              <Textarea
-                placeholder={primaryAgent?.prompt}
-                className="min-h-[100px] resize-none"
-                defaultValue={primaryAgent?.prompt}
-              />
+              {primaryAgent ? (
+                <Textarea
+                  placeholder={primaryAgent.prompt}
+                  className="min-h-[100px] resize-none"
+                  defaultValue={primaryAgent.prompt}
+                />
+              ) : (
+                <div className="min-h-[100px] rounded-md border border-dashed border-gray-300 dark:border-gray-600 flex items-center justify-center">
+                  <div className="text-center text-gray-500 dark:text-gray-400">
+                    <Sparkles className="w-8 h-8 mx-auto mb-2 opacity-50" />
+                    <p className="text-sm">
+                      Select an agent to configure prompts
+                    </p>
+                  </div>
+                </div>
+              )}
             </div>
 
             {/* Intent Detection Section */}
@@ -184,21 +216,37 @@ export const ChatSettings: FC<ChatSettingsProps> = ({ isOpen, onClose }) => {
                   Intent Detection
                 </h3>
               </div>
-              <div className="rounded-lg p-4 border border-green-200 bg-green-50 dark:border-emerald-800 dark:bg-emerald-900/30">
-                <div className="flex items-center gap-2 mb-2">
-                  <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-                  <span className="font-medium text-green-800 dark:text-emerald-300">
-                    Active
-                  </span>
+              {primaryAgent ? (
+                <>
+                  <div className="rounded-lg p-4 border border-green-200 bg-green-50 dark:border-emerald-800 dark:bg-emerald-900/30">
+                    <div className="flex items-center gap-2 mb-2">
+                      <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                      <span className="font-medium text-green-800 dark:text-emerald-300">
+                        Active
+                      </span>
+                    </div>
+                    <p className="text-sm text-green-700 dark:text-emerald-300/80">
+                      AI will automatically detect your intent and route to the
+                      appropriate agent.
+                    </p>
+                  </div>
+                  <p className="text-sm text-muted-foreground">
+                    <strong>Active Agents:</strong> 4 of 5
+                  </p>
+                </>
+              ) : (
+                <div className="rounded-lg p-4 border border-gray-200 bg-gray-50 dark:border-gray-700 dark:bg-gray-800/30">
+                  <div className="flex items-center gap-2 mb-2">
+                    <div className="w-2 h-2 bg-gray-400 rounded-full"></div>
+                    <span className="font-medium text-gray-600 dark:text-gray-400">
+                      Inactive
+                    </span>
+                  </div>
+                  <p className="text-sm text-gray-600 dark:text-gray-400">
+                    Intent detection will be available once you select an agent.
+                  </p>
                 </div>
-                <p className="text-sm text-green-700 dark:text-emerald-300/80">
-                  AI will automatically detect your intent and route to the
-                  appropriate agent.
-                </p>
-              </div>
-              <p className="text-sm text-muted-foreground">
-                <strong>Active Agents:</strong> 4 of 5
-              </p>
+              )}
             </div>
 
             {/* Available Agents Section */}
@@ -214,57 +262,83 @@ export const ChatSettings: FC<ChatSettingsProps> = ({ isOpen, onClose }) => {
                 conversation.
               </p>
 
-              {/* Agent Item */}
-              <div className="border border-border rounded-lg p-4 space-y-3">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                    <Bot className="w-6 h-6 text-blue-600" />
-                    <div>
-                      <div className="font-medium dark:text-gray-100">
-                        General Assistant
+              {primaryAgent ? (
+                /* Agent Item */
+                <div className="border border-border rounded-lg p-4 space-y-3">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <Bot className="w-6 h-6 text-blue-600" />
+                      <div>
+                        <div className="font-medium dark:text-gray-100">
+                          General Assistant
+                        </div>
+                        <Badge variant="secondary" className="text-xs">
+                          Primary
+                        </Badge>
                       </div>
-                      <Badge variant="secondary" className="text-xs">
-                        Primary
+                    </div>
+                    <Switch defaultChecked />
+                  </div>
+                  <div className="text-sm text-muted-foreground">
+                    <div className="mb-2">General</div>
+                    <p>
+                      Primary AI assistant that handles general queries and
+                      coordinates with other agents
+                    </p>
+                    <div className="mt-2">
+                      <p className="font-medium mb-1">Trigger Keywords:</p>
+                      <div className="flex flex-wrap gap-1">
+                        <Badge variant="outline" className="text-xs">
+                          general
+                        </Badge>
+                        <Badge variant="outline" className="text-xs">
+                          help
+                        </Badge>
+                        <Badge variant="outline" className="text-xs">
+                          explain
+                        </Badge>
+                        <Badge variant="outline" className="text-xs">
+                          what
+                        </Badge>
+                        <Badge variant="outline" className="text-xs">
+                          +2 more
+                        </Badge>
+                      </div>
+                    </div>
+                    <div className="mt-2 flex flex-wrap gap-1">
+                      <Badge className="text-xs">General Knowledge</Badge>
+                      <Badge className="text-xs">Task Coordination</Badge>
+                      <Badge variant="outline" className="text-xs">
+                        +1 more
                       </Badge>
                     </div>
                   </div>
-                  <Switch defaultChecked />
                 </div>
-                <div className="text-sm text-muted-foreground">
-                  <div className="mb-2">General</div>
-                  <p>
-                    Primary AI assistant that handles general queries and
-                    coordinates with other agents
+              ) : (
+                <div className="text-center py-8">
+                  <div className="h-12 w-12 mx-auto mb-3 p-3 rounded-lg bg-gray-50 dark:bg-gray-800 text-gray-400 flex items-center justify-center">
+                    <Users className="w-6 h-6" />
+                  </div>
+                  <h4 className="font-medium text-foreground mb-2">
+                    No Agents Available
+                  </h4>
+                  <p className="text-sm text-muted-foreground mb-4">
+                    Agents will appear here once you start a conversation
                   </p>
-                  <div className="mt-2">
-                    <p className="font-medium mb-1">Trigger Keywords:</p>
-                    <div className="flex flex-wrap gap-1">
-                      <Badge variant="outline" className="text-xs">
-                        general
-                      </Badge>
-                      <Badge variant="outline" className="text-xs">
-                        help
-                      </Badge>
-                      <Badge variant="outline" className="text-xs">
-                        explain
-                      </Badge>
-                      <Badge variant="outline" className="text-xs">
-                        what
-                      </Badge>
-                      <Badge variant="outline" className="text-xs">
-                        +2 more
-                      </Badge>
-                    </div>
-                  </div>
-                  <div className="mt-2 flex flex-wrap gap-1">
-                    <Badge className="text-xs">General Knowledge</Badge>
-                    <Badge className="text-xs">Task Coordination</Badge>
-                    <Badge variant="outline" className="text-xs">
-                      +1 more
-                    </Badge>
-                  </div>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="gap-2"
+                    onClick={() => {
+                      // TODO: Navigate to agent selection
+                      console.log('Browse agents clicked');
+                    }}
+                  >
+                    <Bot className="w-4 h-4" />
+                    Browse Agents
+                  </Button>
                 </div>
-              </div>
+              )}
             </div>
 
             {/* Chat Parameters Section */}
