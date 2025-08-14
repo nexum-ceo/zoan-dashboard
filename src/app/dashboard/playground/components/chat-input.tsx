@@ -21,7 +21,7 @@ export const ChatInput: FC<ChatInputProps> = ({
   value,
   onChange,
   onSubmit,
-  disabled,
+  disabled = false,
 }) => {
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 

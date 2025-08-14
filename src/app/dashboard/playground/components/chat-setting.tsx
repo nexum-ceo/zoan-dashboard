@@ -13,8 +13,7 @@ import {
 import { Slider } from '@/components/ui/slider';
 import { Switch } from '@/components/ui/switch';
 import { Textarea } from '@/components/ui/textarea';
-import { useAgent } from '@/contexts/AgentContext';
-import { useGetAgentList } from '@/queries/useAgent';
+import { useGetPrimaryAgentByChatId } from '@/queries/useChat';
 import { AnimatePresence, motion } from 'framer-motion';
 import {
   Bot,
@@ -25,6 +24,7 @@ import {
   X,
   Zap,
 } from 'lucide-react';
+import { useParams } from 'next/navigation';
 import { FC, useState } from 'react';
 
 type ChatSettingsProps = {
@@ -33,12 +33,14 @@ type ChatSettingsProps = {
 };
 
 export const ChatSettings: FC<ChatSettingsProps> = ({ isOpen, onClose }) => {
-  const { data: agentData, isLoading: agentLoading } = useGetAgentList();
-  const agents = agentData?.data.data || [];
-
-  const { selectedAgentId, setSelectedAgentId } = useAgent();
+  const { id: chatId } = useParams();
+  const { data: primaryAgentData } = useGetPrimaryAgentByChatId(
+    chatId as string,
+  );
+  const primaryAgent = primaryAgentData?.data.data;
 
   // Chat Parameters State
+  const [selectedModel, setSelectedModel] = useState<string>('gpt-4o');
   const [creativity, setCreativity] = useState<number[]>([0.4]);
   const [responseLength, setResponseLength] = useState<number[]>([2048]);
   const [memory, setMemory] = useState<number[]>([4000]);
@@ -48,6 +50,14 @@ export const ChatSettings: FC<ChatSettingsProps> = ({ isOpen, onClose }) => {
   const [showTyping, setShowTyping] = useState<boolean>(true);
   const [intentDetection, setIntentDetection] = useState<boolean>(false);
   const [agentSwitching, setAgentSwitching] = useState<boolean>(true);
+
+  const modelOptions = [
+    'gpt-4.1',
+    'gpt-4.1-mini',
+    'gpt-4.1-nano',
+    'gpt-4o',
+    'gpt-4o-mini',
+  ];
 
   return (
     <AnimatePresence>
@@ -98,38 +108,54 @@ export const ChatSettings: FC<ChatSettingsProps> = ({ isOpen, onClose }) => {
           {/* Content */}
           <div className="flex-1 overflow-y-auto p-6 space-y-6">
             {/* Primary Agent Section */}
-            <div className="space-y-3 rounded-xl border border-border bg-card p-6 text-card-foreground">
-              <div className="flex items-center gap-2">
-                <Bot className="w-4 h-4" />
-                <h3 className="font-medium text-foreground">
-                  {agents.find((agent) => agent.id === selectedAgentId)?.name}
-                </h3>
-              </div>
-              <p className="text-sm text-muted-foreground">
-                {
-                  agents.find((agent) => agent.id === selectedAgentId)
-                    ?.description
-                }
-              </p>
-              <Select
-                value={selectedAgentId}
-                onValueChange={(value) => setSelectedAgentId(value)}
-                disabled={agentLoading}
-              >
-                <SelectTrigger>
-                  <div className="flex items-center gap-2">
-                    <Bot className="w-4 h-4 text-blue-600" />
-                    <SelectValue />
+            <div className="space-y-4 rounded-xl border border-border bg-card p-6 text-card-foreground">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="h-9 w-9 p-2 rounded-lg bg-blue-50 dark:bg-blue-400/10 text-blue-600 dark:text-blue-300 ring-1 ring-blue-200 dark:ring-blue-400/20 flex items-center justify-center shadow-sm">
+                    <Bot className="w-4 h-4" />
                   </div>
-                </SelectTrigger>
-                <SelectContent>
-                  {agents.map((agent) => (
-                    <SelectItem key={agent.id} value={agent.id}>
-                      {agent.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+                  <div className="min-w-0">
+                    <h3 className="font-semibold text-foreground leading-tight line-clamp-1">
+                      {primaryAgent?.name}
+                    </h3>
+                    <p className="text-xs text-muted-foreground mt-0.5">
+                      Primary Agent
+                    </p>
+                  </div>
+                </div>
+                <Badge
+                  variant="secondary"
+                  className="gap-1.5 rounded-full bg-emerald-600/10 text-emerald-700 ring-1 ring-emerald-600/20 hover:bg-emerald-600/15 transition-colors dark:bg-emerald-400/10 dark:text-emerald-300 dark:ring-emerald-400/20"
+                >
+                  <span className="inline-block w-1.5 h-1.5 rounded-full bg-emerald-500 dark:bg-emerald-400" />
+                  Active
+                </Badge>
+              </div>
+
+              <p className="text-sm text-muted-foreground line-clamp-2">
+                {primaryAgent?.description}
+              </p>
+              {/* Model Selection */}
+              <div className="space-y-2">
+                <Label htmlFor="model" className="text-sm font-medium">
+                  AI Model
+                </Label>
+                <Select value={selectedModel} onValueChange={setSelectedModel}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select a model" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {modelOptions.map((model) => (
+                      <SelectItem key={model} value={model}>
+                        {model}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <p className="text-xs text-muted-foreground">
+                  Choose the AI model for this conversation
+                </p>
+              </div>
             </div>
 
             {/* Primary Prompt Section */}
@@ -144,9 +170,9 @@ export const ChatSettings: FC<ChatSettingsProps> = ({ isOpen, onClose }) => {
                 Set the context and behavior for your chat session.
               </p>
               <Textarea
-                placeholder="You are a helpful assistant that specializes in..."
+                placeholder={primaryAgent?.prompt}
                 className="min-h-[100px] resize-none"
-                defaultValue="You are a helpful assistant that specializes in..."
+                defaultValue={primaryAgent?.prompt}
               />
             </div>
 

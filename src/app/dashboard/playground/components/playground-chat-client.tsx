@@ -402,7 +402,6 @@ export function PlaygroundChatClient({ chatId }: PlaygroundChatClientProps) {
             value={input}
             onChange={handleInputChange}
             onSubmit={handleSubmit}
-            disabled={!selectedAgentId}
           />
         </div>
       </div>

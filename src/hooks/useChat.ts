@@ -35,7 +35,7 @@ const FILTERED_MESSAGE_TYPES = new Set([
 export function useChat({
   wsUrl,
   chatId,
-  agentId,
+  // agentId,
   initialMessages = [],
 }: UseCustomChatProps) {
   const [messages, setMessages] = useState<ChatMessage[]>(initialMessages);
@@ -389,7 +389,7 @@ export function useChat({
         JSON.stringify({
           role: 'user',
           chat_id: chatId,
-          agent_id: agentId,
+          // agent_id: agentId,
           content: input,
           metadata: {},
         }),
@@ -414,7 +414,7 @@ export function useChat({
         JSON.stringify({
           role: 'user',
           chat_id: chatId,
-          agent_id: agentId,
+          // agent_id: agentId,
           content: msg,
           metadata: {},
         }),

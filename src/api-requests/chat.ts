@@ -4,6 +4,7 @@ import {
   CreateChatResType,
   GetChatListResType,
   GetChatMessagesResType,
+  GetPrimaryAgentByChatIdResType,
   GetSpecificChatResType,
 } from '@/types/chat';
 
@@ -31,6 +32,17 @@ const chatApiRequest = {
     axiosInstance.get<GetChatMessagesResType>(`/chat-message/${id}`, {
       baseURL: '',
     }),
+  getPrimaryAgentByChatId: (id: string) =>
+    axiosInstance.get<GetPrimaryAgentByChatIdResType>(
+      `/chat/${id}/primary-agent`,
+    ),
+  sGetPrimaryAgentByChatId: (id: string) =>
+    axiosInstance.get<GetPrimaryAgentByChatIdResType>(
+      `/chat/${id}/primary-agent`,
+      {
+        baseURL: '',
+      },
+    ),
 };
 
 export default chatApiRequest;

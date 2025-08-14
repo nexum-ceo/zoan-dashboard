@@ -1,10 +1,7 @@
+import { ResponseFormatSchema } from '@/types/agent';
 import { z } from 'zod';
 
 export const CreateChatBodySchema = z.object({
-  agent_id: z
-    .string()
-    .min(1, 'Agent ID is required')
-    .max(100, 'Agent ID must be less than 100 characters'),
   title: z
     .string()
     .min(1, 'Title is required')
@@ -17,7 +14,6 @@ export const CreateChatResSchema = z.object({
   chat: z.object({
     id: z.string(),
     user_id: z.string(),
-    agent_id: z.string(),
     title: z.string(),
     created_at: z.string(),
     updated_at: z.string(),
@@ -32,7 +28,6 @@ export const GetSpecificChatResSchema = z.object({
   data: z.object({
     id: z.string(),
     user_id: z.string(),
-    agent_id: z.string(),
     title: z.string(),
     created_at: z.string(),
     updated_at: z.string(),
@@ -69,11 +64,12 @@ export const GetChatMessagesResSchema = z.object({
 export type GetChatMessagesResType = z.infer<typeof GetChatMessagesResSchema>;
 
 export const GetChatListResSchema = z.object({
-  chats: z.array(
+  status: z.string(),
+  message: z.string(),
+  data: z.array(
     z.object({
       id: z.string(),
       user_id: z.string(),
-      agent_id: z.string(),
       title: z.string(),
       created_at: z.string(),
       updated_at: z.string(),
@@ -82,3 +78,28 @@ export const GetChatListResSchema = z.object({
 });
 
 export type GetChatListResType = z.infer<typeof GetChatListResSchema>;
+
+export const GetPrimaryAgentByChatIdResSchema = z.object({
+  status: z.string(),
+  message: z.string(),
+  data: z.object({
+    id: z.string(),
+    user_id: z.string(),
+    name: z.string(),
+    description: z.string(),
+    prompt: z.string(),
+    model: z.string(),
+    response_format: ResponseFormatSchema,
+    model_kwargs: z.object({
+      temperature: z.number(),
+      top_p: z.number(),
+      max_tokens: z.number(),
+    }),
+    created_at: z.string(),
+    updated_at: z.string(),
+  }),
+});
+
+export type GetPrimaryAgentByChatIdResType = z.infer<
+  typeof GetPrimaryAgentByChatIdResSchema
+>;
