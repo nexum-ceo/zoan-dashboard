@@ -160,7 +160,7 @@ export default function Workflow() {
   };
 
   return (
-    <div className="flex flex-col gap-4 w-full h-full p-4 bg-background text-foreground">
+    <div className="flex flex-col rounded-lg gap-4 w-full h-full p-4 bg-background text-foreground">
       <div className="flex flex-col gap-4">
         <div className="flex flex-row gap-2 justify-between items-center">
           <div className="text-lg font-medium flex flex-row gap-2 items-center text-foreground">
@@ -316,7 +316,7 @@ export default function Workflow() {
 
       {showFlow && selectedWorkflow && (
         <div className="fixed inset-0 w-screen h-screen bg-black/50 dark:bg-black/70 z-[2000] flex items-center justify-center">
-          <div className="relative w-screen h-screen bg-background border border-border rounded-2xl overflow-hidden shadow-2xl flex flex-col">
+          <div className="relative w-screen h-screen bg-background border border-border overflow-hidden shadow-2xl flex flex-col">
             <button
               onClick={handleCloseFlow}
               className="absolute top-4 right-4 z-10 bg-muted/80 hover:bg-muted border border-border rounded-lg p-2 cursor-pointer flex items-center justify-center transition-colors"
