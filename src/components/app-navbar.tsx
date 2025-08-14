@@ -12,7 +12,7 @@ import {
   SheetTitle,
   SheetTrigger,
 } from '@/components/ui/sheet';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import {
@@ -23,16 +23,17 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+import {
+  ThemeToggleButton,
+  useThemeTransition,
+} from '@/components/ui/shadcn-io/theme-toggle-button';
 import { IconLogout } from '@tabler/icons-react';
 import {
   BookOpen,
   DollarSign,
   Menu,
   MessageSquare,
-  Monitor,
-  Moon,
   Settings,
-  Sun,
   User,
   Users,
 } from 'lucide-react';
@@ -73,6 +74,25 @@ export default function AppNavbar() {
   const { data: session } = useSession();
   const user = session?.user;
   const { theme, setTheme } = useTheme();
+  const { startTransition } = useThemeTransition();
+
+  // BroadcastChannel allow logout across tabs
+  useEffect(() => {
+    const channel = new BroadcastChannel('auth');
+    channel.onmessage = (event) => {
+      if (event.data === 'logout') {
+        signOut();
+      }
+    };
+    return () => channel.close();
+  }, []);
+
+  const handleLogout = () => {
+    const channel = new BroadcastChannel('auth');
+    channel.postMessage('logout');
+    channel.close();
+    signOut();
+  };
 
   const openLoginPopup = () => {
     const popup = window.open(
@@ -264,48 +284,47 @@ export default function AppNavbar() {
                     </div>
                     <div className="flex items-center justify-between py-2">
                       <span className="text-sm">Theme</span>
-                      <div className="flex items-center bg-muted rounded-lg p-1">
-                        <Button
-                          size="sm"
-                          className={`h-6 w-6 p-0 rounded-full transition-all duration-200 ${
-                            theme === 'light'
-                              ? 'bg-primary text-primary-foreground shadow-sm'
-                              : 'bg-background text-muted-foreground hover:bg-accent'
+                      <div className="flex gap-1 items-center bg-muted rounded-lg p-1">
+                        <ThemeToggleButton
+                          className={`rounded-full p-1 w-fit h-fit ${
+                            theme === 'light' ? 'text-primary' : 'text-gray-400'
                           }`}
-                          variant="ghost"
-                          onClick={() => setTheme('light')}
-                        >
-                          <Sun className="h-3 w-3" />
-                        </Button>
-                        <Button
-                          size="sm"
-                          className={`h-6 w-6 p-0 rounded-full transition-all duration-200 ${
+                          theme="light"
+                          onClick={() =>
+                            startTransition(() => setTheme('light'))
+                          }
+                          variant="circle"
+                          start="top-right"
+                        />
+                        <ThemeToggleButton
+                          className={`rounded-full p-1 w-fit h-fit ${
                             theme === 'system'
-                              ? 'bg-primary text-primary-foreground shadow-sm'
-                              : 'bg-background text-muted-foreground hover:bg-accent'
+                              ? 'text-primary'
+                              : 'text-gray-400'
                           }`}
-                          variant="ghost"
-                          onClick={() => setTheme('system')}
-                        >
-                          <Monitor className="h-3 w-3" />
-                        </Button>
-                        <Button
-                          size="sm"
-                          className={`h-6 w-6 p-0 rounded-full transition-all duration-200 ${
-                            theme === 'dark'
-                              ? 'bg-primary text-primary-foreground shadow-sm'
-                              : 'bg-background text-muted-foreground hover:bg-accent'
+                          theme="system"
+                          onClick={() =>
+                            startTransition(() => setTheme('system'))
+                          }
+                          variant="circle"
+                          start="top-right"
+                        />
+                        <ThemeToggleButton
+                          className={`rounded-full p-1 w-fit h-fit ${
+                            theme === 'dark' ? 'text-primary' : 'text-gray-400'
                           }`}
-                          variant="ghost"
-                          onClick={() => setTheme('dark')}
-                        >
-                          <Moon className="h-3 w-3" />
-                        </Button>
+                          theme="dark"
+                          onClick={() =>
+                            startTransition(() => setTheme('dark'))
+                          }
+                          variant="circle"
+                          start="top-right"
+                        />
                       </div>
                     </div>
                   </div>
                   <DropdownMenuSeparator />
-                  <DropdownMenuItem onClick={() => signOut()}>
+                  <DropdownMenuItem onClick={handleLogout}>
                     <IconLogout className="mr-2 h-4 w-4" />
                     <span>Log out</span>
                   </DropdownMenuItem>

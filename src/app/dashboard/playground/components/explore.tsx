@@ -46,17 +46,17 @@ export const Explore: FC<ExploreProps> = ({ isOpen, onClose }) => {
             mass: 0.9,
             duration: 0.5,
           }}
-          className="w-96 border-l border-gray-200 bg-white/95 backdrop-blur-sm shadow-2xl flex flex-col h-full"
+          className="w-96 border-l border-border bg-background backdrop-blur-sm shadow-2xl flex flex-col h-full"
           style={{
             boxShadow: '0 20px 40px -12px rgba(0, 0, 0, 0.15)',
           }}
         >
           {/* Header */}
-          <div className="px-6 py-4 border-b border-gray-200">
+          <div className="px-6 py-4 border-b border-border">
             <div className="flex items-center justify-between">
-              <h2 className="text-lg font-semibold">Explore</h2>
+              <h2 className="text-lg font-semibold text-foreground">Explore</h2>
               <Button variant="ghost" size="icon" onClick={onClose}>
-                <X className="w-4 h-4 text-gray-500" />
+                <X className="w-4 h-4 text-muted-foreground" />
               </Button>
             </div>
           </div>
@@ -65,17 +65,17 @@ export const Explore: FC<ExploreProps> = ({ isOpen, onClose }) => {
           <div className="flex-1 overflow-y-auto p-6 space-y-6">
             {/* Game Title */}
             <div>
-              <h3 className="text-xl font-semibold text-gray-900 mb-2">
+              <h3 className="text-xl font-semibold text-foreground mb-2">
                 Flappy Bird Game
               </h3>
-              <p className="text-sm text-gray-600">
+              <p className="text-sm text-muted-foreground">
                 Your generated game is ready to play!
               </p>
             </div>
 
             {/* Game Version Selector */}
             <div className="space-y-2">
-              <label className="text-sm font-medium text-gray-900">
+              <label className="text-sm font-medium text-foreground">
                 Game Version
               </label>
               <Select defaultValue="version-1.0">
@@ -86,7 +86,7 @@ export const Explore: FC<ExploreProps> = ({ isOpen, onClose }) => {
                   <SelectItem value="version-1.0">
                     <div className="flex flex-col items-start">
                       <span className="font-medium">Version 1.0</span>
-                      <span className="text-xs text-gray-500">
+                      <span className="text-xs text-muted-foreground">
                         5 minutes ago • Initial Flappy Bird game
                       </span>
                     </div>
@@ -96,7 +96,7 @@ export const Explore: FC<ExploreProps> = ({ isOpen, onClose }) => {
             </div>
 
             {/* Game Preview Card */}
-            <div className="bg-gradient-to-br from-blue-100 to-purple-200 rounded-xl p-6 text-center space-y-4">
+            <div className="bg-gradient-to-br from-blue-100 to-purple-200 rounded-xl p-6 text-center space-y-4 dark:from-blue-500/10 dark:to-purple-500/10">
               {/* Game Icon */}
               <div className="w-16 h-16 mx-auto bg-gradient-to-r from-blue-500 to-purple-600 rounded-full flex items-center justify-center shadow-lg">
                 <div className="w-8 h-8 bg-white rounded-full flex items-center justify-center">
@@ -106,11 +106,13 @@ export const Explore: FC<ExploreProps> = ({ isOpen, onClose }) => {
 
               {/* Game Info */}
               <div>
-                <h4 className="text-lg font-semibold text-gray-900 mb-1">
+                <h4 className="text-lg font-semibold text-foreground mb-1">
                   Flappy Bird
                 </h4>
-                <p className="text-sm text-gray-600 mb-3">Version 1.0</p>
-                <p className="text-sm text-gray-700 leading-relaxed">
+                <p className="text-sm text-muted-foreground mb-3">
+                  Version 1.0
+                </p>
+                <p className="text-sm text-foreground/80 leading-relaxed">
                   Navigate the bird through pipes by clicking or pressing
                   spacebar
                 </p>
@@ -123,7 +125,7 @@ export const Explore: FC<ExploreProps> = ({ isOpen, onClose }) => {
                   onOpenChange={setIsGameModalOpen}
                 >
                   <DialogTrigger asChild>
-                    <Button className="w-full bg-gray-900 hover:bg-gray-800 text-white">
+                    <Button className="w-full">
                       <Play className="w-4 h-4 mr-2" />
                       Play Game
                     </Button>
@@ -143,11 +145,11 @@ export const Explore: FC<ExploreProps> = ({ isOpen, onClose }) => {
                 </Dialog>
 
                 <div className="flex gap-2">
-                  <Button variant="outline" className="flex-1">
+                  <Button variant="outline" className="flex-1 bg-background">
                     <Eye className="w-4 h-4 mr-2" />
                     View Code
                   </Button>
-                  <Button variant="outline" className="flex-1">
+                  <Button variant="outline" className="flex-1 bg-background">
                     <Download className="w-4 h-4 mr-2" />
                     Download
                   </Button>
@@ -157,27 +159,29 @@ export const Explore: FC<ExploreProps> = ({ isOpen, onClose }) => {
 
             {/* Version Details */}
             <div className="space-y-3">
-              <h4 className="font-medium text-gray-900">Version Details</h4>
+              <h4 className="font-medium text-foreground">Version Details</h4>
               <div className="space-y-2">
-                <p className="text-sm text-gray-700">
+                <p className="text-sm text-foreground/80">
                   Initial Flappy Bird game
                 </p>
-                <p className="text-sm text-gray-500">Generated 5 minutes ago</p>
+                <p className="text-sm text-muted-foreground">
+                  Generated 5 minutes ago
+                </p>
               </div>
             </div>
 
             {/* Additional Games Section */}
             <div className="space-y-3">
-              <h4 className="font-medium text-gray-900">More Games</h4>
+              <h4 className="font-medium text-foreground">More Games</h4>
               <div className="space-y-2">
-                <div className="border border-gray-200 rounded-lg p-3 hover:bg-gray-50 cursor-pointer transition-colors">
+                <div className="border border-border rounded-lg p-3 hover:bg-muted cursor-pointer transition-colors">
                   <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center">
-                      <div className="w-5 h-5 bg-green-600 rounded"></div>
+                    <div className="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center dark:bg-emerald-500/10">
+                      <div className="w-5 h-5 bg-green-600 rounded dark:bg-emerald-400"></div>
                     </div>
                     <div className="flex-1">
                       <h5 className="font-medium text-sm">Snake Game</h5>
-                      <p className="text-xs text-gray-500">
+                      <p className="text-xs text-muted-foreground">
                         Classic snake game
                       </p>
                     </div>
@@ -187,14 +191,16 @@ export const Explore: FC<ExploreProps> = ({ isOpen, onClose }) => {
                   </div>
                 </div>
 
-                <div className="border border-gray-200 rounded-lg p-3 hover:bg-gray-50 cursor-pointer transition-colors">
+                <div className="border border-border rounded-lg p-3 hover:bg-muted cursor-pointer transition-colors">
                   <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 bg-red-100 rounded-lg flex items-center justify-center">
-                      <div className="w-5 h-5 bg-red-600 rounded-full"></div>
+                    <div className="w-10 h-10 bg-red-100 rounded-lg flex items-center justify-center dark:bg-rose-500/10">
+                      <div className="w-5 h-5 bg-red-600 rounded-full dark:bg-rose-400"></div>
                     </div>
                     <div className="flex-1">
                       <h5 className="font-medium text-sm">Pong Game</h5>
-                      <p className="text-xs text-gray-500">Retro ping pong</p>
+                      <p className="text-xs text-muted-foreground">
+                        Retro ping pong
+                      </p>
                     </div>
                     <Badge variant="outline" className="text-xs">
                       Coming Soon
@@ -202,14 +208,16 @@ export const Explore: FC<ExploreProps> = ({ isOpen, onClose }) => {
                   </div>
                 </div>
 
-                <div className="border border-gray-200 rounded-lg p-3 hover:bg-gray-50 cursor-pointer transition-colors">
+                <div className="border border-border rounded-lg p-3 hover:bg-muted cursor-pointer transition-colors">
                   <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 bg-yellow-100 rounded-lg flex items-center justify-center">
-                      <div className="w-5 h-5 bg-yellow-600 rounded-lg"></div>
+                    <div className="w-10 h-10 bg-yellow-100 rounded-lg flex items-center justify-center dark:bg-amber-500/10">
+                      <div className="w-5 h-5 bg-yellow-600 rounded-lg dark:bg-amber-400"></div>
                     </div>
                     <div className="flex-1">
                       <h5 className="font-medium text-sm">Tetris</h5>
-                      <p className="text-xs text-gray-500">Block puzzle game</p>
+                      <p className="text-xs text-muted-foreground">
+                        Block puzzle game
+                      </p>
                     </div>
                     <Badge variant="outline" className="text-xs">
                       Coming Soon

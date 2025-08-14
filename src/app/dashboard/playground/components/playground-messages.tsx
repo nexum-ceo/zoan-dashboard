@@ -38,10 +38,12 @@ export function PlaygroundMessages({
         {messages.length === 0 ? (
           <div className="flex flex-col items-center justify-center h-full text-center">
             <div className="w-16 h-16 rounded-2xl flex items-center justify-center mb-4">
-              <MessageSquare className="w-8 h-8 text-black" />
+              <MessageSquare className="w-8 h-8 text-black dark:text-white" />
             </div>
-            <h3 className="text-xl font-semibold mb-2">Start a conversation</h3>
-            <p className="text-gray-500 max-w-md">
+            <h3 className="text-xl font-semibold mb-2 text-foreground">
+              Start a conversation
+            </h3>
+            <p className="text-muted-foreground max-w-md">
               Ask me anything! I&#39;m here to help with your questions and
               tasks.
             </p>

@@ -87,7 +87,7 @@ export default function CommunityPage() {
 
   return (
     <motion.div
-      className="min-h-screen bg-gray-50 p-6"
+      className="min-h-screen bg-background p-6 transition-colors duration-200"
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       transition={{ duration: 0.5 }}
@@ -95,27 +95,29 @@ export default function CommunityPage() {
       <div className="max-w-7xl mx-auto">
         {/* Header */}
         <motion.div
-          className="mb-8"
+          className="mb-8 flex justify-between items-start"
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, delay: 0.1 }}
         >
-          <motion.h1
-            className="text-4xl font-bold text-gray-900 mb-2"
-            initial={{ opacity: 0, x: -30 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.6, delay: 0.2 }}
-          >
-            Community
-          </motion.h1>
-          <motion.p
-            className="text-gray-600 text-lg"
-            initial={{ opacity: 0, x: -30 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.6, delay: 0.3 }}
-          >
-            Discover and install AI agents created by the community
-          </motion.p>
+          <div>
+            <motion.h1
+              className="text-4xl font-bold text-foreground mb-2 transition-colors duration-200"
+              initial={{ opacity: 0, x: -30 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ duration: 0.6, delay: 0.2 }}
+            >
+              Community
+            </motion.h1>
+            <motion.p
+              className="text-muted-foreground text-lg transition-colors duration-200"
+              initial={{ opacity: 0, x: -30 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ duration: 0.6, delay: 0.3 }}
+            >
+              Discover and install AI agents created by the community
+            </motion.p>
+          </div>
         </motion.div>
 
         {/* Search and Filter */}
@@ -130,10 +132,10 @@ export default function CommunityPage() {
             whileFocus={{ scale: 1.02 }}
             transition={{ duration: 0.2 }}
           >
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
             <Input
               placeholder="Search agents..."
-              className="pl-10 h-12 text-base"
+              className="pl-10 h-12 text-base bg-card border-border text-foreground placeholder:text-muted-foreground transition-colors duration-200"
             />
           </motion.div>
           <motion.div
@@ -144,7 +146,10 @@ export default function CommunityPage() {
             whileTap={{ scale: 0.95 }}
             transition={{ duration: 0 }}
           >
-            <Button variant="outline" className="h-12 px-6">
+            <Button
+              variant="outline"
+              className="h-12 px-6 border-border bg-card hover:bg-accent text-foreground transition-colors duration-200"
+            >
               <Filter className="w-4 h-4 mr-2" />
               Filters
             </Button>
@@ -162,10 +167,10 @@ export default function CommunityPage() {
             <motion.button
               key={category.name}
               onClick={() => setSelectedCategory(category.name)}
-              className={`px-4 py-2 rounded-lg font-medium whitespace-nowrap transition-colors ${
+              className={`px-4 py-2 rounded-lg font-medium whitespace-nowrap transition-all duration-200 ${
                 selectedCategory === category.name
-                  ? 'bg-gray-900 text-white'
-                  : 'bg-white text-gray-600 hover:bg-gray-100'
+                  ? 'bg-primary text-primary-foreground shadow-lg'
+                  : 'bg-card text-muted-foreground hover:bg-accent hover:text-foreground border border-border'
               }`}
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
@@ -204,9 +209,24 @@ export default function CommunityPage() {
               transition={{ duration: 0.5, delay: 0.8 }}
             >
               <TabsList className="grid w-full grid-cols-3 max-w-md mb-8">
-                <TabsTrigger value="Featured">Featured</TabsTrigger>
-                <TabsTrigger value="Trending">Trending</TabsTrigger>
-                <TabsTrigger value="Recent">Recent</TabsTrigger>
+                <TabsTrigger
+                  value="Featured"
+                  className="transition-colors duration-200"
+                >
+                  Featured
+                </TabsTrigger>
+                <TabsTrigger
+                  value="Trending"
+                  className="transition-colors duration-200"
+                >
+                  Trending
+                </TabsTrigger>
+                <TabsTrigger
+                  value="Recent"
+                  className="transition-colors duration-200"
+                >
+                  Recent
+                </TabsTrigger>
               </TabsList>
             </motion.div>
 
@@ -239,7 +259,7 @@ export default function CommunityPage() {
                 transition={{ duration: 0.5 }}
               >
                 <motion.p
-                  className="text-gray-500"
+                  className="text-muted-foreground transition-colors duration-200"
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
                   transition={{ duration: 0.5, delay: 0.2 }}
@@ -257,7 +277,7 @@ export default function CommunityPage() {
                 transition={{ duration: 0.5 }}
               >
                 <motion.p
-                  className="text-gray-500"
+                  className="text-muted-foreground transition-colors duration-200"
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
                   transition={{ duration: 0.5, delay: 0.2 }}

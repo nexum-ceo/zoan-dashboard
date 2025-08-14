@@ -18,7 +18,7 @@ export async function generateMetadata(): Promise<Metadata> {
 export default function SettingPage() {
   return (
     <div className="w-full h-full bg-sidebar flex flex-col p-4">
-      <div className="p-4 flex items-center justify-between text-2xl font-semibold border-b border-border bg-white rounded-t-lg w-full">
+      <div className="p-4 flex items-center justify-between text-2xl font-semibold border-b border-border bg-background rounded-t-lg w-full">
         <span>Your list providers</span>
       </div>
 

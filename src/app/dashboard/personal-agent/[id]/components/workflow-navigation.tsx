@@ -16,7 +16,7 @@ export const WorkflowNavigation: FC<WorkflowNavigationProps> = ({
   onTabChange,
 }) => {
   return (
-    <div className="bg-gray-50 px-20 py-4 flex-shrink-0">
+    <div className="bg-muted/50 px-20 py-4 flex-shrink-0 transition-colors duration-200">
       <div className="mx-auto">
         <div className="flex items-center justify-between">
           <Tabs
@@ -26,17 +26,17 @@ export const WorkflowNavigation: FC<WorkflowNavigationProps> = ({
             }
             className="w-fit"
           >
-            <TabsList className="bg-white border border-gray-200 p-1 h-auto rounded-lg shadow-sm">
+            <TabsList className="p-1 h-auto rounded-lg shadow-sm transition-colors duration-200">
               <TabsTrigger
                 value="workflow"
-                className="flex items-center gap-2 text-gray-700 font-medium px-3 py-2 data-[state=active]:bg-gray-100 data-[state=active]:text-gray-900 data-[state=active]:shadow-sm rounded-md"
+                className="flex items-center gap-2 font-medium px-3 py-2 data-[state=active]:shadow-sm rounded-md transition-colors duration-200"
               >
                 <Workflow className="w-4 h-4" />
                 Workflow Diagram
               </TabsTrigger>
               <TabsTrigger
                 value="grid"
-                className="flex items-center gap-2 text-gray-700 font-medium px-3 py-2 data-[state=active]:bg-gray-100 data-[state=active]:text-gray-900 data-[state=active]:shadow-sm rounded-md"
+                className="flex items-center gap-2 font-medium px-3 py-2 data-[state=active]:shadow-sm rounded-md transition-colors duration-200"
               >
                 <Grid3X3 className="w-4 h-4" />
                 Grid View
@@ -45,17 +45,17 @@ export const WorkflowNavigation: FC<WorkflowNavigationProps> = ({
           </Tabs>
           <div className="flex items-center gap-2">
             <div className="flex items-center gap-1">
-              <div className="w-2 h-2 bg-blue-600 rounded-full animate-bounce"></div>
+              <div className="w-2 h-2 bg-blue-600 dark:bg-blue-500 rounded-full animate-bounce transition-colors duration-200"></div>
               <div
-                className="w-2 h-2 bg-blue-600 rounded-full animate-bounce"
+                className="w-2 h-2 bg-blue-600 dark:bg-blue-500 rounded-full animate-bounce transition-colors duration-200"
                 style={{ animationDelay: '0.1s' }}
               ></div>
               <div
-                className="w-2 h-2 bg-blue-600 rounded-full animate-bounce"
+                className="w-2 h-2 bg-blue-600 dark:bg-blue-500 rounded-full animate-bounce transition-colors duration-200"
                 style={{ animationDelay: '0.2s' }}
               ></div>
             </div>
-            <span className="text-sm text-blue-600 font-medium">
+            <span className="text-sm text-blue-600 dark:text-blue-400 font-medium transition-colors duration-200">
               {inProgressSteps} step in progress
             </span>
           </div>

@@ -116,27 +116,29 @@ export function AppSidebar() {
     <TooltipProvider>
       <Sidebar collapsible="icon" variant="floating" className="rounded-none">
         <SidebarContent>
-          <div className="h-full bg-white flex flex-col">
+          <div className="h-full bg-background flex flex-col">
             {/* Header */}
-            <div className="p-4 border-b border-gray-100">
-              <div className="flex items-center gap-3">
-                <Link
-                  href="/"
-                  className="w-8 h-8 rounded-lg flex items-center justify-center"
-                >
-                  <Image
-                    src="/icon.png"
-                    alt="Logo"
-                    width={32}
-                    height={32}
-                    className="rounded-lg"
-                  />
-                </Link>
-                {state !== 'collapsed' && (
-                  <h1 className="text-lg font-semibold text-gray-900">
-                    Zoan Agent
-                  </h1>
-                )}
+            <div className="p-4 border-b border-gray-100 dark:border-sidebar-border">
+              <div className="flex items-center gap-3 justify-between">
+                <div className="flex items-center gap-3">
+                  <Link
+                    href="/"
+                    className="w-8 h-8 rounded-lg flex items-center justify-center"
+                  >
+                    <Image
+                      src="/icon.png"
+                      alt="Logo"
+                      width={32}
+                      height={32}
+                      className="rounded-lg"
+                    />
+                  </Link>
+                  {state !== 'collapsed' && (
+                    <h1 className="text-lg font-semibold text-gray-900 dark:text-sidebar-foreground">
+                      Zoan Agent
+                    </h1>
+                  )}
+                </div>
               </div>
             </div>
 
@@ -148,7 +150,7 @@ export function AppSidebar() {
                     <TooltipTrigger asChild>
                       <Button
                         onClick={() => router.push('/dashboard/playground')}
-                        className="w-full h-10 bg-gray-100 hover:bg-gray-200 text-gray-700 border-0 font-medium justify-center px-0"
+                        className="w-full h-10 bg-gray-100 dark:bg-sidebar-accent hover:bg-gray-200 dark:hover:bg-sidebar-accent/80 text-gray-700 dark:text-sidebar-accent-foreground border-0 font-medium justify-center px-0"
                       >
                         <Plus className="w-4 h-4" />
                       </Button>
@@ -160,7 +162,7 @@ export function AppSidebar() {
                 ) : (
                   <Button
                     onClick={() => router.push('/dashboard/playground')}
-                    className="text-center w-full h-10 bg-gray-100 hover:bg-gray-200 text-gray-700 border-0 font-medium justify-center gap-1"
+                    className="text-center w-full h-10 bg-gray-100 dark:bg-sidebar-accent hover:bg-gray-200 dark:hover:bg-sidebar-accent/80 text-gray-700 dark:text-sidebar-accent-foreground border-0 font-medium justify-center gap-1"
                   >
                     <Plus className="w-4 h-4" />
                     New Chat
@@ -170,7 +172,7 @@ export function AppSidebar() {
 
               <div className="space-y-1">
                 {state !== 'collapsed' && (
-                  <div className="px-3 py-2 text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                  <div className="px-3 py-2 text-xs font-semibold text-gray-500 dark:text-sidebar-foreground/70 uppercase tracking-wider">
                     Application
                   </div>
                 )}
@@ -185,8 +187,8 @@ export function AppSidebar() {
                             variant="ghost"
                             className={`w-full h-10 text-sm justify-center px-0 ${
                               isActive
-                                ? 'bg-gray-100 text-gray-900 font-medium'
-                                : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
+                                ? 'bg-gray-100 dark:bg-sidebar-accent text-gray-900 dark:text-sidebar-accent-foreground font-medium'
+                                : 'text-gray-600 dark:text-sidebar-foreground/70 hover:bg-gray-50 dark:hover:bg-sidebar-accent/40 hover:text-gray-900 dark:hover:text-sidebar-accent-foreground'
                             }`}
                             onClick={() => router.push(item.href)}
                           >
@@ -206,8 +208,8 @@ export function AppSidebar() {
                       variant="ghost"
                       className={`w-full h-10 text-sm justify-start gap-3 ${
                         isActive
-                          ? 'bg-gray-100 text-gray-900 font-medium'
-                          : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
+                          ? 'bg-gray-100 dark:bg-sidebar-accent text-gray-900 dark:text-sidebar-accent-foreground font-medium'
+                          : 'text-gray-600 dark:text-sidebar-foreground/70 hover:bg-gray-50 dark:hover:bg-sidebar-accent/40 hover:text-gray-900 dark:hover:text-sidebar-accent-foreground'
                       }`}
                       onClick={() => router.push(item.href)}
                     >
@@ -221,7 +223,7 @@ export function AppSidebar() {
 
             {/* Dynamic Content Based on Active Tab */}
             {state !== 'collapsed' && (
-              <div className="flex-1 border-t border-gray-100">
+              <div className="border-t border-sidebar-border overflow-y-auto">
                 {renderSidebarContent(pathname)}
               </div>
             )}
@@ -230,7 +232,7 @@ export function AppSidebar() {
             <div className="flex-1" />
 
             {/* User Info and Sidebar Trigger */}
-            <div className="border-t border-gray-100">
+            <div className="border-t border-sidebar-border">
               {state === 'collapsed' ? (
                 // When collapsed: Avatar on top, Trigger below
                 <div className="p-4 space-y-3">

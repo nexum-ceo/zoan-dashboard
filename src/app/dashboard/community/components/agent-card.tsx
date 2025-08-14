@@ -39,7 +39,7 @@ export const AgentCard: FC<AgentCardProps> = ({
   return (
     <motion.div
       key={agent.id}
-      className="bg-white rounded-xl p-6 shadow-sm border border-gray-200 hover:shadow-lg transition-shadow duration-200"
+      className="bg-card rounded-xl p-6 shadow-sm border border-border hover:shadow-lg transition-all duration-200"
       initial={{ opacity: 0, y: 50, scale: 0.9 }}
       animate={{ opacity: 1, y: 0, scale: 1 }}
       exit={{ opacity: 0, y: -50, scale: 0.9 }}
@@ -71,7 +71,7 @@ export const AgentCard: FC<AgentCardProps> = ({
         <div className="flex-1 min-w-0">
           <div className="flex items-center justify-between">
             <motion.h3
-              className="font-semibold text-gray-900 truncate"
+              className="font-semibold text-foreground truncate transition-colors duration-200"
               initial={{ opacity: 0, x: -20 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{
@@ -82,8 +82,10 @@ export const AgentCard: FC<AgentCardProps> = ({
               {agent.name}
             </motion.h3>
             <motion.button
-              className={`transition-colors ${
-                isFavorite ? 'text-red-500' : 'text-gray-400 hover:text-red-500'
+              className={`transition-colors duration-200 ${
+                isFavorite
+                  ? 'text-red-500'
+                  : 'text-muted-foreground hover:text-red-500'
               }`}
               onClick={() => onToggleFavorite(agent.id)}
               whileHover={{
@@ -122,7 +124,7 @@ export const AgentCard: FC<AgentCardProps> = ({
             </motion.button>
           </div>
           <motion.p
-            className="text-sm text-gray-600"
+            className="text-sm text-muted-foreground transition-colors duration-200"
             initial={{ opacity: 0, x: -20 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{
@@ -151,7 +153,7 @@ export const AgentCard: FC<AgentCardProps> = ({
 
       {/* Description */}
       <motion.p
-        className="text-sm text-gray-600 mb-4 line-clamp-3"
+        className="text-sm text-muted-foreground mb-4 line-clamp-3 transition-colors duration-200"
         initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.4, delay: 1.4 + index * 0.1 }}
@@ -170,33 +172,35 @@ export const AgentCard: FC<AgentCardProps> = ({
         }}
       >
         {agent.type === 'Free' ? (
-          <Badge className="bg-green-100 text-green-800 hover:bg-green-100">
+          <Badge className="bg-green-100 text-green-800 hover:bg-green-100 dark:bg-green-900/20 dark:text-green-400 dark:hover:bg-green-900/30 transition-colors duration-200">
             Free
           </Badge>
         ) : agent.type === 'Premium' ? (
           <div className="flex items-center gap-2">
-            <span className="text-sm text-gray-500 line-through">
+            <span className="text-sm text-muted-foreground line-through transition-colors duration-200">
               ${agent.originalPrice}
             </span>
-            <span className="text-lg font-bold text-gray-900">
+            <span className="text-lg font-bold text-foreground transition-colors duration-200">
               ${agent.price}
             </span>
-            <Badge className="bg-purple-100 text-purple-800 hover:bg-purple-100">
+            <Badge className="bg-purple-100 text-purple-800 hover:bg-purple-100 dark:bg-purple-900/20 dark:text-purple-400 dark:hover:bg-purple-900/30 transition-colors duration-200">
               Premium
             </Badge>
             {agent.originalPrice && (
-              <Badge className="bg-red-100 text-red-800 hover:bg-red-100">
+              <Badge className="bg-red-100 text-red-800 hover:bg-red-100 dark:bg-red-900/20 dark:text-red-400 dark:hover:bg-red-900/30 transition-colors duration-200">
                 Save ${(agent.originalPrice - agent.price).toFixed(2)}
               </Badge>
             )}
           </div>
         ) : (
           <div className="flex items-center gap-2">
-            <span className="text-lg font-bold text-gray-900">
+            <span className="text-lg font-bold text-foreground transition-colors duration-200">
               ${agent.price}
             </span>
-            <span className="text-sm text-gray-600">{agent.period}</span>
-            <Badge className="bg-blue-100 text-blue-800 hover:bg-blue-100">
+            <span className="text-sm text-muted-foreground transition-colors duration-200">
+              {agent.period}
+            </span>
+            <Badge className="bg-blue-100 text-blue-800 hover:bg-blue-100 dark:bg-blue-900/20 dark:text-blue-400 dark:hover:bg-blue-900/30 transition-colors duration-200">
               Subscription
             </Badge>
           </div>
@@ -220,7 +224,10 @@ export const AgentCard: FC<AgentCardProps> = ({
               delay: 1.55 + index * 0.1 + tagIndex * 0.05,
             }}
           >
-            <Badge variant="outline" className="text-xs">
+            <Badge
+              variant="outline"
+              className="text-xs border-border text-foreground transition-colors duration-200"
+            >
               {tag}
             </Badge>
           </motion.div>
@@ -229,7 +236,7 @@ export const AgentCard: FC<AgentCardProps> = ({
 
       {/* Stats */}
       <motion.div
-        className="flex items-center gap-4 mb-4 text-sm text-gray-600"
+        className="flex items-center gap-4 mb-4 text-sm text-muted-foreground transition-colors duration-200"
         initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.4, delay: 1.6 + index * 0.1 }}
@@ -264,7 +271,7 @@ export const AgentCard: FC<AgentCardProps> = ({
             whileTap={{ scale: 0.95 }}
             transition={{ duration: 0 }}
           >
-            <Button className="w-full bg-green-600 hover:bg-green-700">
+            <Button className="w-full bg-green-600 hover:bg-green-700 dark:bg-green-500 dark:hover:bg-green-600 transition-colors duration-200">
               Install Free
             </Button>
           </motion.div>
@@ -278,7 +285,7 @@ export const AgentCard: FC<AgentCardProps> = ({
             whileTap={{ scale: 0.95 }}
             transition={{ duration: 0 }}
           >
-            <Button className="w-full bg-gray-900 hover:bg-gray-800">
+            <Button className="w-full bg-primary hover:bg-primary/90 text-primary-foreground transition-colors duration-200">
               Buy Now
             </Button>
           </motion.div>
@@ -292,7 +299,7 @@ export const AgentCard: FC<AgentCardProps> = ({
             whileTap={{ scale: 0.95 }}
             transition={{ duration: 0 }}
           >
-            <Button className="w-full bg-blue-600 hover:bg-blue-700">
+            <Button className="w-full bg-blue-600 hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600 transition-colors duration-200">
               Subscribe
             </Button>
           </motion.div>
@@ -306,7 +313,11 @@ export const AgentCard: FC<AgentCardProps> = ({
           whileTap={{ scale: 0.9 }}
           transition={{ duration: 0 }}
         >
-          <Button variant="outline" size="icon">
+          <Button
+            variant="outline"
+            size="icon"
+            className="border-border bg-card hover:bg-accent text-foreground transition-colors duration-200"
+          >
             <Eye className="w-4 h-4" />
           </Button>
         </motion.div>

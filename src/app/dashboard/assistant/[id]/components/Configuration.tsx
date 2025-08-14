@@ -39,12 +39,14 @@ import {
 
 import { zodResolver } from '@hookform/resolvers/zod';
 import MonacoEditor from '@monaco-editor/react';
+import { useTheme } from 'next-themes';
 import { useParams } from 'next/navigation';
 import { useEffect, useMemo, useState } from 'react';
 import { useForm } from 'react-hook-form';
 
 export default function Configuration() {
   const params = useParams();
+  const { theme } = useTheme();
   const id =
     typeof params?.id === 'string'
       ? params.id
@@ -286,8 +288,8 @@ export default function Configuration() {
   };
 
   return (
-    <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-gray-50 to-white">
-      <div className="w-full h-full rounded-2xl shadow-xl bg-white/90 border border-gray-200 p-4">
+    <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-background via-background to-muted/20 rounded-lg">
+      <div className="w-full h-full shadow-xl bg-card/90 border border-border p-4 rounded-lg">
         <Form {...form}>
           <form
             onSubmit={form.handleSubmit(onSubmit)}
@@ -295,7 +297,7 @@ export default function Configuration() {
           >
             {/* General Section */}
             <div>
-              <div className="text-xl font-semibold mb-2 text-gray-800 flex items-center gap-2">
+              <div className="text-xl font-semibold mb-2 text-foreground flex items-center gap-2">
                 <span className="inline-block w-1.5 h-6 bg-primary rounded-full mr-2" />
                 General Configuration
               </div>
@@ -305,7 +307,7 @@ export default function Configuration() {
                   name="name"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel className="text-[13px] font-medium text-gray-700">
+                      <FormLabel className="text-[13px] font-medium text-foreground">
                         Name
                       </FormLabel>
                       <FormControl>
@@ -328,7 +330,7 @@ export default function Configuration() {
                   name="description"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel className="text-[13px] font-medium text-gray-700">
+                      <FormLabel className="text-[13px] font-medium text-foreground">
                         Description
                       </FormLabel>
                       <FormControl>
@@ -350,7 +352,7 @@ export default function Configuration() {
                   name="provider_id"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel className="text-[13px] font-medium text-gray-700">
+                      <FormLabel className="text-[13px] font-medium text-foreground">
                         Provider
                       </FormLabel>
                       <Select
@@ -384,7 +386,7 @@ export default function Configuration() {
                   name="model"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel className="text-[13px] font-medium text-gray-700">
+                      <FormLabel className="text-[13px] font-medium text-foreground">
                         Model
                       </FormLabel>
                       <Select
@@ -421,7 +423,7 @@ export default function Configuration() {
                   name="prompt"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel className="text-[13px] font-medium text-gray-700">
+                      <FormLabel className="text-[13px] font-medium text-foreground">
                         System Instruction
                       </FormLabel>
                       <FormControl>
@@ -439,11 +441,11 @@ export default function Configuration() {
             </div>
 
             {/* Divider */}
-            <div className="border-t border-gray-200 my-2" />
+            <div className="border-t border-border my-2" />
 
             {/* Model Config Section */}
             <div>
-              <div className="text-xl font-semibold mb-2 text-gray-800 flex items-center gap-2">
+              <div className="text-xl font-semibold mb-2 text-foreground flex items-center gap-2">
                 <span className="inline-block w-1.5 h-6 bg-primary rounded-full mr-2" />
                 Model Configuration
               </div>
@@ -453,7 +455,7 @@ export default function Configuration() {
                   name="response_format"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel className="text-[13px] font-medium text-gray-700">
+                      <FormLabel className="text-[13px] font-medium text-foreground">
                         Response format
                       </FormLabel>
                       <Select
@@ -659,7 +661,7 @@ export default function Configuration() {
                         <div className="flex-1 min-h-0 flex flex-col">
                           <div className="flex-1 min-h-0">
                             <div
-                              className="rounded border border-gray-300 focus-within:border-primary bg-white overflow-hidden shadow-sm"
+                              className="rounded border border-border focus-within:border-primary bg-background overflow-hidden shadow-sm"
                               style={{ height: '100%' }}
                             >
                               <MonacoEditor
@@ -670,6 +672,7 @@ export default function Configuration() {
                                 onChange={(val) =>
                                   setJsonSchemaInput(val ?? '')
                                 }
+                                theme={theme === 'dark' ? 'vs-dark' : 'light'}
                                 options={{
                                   minimap: { enabled: false },
                                   fontSize: 13,
@@ -689,7 +692,7 @@ export default function Configuration() {
                             </div>
                           </div>
                           {jsonSchemaError && (
-                            <div className="text-xs text-red-500 mt-1">
+                            <div className="text-xs text-destructive mt-1">
                               {jsonSchemaError}
                             </div>
                           )}
@@ -755,7 +758,7 @@ export default function Configuration() {
                   name="max_tokens"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel className="text-[13px] font-medium text-gray-700">
+                      <FormLabel className="text-[13px] font-medium text-foreground">
                         Max Tokens
                       </FormLabel>
                       <div className="flex items-center gap-2">
@@ -790,7 +793,7 @@ export default function Configuration() {
                   name="temperature"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel className="text-[13px] font-medium text-gray-700">
+                      <FormLabel className="text-[13px] font-medium text-foreground">
                         Temperature
                       </FormLabel>
                       <div className="flex items-center gap-2">
@@ -825,7 +828,7 @@ export default function Configuration() {
                   name="top_p"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel className="text-[13px] font-medium text-gray-700">
+                      <FormLabel className="text-[13px] font-medium text-foreground">
                         Top P
                       </FormLabel>
                       <div className="flex items-center gap-2">
@@ -893,7 +896,7 @@ export default function Configuration() {
               providerError ||
               modelError ||
               updateError) && (
-              <div className="text-red-500 text-sm mt-2 text-right">
+              <div className="text-destructive text-sm mt-2 text-right">
                 {error ||
                   (agentError instanceof Error
                     ? agentError.message

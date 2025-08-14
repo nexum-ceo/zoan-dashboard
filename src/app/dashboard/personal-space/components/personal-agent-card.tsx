@@ -46,7 +46,7 @@ export const PersonalAgentCard: FC<PersonalAgentCardProps> = ({
       className="cursor-pointer"
       onClick={() => onAgentClick(agent)}
     >
-      <Card className="border border-gray-200 hover:shadow-xl transition-shadow duration-300 bg-white">
+      <Card className="border border-border hover:shadow-xl transition-all duration-300 bg-card">
         <CardContent className="p-6">
           {/* Header with Agent Info and Actions */}
           <div className="flex items-start justify-between mb-4">
@@ -61,7 +61,7 @@ export const PersonalAgentCard: FC<PersonalAgentCardProps> = ({
               <div className="flex-1">
                 <div className="flex items-center gap-2 mb-1">
                   <motion.h3
-                    className="font-bold text-gray-900 text-lg"
+                    className="font-bold text-foreground text-lg transition-colors duration-200"
                     initial={{ opacity: 0, x: -10 }}
                     animate={{ opacity: 1, x: 0 }}
                     transition={{ delay: 0.1 }}
@@ -78,7 +78,7 @@ export const PersonalAgentCard: FC<PersonalAgentCardProps> = ({
                       <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
                       {agent.hasWorkflow && (
                         <motion.div
-                          className="flex items-center gap-1 text-xs text-green-600 font-medium"
+                          className="flex items-center gap-1 text-xs text-green-600 dark:text-green-400 font-medium transition-colors duration-200"
                           whileHover={{ scale: 1.05 }}
                         >
                           <Workflow className="w-3 h-3" />
@@ -89,7 +89,7 @@ export const PersonalAgentCard: FC<PersonalAgentCardProps> = ({
                   )}
                 </div>
                 <motion.p
-                  className="text-sm text-gray-600 font-medium"
+                  className="text-sm text-muted-foreground font-medium transition-colors duration-200"
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
                   transition={{ delay: 0.15 }}
@@ -99,7 +99,11 @@ export const PersonalAgentCard: FC<PersonalAgentCardProps> = ({
               </div>
             </div>
             <motion.div whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }}>
-              <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+              <Button
+                variant="ghost"
+                size="sm"
+                className="h-8 w-8 p-0 text-muted-foreground hover:text-foreground hover:bg-accent transition-colors duration-200"
+              >
                 <MoreHorizontal className="w-4 h-4" />
               </Button>
             </motion.div>
@@ -119,7 +123,7 @@ export const PersonalAgentCard: FC<PersonalAgentCardProps> = ({
 
           {/* Description */}
           <motion.p
-            className="text-sm text-gray-600 mb-4 leading-relaxed"
+            className="text-sm text-muted-foreground mb-4 leading-relaxed transition-colors duration-200"
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.25 }}
@@ -135,8 +139,10 @@ export const PersonalAgentCard: FC<PersonalAgentCardProps> = ({
             transition={{ delay: 0.3 }}
           >
             <div className="flex items-center justify-between mb-2">
-              <span className="text-sm font-medium text-gray-700">Usage</span>
-              <span className="text-sm font-bold text-gray-900">
+              <span className="text-sm font-medium text-muted-foreground transition-colors duration-200">
+                Usage
+              </span>
+              <span className="text-sm font-bold text-foreground transition-colors duration-200">
                 {agent.totalChats} chats
               </span>
             </div>
@@ -152,7 +158,7 @@ export const PersonalAgentCard: FC<PersonalAgentCardProps> = ({
 
           {/* Installation and Usage Info */}
           <motion.div
-            className="flex items-center justify-between text-xs text-gray-500 mb-4"
+            className="flex items-center justify-between text-xs text-muted-foreground mb-4 transition-colors duration-200"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 0.35 }}
@@ -172,19 +178,19 @@ export const PersonalAgentCard: FC<PersonalAgentCardProps> = ({
             <div className="flex items-center gap-3">
               <motion.div
                 className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
-                  agent.isActive ? 'bg-gray-900' : 'bg-gray-300'
+                  agent.isActive ? 'bg-primary' : 'bg-muted'
                 }`}
                 whileTap={{ scale: 0.95 }}
               >
                 <motion.div
-                  className="inline-block h-4 w-4 transform rounded-full bg-white shadow-lg transition-transform"
+                  className="inline-block h-4 w-4 transform rounded-full bg-primary-foreground shadow-lg transition-transform"
                   animate={{
                     x: agent.isActive ? 24 : 4,
                   }}
                   transition={{ type: 'spring', stiffness: 500, damping: 30 }}
                 />
               </motion.div>
-              <span className="text-sm font-medium text-gray-700">
+              <span className="text-sm font-medium text-muted-foreground transition-colors duration-200">
                 {agent.isActive ? 'Active' : 'Inactive'}
               </span>
             </div>
@@ -192,17 +198,29 @@ export const PersonalAgentCard: FC<PersonalAgentCardProps> = ({
             {/* Action Buttons */}
             <div className="flex items-center gap-1">
               <motion.div whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }}>
-                <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="h-8 w-8 p-0 text-muted-foreground hover:text-foreground hover:bg-accent transition-colors duration-200"
+                >
                   <ExternalLink className="w-4 h-4" />
                 </Button>
               </motion.div>
               <motion.div whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }}>
-                <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="h-8 w-8 p-0 text-muted-foreground hover:text-foreground hover:bg-accent transition-colors duration-200"
+                >
                   <Settings className="w-4 h-4" />
                 </Button>
               </motion.div>
               <motion.div whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }}>
-                <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="h-8 w-8 p-0 text-muted-foreground hover:text-foreground hover:bg-accent transition-colors duration-200"
+                >
                   <Edit className="w-4 h-4" />
                 </Button>
               </motion.div>
@@ -210,7 +228,7 @@ export const PersonalAgentCard: FC<PersonalAgentCardProps> = ({
                 <Button
                   variant="ghost"
                   size="sm"
-                  className="h-8 w-8 p-0 text-red-500 hover:text-red-600"
+                  className="h-8 w-8 p-0 text-red-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors duration-200"
                 >
                   <Trash2 className="w-4 h-4" />
                 </Button>
@@ -221,13 +239,13 @@ export const PersonalAgentCard: FC<PersonalAgentCardProps> = ({
           {/* Workflow Link */}
           {agent.hasWorkflow && (
             <motion.div
-              className="mt-4 pt-4 border-t border-gray-200"
+              className="mt-4 pt-4 border-t border-border transition-colors duration-200"
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.45 }}
             >
               <motion.button
-                className="text-sm text-blue-600 hover:text-blue-800 flex items-center gap-1 font-medium"
+                className="text-sm text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 flex items-center gap-1 font-medium transition-colors duration-200"
                 whileHover={{ x: 2 }}
                 transition={{ duration: 0.2 }}
               >

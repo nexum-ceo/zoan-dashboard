@@ -145,12 +145,12 @@ export default function ProviderTable() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
-      <Table className="w-full h-fit bg-white border border-border rounded-2xl shadow-md">
-        <TableCaption className="text-gray-500">
+      <Table className="w-full h-fit bg-card text-card-foreground border border-border rounded-2xl shadow-md">
+        <TableCaption className="text-muted-foreground">
           A list of acceptable providers.
         </TableCaption>
         <TableHeader className="rounded-xl">
-          <TableRow className="bg-gray-50">
+          <TableRow className="bg-muted/40">
             <TableHead className="w-[60px]">#</TableHead>
             <TableHead className="w-[220px]">ID</TableHead>
             <TableHead className="w-[120px]">Provider</TableHead>
@@ -196,8 +196,8 @@ export default function ProviderTable() {
                 <TableRow
                   key={provider.id}
                   className={`cursor-pointer transition-colors rounded-xl ${
-                    index % 2 === 0 ? 'bg-white' : 'bg-gray-50'
-                  } hover:bg-primary/5`}
+                    index % 2 === 0 ? 'bg-background' : 'bg-muted/30'
+                  } hover:bg-muted/50`}
                 >
                   <TableCell className="font-medium text-center align-middle">
                     {index + 1}

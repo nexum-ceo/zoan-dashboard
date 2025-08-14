@@ -37,56 +37,66 @@ export default function AssitantTabs() {
 
   return (
     <Tabs className="m-2 rounded-lg flex-1 flex flex-row gap-3" value={tab}>
-      <div className="flex bg-white flex-1 rounded-lg flex-col gap-6 p-2 border border-border">
+      <div className="flex bg-card flex-1 rounded-lg flex-col gap-6 p-2 border border-border shadow-sm">
         {/* <SelectAssistant /> */}
         <Button className="w-full">Chat with</Button>
 
         <div className="flex flex-col gap-2">
-          <div className="text-[12px] text-gray-500 font-medium">
+          <div className="text-[12px] text-muted-foreground font-medium">
             Preferences
           </div>
           <Button
             variant="ghost"
             onClick={() => handleTabChange('config')}
             className={cn(
-              'flex items-center justify-start gap-2',
-              tab === 'config' && 'bg-black/10 text-foreground',
+              'flex items-center justify-start gap-2 transition-colors',
+              tab === 'config'
+                ? 'bg-accent text-accent-foreground'
+                : 'hover:bg-accent/50 hover:text-accent-foreground',
             )}
           >
             <FileSliders className="w-4 h-4" /> Configuration
           </Button>
-          <div className="text-[12px] text-gray-500 font-medium">Data</div>
+          <div className="text-[12px] text-muted-foreground font-medium">
+            Data
+          </div>
           <Button
             variant="ghost"
             onClick={() => handleTabChange('training')}
             className={cn(
-              'flex items-center justify-start gap-2',
-              tab === 'training' && 'bg-black/10 text-foreground',
+              'flex items-center justify-start gap-2 transition-colors',
+              tab === 'training'
+                ? 'bg-accent text-accent-foreground'
+                : 'hover:bg-accent/50 hover:text-accent-foreground',
             )}
           >
             <DatabaseZap className="w-4 h-4" /> Training Data
           </Button>
-          <div className="text-[12px] text-gray-500 font-medium">Operation</div>
+          <div className="text-[12px] text-muted-foreground font-medium">
+            Operation
+          </div>
           <Button
             variant="ghost"
             onClick={() => handleTabChange('workflow')}
             className={cn(
-              'flex items-center justify-start gap-2',
-              tab === 'workflow' && 'bg-black/10 text-foreground',
+              'flex items-center justify-start gap-2 transition-colors',
+              tab === 'workflow'
+                ? 'bg-accent text-accent-foreground'
+                : 'hover:bg-accent/50 hover:text-accent-foreground',
             )}
           >
-            <WorkflowIcon /> Workflow
+            <WorkflowIcon className="w-4 h-4" /> Workflow
           </Button>
         </div>
       </div>
-      <div className="flex bg-white flex-6 rounded-lg flex-col gap-2">
-        <TabsContent value="config">
+      <div className="flex bg-card flex-6 rounded-lg flex-col gap-2 border border-border shadow-sm">
+        <TabsContent value="config" className="flex-1">
           <Configuration />
         </TabsContent>
-        <TabsContent value="training">
+        <TabsContent value="training" className="flex-1">
           <Trainning />
         </TabsContent>
-        <TabsContent value="workflow">
+        <TabsContent value="workflow" className="flex-1">
           <Workflow />
         </TabsContent>
       </div>

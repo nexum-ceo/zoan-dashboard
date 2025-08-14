@@ -14,7 +14,9 @@ export default function RootLayout({
       <AgentProvider>
         <SidebarProvider>
           <AppSidebar />
-          <div className="bg-gray-50 h-screen w-full">{children}</div>
+          <div className="bg-background h-screen w-full transition-colors duration-200">
+            {children}
+          </div>
         </SidebarProvider>
       </AgentProvider>
     </ZoanBaseLayout>

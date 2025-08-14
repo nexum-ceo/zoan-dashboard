@@ -152,7 +152,7 @@ export default function AddAgentForm() {
   };
 
   return (
-    <div className="w-full p-4">
+    <div className="w-full p-4 bg-background text-foreground">
       <Form {...form}>
         <form
           onSubmit={form.handleSubmit(onSubmit)}
@@ -160,7 +160,7 @@ export default function AddAgentForm() {
         >
           {/* General Section */}
           <div>
-            <div className="text-base font-semibold mb-3 text-gray-800 flex items-center gap-2">
+            <div className="text-base font-semibold mb-3 flex items-center gap-2">
               <span className="inline-block w-1 h-4 bg-primary rounded-full" />
               General Configuration
             </div>
@@ -172,7 +172,7 @@ export default function AddAgentForm() {
                 name="name"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel className="text-xs font-medium text-gray-700">
+                    <FormLabel className="text-xs font-medium text-muted-foreground">
                       Name
                     </FormLabel>
                     <FormControl>
@@ -192,7 +192,7 @@ export default function AddAgentForm() {
                 name="description"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel className="text-xs font-medium text-gray-700">
+                    <FormLabel className="text-xs font-medium text-muted-foreground">
                       Description
                     </FormLabel>
                     <FormControl>
@@ -214,7 +214,7 @@ export default function AddAgentForm() {
                   name="provider_id"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel className="text-xs font-medium text-gray-700">
+                      <FormLabel className="text-xs font-medium text-muted-foreground">
                         Provider
                       </FormLabel>
                       <Select
@@ -247,7 +247,7 @@ export default function AddAgentForm() {
                   name="model"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel className="text-xs font-medium text-gray-700 w-[180px]">
+                      <FormLabel className="text-xs font-medium text-muted-foreground w-[180px]">
                         Model
                       </FormLabel>
                       <Select
@@ -278,7 +278,7 @@ export default function AddAgentForm() {
                 name="prompt"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel className="text-xs font-medium text-gray-700">
+                    <FormLabel className="text-xs font-medium text-muted-foreground">
                       System Instruction
                     </FormLabel>
                     <FormControl>
@@ -296,11 +296,11 @@ export default function AddAgentForm() {
           </div>
 
           {/* Divider */}
-          <div className="border-t border-gray-200" />
+          <div className="border-t border-border" />
 
           {/* Model Config Section */}
           <div>
-            <div className="text-base font-semibold mb-3 text-gray-800 flex items-center gap-2">
+            <div className="text-base font-semibold mb-3 flex items-center gap-2">
               <span className="inline-block w-1 h-4 bg-primary rounded-full" />
               Model Configuration
             </div>
@@ -313,7 +313,7 @@ export default function AddAgentForm() {
                   name="response_format"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel className="text-xs font-medium text-gray-700">
+                      <FormLabel className="text-xs font-medium text-muted-foreground">
                         Response format
                       </FormLabel>
                       <Select
@@ -390,7 +390,9 @@ export default function AddAgentForm() {
                       </div>
                       <div className="flex flex-col flex-1 min-h-0 h-full w-full gap-1 px-2 pb-1 mt-4">
                         <div className="flex justify-between items-center mb-2">
-                          <Label className="mb-1">Definition</Label>
+                          <Label className="mb-1 text-muted-foreground">
+                            Definition
+                          </Label>
                           <Select
                             onValueChange={(value) => {
                               const templates = {
@@ -480,7 +482,7 @@ export default function AddAgentForm() {
                         <div className="flex-1 min-h-0 flex flex-col">
                           <div className="flex-1 min-h-0">
                             <div
-                              className="rounded border border-gray-300 focus-within:border-primary bg-white overflow-hidden shadow-sm"
+                              className="rounded border border-border focus-within:border-ring bg-card text-card-foreground overflow-hidden shadow-sm"
                               style={{ height: '100%' }}
                             >
                               <MonacoEditor
@@ -576,7 +578,7 @@ export default function AddAgentForm() {
                   name="max_tokens"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel className="text-xs font-medium text-gray-700">
+                      <FormLabel className="text-xs font-medium text-muted-foreground">
                         Max Tokens
                       </FormLabel>
                       <div className="flex items-center gap-2">
@@ -615,7 +617,7 @@ export default function AddAgentForm() {
                   name="temperature"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel className="text-xs font-medium text-gray-700">
+                      <FormLabel className="text-xs font-medium text-muted-foreground">
                         Temperature
                       </FormLabel>
                       <div className="flex items-center gap-2">
@@ -651,7 +653,7 @@ export default function AddAgentForm() {
                   name="top_p"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel className="text-xs font-medium text-gray-700">
+                      <FormLabel className="text-xs font-medium text-muted-foreground">
                         Top P
                       </FormLabel>
                       <div className="flex items-center gap-2">
@@ -686,7 +688,7 @@ export default function AddAgentForm() {
           </div>
 
           {/* Actions & Status */}
-          <div className="flex flex-row gap-2 items-center justify-end pt-2 border-t border-gray-100">
+          <div className="flex flex-row gap-2 items-center justify-end pt-2 border-t border-border">
             <Button
               type="button"
               variant="outline"

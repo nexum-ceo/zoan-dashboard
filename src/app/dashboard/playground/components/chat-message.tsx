@@ -49,13 +49,15 @@ export const ChatMessage: FC<ChatMessageProps> = ({ message, isLoading }) => {
       {/* Avatar */}
       <div
         className={`w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 ${
-          isUser ? 'bg-gray-400' : 'bg-gradient-to-r from-green-400 to-blue-500'
+          isUser
+            ? 'bg-muted-foreground/40 dark:bg-muted-foreground/40'
+            : 'bg-gradient-to-r from-green-400 to-blue-500'
         }`}
       >
         {isUser ? (
-          <User className="w-4 h-4 text-white" />
+          <User className="w-4 h-4 text-foreground" />
         ) : (
-          <Bot className="w-4 h-4 text-white" />
+          <Bot className="w-4 h-4 text-foreground" />
         )}
       </div>
 
@@ -64,9 +66,9 @@ export const ChatMessage: FC<ChatMessageProps> = ({ message, isLoading }) => {
         <div
           className={`relative max-w-3xl ${
             isUser
-              ? 'bg-gray-100 rounded-2xl rounded-tr-md'
-              : 'bg-gray-50 text-gray-900 rounded-2xl rounded-tl-md border border-gray-200'
-          } px-4 py-3 shadow-sm`}
+              ? 'bg-white text-gray-900 rounded-2xl rounded-tr-md border border-border/60 shadow-sm'
+              : 'bg-muted text-foreground rounded-2xl rounded-tl-md border border-border/60 dark:bg-transparent dark:border-transparent'
+          } px-4 py-3`}
         >
           <div className="prose prose-sm max-w-none whitespace-pre-wrap leading-relaxed">
             <ReactMarkdown>{content ?? ''}</ReactMarkdown>
@@ -107,45 +109,33 @@ export const ChatMessage: FC<ChatMessageProps> = ({ message, isLoading }) => {
                         />
                       </svg>
                     ) : (
-                      <Copy className="w-3 h-3" />
+                      <Copy className="w-3 h-3 text-muted-foreground" />
                     )}
                   </Button>
                 </TooltipTrigger>
                 <TooltipContent>{copied ? 'Copied!' : 'Copy'}</TooltipContent>
               </Tooltip>
             </TooltipProvider>
-            <Button
-              variant="ghost"
-              size="sm"
-              className="h-7 px-2 text-gray-500 hover:text-gray-700"
-            >
-              <TooltipProvider>
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <Button variant="ghost" size="icon">
-                      <ThumbsUp className="w-3 h-3" />
-                    </Button>
-                  </TooltipTrigger>
-                  <TooltipContent>Like</TooltipContent>
-                </Tooltip>
-              </TooltipProvider>
-            </Button>
-            <Button
-              variant="ghost"
-              size="sm"
-              className="h-7 px-2 text-gray-500 hover:text-gray-700"
-            >
-              <TooltipProvider>
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <Button variant="ghost" size="icon">
-                      <ThumbsDown className="w-3 h-3" />
-                    </Button>
-                  </TooltipTrigger>
-                  <TooltipContent>Dislike</TooltipContent>
-                </Tooltip>
-              </TooltipProvider>
-            </Button>
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button variant="ghost" size="icon">
+                    <ThumbsUp className="w-3 h-3 text-muted-foreground" />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>Like</TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button variant="ghost" size="icon">
+                    <ThumbsDown className="w-3 h-3 text-muted-foreground" />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>Dislike</TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
           </div>
         )}
       </div>

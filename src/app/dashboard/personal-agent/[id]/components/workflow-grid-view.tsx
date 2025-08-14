@@ -102,15 +102,15 @@ export const WorkflowGridView: FC<WorkflowGridViewProps> = ({ steps }) => {
           }}
           className="h-full"
         >
-          <Card className="p-6 bg-white border border-gray-200 hover:shadow-md transition-shadow h-full flex flex-col min-h-[320px]">
+          <Card className="p-6 bg-card border border-border hover:shadow-md transition-all duration-200 h-full flex flex-col min-h-[320px]">
             <div className="flex items-start gap-4 mb-4">
               <div
-                className={`w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0 ${
+                className={`w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0 transition-colors duration-200 ${
                   step.status === 'completed'
-                    ? 'bg-green-600 text-white'
+                    ? 'bg-green-600 dark:bg-green-500 text-white'
                     : step.status === 'in-progress'
-                    ? 'bg-blue-600 text-white'
-                    : 'bg-gray-400 text-white'
+                    ? 'bg-blue-600 dark:bg-blue-500 text-white'
+                    : 'bg-gray-500 dark:bg-gray-400 text-white'
                 }`}
               >
                 {step.status === 'completed' ? (
@@ -120,10 +120,10 @@ export const WorkflowGridView: FC<WorkflowGridViewProps> = ({ steps }) => {
                 )}
               </div>
               <div className="flex-1 min-w-0">
-                <h3 className="font-semibold text-gray-900 mb-1 text-lg">
+                <h3 className="font-semibold text-foreground mb-1 text-lg transition-colors duration-200">
                   {step.title}
                 </h3>
-                <div className="text-sm text-gray-600 mb-2">
+                <div className="text-sm text-muted-foreground mb-2 transition-colors duration-200">
                   {step.timeEstimate}
                 </div>
               </div>
@@ -131,7 +131,7 @@ export const WorkflowGridView: FC<WorkflowGridViewProps> = ({ steps }) => {
 
             {/* Content area - grows to fill available space */}
             <div className="flex-1 flex flex-col">
-              <p className="text-gray-600 mb-4 text-sm leading-relaxed flex-1">
+              <p className="text-muted-foreground mb-4 text-sm leading-relaxed flex-1 transition-colors duration-200">
                 {step.description}
               </p>
 
@@ -140,28 +140,30 @@ export const WorkflowGridView: FC<WorkflowGridViewProps> = ({ steps }) => {
                 {step.status === 'in-progress' && step.progress && (
                   <>
                     <div className="flex items-center justify-between mb-2">
-                      <span className="text-sm text-gray-600">Progress</span>
-                      <span className="text-sm font-medium text-blue-600">
+                      <span className="text-sm text-muted-foreground transition-colors duration-200">
+                        Progress
+                      </span>
+                      <span className="text-sm font-medium text-blue-600 dark:text-blue-400 transition-colors duration-200">
                         {step.progress}%
                       </span>
                     </div>
-                    <div className="w-full h-2 bg-gray-200 rounded-full">
+                    <div className="w-full h-2 bg-muted rounded-full transition-colors duration-200">
                       <div
-                        className="h-full bg-blue-600 rounded-full transition-all duration-300"
+                        className="h-full bg-blue-600 dark:bg-blue-500 rounded-full transition-all duration-300"
                         style={{ width: `${step.progress}%` }}
                       />
                     </div>
                     <div className="flex items-center gap-1 mt-2">
-                      <div className="w-1 h-1 bg-blue-600 rounded-full animate-pulse"></div>
+                      <div className="w-1 h-1 bg-blue-600 dark:bg-blue-500 rounded-full animate-pulse transition-colors duration-200"></div>
                       <div
-                        className="w-1 h-1 bg-blue-600 rounded-full animate-pulse"
+                        className="w-1 h-1 bg-blue-600 dark:bg-blue-500 rounded-full animate-pulse transition-colors duration-200"
                         style={{ animationDelay: '0.2s' }}
                       ></div>
                       <div
-                        className="w-1 h-1 bg-blue-600 rounded-full animate-pulse"
+                        className="w-1 h-1 bg-blue-600 dark:bg-blue-500 rounded-full animate-pulse transition-colors duration-200"
                         style={{ animationDelay: '0.4s' }}
                       ></div>
-                      <span className="text-xs text-gray-500 ml-1">
+                      <span className="text-xs text-muted-foreground ml-1 transition-colors duration-200">
                         in progress
                       </span>
                     </div>
@@ -180,12 +182,12 @@ export const WorkflowGridView: FC<WorkflowGridViewProps> = ({ steps }) => {
                     ? 'secondary'
                     : 'outline'
                 }
-                className={`${
+                className={`transition-colors duration-200 ${
                   step.status === 'completed'
-                    ? 'bg-black text-white'
+                    ? 'bg-primary text-primary-foreground'
                     : step.status === 'in-progress'
-                    ? 'bg-blue-100 text-blue-800 border-blue-200'
-                    : 'bg-gray-100 text-gray-600 border-gray-200'
+                    ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-300 border-blue-200 dark:border-blue-700'
+                    : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 border-gray-200 dark:border-gray-600'
                 }`}
               >
                 {step.status === 'completed'
@@ -195,7 +197,7 @@ export const WorkflowGridView: FC<WorkflowGridViewProps> = ({ steps }) => {
                   : 'pending'}
               </Badge>
               {step.dependsOn && (
-                <div className="text-xs text-gray-500">
+                <div className="text-xs text-muted-foreground transition-colors duration-200">
                   Depends on #{step.dependsOn}
                 </div>
               )}

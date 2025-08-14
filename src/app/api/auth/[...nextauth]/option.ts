@@ -37,6 +37,14 @@ export const authOptions: NextAuthOptions = {
         const expireAccessToken = jwtDecode(user.accessToken)?.exp;
         token.accessToken = user.accessToken;
         token.accessTokenExpires = expireAccessToken;
+        return token;
+      }
+
+      if (
+        token.accessTokenExpires &&
+        Date.now() / 1000 > token.accessTokenExpires
+      ) {
+        return {};
       }
       return token;
     },
@@ -47,12 +55,7 @@ export const authOptions: NextAuthOptions = {
         token.accessTokenExpires < Date.now() / 1000
       ) {
         console.log('AccessToken expired - clearing session data');
-        return {
-          ...session,
-          user: undefined,
-          accessToken: undefined,
-          expires: undefined,
-        };
+        return {};
       }
 
       session.accessToken = token.accessToken;

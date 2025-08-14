@@ -42,23 +42,23 @@ export const WorkflowStepCard: FC<WorkflowStepCardProps> = ({
       }}
     >
       <Card
-        className={`p-6 ${
+        className={`p-6 transition-all duration-200 ${
           step.status === 'completed'
-            ? 'bg-green-50 border-green-200'
+            ? 'bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-800'
             : step.status === 'in-progress'
-            ? 'bg-blue-50 border-blue-200'
-            : 'bg-gray-50 border-gray-200'
+            ? 'bg-blue-50 dark:bg-blue-900/20 border-blue-200 dark:border-blue-800'
+            : 'bg-gray-50 dark:bg-gray-800/50 border-gray-200 dark:border-gray-700'
         }`}
       >
         <div className="flex items-start justify-between">
           <div className="flex items-start gap-4">
             <div
-              className={`w-12 h-12 rounded-full flex items-center justify-center ${
+              className={`w-12 h-12 rounded-full flex items-center justify-center transition-colors duration-200 ${
                 step.status === 'completed'
-                  ? 'bg-green-600 text-white'
+                  ? 'bg-green-600 dark:bg-green-500 text-white'
                   : step.status === 'in-progress'
-                  ? 'bg-blue-600 text-white'
-                  : 'bg-gray-400 text-white'
+                  ? 'bg-blue-600 dark:bg-blue-500 text-white'
+                  : 'bg-gray-500 dark:bg-gray-400 text-white'
               }`}
             >
               {step.status === 'completed' ? (
@@ -68,36 +68,40 @@ export const WorkflowStepCard: FC<WorkflowStepCardProps> = ({
               )}
             </div>
             <div className="flex-1">
-              <h3 className="text-lg font-semibold text-gray-900 mb-1">
+              <h3 className="text-lg font-semibold text-foreground mb-1 transition-colors duration-200">
                 {step.title}
               </h3>
-              <p className="text-gray-600 mb-3">{step.description}</p>
+              <p className="text-muted-foreground mb-3 transition-colors duration-200">
+                {step.description}
+              </p>
 
               {step.status === 'in-progress' && step.progress && (
                 <div className="mb-3">
                   <div className="flex items-center justify-between mb-1">
-                    <span className="text-sm text-gray-600">Processing...</span>
-                    <span className="text-sm font-medium text-blue-600">
+                    <span className="text-sm text-muted-foreground transition-colors duration-200">
+                      Processing...
+                    </span>
+                    <span className="text-sm font-medium text-blue-600 dark:text-blue-400 transition-colors duration-200">
                       {step.progress}%
                     </span>
                   </div>
-                  <div className="w-full h-2 bg-gray-200 rounded-full">
+                  <div className="w-full h-2 bg-muted rounded-full transition-colors duration-200">
                     <div
-                      className="h-full bg-blue-600 rounded-full transition-all duration-300"
+                      className="h-full bg-blue-600 dark:bg-blue-500 rounded-full transition-all duration-300"
                       style={{ width: `${step.progress}%` }}
                     />
                   </div>
                   <div className="flex items-center gap-1 mt-1">
-                    <div className="w-1 h-1 bg-blue-600 rounded-full animate-pulse"></div>
+                    <div className="w-1 h-1 bg-blue-600 dark:bg-blue-500 rounded-full animate-pulse transition-colors duration-200"></div>
                     <div
-                      className="w-1 h-1 bg-blue-600 rounded-full animate-pulse"
+                      className="w-1 h-1 bg-blue-600 dark:bg-blue-500 rounded-full animate-pulse transition-colors duration-200"
                       style={{ animationDelay: '0.2s' }}
                     ></div>
                     <div
-                      className="w-1 h-1 bg-blue-600 rounded-full animate-pulse"
+                      className="w-1 h-1 bg-blue-600 dark:bg-blue-500 rounded-full animate-pulse transition-colors duration-200"
                       style={{ animationDelay: '0.4s' }}
                     ></div>
-                    <span className="text-xs text-gray-500 ml-1">
+                    <span className="text-xs text-muted-foreground ml-1 transition-colors duration-200">
                       Estimated 5-10 seconds remaining
                     </span>
                   </div>
@@ -113,13 +117,13 @@ export const WorkflowStepCard: FC<WorkflowStepCardProps> = ({
                       ? 'secondary'
                       : 'outline'
                   }
-                  className={
+                  className={`transition-colors duration-200 ${
                     step.status === 'completed'
-                      ? 'bg-green-100 text-green-800 border-green-200'
+                      ? 'bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-300 border-green-200 dark:border-green-700'
                       : step.status === 'in-progress'
-                      ? 'bg-blue-100 text-blue-800 border-blue-200'
-                      : 'bg-gray-100 text-gray-600 border-gray-200'
-                  }
+                      ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-300 border-blue-200 dark:border-blue-700'
+                      : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 border-gray-200 dark:border-gray-600'
+                  }`}
                 >
                   {step.status === 'completed'
                     ? 'Completed'
@@ -128,9 +132,12 @@ export const WorkflowStepCard: FC<WorkflowStepCardProps> = ({
                     : 'Pending'}
                 </Badge>
                 {step.dependsOn && (
-                  <div className="flex items-center gap-1 text-xs text-gray-500">
+                  <div className="flex items-center gap-1 text-xs text-muted-foreground transition-colors duration-200">
                     <span>Depends on:</span>
-                    <Badge variant="outline" className="text-xs">
+                    <Badge
+                      variant="outline"
+                      className="text-xs border-border text-foreground transition-colors duration-200"
+                    >
                       #{step.dependsOn}
                     </Badge>
                   </div>
@@ -140,11 +147,15 @@ export const WorkflowStepCard: FC<WorkflowStepCardProps> = ({
           </div>
           <div className="flex items-center gap-2">
             <div className="text-right">
-              <div className="text-sm text-gray-500 mb-1">
+              <div className="text-sm text-muted-foreground mb-1 transition-colors duration-200">
                 {step.timeEstimate}
               </div>
             </div>
-            <Button variant="ghost" size="icon">
+            <Button
+              variant="ghost"
+              size="icon"
+              className="text-muted-foreground hover:text-foreground hover:bg-accent transition-colors duration-200"
+            >
               <MoreHorizontal className="w-4 h-4" />
             </Button>
           </div>
@@ -164,7 +175,7 @@ export const WorkflowStepCard: FC<WorkflowStepCardProps> = ({
             ease: 'easeOut',
           }}
         >
-          <ChevronDown className="w-6 h-6 text-gray-400" />
+          <ChevronDown className="w-6 h-6 text-muted-foreground transition-colors duration-200" />
         </motion.div>
       )}
     </motion.div>

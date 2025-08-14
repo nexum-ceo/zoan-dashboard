@@ -12,6 +12,7 @@ export async function GET() {
     if (error instanceof Error) {
       message = error.message;
     }
+    console.log('error agent route', JSON.stringify(error));
     return NextResponse.json({ error: message }, { status: 500 });
   }
 }

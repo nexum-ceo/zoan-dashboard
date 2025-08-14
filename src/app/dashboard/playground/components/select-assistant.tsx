@@ -26,7 +26,7 @@ export const SelectAssistant: FC<SelectAssistantProps> = ({ activeChatId }) => {
   return (
     <div className="space-y-4">
       <div className="space-y-2">
-        <h4 className="text-sm font-medium text-gray-900">Recent Chats</h4>
+        <h4 className="text-sm font-medium text-foreground">Recent Chats</h4>
         <div className="space-y-1 h-full overflow-y-auto">
           {chatLoading &&
             // Skeleton loading for recent chats
@@ -43,7 +43,7 @@ export const SelectAssistant: FC<SelectAssistantProps> = ({ activeChatId }) => {
             </div>
           )}
           {!chatLoading && !chatError && chats.length === 0 && (
-            <div className="px-3 py-2 text-xs text-gray-400">
+            <div className="px-3 py-2 text-xs text-muted-foreground">
               Do not have any chats
             </div>
           )}
@@ -58,17 +58,9 @@ export const SelectAssistant: FC<SelectAssistantProps> = ({ activeChatId }) => {
                   key={chat.id || index}
                   className={`w-full text-left px-3 py-2 text-sm rounded-lg transition-all duration-200 truncate relative ${
                     isActive
-                      ? 'bg-gray-200  border-l-4 border-gray-500 shadow-sm'
-                      : 'text-gray-700 hover:bg-gray-100 hover:text-gray-900 border-l-4 border-transparent'
+                      ? 'bg-accent text-accent-foreground'
+                      : 'text-foreground/80 hover:bg-muted hover:text-foreground'
                   }`}
-                  style={
-                    isActive
-                      ? {
-                          backgroundColor: '#f3f4f6',
-                          borderLeftColor: '#d1d5db',
-                        }
-                      : {}
-                  }
                   onClick={() => {
                     if (chat.id) {
                       router.push(`/dashboard/playground/${chat.id}`);

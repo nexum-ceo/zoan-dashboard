@@ -3,10 +3,12 @@ import { authOptions } from '@/app/api/auth/[...nextauth]/option';
 import axios from 'axios';
 import { getServerSession } from 'next-auth';
 import { signOut } from 'next-auth/react';
+import { NextResponse } from 'next/server';
 import { HttpError, type ApiResponse } from './utils';
 
 const baseURL =
   process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080/api/v1';
+const isServer = typeof window === 'undefined';
 
 const axiosInstance = axios.create({
   baseURL,
@@ -21,8 +23,6 @@ const axiosInstance = axios.create({
 axiosInstance.interceptors.request.use(
   async (config) => {
     let token: string | undefined;
-
-    const isServer = typeof window === 'undefined';
 
     if (isServer) {
       const session = await getServerSession(authOptions);
@@ -53,14 +53,14 @@ axiosInstance.interceptors.response.use(
   async (error) => {
     // Handle 401 unauthorized
     if (error.response?.status === 401) {
-      const isServer = typeof window === 'undefined';
-
       // If unauthenticated, sign out for client-side
       if (!isServer) {
-        signOut({
+        await signOut({
           callbackUrl: '/login',
         });
       }
+
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
     // If response has data in ApiResponse format, throw HttpError
