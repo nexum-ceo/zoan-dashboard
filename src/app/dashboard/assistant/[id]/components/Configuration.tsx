@@ -288,7 +288,7 @@ export default function Configuration() {
   };
 
   return (
-    <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-background via-background to-muted/20">
+    <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-background via-background to-muted/20 rounded-lg">
       <div className="w-full h-full shadow-xl bg-card/90 border border-border p-4 rounded-lg">
         <Form {...form}>
           <form
