@@ -72,7 +72,6 @@ export function PlaygroundClient() {
           router.push(`/dashboard/playground/${chatId}`);
         },
         onError: (error) => {
-          console.log('error huhu', error);
           handleErrorApi({ error });
         },
       },
