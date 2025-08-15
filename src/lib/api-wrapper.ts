@@ -1,3 +1,4 @@
+import { SYSTEM_MESSAGES } from '@/const/system-message';
 import { NextResponse } from 'next/server';
 
 export interface ApiWrapperOptions {
@@ -22,7 +23,8 @@ export async function apiWrapper<T = unknown>(
   operation: () => Promise<{ data: T }>,
   options: ApiWrapperOptions = {},
 ): Promise<NextResponse> {
-  const { onError, defaultErrorMessage = 'Internal server error' } = options;
+  const { onError, defaultErrorMessage = SYSTEM_MESSAGES.INTERNAL_ERROR } =
+    options;
 
   try {
     const result = await operation();
@@ -49,16 +51,16 @@ export async function apiWrapper<T = unknown>(
     // Handle special status codes from backend
     if (message === 'Request failed with status code 401') {
       status = 401;
-      message = 'Unauthorized';
+      message = SYSTEM_MESSAGES.UNAUTHORIZED_ERROR;
     } else if (message === 'Request failed with status code 403') {
       status = 403;
-      message = 'Forbidden';
+      message = SYSTEM_MESSAGES.FORBIDDEN_ERROR;
     } else if (message === 'Request failed with status code 404') {
       status = 404;
-      message = 'Not Found';
+      message = SYSTEM_MESSAGES.NOT_FOUND_ERROR;
     } else if (message === 'Request failed with status code 422') {
       status = 422;
-      message = 'Validation Error';
+      message = SYSTEM_MESSAGES.VALIDATION_ERROR;
     }
 
     return NextResponse.json({ error: message }, { status });
