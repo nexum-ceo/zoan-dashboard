@@ -40,3 +40,10 @@ export const useGetPrimaryAgentByChatId = (id: string) => {
     queryFn: () => chatApiRequest.sGetPrimaryAgentByChatId(id),
   });
 };
+
+export const useGetChatAgentSettingByChatId = (id: string) => {
+  return useQuery({
+    queryKey: ['chat-agent-setting-by-chat-id', id],
+    queryFn: () => chatApiRequest.sGetChatAgentSettingByChatId(id),
+  });
+};

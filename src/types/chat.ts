@@ -122,3 +122,11 @@ export const GetChatAgentSettingByChatIdResSchema = z.object({
 export type GetChatAgentSettingByChatIdResType = z.infer<
   typeof GetChatAgentSettingByChatIdResSchema
 >;
+
+export const CreateChatAgentSettingBodySchema = z.object({
+  agent_id_list: z.array(z.string()),
+});
+
+export type CreateChatAgentSettingBodyType = z.infer<
+  typeof CreateChatAgentSettingBodySchema
+>;

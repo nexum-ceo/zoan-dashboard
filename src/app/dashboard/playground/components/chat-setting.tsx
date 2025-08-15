@@ -13,7 +13,10 @@ import {
 import { Slider } from '@/components/ui/slider';
 import { Switch } from '@/components/ui/switch';
 import { Textarea } from '@/components/ui/textarea';
-import { useGetPrimaryAgentByChatId } from '@/queries/useChat';
+import {
+  useGetChatAgentSettingByChatId,
+  useGetPrimaryAgentByChatId,
+} from '@/queries/useChat';
 import { AnimatePresence, motion } from 'framer-motion';
 import {
   Bot,
@@ -50,6 +53,10 @@ export const ChatSettings: FC<ChatSettingsProps> = ({ isOpen, onClose }) => {
   const [showTyping, setShowTyping] = useState<boolean>(true);
   const [intentDetection, setIntentDetection] = useState<boolean>(false);
   const [agentSwitching, setAgentSwitching] = useState<boolean>(true);
+  const { data: chatAgentSettingData } = useGetChatAgentSettingByChatId(
+    chatId as string,
+  );
+  const chatAgentSetting = chatAgentSettingData?.data.data;
 
   const modelOptions = [
     'gpt-4.1',
@@ -262,58 +269,63 @@ export const ChatSettings: FC<ChatSettingsProps> = ({ isOpen, onClose }) => {
                 conversation.
               </p>
 
-              {primaryAgent ? (
-                /* Agent Item */
-                <div className="border border-border rounded-lg p-4 space-y-3">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-3">
-                      <Bot className="w-6 h-6 text-blue-600" />
-                      <div>
-                        <div className="font-medium dark:text-gray-100">
-                          General Assistant
+              {chatAgentSetting && chatAgentSetting.length > 0 ? (
+                chatAgentSetting.map((agent) => (
+                  /* Agent Item */
+                  <div
+                    key={agent.id}
+                    className="border border-border rounded-lg p-4 space-y-3"
+                  >
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-3">
+                        <Bot className="w-6 h-6 text-blue-600" />
+                        <div>
+                          <div className="font-medium dark:text-gray-100">
+                            {agent.id}
+                          </div>
+                          <Badge variant="secondary" className="text-xs">
+                            {agent.is_primary ? 'Primary' : 'Secondary'}
+                          </Badge>
                         </div>
-                        <Badge variant="secondary" className="text-xs">
-                          Primary
+                      </div>
+                      <Switch defaultChecked />
+                    </div>
+                    <div className="text-sm text-muted-foreground">
+                      <div className="mb-2">General</div>
+                      <p>
+                        Primary AI assistant that handles general queries and
+                        coordinates with other agents
+                      </p>
+                      <div className="mt-2">
+                        <p className="font-medium mb-1">Trigger Keywords:</p>
+                        <div className="flex flex-wrap gap-1">
+                          <Badge variant="outline" className="text-xs">
+                            general
+                          </Badge>
+                          <Badge variant="outline" className="text-xs">
+                            help
+                          </Badge>
+                          <Badge variant="outline" className="text-xs">
+                            explain
+                          </Badge>
+                          <Badge variant="outline" className="text-xs">
+                            what
+                          </Badge>
+                          <Badge variant="outline" className="text-xs">
+                            +2 more
+                          </Badge>
+                        </div>
+                      </div>
+                      <div className="mt-2 flex flex-wrap gap-1">
+                        <Badge className="text-xs">General Knowledge</Badge>
+                        <Badge className="text-xs">Task Coordination</Badge>
+                        <Badge variant="outline" className="text-xs">
+                          +1 more
                         </Badge>
                       </div>
                     </div>
-                    <Switch defaultChecked />
                   </div>
-                  <div className="text-sm text-muted-foreground">
-                    <div className="mb-2">General</div>
-                    <p>
-                      Primary AI assistant that handles general queries and
-                      coordinates with other agents
-                    </p>
-                    <div className="mt-2">
-                      <p className="font-medium mb-1">Trigger Keywords:</p>
-                      <div className="flex flex-wrap gap-1">
-                        <Badge variant="outline" className="text-xs">
-                          general
-                        </Badge>
-                        <Badge variant="outline" className="text-xs">
-                          help
-                        </Badge>
-                        <Badge variant="outline" className="text-xs">
-                          explain
-                        </Badge>
-                        <Badge variant="outline" className="text-xs">
-                          what
-                        </Badge>
-                        <Badge variant="outline" className="text-xs">
-                          +2 more
-                        </Badge>
-                      </div>
-                    </div>
-                    <div className="mt-2 flex flex-wrap gap-1">
-                      <Badge className="text-xs">General Knowledge</Badge>
-                      <Badge className="text-xs">Task Coordination</Badge>
-                      <Badge variant="outline" className="text-xs">
-                        +1 more
-                      </Badge>
-                    </div>
-                  </div>
-                </div>
+                ))
               ) : (
                 <div className="text-center py-8">
                   <div className="h-12 w-12 mx-auto mb-3 p-3 rounded-lg bg-gray-50 dark:bg-gray-800 text-gray-400 flex items-center justify-center">

@@ -2,6 +2,7 @@ import axiosInstance from '@/lib/axios-instance';
 import {
   CreateChatBodyType,
   CreateChatResType,
+  GetChatAgentSettingByChatIdResType,
   GetChatListResType,
   GetChatMessagesResType,
   GetPrimaryAgentByChatIdResType,
@@ -39,6 +40,17 @@ const chatApiRequest = {
   sGetPrimaryAgentByChatId: (id: string) =>
     axiosInstance.get<GetPrimaryAgentByChatIdResType>(
       `/chat/${id}/primary-agent`,
+      {
+        baseURL: '',
+      },
+    ),
+  getChatAgentSettingByChatId: (id: string) =>
+    axiosInstance.get<GetChatAgentSettingByChatIdResType>(
+      `/chat/${id}/agent-setting`,
+    ),
+  sGetChatAgentSettingByChatId: (id: string) =>
+    axiosInstance.get<GetChatAgentSettingByChatIdResType>(
+      `/chat/${id}/agent-setting`,
       {
         baseURL: '',
       },

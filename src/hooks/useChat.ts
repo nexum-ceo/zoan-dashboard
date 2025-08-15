@@ -18,7 +18,7 @@ export type ChatMessage = {
 export type UseCustomChatProps = {
   wsUrl?: string;
   chatId: string;
-  agentId: string;
+  agentId?: string;
   initialMessages?: ChatMessage[];
   wsConnected?: boolean;
 };
