@@ -10,9 +10,6 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v3
-
       - name: Get short commit SHA
         id: vars
         run: echo "sha=$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
@@ -22,17 +19,7 @@ jobs:
         with:
           ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
 
-      - name: Rsync project files to remote server
-        run: |
-          COMMIT_ID=${{ steps.vars.outputs.sha }}
-
-          ssh -o StrictHostKeyChecking=no ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} << 'EOF'
-            mkdir -p ~/zoan-dashboard
-          EOF
-
-          rsync -avz --exclude '.git' --exclude '.github' --exclude '.env' . ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }}:~/zoan-dashboard/
-
-      - name: 🚀 Build/run Docker on VPS
+      - name: 🚀 Pull latest code & build/run Docker on VPS
         uses: appleboy/ssh-action@v1.0.3
         with:
           host: ${{ secrets.SSH_HOST }}
@@ -42,7 +29,11 @@ jobs:
             set -e
             cd ~/zoan-dashboard
 
-            COMMIT_ID=${{ steps.vars.outputs.sha }}
+            echo "Fetching latest changes..."
+            git fetch origin main
+            git reset --hard origin/main
+
+            COMMIT_ID=$(git rev-parse --short HEAD)
             echo "Building Docker image with tag: zoan-dashboard:${COMMIT_ID}"
             docker build --no-cache -t zoan-dashboard:${COMMIT_ID} .
 
