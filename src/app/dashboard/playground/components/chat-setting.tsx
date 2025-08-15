@@ -112,12 +112,12 @@ export const ChatSettings: FC<ChatSettingsProps> = ({ isOpen, onClose }) => {
       let newAgentIdList: string[];
 
       if (isCurrentlyActive) {
-        // Agent is currently active, remove it (toggle OFF)
+        // Agent is currently active, remove it
         newAgentIdList = chatAgentSetting
           .filter((setting) => setting.agent_id !== agentId)
           .map((setting) => setting.agent_id);
       } else {
-        // Agent is not active, add it (toggle ON)
+        // Agent is not active, add it
         const currentAgentIds = chatAgentSetting.map(
           (setting) => setting.agent_id,
         );
