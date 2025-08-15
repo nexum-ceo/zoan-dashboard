@@ -38,6 +38,7 @@ export const useGetPrimaryAgentByChatId = (id: string) => {
   return useQuery({
     queryKey: ['primary-agent-by-chat-id', id],
     queryFn: () => chatApiRequest.sGetPrimaryAgentByChatId(id),
+    enabled: !!id,
   });
 };
 
@@ -45,5 +46,6 @@ export const useGetChatAgentSettingByChatId = (id: string) => {
   return useQuery({
     queryKey: ['chat-agent-setting-by-chat-id', id],
     queryFn: () => chatApiRequest.sGetChatAgentSettingByChatId(id),
+    enabled: !!id,
   });
 };
