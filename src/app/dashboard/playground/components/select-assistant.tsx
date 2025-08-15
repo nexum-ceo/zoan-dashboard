@@ -17,8 +17,8 @@ export const SelectAssistant: FC<SelectAssistantProps> = ({ activeChatId }) => {
   } = useChatList();
 
   // Process chat data
-  const chats = chatData?.data?.chats
-    ? [...chatData.data.chats].sort(
+  const chats = chatData?.data
+    ? [...chatData.data.data].sort(
         (a, b) => Date.parse(b.created_at) - Date.parse(a.created_at),
       )
     : [];
@@ -42,7 +42,7 @@ export const SelectAssistant: FC<SelectAssistantProps> = ({ activeChatId }) => {
                 : 'Error fetching chats'}
             </div>
           )}
-          {!chatLoading && !chatError && chats.length === 0 && (
+          {chats.length === 0 && (
             <div className="px-3 py-2 text-xs text-muted-foreground">
               Do not have any chats
             </div>

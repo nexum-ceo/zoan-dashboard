@@ -69,7 +69,6 @@ export function PlaygroundClient() {
 
     createChatMutation.mutate(
       {
-        agent_id: selectedAgentId,
         title: pendingMessage,
       },
       {
@@ -119,7 +118,7 @@ export function PlaygroundClient() {
           value={pendingMessage}
           onChange={(e) => setPendingMessage(e.target.value)}
           onSubmit={messages.length === 0 ? handleFirstSubmit : handleSubmit}
-          disabled={createChatMutation.isPending || !selectedAgentId}
+          disabled={false}
         />
       </div>
 

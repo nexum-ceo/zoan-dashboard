@@ -1,17 +1,8 @@
 import providerApiRequest from '@/api-requests/provider';
-import { NextResponse } from 'next/server';
+import { apiWrapper } from '@/lib/api-wrapper';
 
 export async function GET() {
-  try {
-    const response = await providerApiRequest.getProviderOfUser();
-
-    return NextResponse.json(response.data);
-  } catch (error) {
-    let message = 'Fetch provider failed';
-    if (error instanceof Error) {
-      message = error.message;
-    }
-
-    return NextResponse.json({ error: message }, { status: 500 });
-  }
+  return await apiWrapper(() => providerApiRequest.getProviderOfUser(), {
+    defaultErrorMessage: 'Fetch provider failed',
+  });
 }

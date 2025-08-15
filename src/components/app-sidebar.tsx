@@ -28,6 +28,7 @@ const navigationItems = [
     icon: Bot,
     label: 'Playground',
     href: '/dashboard/playground',
+    isShow: true,
     isActive: (pathname: string) =>
       pathname.startsWith('/dashboard/playground'),
   },
@@ -35,18 +36,21 @@ const navigationItems = [
     icon: Users,
     label: 'Assistants',
     href: '/dashboard/assistant',
+    isShow: false,
     isActive: (pathname: string) => pathname.startsWith('/dashboard/assistant'),
   },
   {
     icon: IconBuildingCommunity,
     label: 'Community',
     href: '/dashboard/community',
+    isShow: true,
     isActive: (pathname: string) => pathname.startsWith('/dashboard/community'),
   },
   {
     icon: User,
     label: 'Personal Space',
     href: '/dashboard/personal-space',
+    isShow: true,
     isActive: (pathname: string) =>
       pathname.startsWith('/dashboard/personal-space'),
   },
@@ -54,6 +58,7 @@ const navigationItems = [
     icon: Settings,
     label: 'Settings',
     href: '/dashboard/setting',
+    isShow: false,
     isActive: (pathname: string) => pathname.startsWith('/dashboard/setting'),
   },
 ];
@@ -176,48 +181,50 @@ export function AppSidebar() {
                     Application
                   </div>
                 )}
-                {navigationItems.map((item, index) => {
-                  const isActive = item.isActive(pathname);
+                {navigationItems
+                  .filter((item) => item.isShow)
+                  .map((item, index) => {
+                    const isActive = item.isActive(pathname);
 
-                  if (state === 'collapsed') {
+                    if (state === 'collapsed') {
+                      return (
+                        <Tooltip key={index}>
+                          <TooltipTrigger asChild>
+                            <Button
+                              variant="ghost"
+                              className={`w-full h-10 text-sm justify-center px-0 ${
+                                isActive
+                                  ? 'bg-gray-100 dark:bg-sidebar-accent text-gray-900 dark:text-sidebar-accent-foreground font-medium'
+                                  : 'text-gray-600 dark:text-sidebar-foreground/70 hover:bg-gray-50 dark:hover:bg-sidebar-accent/40 hover:text-gray-900 dark:hover:text-sidebar-accent-foreground'
+                              }`}
+                              onClick={() => router.push(item.href)}
+                            >
+                              <item.icon className="w-4 h-4" />
+                            </Button>
+                          </TooltipTrigger>
+                          <TooltipContent side="right">
+                            <p>{item.label}</p>
+                          </TooltipContent>
+                        </Tooltip>
+                      );
+                    }
+
                     return (
-                      <Tooltip key={index}>
-                        <TooltipTrigger asChild>
-                          <Button
-                            variant="ghost"
-                            className={`w-full h-10 text-sm justify-center px-0 ${
-                              isActive
-                                ? 'bg-gray-100 dark:bg-sidebar-accent text-gray-900 dark:text-sidebar-accent-foreground font-medium'
-                                : 'text-gray-600 dark:text-sidebar-foreground/70 hover:bg-gray-50 dark:hover:bg-sidebar-accent/40 hover:text-gray-900 dark:hover:text-sidebar-accent-foreground'
-                            }`}
-                            onClick={() => router.push(item.href)}
-                          >
-                            <item.icon className="w-4 h-4" />
-                          </Button>
-                        </TooltipTrigger>
-                        <TooltipContent side="right">
-                          <p>{item.label}</p>
-                        </TooltipContent>
-                      </Tooltip>
+                      <Button
+                        key={index}
+                        variant="ghost"
+                        className={`w-full h-10 text-sm justify-start gap-3 ${
+                          isActive
+                            ? 'bg-gray-100 dark:bg-sidebar-accent text-gray-900 dark:text-sidebar-accent-foreground font-medium'
+                            : 'text-gray-600 dark:text-sidebar-foreground/70 hover:bg-gray-50 dark:hover:bg-sidebar-accent/40 hover:text-gray-900 dark:hover:text-sidebar-accent-foreground'
+                        }`}
+                        onClick={() => router.push(item.href)}
+                      >
+                        <item.icon className="w-4 h-4" />
+                        {item.label}
+                      </Button>
                     );
-                  }
-
-                  return (
-                    <Button
-                      key={index}
-                      variant="ghost"
-                      className={`w-full h-10 text-sm justify-start gap-3 ${
-                        isActive
-                          ? 'bg-gray-100 dark:bg-sidebar-accent text-gray-900 dark:text-sidebar-accent-foreground font-medium'
-                          : 'text-gray-600 dark:text-sidebar-foreground/70 hover:bg-gray-50 dark:hover:bg-sidebar-accent/40 hover:text-gray-900 dark:hover:text-sidebar-accent-foreground'
-                      }`}
-                      onClick={() => router.push(item.href)}
-                    >
-                      <item.icon className="w-4 h-4" />
-                      {item.label}
-                    </Button>
-                  );
-                })}
+                  })}
               </div>
             </div>
 
