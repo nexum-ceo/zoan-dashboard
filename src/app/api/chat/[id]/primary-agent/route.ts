@@ -1,21 +1,12 @@
 import chatApiRequest from '@/api-requests/chat';
-import { NextResponse } from 'next/server';
+import { apiWrapper } from '@/lib/api-wrapper';
 
 export async function GET(
-  req: Request,
+  _: Request,
   { params }: { params: Promise<{ id: string }> },
 ) {
-  try {
-    const response = await chatApiRequest.getPrimaryAgentByChatId(
-      `${(await params).id}`,
-    );
-
-    return NextResponse.json(response.data);
-  } catch (error) {
-    let message = 'Fetch failed';
-    if (error instanceof Error) {
-      message = error.message;
-    }
-    return NextResponse.json({ error: message }, { status: 500 });
-  }
+  const { id } = await params;
+  return await apiWrapper(() => chatApiRequest.getPrimaryAgentByChatId(id), {
+    defaultErrorMessage: 'Fetch failed',
+  });
 }

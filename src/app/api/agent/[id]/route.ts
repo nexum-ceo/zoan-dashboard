@@ -1,22 +1,15 @@
 import agentApiRequest from '@/api-requests/agent';
+import { apiWrapper } from '@/lib/api-wrapper';
 import { UpdateAgentBodyType } from '@/types/agent';
-import { NextResponse } from 'next/server';
 
 export async function GET(
-  req: Request,
+  _: Request,
   { params }: { params: Promise<{ id: string }> },
 ) {
-  try {
-    const response = await agentApiRequest.getAgent(`${(await params).id}`);
-
-    return NextResponse.json(response.data);
-  } catch (error) {
-    let message = 'Fetch failed';
-    if (error instanceof Error) {
-      message = error.message;
-    }
-    return NextResponse.json({ error: message }, { status: 500 });
-  }
+  const { id } = await params;
+  return await apiWrapper(() => agentApiRequest.getAgent(id), {
+    defaultErrorMessage: 'Fetch failed',
+  });
 }
 
 export async function PUT(
@@ -24,17 +17,9 @@ export async function PUT(
 
   { params }: { params: Promise<{ id: string }> },
 ) {
-  try {
-    const body: UpdateAgentBodyType = await req.json();
-
-    const response = await agentApiRequest.update(`${(await params).id}`, body);
-
-    return NextResponse.json(response.data);
-  } catch (error) {
-    let message = 'Update failed';
-    if (error instanceof Error) {
-      message = error.message;
-    }
-    return NextResponse.json({ error: message }, { status: 500 });
-  }
+  const { id } = await params;
+  const body: UpdateAgentBodyType = await req.json();
+  return await apiWrapper(() => agentApiRequest.update(id, body), {
+    defaultErrorMessage: 'Update failed',
+  });
 }

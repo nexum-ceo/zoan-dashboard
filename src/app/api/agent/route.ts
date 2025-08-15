@@ -1,34 +1,16 @@
 import agentApiRequest from '@/api-requests/agent';
+import { apiWrapper } from '@/lib/api-wrapper';
 import { CreateAgentBodyType } from '@/types/agent';
-import { NextResponse } from 'next/server';
 
 export async function GET() {
-  try {
-    const response = await agentApiRequest.list();
-
-    return NextResponse.json(response.data);
-  } catch (error) {
-    let message = 'Fetch failed';
-    if (error instanceof Error) {
-      message = error.message;
-    }
-    console.log('error agent route', JSON.stringify(error));
-    return NextResponse.json({ error: message }, { status: 500 });
-  }
+  return await apiWrapper(() => agentApiRequest.list(), {
+    defaultErrorMessage: 'Fetch failed',
+  });
 }
 
 export async function POST(req: Request) {
-  try {
-    const body: CreateAgentBodyType = await req.json();
-    const response = await agentApiRequest.add(body);
-
-    return NextResponse.json(response.data);
-  } catch (error) {
-    let message = 'Create failed';
-    if (error instanceof Error) {
-      message = error.message;
-    }
-
-    return NextResponse.json({ error: message }, { status: 500 });
-  }
+  const body: CreateAgentBodyType = await req.json();
+  return await apiWrapper(() => agentApiRequest.add(body), {
+    defaultErrorMessage: 'Create failed',
+  });
 }

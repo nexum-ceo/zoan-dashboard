@@ -13,6 +13,7 @@ import {
 import { Slider } from '@/components/ui/slider';
 import { Switch } from '@/components/ui/switch';
 import { Textarea } from '@/components/ui/textarea';
+import { useGetAgentList } from '@/queries/useAgent';
 import {
   useGetChatAgentSettingByChatId,
   useGetPrimaryAgentByChatId,
@@ -28,7 +29,7 @@ import {
   Zap,
 } from 'lucide-react';
 import { useParams } from 'next/navigation';
-import { FC, useState } from 'react';
+import { FC, useMemo, useState } from 'react';
 
 type ChatSettingsProps = {
   isOpen: boolean;
@@ -56,7 +57,27 @@ export const ChatSettings: FC<ChatSettingsProps> = ({ isOpen, onClose }) => {
   const { data: chatAgentSettingData } = useGetChatAgentSettingByChatId(
     chatId as string,
   );
+  const { data: agentData } = useGetAgentList();
   const chatAgentSetting = chatAgentSettingData?.data.data;
+  const agents = agentData?.data.data;
+  // Sort agents: primary agents first, then secondary agents
+  const sortedAgents = useMemo(() => {
+    if (!agents || !chatAgentSetting) return agents;
+
+    return [...agents].sort((a, b) => {
+      const aIsPrimary =
+        chatAgentSetting.find((setting) => setting.agent_id === a.id)
+          ?.is_primary || false;
+      const bIsPrimary =
+        chatAgentSetting.find((setting) => setting.agent_id === b.id)
+          ?.is_primary || false;
+
+      if (aIsPrimary && !bIsPrimary) return -1;
+      if (!aIsPrimary && bIsPrimary) return 1;
+
+      return 0;
+    });
+  }, [agents, chatAgentSetting]);
 
   const modelOptions = [
     'gpt-4.1',
@@ -269,8 +290,8 @@ export const ChatSettings: FC<ChatSettingsProps> = ({ isOpen, onClose }) => {
                 conversation.
               </p>
 
-              {chatAgentSetting && chatAgentSetting.length > 0 ? (
-                chatAgentSetting.map((agent) => (
+              {sortedAgents && sortedAgents.length > 0 ? (
+                sortedAgents.map((agent) => (
                   /* Agent Item */
                   <div
                     key={agent.id}
@@ -280,22 +301,26 @@ export const ChatSettings: FC<ChatSettingsProps> = ({ isOpen, onClose }) => {
                       <div className="flex items-center gap-3">
                         <Bot className="w-6 h-6 text-blue-600" />
                         <div>
-                          <div className="font-medium dark:text-gray-100">
-                            {agent.id}
+                          <div className="font-medium dark:text-gray-100 line-clamp-1">
+                            {agent.name}
                           </div>
                           <Badge variant="secondary" className="text-xs">
-                            {agent.is_primary ? 'Primary' : 'Secondary'}
+                            {chatAgentSetting?.find(
+                              (setting) => setting.agent_id === agent.id,
+                            )?.is_primary
+                              ? 'Primary'
+                              : 'Secondary'}
                           </Badge>
                         </div>
                       </div>
                       <Switch defaultChecked />
                     </div>
                     <div className="text-sm text-muted-foreground">
-                      <div className="mb-2">General</div>
-                      <p>
-                        Primary AI assistant that handles general queries and
-                        coordinates with other agents
-                      </p>
+                      <div className="mb-2">
+                        {' '}
+                        <b>Model:</b> {agent.model}
+                      </div>
+                      <p>{agent.description}</p>
                       <div className="mt-2">
                         <p className="font-medium mb-1">Trigger Keywords:</p>
                         <div className="flex flex-wrap gap-1">
