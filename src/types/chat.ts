@@ -103,3 +103,22 @@ export const GetPrimaryAgentByChatIdResSchema = z.object({
 export type GetPrimaryAgentByChatIdResType = z.infer<
   typeof GetPrimaryAgentByChatIdResSchema
 >;
+
+export const GetChatAgentSettingByChatIdResSchema = z.object({
+  status: z.string(),
+  message: z.string(),
+  data: z.array(
+    z.object({
+      id: z.string(),
+      chat_id: z.string(),
+      agent_id: z.string(),
+      is_primary: z.boolean(),
+      created_at: z.string(),
+      updated_at: z.string(),
+    }),
+  ),
+});
+
+export type GetChatAgentSettingByChatIdResType = z.infer<
+  typeof GetChatAgentSettingByChatIdResSchema
+>;
