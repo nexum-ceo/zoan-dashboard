@@ -27,7 +27,7 @@ export function PlaygroundClient() {
 
   const { messages, handleSubmit, isLoading } = useChat({
     initialMessages: [],
-    agentId: selectedAgentId || '',
+    // agentId: selectedAgentId || '',
     chatId: '',
   });
 
@@ -59,12 +59,6 @@ export function PlaygroundClient() {
 
   const handleFirstSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    if (!selectedAgentId) {
-      handleErrorApi({
-        error: new Error('Please select an agent before starting a chat.'),
-      });
-      return;
-    }
     if (!pendingMessage.trim()) return;
 
     createChatMutation.mutate(
@@ -73,11 +67,12 @@ export function PlaygroundClient() {
       },
       {
         onSuccess: (data) => {
-          const chatId = data.data.chat.id;
+          const chatId = data.data.data.id;
           localStorage.setItem('pendingMessage', pendingMessage);
           router.push(`/dashboard/playground/${chatId}`);
         },
         onError: (error) => {
+          console.log('error huhu', error);
           handleErrorApi({ error });
         },
       },

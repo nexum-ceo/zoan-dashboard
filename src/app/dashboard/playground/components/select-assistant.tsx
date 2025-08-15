@@ -17,7 +17,7 @@ export const SelectAssistant: FC<SelectAssistantProps> = ({ activeChatId }) => {
   } = useChatList();
 
   // Process chat data
-  const chats = chatData?.data
+  const chats = chatData?.data.data
     ? [...chatData.data.data].sort(
         (a, b) => Date.parse(b.created_at) - Date.parse(a.created_at),
       )

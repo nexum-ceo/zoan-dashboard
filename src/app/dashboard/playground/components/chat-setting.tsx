@@ -13,11 +13,15 @@ import {
 import { Slider } from '@/components/ui/slider';
 import { Switch } from '@/components/ui/switch';
 import { Textarea } from '@/components/ui/textarea';
+import { handleErrorApi } from '@/lib/utils';
 import { useGetAgentList } from '@/queries/useAgent';
 import {
+  useCreateChatAgentSettingMutation,
   useGetChatAgentSettingByChatId,
   useGetPrimaryAgentByChatId,
 } from '@/queries/useChat';
+import { AgentType } from '@/types/agent';
+import { GetChatAgentSettingByChatIdResType } from '@/types/chat';
 import { AnimatePresence, motion } from 'framer-motion';
 import {
   Bot,
@@ -58,26 +62,75 @@ export const ChatSettings: FC<ChatSettingsProps> = ({ isOpen, onClose }) => {
     chatId as string,
   );
   const { data: agentData } = useGetAgentList();
-  const chatAgentSetting = chatAgentSettingData?.data.data;
-  const agents = agentData?.data.data;
-  // Sort agents: primary agents first, then secondary agents
-  const sortedAgents = useMemo(() => {
-    if (!agents || !chatAgentSetting) return agents;
-
-    return [...agents].sort((a, b) => {
-      const aIsPrimary =
-        chatAgentSetting.find((setting) => setting.agent_id === a.id)
-          ?.is_primary || false;
-      const bIsPrimary =
-        chatAgentSetting.find((setting) => setting.agent_id === b.id)
-          ?.is_primary || false;
-
-      if (aIsPrimary && !bIsPrimary) return -1;
-      if (!aIsPrimary && bIsPrimary) return 1;
-
-      return 0;
+  const createChatAgentSettingMutation = useCreateChatAgentSettingMutation(
+    chatId as string,
+  );
+  const chatAgentSetting = useMemo<GetChatAgentSettingByChatIdResType['data']>(
+    () => chatAgentSettingData?.data.data || [],
+    [chatAgentSettingData],
+  );
+  const agents = useMemo<AgentType[]>(
+    () => agentData?.data.data || [],
+    [agentData],
+  );
+  console.log('agents', agents);
+  console.log('chatAgentSetting', chatAgentSetting);
+  // Enhance agents with derived flags: active (exists in chatAgentSetting) and isPrimary
+  type AgentWithState = AgentType & { active: boolean; isPrimary: boolean };
+  const agentsWithState = useMemo<AgentWithState[]>(() => {
+    if (!agents) return [];
+    const settingMap = new Map(
+      (chatAgentSetting || []).map((setting) => [setting.agent_id, setting]),
+    );
+    return agents.map((agent) => {
+      const setting = settingMap.get(agent.id);
+      return {
+        ...agent,
+        active: Boolean(setting),
+        isPrimary: Boolean(setting?.is_primary),
+      };
     });
   }, [agents, chatAgentSetting]);
+  // Sort agents: primary agents first, then secondary agents
+  const sortedAgents = useMemo(() => {
+    if (!agentsWithState) return agentsWithState;
+
+    return [...agentsWithState].sort((a, b) => {
+      if (a.isPrimary && !b.isPrimary) return -1;
+      if (!a.isPrimary && b.isPrimary) return 1;
+      return 0;
+    });
+  }, [agentsWithState]);
+
+  const handleAgentToggle = async (agentId: string) => {
+    try {
+      // Check if agent is currently active
+      const isCurrentlyActive = chatAgentSetting.some(
+        (setting) => setting.agent_id === agentId,
+      );
+
+      let newAgentIdList: string[];
+
+      if (isCurrentlyActive) {
+        // Agent is currently active, remove it (toggle OFF)
+        newAgentIdList = chatAgentSetting
+          .filter((setting) => setting.agent_id !== agentId)
+          .map((setting) => setting.agent_id);
+      } else {
+        // Agent is not active, add it (toggle ON)
+        const currentAgentIds = chatAgentSetting.map(
+          (setting) => setting.agent_id,
+        );
+        newAgentIdList = [...currentAgentIds, agentId];
+      }
+
+      await createChatAgentSettingMutation.mutateAsync({
+        agent_id_list: newAgentIdList,
+      });
+    } catch (error) {
+      handleErrorApi({ error });
+    }
+  };
 
   const modelOptions = [
     'gpt-4.1',
@@ -91,6 +144,7 @@ export const ChatSettings: FC<ChatSettingsProps> = ({ isOpen, onClose }) => {
     <AnimatePresence>
       {isOpen && (
         <motion.div
+          key={String(chatId)}
           initial={{
             x: '100%',
             opacity: 0,
@@ -184,8 +238,8 @@ export const ChatSettings: FC<ChatSettingsProps> = ({ isOpen, onClose }) => {
                 </div>
               )}
 
-              {/* Model Selection - Always show */}
               <div className="space-y-2">
+                {/* Model Selection - Always show */}
                 <Label htmlFor="model" className="text-sm font-medium">
                   AI Model
                 </Label>
@@ -259,7 +313,8 @@ export const ChatSettings: FC<ChatSettingsProps> = ({ isOpen, onClose }) => {
                     </p>
                   </div>
                   <p className="text-sm text-muted-foreground">
-                    <strong>Active Agents:</strong> 4 of 5
+                    <strong>Active Agents:</strong> {chatAgentSetting.length} of{' '}
+                    {agents.length}
                   </p>
                 </>
               ) : (
@@ -305,15 +360,15 @@ export const ChatSettings: FC<ChatSettingsProps> = ({ isOpen, onClose }) => {
                             {agent.name}
                           </div>
                           <Badge variant="secondary" className="text-xs">
-                            {chatAgentSetting?.find(
-                              (setting) => setting.agent_id === agent.id,
-                            )?.is_primary
-                              ? 'Primary'
-                              : 'Secondary'}
+                            {agent.isPrimary ? 'Primary' : 'Secondary'}
                           </Badge>
                         </div>
                       </div>
-                      <Switch defaultChecked />
+                      <Switch
+                        checked={agent.active}
+                        onCheckedChange={() => handleAgentToggle(agent.id)}
+                        disabled={createChatAgentSettingMutation.isPending}
+                      />
                     </div>
                     <div className="text-sm text-muted-foreground">
                       <div className="mb-2">
@@ -362,15 +417,7 @@ export const ChatSettings: FC<ChatSettingsProps> = ({ isOpen, onClose }) => {
                   <p className="text-sm text-muted-foreground mb-4">
                     Agents will appear here once you start a conversation
                   </p>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className="gap-2"
-                    onClick={() => {
-                      // TODO: Navigate to agent selection
-                      console.log('Browse agents clicked');
-                    }}
-                  >
+                  <Button variant="outline" size="sm" className="gap-2">
                     <Bot className="w-4 h-4" />
                     Browse Agents
                   </Button>

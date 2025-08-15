@@ -1,6 +1,7 @@
 'use client';
 
 import chatApiRequest from '@/api-requests/chat';
+import { CreateChatAgentSettingBodyType } from '@/types/chat';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
 export const useChatList = () => {
@@ -47,5 +48,18 @@ export const useGetChatAgentSettingByChatId = (id: string) => {
     queryKey: ['chat-agent-setting-by-chat-id', id],
     queryFn: () => chatApiRequest.sGetChatAgentSettingByChatId(id),
     enabled: !!id,
+  });
+};
+
+export const useCreateChatAgentSettingMutation = (id: string) => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (body: CreateChatAgentSettingBodyType) =>
+      chatApiRequest.sCreateChatAgentSetting(id, body),
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: ['chat-agent-setting-by-chat-id', id],
+      });
+    },
   });
 };
