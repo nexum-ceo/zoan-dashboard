@@ -33,7 +33,7 @@ jobs:
             git fetch origin main
             git reset --hard origin/main
 
-            COMMIT_ID=${{ steps.vars.outputs.sha }}
+            COMMIT_ID=$(git rev-parse --short HEAD)
             echo "Building Docker image with tag: zoan-dashboard:${COMMIT_ID}"
             docker build --no-cache -t zoan-dashboard:${COMMIT_ID} .
 
