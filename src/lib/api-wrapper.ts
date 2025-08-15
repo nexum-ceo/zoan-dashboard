@@ -22,7 +22,7 @@ export async function apiWrapper<T = unknown>(
   operation: () => Promise<{ data: T }>,
   options: ApiWrapperOptions = {},
 ): Promise<NextResponse> {
-  const { onError, defaultErrorMessage = 'Operation failed' } = options;
+  const { onError, defaultErrorMessage = 'Internal server error' } = options;
 
   try {
     const result = await operation();
