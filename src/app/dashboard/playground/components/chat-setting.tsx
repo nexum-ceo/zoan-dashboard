@@ -13,7 +13,7 @@ import {
 import { Slider } from '@/components/ui/slider';
 import { Switch } from '@/components/ui/switch';
 import { Textarea } from '@/components/ui/textarea';
-import { handleErrorApi } from '@/lib/utils';
+import { handleErrorApi, HttpError } from '@/lib/utils';
 import { useGetAgentList } from '@/queries/useAgent';
 import {
   useCreateChatAgentSettingMutation,
@@ -104,6 +104,7 @@ export const ChatSettings: FC<ChatSettingsProps> = ({ isOpen, onClose }) => {
 
   const handleAgentToggle = async (agentId: string) => {
     try {
+      if (!chatAgentSetting) return;
       // Check if agent is currently active
       const isCurrentlyActive = chatAgentSetting.some(
         (setting) => setting.agent_id === agentId,
@@ -128,7 +129,17 @@ export const ChatSettings: FC<ChatSettingsProps> = ({ isOpen, onClose }) => {
         agent_id_list: newAgentIdList,
       });
     } catch (error) {
-      handleErrorApi({ error });
+      if (!chatId) {
+        handleErrorApi({
+          error: new HttpError({
+            data: null,
+            message: 'Please select a chat',
+            status: 'INVALID',
+          }),
+        });
+      } else {
+        handleErrorApi({ error });
+      }
     }
   };
 
