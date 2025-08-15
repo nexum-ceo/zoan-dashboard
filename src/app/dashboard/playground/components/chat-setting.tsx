@@ -73,8 +73,7 @@ export const ChatSettings: FC<ChatSettingsProps> = ({ isOpen, onClose }) => {
     () => agentData?.data.data || [],
     [agentData],
   );
-  console.log('agents', agents);
-  console.log('chatAgentSetting', chatAgentSetting);
+
   // Enhance agents with derived flags: active (exists in chatAgentSetting) and isPrimary
   type AgentWithState = AgentType & { active: boolean; isPrimary: boolean };
   const agentsWithState = useMemo<AgentWithState[]>(() => {
