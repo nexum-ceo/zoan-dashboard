@@ -1,7 +1,5 @@
 'use client';
 
-// import { ChatSettings } from '@/app/dashboard/playground/components/chat-setting';
-// import { Explore } from '@/app/dashboard/playground/components/explore';
 import { useAgent } from '@/contexts/AgentContext';
 import { useChat } from '@/hooks/useChat';
 import { handleErrorApi } from '@/lib/utils';
