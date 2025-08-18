@@ -11,7 +11,9 @@ export const CreateChatBodySchema = z.object({
 export type CreateChatBodyType = z.infer<typeof CreateChatBodySchema>;
 
 export const CreateChatResSchema = z.object({
-  chat: z.object({
+  status: z.string(),
+  message: z.string(),
+  data: z.object({
     id: z.string(),
     user_id: z.string(),
     title: z.string(),
@@ -129,4 +131,14 @@ export const CreateChatAgentSettingBodySchema = z.object({
 
 export type CreateChatAgentSettingBodyType = z.infer<
   typeof CreateChatAgentSettingBodySchema
+>;
+
+export const CreateChatAgentSettingResSchema = z.object({
+  status: z.string(),
+  message: z.string(),
+  data: z.number(),
+});
+
+export type CreateChatAgentSettingResType = z.infer<
+  typeof CreateChatAgentSettingResSchema
 >;

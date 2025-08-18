@@ -8,8 +8,8 @@ interface PlaygroundHeaderProps {
     name?: string;
     description?: string;
   };
-  activePanel: 'settings' | 'explore' | null;
-  onTogglePanel: (panel: 'settings' | 'explore' | null) => void;
+  activePanel?: 'settings' | 'explore' | null;
+  onTogglePanel?: (panel: 'settings' | 'explore' | null) => void;
 }
 
 export function PlaygroundHeader({
@@ -34,28 +34,59 @@ export function PlaygroundHeader({
           </div>
         </div>
         <div className="flex gap-1">
+          {onTogglePanel && (
+            <>
+              <motion.div
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+              >
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={() =>
+                    onTogglePanel?.(
+                      activePanel === 'explore' ? null : 'explore',
+                    )
+                  }
+                  className={`transition-all duration-300 ${
+                    activePanel === 'explore'
+                      ? 'bg-accent text-accent-foreground shadow-lg ring-2 ring-ring/30'
+                      : 'hover:bg-muted'
+                  }`}
+                >
+                  <Gamepad2 className="w-4 h-4" />
+                </Button>
+              </motion.div>
+              <motion.div
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+              >
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={() =>
+                    onTogglePanel?.(
+                      activePanel === 'settings' ? null : 'settings',
+                    )
+                  }
+                  className={`transition-all duration-300 ${
+                    activePanel === 'settings'
+                      ? 'bg-accent text-accent-foreground shadow-lg ring-2 ring-ring/30'
+                      : 'hover:bg-muted'
+                  }`}
+                >
+                  <Settings className="w-4 h-4" />
+                </Button>
+              </motion.div>
+            </>
+          )}
+          {/* {onTogglePanel && (
           <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
             <Button
               variant="ghost"
               size="icon"
               onClick={() =>
-                onTogglePanel(activePanel === 'explore' ? null : 'explore')
-              }
-              className={`transition-all duration-300 ${
-                activePanel === 'explore'
-                  ? 'bg-accent text-accent-foreground shadow-lg ring-2 ring-ring/30'
-                  : 'hover:bg-muted'
-              }`}
-            >
-              <Gamepad2 className="w-4 h-4" />
-            </Button>
-          </motion.div>
-          <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={() =>
-                onTogglePanel(activePanel === 'settings' ? null : 'settings')
+                onTogglePanel?.(activePanel === 'settings' ? null : 'settings')
               }
               className={`transition-all duration-300 ${
                 activePanel === 'settings'
@@ -63,9 +94,10 @@ export function PlaygroundHeader({
                   : 'hover:bg-muted'
               }`}
             >
-              <Settings className="w-4 h-4" />
-            </Button>
-          </motion.div>
+                <Settings className="w-4 h-4" />
+              </Button>
+            </motion.div>
+          )} */}
         </div>
       </div>
     </div>

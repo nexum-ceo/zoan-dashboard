@@ -39,7 +39,7 @@ export default async function RootLayout({
   const session = await getServerSession(authOptions);
   console.log('session root:', session);
   return (
-    <html lang="en">
+    <html lang="en" suppressHydrationWarning>
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased h-screen w-full m-0 p-0`}
       >

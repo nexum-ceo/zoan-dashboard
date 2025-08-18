@@ -48,14 +48,14 @@ export const handleErrorApi = <T = unknown>({
 }) => {
   if (error instanceof HttpError) {
     // Customize message base on status
-    let title = 'Error';
-    if (error.isValidationError()) {
-      title = 'Validation Error';
-    } else if (error.isNotFound()) {
-      title = 'Not Found';
-    }
+    // let title = 'Error';
+    // if (error.isValidationError()) {
+    //   title = 'Validation Error';
+    // } else if (error.isNotFound()) {
+    //   title = 'Not Found';
+    // }
 
-    toast.error(title, {
+    toast.error('', {
       description: error.message,
       duration: duration ?? 5000,
     });
