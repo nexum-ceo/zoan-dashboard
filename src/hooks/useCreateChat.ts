@@ -11,7 +11,7 @@ export function useCreateChat() {
     setLoading(true);
     try {
       const res = await axios.post<CreateChatResType>('/api/chat', body);
-      const chatId = res.data.chat.id;
+      const chatId = res.data.data.id;
       router.push(`/dashboard/playground/${chatId}`);
       return chatId;
     } catch (e) {
