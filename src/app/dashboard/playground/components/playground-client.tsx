@@ -1,6 +1,7 @@
 'use client';
-import { ChatSettings } from '@/app/dashboard/playground/components/chat-setting';
-import { Explore } from '@/app/dashboard/playground/components/explore';
+
+// import { ChatSettings } from '@/app/dashboard/playground/components/chat-setting';
+// import { Explore } from '@/app/dashboard/playground/components/explore';
 import { useAgent } from '@/contexts/AgentContext';
 import { useChat } from '@/hooks/useChat';
 import { handleErrorApi } from '@/lib/utils';
@@ -16,9 +17,6 @@ export function PlaygroundClient() {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const messagesContainerRef = useRef<HTMLDivElement>(null);
   const [showScrollButton, setShowScrollButton] = useState<boolean>(false);
-  const [activePanel, setActivePanel] = useState<'settings' | 'explore' | null>(
-    'settings',
-  );
   const { selectedAgentId } = useAgent();
 
   const { data: agentData } = useGetAgentList();
@@ -27,7 +25,6 @@ export function PlaygroundClient() {
 
   const { messages, handleSubmit, isLoading } = useChat({
     initialMessages: [],
-    // agentId: selectedAgentId || '',
     chatId: '',
   });
 
@@ -82,20 +79,12 @@ export function PlaygroundClient() {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   };
 
-  const handleTogglePanel = (panel: 'settings' | 'explore' | null) => {
-    setActivePanel(panel);
-  };
-
   return (
     <>
       {/* Main Chat Area */}
       <div className="flex-1 flex flex-col bg-sidebar relative">
         {/* Header */}
-        <PlaygroundHeader
-          selectedAgent={selectedAgent}
-          activePanel={activePanel}
-          onTogglePanel={handleTogglePanel}
-        />
+        <PlaygroundHeader selectedAgent={selectedAgent} />
 
         {/* Messages */}
         <PlaygroundMessages
@@ -117,16 +106,16 @@ export function PlaygroundClient() {
       </div>
 
       {/* Chat Settings Panel */}
-      <ChatSettings
+      {/* <ChatSettings
         isOpen={activePanel === 'settings'}
         onClose={() => setActivePanel(null)}
-      />
+      /> */}
 
       {/* Explore Panel */}
-      <Explore
+      {/* <Explore
         isOpen={activePanel === 'explore'}
         onClose={() => setActivePanel(null)}
-      />
+      /> */}
     </>
   );
 }
