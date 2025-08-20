@@ -14,7 +14,7 @@ export type ChatMessage = {
   role: 'user' | 'assistant' | 'system' | 'data';
   content: string;
   // TODO: add user_id to the message, if null the message if from the assistant
-  // user_id: string
+  // sender_id: string
 };
 
 export type UseCustomChatProps = {
@@ -167,6 +167,8 @@ export function useChat({
               updated[updated.length - 1] = {
                 ...updated[updated.length - 1],
                 content: String(updated[updated.length - 1].content) + chunk,
+                // TODO:
+                // sender_id: null
               };
               return updated;
             } else {
@@ -176,6 +178,8 @@ export function useChat({
                   id: Date.now().toString() + '-ws',
                   role: ChatRole.ASSISTANT,
                   content: chunk,
+                  // TODO:
+                  // sender_id: null
                 },
               ];
             }
@@ -383,6 +387,8 @@ export function useChat({
       id: Date.now().toString(),
       role: 'user',
       content: input,
+      // TODO:
+      // sender_id: user_id
     };
     setMessages((prev) => [...prev, userMsg]);
     setIsLoading(true);
@@ -393,6 +399,8 @@ export function useChat({
           chat_id: chatId,
           // agent_id: agentId,
           content: input,
+          // TODO:
+          // sender_id: user_id
           metadata: {},
         }),
       );
@@ -418,6 +426,8 @@ export function useChat({
           chat_id: chatId,
           // agent_id: agentId,
           content: msg,
+          // TODO:
+          // sender_id: user_id
           metadata: {},
         }),
       );
