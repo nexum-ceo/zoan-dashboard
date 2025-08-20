@@ -13,6 +13,8 @@ export type ChatMessage = {
   id: string;
   role: 'user' | 'assistant' | 'system' | 'data';
   content: string;
+  // TODO: add user_id to the message, if null the message if from the assistant
+  // user_id: string
 };
 
 export type UseCustomChatProps = {
