@@ -62,6 +62,7 @@ export const GetChatMessagesResSchema = z.object({
   status: z.string(),
   message: z.string(),
   data: z.array(ChatMessageSchema),
+  meta: PaginationMetaSchema,
 });
 
 export type GetChatMessagesResType = z.infer<typeof GetChatMessagesResSchema>;
@@ -145,6 +146,7 @@ export const CreateChatAgentSettingResSchema = z.object({
   status: z.string(),
   message: z.string(),
   data: z.number(),
+  meta: PaginationMetaSchema,
 });
 
 export type CreateChatAgentSettingResType = z.infer<
