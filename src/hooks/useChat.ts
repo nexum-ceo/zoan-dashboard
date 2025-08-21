@@ -14,7 +14,7 @@ export type ChatMessage = {
   role: 'user' | 'assistant' | 'system' | 'data';
   content: string;
   // TODO: add user_id to the message, if null the message if from the assistant
-  // sender_id: string
+  sender_id: string | null;
 };
 
 export type UseCustomChatProps = {
@@ -23,6 +23,7 @@ export type UseCustomChatProps = {
   agentId?: string;
   initialMessages?: ChatMessage[];
   wsConnected?: boolean;
+  user_id: string;
 };
 
 // System message types that should be filtered out
@@ -38,6 +39,7 @@ export function useChat({
   wsUrl,
   chatId,
   // agentId,
+  user_id,
   initialMessages = [],
 }: UseCustomChatProps) {
   const [messages, setMessages] = useState<ChatMessage[]>(initialMessages);
@@ -95,6 +97,7 @@ export function useChat({
             role: ChatRole.ASSISTANT,
             content:
               '⚠️ Agent is experiencing an error. Please check your connection and try again.',
+            sender_id: null,
           },
         ]);
         return;
@@ -168,7 +171,7 @@ export function useChat({
                 ...updated[updated.length - 1],
                 content: String(updated[updated.length - 1].content) + chunk,
                 // TODO:
-                // sender_id: null
+                sender_id: null,
               };
               return updated;
             } else {
@@ -179,7 +182,7 @@ export function useChat({
                   role: ChatRole.ASSISTANT,
                   content: chunk,
                   // TODO:
-                  // sender_id: null
+                  sender_id: null,
                 },
               ];
             }
@@ -194,6 +197,7 @@ export function useChat({
               role: ChatRole.ASSISTANT,
               content:
                 '⚠️ Agent is experiencing an error. Please try refreshing the page.',
+              sender_id: null,
             },
           ]);
         }
@@ -228,6 +232,7 @@ export function useChat({
           role: ChatRole.ASSISTANT,
           content:
             '⚠️ Agent is experiencing an error. Please check your connection and try again.',
+          sender_id: null,
         },
       ]);
       return;
@@ -300,6 +305,7 @@ export function useChat({
                 id: Date.now().toString() + '-ws',
                 role: ChatRole.ASSISTANT,
                 content: chunk,
+                sender_id: null,
               },
             ];
           }
@@ -314,6 +320,7 @@ export function useChat({
             role: ChatRole.ASSISTANT,
             content:
               '⚠️ Agent is experiencing an error. Please try refreshing the page.',
+            sender_id: null,
           },
         ]);
       }
@@ -388,7 +395,7 @@ export function useChat({
       role: 'user',
       content: input,
       // TODO:
-      // sender_id: user_id
+      sender_id: user_id,
     };
     setMessages((prev) => [...prev, userMsg]);
     setIsLoading(true);
@@ -400,7 +407,7 @@ export function useChat({
           // agent_id: agentId,
           content: input,
           // TODO:
-          // sender_id: user_id
+          sender_id: user_id,
           metadata: {},
         }),
       );
@@ -416,6 +423,7 @@ export function useChat({
       id: Date.now().toString(),
       role: ChatRole.USER,
       content: msg,
+      sender_id: user_id,
     };
     setMessages((prev) => [...prev, userMsg]);
     setIsLoading(true);
@@ -424,10 +432,9 @@ export function useChat({
         JSON.stringify({
           role: 'user',
           chat_id: chatId,
-          // agent_id: agentId,
           content: msg,
           // TODO:
-          // sender_id: user_id
+          sender_id: user_id,
           metadata: {},
         }),
       );

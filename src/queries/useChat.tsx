@@ -1,13 +1,43 @@
 'use client';
 
 import chatApiRequest from '@/api-requests/chat';
-import { CreateChatAgentSettingBodyType } from '@/types/chat';
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import {
+  CreateChatAgentSettingBodyType,
+  GetChatListResType,
+} from '@/types/chat';
+import {
+  useInfiniteQuery,
+  useMutation,
+  useQuery,
+  useQueryClient,
+} from '@tanstack/react-query';
 
 export const useChatList = () => {
   return useQuery({
     queryKey: ['chat-list'],
     queryFn: chatApiRequest.sList,
+  });
+};
+
+export const useInfiniteChatList = (initialLimit = 10) => {
+  return useInfiniteQuery<GetChatListResType, Error>({
+    queryKey: ['chat-list-infinite', initialLimit],
+    queryFn: ({ pageParam }) => {
+      const { offset = 0, limit = initialLimit } = (pageParam ?? {}) as {
+        offset?: number;
+        limit?: number;
+      };
+      return chatApiRequest
+        .sListInfinite({ offset, limit })
+        .then((r) => r.data);
+    },
+    initialPageParam: { offset: 0, limit: initialLimit },
+    getNextPageParam: (lastPage) => {
+      const { meta } = lastPage;
+      const nextOffset = meta.offset + meta.limit;
+      if (nextOffset >= meta.total) return undefined;
+      return { offset: nextOffset, limit: meta.limit };
+    },
   });
 };
 

@@ -1,4 +1,5 @@
 import { ResponseFormatSchema } from '@/types/agent';
+import { PaginationMetaSchema, type PaginatedResponse } from '@/types/common';
 import { z } from 'zod';
 
 export const CreateChatBodySchema = z.object({
@@ -77,9 +78,16 @@ export const GetChatListResSchema = z.object({
       updated_at: z.string(),
     }),
   ),
+  meta: PaginationMetaSchema,
 });
 
-export type GetChatListResType = z.infer<typeof GetChatListResSchema>;
+export type GetChatListResType = PaginatedResponse<{
+  id: string;
+  user_id: string;
+  title: string;
+  created_at: string;
+  updated_at: string;
+}>;
 
 export const GetPrimaryAgentByChatIdResSchema = z.object({
   status: z.string(),

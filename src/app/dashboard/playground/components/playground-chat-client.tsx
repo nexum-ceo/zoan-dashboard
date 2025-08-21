@@ -13,7 +13,7 @@ import { SidebarProvider } from '@/components/ui/sidebar';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { useChat } from '@/hooks/useChat';
 import { useGetChat, useGetChatMessages } from '@/queries/useChat';
-import { ChatMessageType, ChatRole } from '@/types/chat';
+import { ChatRole } from '@/types/chat';
 import { motion } from 'framer-motion';
 import {
   ArrowDown,
@@ -52,6 +52,11 @@ export function PlaygroundChatClient({ chatId }: PlaygroundChatClientProps) {
   });
   const [firstMsgSent, setFirstMsgSent] = useState<boolean>(false);
   const [token, setToken] = useState<string>('');
+  const { data: chatData } = useGetChat(chatId);
+  const { data: chatMessageData } = useGetChatMessages(chatId);
+
+  const chatMessages = chatMessageData?.data?.data;
+  const chatInfo = chatData?.data?.data;
 
   const {
     messages,
@@ -68,25 +73,22 @@ export function PlaygroundChatClient({ chatId }: PlaygroundChatClientProps) {
       : '',
     initialMessages: [],
     chatId: chatId,
+    user_id: chatInfo?.user_id || '',
   });
-  const { data: chatMessageData } = useGetChatMessages(chatId);
-  const { data: chatData } = useGetChat(chatId);
-
-  const chatMessages = chatMessageData?.data?.data;
-  const chatInfo = chatData?.data?.data;
 
   useEffect(() => {
     if (chatMessages && Array.isArray(chatMessages)) {
-      const safeMessages = chatMessages.map((msg: ChatMessageType) => ({
+      const safeMessages = chatMessages.map((msg) => ({
         ...msg,
         content: msg.content ?? '',
         role: Object.values(ChatRole).includes(msg.role)
           ? msg.role
           : ChatRole.USER,
+        sender_id: chatInfo?.user_id || '',
       }));
       setMessages(safeMessages || []);
     }
-  }, [chatMessages, setMessages]);
+  }, [chatMessages, setMessages, chatInfo]);
 
   useEffect(() => {
     fetch('/api/auth/session')

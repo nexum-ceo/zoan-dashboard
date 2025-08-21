@@ -1,5 +1,5 @@
 import { Skeleton } from '@/components/ui/skeleton';
-import { useChatList } from '@/queries/useChat';
+import { useInfiniteChatList } from '@/queries/useChat';
 import { usePathname, useRouter } from 'next/navigation';
 import { FC } from 'react';
 
@@ -14,11 +14,11 @@ export const SelectAssistant: FC<SelectAssistantProps> = ({ activeChatId }) => {
     data: chatData,
     isLoading: chatLoading,
     error: chatError,
-  } = useChatList();
+  } = useInfiniteChatList(10);
 
   // Process chat data
-  const chats = chatData?.data.data
-    ? [...chatData.data.data].sort(
+  const chats = chatData?.pages.flatMap((page) => page.data)
+    ? [...chatData.pages.flatMap((page) => page.data)].sort(
         (a, b) => Date.parse(b.created_at) - Date.parse(a.created_at),
       )
     : [];
