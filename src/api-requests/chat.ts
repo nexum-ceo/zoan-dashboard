@@ -12,18 +12,24 @@ import {
 } from '@/types/chat';
 
 const chatApiRequest = {
-  list: (params: { offset?: number; limit?: number }) =>
+  list: (pageParams: { offset?: number; limit?: number }) =>
     axiosInstance.get<GetChatListResType>('/chat', {
-      params,
+      params: {
+        offset: pageParams.offset?.toString(),
+        limit: pageParams.limit?.toString(),
+      },
     }),
   sList: () =>
     axiosInstance.get<GetChatListResType>('/chat', {
       baseURL: '',
     }),
-  sListInfinite: (params: { offset?: number; limit?: number }) =>
+  sListInfinite: (pageParams: { offset?: number; limit?: number }) =>
     axiosInstance.get<GetChatListResType>('/chat', {
       baseURL: '',
-      params,
+      params: {
+        offset: pageParams.offset?.toString(),
+        limit: pageParams.limit?.toString(),
+      },
     }),
   add: (body: CreateChatBodyType) =>
     axiosInstance.post<CreateChatResType>('/chat', body),

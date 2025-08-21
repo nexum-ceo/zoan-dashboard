@@ -394,7 +394,6 @@ export function useChat({
       id: Date.now().toString(),
       role: 'user',
       content: input,
-      // TODO:
       sender_id: user_id,
     };
     setMessages((prev) => [...prev, userMsg]);
@@ -404,9 +403,7 @@ export function useChat({
         JSON.stringify({
           role: 'user',
           chat_id: chatId,
-          // agent_id: agentId,
           content: input,
-          // TODO:
           sender_id: user_id,
           metadata: {},
         }),
@@ -433,7 +430,6 @@ export function useChat({
           role: 'user',
           chat_id: chatId,
           content: msg,
-          // TODO:
           sender_id: user_id,
           metadata: {},
         }),

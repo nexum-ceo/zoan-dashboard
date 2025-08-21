@@ -1,10 +1,7 @@
 'use client';
 
 import chatApiRequest from '@/api-requests/chat';
-import {
-  CreateChatAgentSettingBodyType,
-  GetChatListResType,
-} from '@/types/chat';
+import { CreateChatAgentSettingBodyType } from '@/types/chat';
 import {
   useInfiniteQuery,
   useMutation,
@@ -19,24 +16,27 @@ export const useChatList = () => {
   });
 };
 
-export const useInfiniteChatList = (initialLimit = 10) => {
-  return useInfiniteQuery<GetChatListResType, Error>({
-    queryKey: ['chat-list-infinite', initialLimit],
-    queryFn: ({ pageParam }) => {
-      const { offset = 0, limit = initialLimit } = (pageParam ?? {}) as {
-        offset?: number;
-        limit?: number;
-      };
-      return chatApiRequest
-        .sListInfinite({ offset, limit })
-        .then((r) => r.data);
-    },
-    initialPageParam: { offset: 0, limit: initialLimit },
-    getNextPageParam: (lastPage) => {
-      const { meta } = lastPage;
-      const nextOffset = meta.offset + meta.limit;
-      if (nextOffset >= meta.total) return undefined;
-      return { offset: nextOffset, limit: meta.limit };
+export const useInfiniteChatList = () => {
+  return useInfiniteQuery({
+    queryKey: ['chat-list-infinite'],
+    queryFn: ({ pageParam = 0 }) =>
+      chatApiRequest.sListInfinite({ offset: Number(pageParam), limit: 10 }),
+    initialPageParam: 0,
+    getNextPageParam: (lastPage, allPages) => {
+      const meta = lastPage?.data?.meta;
+      const inferredLimit = Number(meta?.limit) || 10;
+      const total = Number(meta?.total ?? 0);
+      const currentOffset = Number(
+        meta?.offset ?? (allPages.length - 1) * inferredLimit,
+      );
+      const pageLength = lastPage?.data?.data?.length ?? 0;
+      const nextOffset = currentOffset + inferredLimit;
+      if (total > 0) {
+        if (nextOffset >= total) return undefined;
+        return nextOffset;
+      }
+      if (pageLength < inferredLimit) return undefined;
+      return nextOffset;
     },
   });
 };

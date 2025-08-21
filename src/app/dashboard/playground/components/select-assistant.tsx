@@ -1,5 +1,7 @@
+import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useInfiniteChatList } from '@/queries/useChat';
+import { ChevronDown, Loader2 } from 'lucide-react';
 import { usePathname, useRouter } from 'next/navigation';
 import { FC } from 'react';
 
@@ -14,11 +16,14 @@ export const SelectAssistant: FC<SelectAssistantProps> = ({ activeChatId }) => {
     data: chatData,
     isLoading: chatLoading,
     error: chatError,
-  } = useInfiniteChatList(10);
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage,
+  } = useInfiniteChatList();
 
   // Process chat data
-  const chats = chatData?.pages.flatMap((page) => page.data)
-    ? [...chatData.pages.flatMap((page) => page.data)].sort(
+  const chats = chatData?.pages.flatMap((page) => page.data.data)
+    ? [...chatData.pages.flatMap((page) => page.data.data)].sort(
         (a, b) => Date.parse(b.created_at) - Date.parse(a.created_at),
       )
     : [];
@@ -27,7 +32,7 @@ export const SelectAssistant: FC<SelectAssistantProps> = ({ activeChatId }) => {
     <div className="space-y-4">
       <div className="space-y-2">
         <h4 className="text-sm font-medium text-foreground">Recent Chats</h4>
-        <div className="space-y-1 h-full overflow-y-auto">
+        <div className="space-y-1 h-full overflow-y-auto scroll-smooth">
           {chatLoading &&
             // Skeleton loading for recent chats
             Array.from({ length: 5 }).map((_, idx) => (
@@ -71,6 +76,30 @@ export const SelectAssistant: FC<SelectAssistantProps> = ({ activeChatId }) => {
                 </button>
               );
             })}
+          {hasNextPage && (
+            <div className="px-3 py-3">
+              <Button
+                variant="outline"
+                size="sm"
+                className="w-full justify-center"
+                disabled={isFetchingNextPage}
+                onClick={() => fetchNextPage()}
+                aria-busy={isFetchingNextPage}
+              >
+                {isFetchingNextPage ? (
+                  <>
+                    <Loader2 className="animate-spin" />
+                    Loading…
+                  </>
+                ) : (
+                  <>
+                    See more
+                    <ChevronDown className="opacity-80" />
+                  </>
+                )}
+              </Button>
+            </div>
+          )}
         </div>
       </div>
     </div>
