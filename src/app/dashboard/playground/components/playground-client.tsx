@@ -24,6 +24,7 @@ export function PlaygroundClient() {
   const { messages, handleSubmit, isLoading } = useChat({
     initialMessages: [],
     chatId: '',
+    user_id: '',
   });
 
   // State for pending first message

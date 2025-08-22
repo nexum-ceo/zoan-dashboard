@@ -9,8 +9,16 @@ export async function POST(req: Request) {
   });
 }
 
-export async function GET() {
-  return await apiWrapper(() => chatApiRequest.list(), {
+export async function GET(req: Request) {
+  const { searchParams } = new URL(req.url);
+  const offset = searchParams.get('offset')
+    ? Number(searchParams.get('offset'))
+    : 0;
+  const limit = searchParams.get('limit')
+    ? Number(searchParams.get('limit'))
+    : 10;
+
+  return await apiWrapper(() => chatApiRequest.list({ offset, limit }), {
     defaultErrorMessage: 'Fetch failed',
   });
 }

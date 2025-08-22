@@ -1,3 +1,4 @@
+import { PaginationMetaSchema } from '@/types/common';
 import { z } from 'zod';
 
 // Response format schemas
@@ -41,6 +42,7 @@ export const GetAgentResSchema = z.object({
   status: z.string(),
   message: z.string(),
   data: z.array(AgentSchema),
+  meta: PaginationMetaSchema,
 });
 
 export type AgentType = z.infer<typeof AgentSchema>;
