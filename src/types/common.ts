@@ -1,9 +1,9 @@
 import { z } from 'zod';
 
 export const PaginationMetaSchema = z.object({
-  offset: z.number(),
-  limit: z.number(),
-  total: z.number(),
+  offset: z.number().int().positive(),
+  limit: z.number().int().positive(),
+  total: z.number().int().positive(),
 });
 
 export type PaginationMeta = z.infer<typeof PaginationMetaSchema>;
