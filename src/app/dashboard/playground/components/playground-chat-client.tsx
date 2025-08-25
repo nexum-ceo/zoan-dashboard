@@ -43,6 +43,7 @@ export function PlaygroundChatClient({ chatId }: PlaygroundChatClientProps) {
   const [showScrollButton, setShowScrollButton] = useState<boolean>(false);
   const [settingsOpen, setSettingsOpen] = useState<boolean>(true);
   const [exploreOpen, setExploreOpen] = useState<boolean>(false);
+  const isSidePanelOpen = (settingsOpen || exploreOpen) && !isMobile;
 
   // Get the first message from localStorage if it exists
   const [pendingMsg, setPendingMsg] = useState<string>(() => {
@@ -235,7 +236,11 @@ export function PlaygroundChatClient({ chatId }: PlaygroundChatClientProps) {
   return (
     <div className="w-full h-screen bg-sidebar flex">
       {/* Main Chat Area */}
-      <div className="flex-1 flex flex-col bg-sidebar relative">
+      <div
+        className={`flex-1 flex flex-col bg-sidebar relative transition-[margin] duration-300 ease-out ${
+          isSidePanelOpen ? 'md:mr-96' : 'md:mr-0'
+        }`}
+      >
         {/* Mobile Header with Menu Button */}
         {isMobile && (
           <div className="flex items-center p-4 border-b border-gray-200 bg-white">

@@ -24,17 +24,6 @@ export const Explore: FC<ExploreProps> = ({ isOpen, onClose }) => {
     <AnimatePresence initial={false} mode="wait">
       {isOpen && (
         <>
-          {/* Overlay */}
-          <motion.div
-            key="explore-overlay"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ type: 'tween', ease: 'easeOut', duration: 0.2 }}
-            className="fixed inset-0 bg-background/60 backdrop-blur-[2px]"
-            style={{ willChange: 'opacity' }}
-            onClick={onClose}
-          />
           {/* Drawer */}
           <motion.div
             initial={{ x: '100%', opacity: 1 }}
