@@ -23,9 +23,7 @@ export const SelectAssistant: FC<SelectAssistantProps> = ({ activeChatId }) => {
 
   // Process chat data
   const chats = chatData?.pages.flatMap((page) => page.data.data)
-    ? [...chatData.pages.flatMap((page) => page.data.data)].sort(
-        (a, b) => Date.parse(b.created_at) - Date.parse(a.created_at),
-      )
+    ? [...chatData.pages.flatMap((page) => page.data.data)]
     : [];
 
   return (

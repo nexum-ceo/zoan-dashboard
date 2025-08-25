@@ -46,7 +46,7 @@ export const useCreateChatMutation = () => {
   return useMutation({
     mutationFn: chatApiRequest.sAdd,
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['chat-list'] });
+      queryClient.invalidateQueries({ queryKey: ['chat-list-infinite'] });
     },
   });
 };
