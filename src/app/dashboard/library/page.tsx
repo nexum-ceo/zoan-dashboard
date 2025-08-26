@@ -1,3 +1,5 @@
+'use client';
+
 import { LibraryClient } from './components/library-client';
 import { LibraryHeader } from './components/library-header';
 import { folders, mediaFiles } from './lib/data';

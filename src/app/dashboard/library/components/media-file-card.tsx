@@ -11,6 +11,7 @@ import {
   Music,
   Video,
 } from 'lucide-react';
+import Image from 'next/image';
 import type { MediaFile } from '../lib/data';
 import { formatDuration, formatFileSize } from '../lib/data';
 
@@ -41,7 +42,9 @@ export function MediaFileCard({ file }: MediaFileCardProps) {
       <CardContent className="p-3">
         <div className="aspect-square bg-gray-100 rounded-lg mb-3 relative overflow-hidden">
           {file.type === 'image' ? (
-            <img
+            <Image
+              width={64}
+              height={64}
               src={file.thumbnail || file.url}
               alt={file.name}
               className="w-full h-full object-cover"

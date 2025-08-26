@@ -1,6 +1,7 @@
 'use client';
 
 import { useRef, useState } from 'react';
+import { toast } from 'sonner';
 import type { MediaFile, MediaFolder } from '../lib/data';
 import { ActionsBar } from './actions-bar';
 import { FolderSidebar } from './folder-sidebar';
@@ -59,6 +60,19 @@ export function LibraryClient({
   const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
     const files = event.target.files;
     if (files) {
+      const allowedMimeTypes = ['image/png', 'image/jpeg', 'image/jpg'];
+      const fileArray = Array.from(files);
+      const hasOnlyAllowedTypes = fileArray.every((file) =>
+        allowedMimeTypes.includes(file.type),
+      );
+
+      if (!hasOnlyAllowedTypes) {
+        toast.error('Only PNG and JPEG (jpg, jpeg) are supported.');
+        // Reset input so the same file can be re-selected
+        event.target.value = '';
+        return;
+      }
+
       setIsUploading(true);
       setUploadProgress(0);
 
@@ -119,7 +133,7 @@ export function LibraryClient({
         ref={fileInputRef}
         type="file"
         multiple
-        accept="image/*,audio/*,video/*,.pdf,.doc,.docx"
+        accept="image/png,image/jpeg,image/jpg"
         onChange={handleFileSelect}
         className="hidden"
       />

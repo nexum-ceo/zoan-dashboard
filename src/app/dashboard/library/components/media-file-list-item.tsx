@@ -11,6 +11,7 @@ import {
   Music,
   Video,
 } from 'lucide-react';
+import Image from 'next/image';
 import type { MediaFile } from '../lib/data';
 import { formatDuration, formatFileSize } from '../lib/data';
 
@@ -40,18 +41,24 @@ export function MediaFileListItem({ file }: MediaFileListItemProps) {
     <Card className="cursor-pointer hover:shadow-sm transition-shadow">
       <CardContent className="p-4">
         <div className="flex items-center gap-4">
+          test test test
           <div className="w-12 h-12 bg-gray-100 rounded-lg flex items-center justify-center flex-shrink-0">
             {file.type === 'image' ? (
-              <img
-                src={file.thumbnail || file.url}
-                alt={file.name}
+              <Image
+                // src={file.thumbnail || file.url}
+                src={
+                  'https://minio.buymed.site/library/df23285e-75a8-4b71-8549-01972084fa7d/abc/giga-archery.png'
+                }
+                // alt={file.name}
+                alt="test"
                 className="w-full h-full object-cover rounded-lg"
+                width={64}
+                height={64}
               />
             ) : (
               getFileIcon(file.type)
             )}
           </div>
-
           <div className="flex-1 min-w-0">
             <h4 className="font-medium text-sm truncate">{file.name}</h4>
             <div className="flex items-center gap-4 text-xs text-gray-500 mt-1">
@@ -65,7 +72,6 @@ export function MediaFileListItem({ file }: MediaFileListItemProps) {
               <span>{file.uploadDate.toLocaleDateString()}</span>
             </div>
           </div>
-
           <div className="flex items-center gap-2">
             {file.usedInProjects && file.usedInProjects.length > 0 && (
               <Badge variant="outline" className="text-xs">

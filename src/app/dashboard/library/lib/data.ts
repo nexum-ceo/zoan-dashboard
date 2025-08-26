@@ -122,8 +122,9 @@ export const mediaFiles: MediaFile[] = [
     size: 2.4,
     uploadDate: new Date('2024-01-15'),
     folder: 'sprites',
-    url: '/placeholder.svg?height=200&width=200&text=Player+Sprite',
-    thumbnail: '/placeholder.svg?height=100&width=100&text=Player',
+    url: 'https://minio.buymed.site/library/df23285e-75a8-4b71-8549-01972084fa7d/abc/giga-archery.png',
+    thumbnail:
+      'https://minio.buymed.site/library/df23285e-75a8-4b71-8549-01972084fa7d/abc/giga-archery.png',
     dimensions: { width: 64, height: 64 },
     usedInProjects: ['Flappy Bird Game', 'Platformer Demo'],
   },
