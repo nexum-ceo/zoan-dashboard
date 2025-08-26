@@ -55,6 +55,13 @@ const navigationItems = [
       pathname.startsWith('/dashboard/personal-space'),
   },
   {
+    icon: User,
+    label: 'Library',
+    href: '/dashboard/library',
+    isShow: true,
+    isActive: (pathname: string) => pathname.startsWith('/dashboard/library'),
+  },
+  {
     icon: Settings,
     label: 'Settings',
     href: '/dashboard/setting',
