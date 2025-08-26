@@ -4,7 +4,7 @@ import { folders, mediaFiles } from './lib/data';
 
 export default function LibraryPage() {
   return (
-    <div className="flex-1 flex flex-col p-10 w-full h-full min-h-0">
+    <div className="flex-1 flex flex-col p-10 w-full h-full min-h-0 overflow-hidden">
       <LibraryHeader />
       <LibraryClient initialFolders={folders} initialFiles={mediaFiles} />
     </div>

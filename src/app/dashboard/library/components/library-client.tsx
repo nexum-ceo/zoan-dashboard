@@ -89,7 +89,7 @@ export function LibraryClient({
         onViewModeChange={setViewMode}
       />
 
-      <div className="flex gap-6 flex-1 w-full min-h-0">
+      <div className="flex gap-6 flex-1 w-full min-h-0 overflow-hidden">
         {/* Folders Sidebar */}
         <FolderSidebar
           folders={initialFolders}
