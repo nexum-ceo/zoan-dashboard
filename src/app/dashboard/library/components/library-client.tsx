@@ -22,10 +22,13 @@ export function LibraryClient({
   const [folderSearchQuery, setFolderSearchQuery] = useState('');
   const [selectedFolder, setSelectedFolder] = useState('all');
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
-  // const [selectedFiles, setSelectedFiles] = useState<string[]>([]);
   const [isUploading, setIsUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
   const [isFolderPanelCollapsed, setIsFolderPanelCollapsed] = useState(false);
+  const [localFolders, setLocalFolders] =
+    useState<MediaFolder[]>(initialFolders);
+  const [newFolderName, setNewFolderName] = useState('');
+  const [isNewFolderOpen, setIsNewFolderOpen] = useState(false);
   const [expandedFolders, setExpandedFolders] = useState<string[]>([
     'game-assets',
     'ui-elements',
@@ -128,6 +131,7 @@ export function LibraryClient({
         searchQuery={searchQuery}
         onSearchChange={setSearchQuery}
         onUpload={handleFileUpload}
+        onNewFolder={() => setIsNewFolderOpen(true)}
         viewMode={viewMode}
         onViewModeChange={setViewMode}
       />
@@ -151,9 +155,10 @@ export function LibraryClient({
         {/* Main Content */}
         <MediaContent
           files={filteredFiles}
-          folders={initialFolders}
+          folders={localFolders}
           selectedFolder={selectedFolder}
           viewMode={viewMode}
+          onFolderOpen={setSelectedFolder}
         />
       </div>
 
@@ -166,6 +171,50 @@ export function LibraryClient({
         onChange={handleFileSelect}
         className="hidden"
       />
+
+      {isNewFolderOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30">
+          <div className="bg-background border rounded-lg p-4 w-[360px] space-y-3">
+            <div className="text-sm font-medium">Create new folder</div>
+            <input
+              className="w-full border rounded px-3 py-2 bg-transparent"
+              placeholder="Folder name"
+              value={newFolderName}
+              onChange={(e) => setNewFolderName(e.target.value)}
+            />
+            <div className="flex justify-end gap-2">
+              <button
+                className="px-3 py-2 text-sm border rounded"
+                onClick={() => {
+                  setIsNewFolderOpen(false);
+                  setNewFolderName('');
+                }}
+              >
+                Cancel
+              </button>
+              <button
+                className="px-3 py-2 text-sm rounded bg-primary text-primary-foreground"
+                onClick={() => {
+                  const name = newFolderName.trim();
+                  if (!name) return;
+                  const newFolder: MediaFolder = {
+                    id: name.toLowerCase().replace(/\s+/g, '-'),
+                    name,
+                    fileCount: 0,
+                    size: 0,
+                    color: 'blue',
+                  };
+                  setLocalFolders((prev) => [newFolder, ...prev]);
+                  setIsNewFolderOpen(false);
+                  setNewFolderName('');
+                }}
+              >
+                Create
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </>
   );
 }

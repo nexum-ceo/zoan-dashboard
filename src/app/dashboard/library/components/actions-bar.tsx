@@ -16,6 +16,7 @@ interface ActionsBarProps {
   searchQuery: string;
   onSearchChange: (query: string) => void;
   onUpload: () => void;
+  onNewFolder: () => void;
   viewMode: 'grid' | 'list';
   onViewModeChange: (mode: 'grid' | 'list') => void;
 }
@@ -24,6 +25,7 @@ export function ActionsBar({
   searchQuery,
   onSearchChange,
   onUpload,
+  onNewFolder,
   viewMode,
   onViewModeChange,
 }: ActionsBarProps) {
@@ -34,7 +36,11 @@ export function ActionsBar({
           <Upload className="w-4 h-4" />
           Upload Files
         </Button>
-        <Button variant="outline" className="gap-2 bg-transparent">
+        <Button
+          variant="outline"
+          className="gap-2 bg-transparent"
+          onClick={onNewFolder}
+        >
           <FolderPlus className="w-4 h-4" />
           New Folder
         </Button>
