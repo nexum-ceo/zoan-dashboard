@@ -1,13 +1,17 @@
 'use client';
 
 import { Progress } from '@/components/ui/progress';
+import { FC } from 'react';
 
-interface UploadProgressProps {
+type UploadProgressProps = {
   isUploading: boolean;
   progress: number;
-}
+};
 
-export function UploadProgress({ isUploading, progress }: UploadProgressProps) {
+export const UploadProgress: FC<UploadProgressProps> = ({
+  isUploading,
+  progress,
+}) => {
   if (!isUploading) return null;
 
   return (
@@ -21,4 +25,4 @@ export function UploadProgress({ isUploading, progress }: UploadProgressProps) {
       <Progress value={progress} className="h-2" />
     </div>
   );
-}
+};

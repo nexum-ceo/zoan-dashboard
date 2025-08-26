@@ -1,7 +1,7 @@
 'use client';
 
 import { useLibrary } from '@/queries/useLibrary';
-import { useRef, useState } from 'react';
+import { ChangeEvent, FC, useRef, useState } from 'react';
 import { toast } from 'sonner';
 import type { MediaFile, MediaFolder } from '../lib/data';
 import { ActionsBar } from './actions-bar';
@@ -9,31 +9,32 @@ import { FolderSidebar } from './folder-sidebar';
 import { MediaContent } from './media-content';
 import { UploadProgress } from './upload-progress';
 
-interface LibraryClientProps {
+type LibraryClientProps = {
   initialFolders: MediaFolder[];
   initialFiles: MediaFile[];
-}
+};
 
-export function LibraryClient({
+export const LibraryClient: FC<LibraryClientProps> = ({
   initialFolders,
   initialFiles,
-}: LibraryClientProps) {
-  const [searchQuery, setSearchQuery] = useState('');
-  const [folderSearchQuery, setFolderSearchQuery] = useState('');
-  const [selectedFolder, setSelectedFolder] = useState('all');
+}) => {
+  const [searchQuery, setSearchQuery] = useState<string>('');
+  const [folderSearchQuery, setFolderSearchQuery] = useState<string>('');
+  const [selectedFolder, setSelectedFolder] = useState<string>('all');
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
-  const [isUploading, setIsUploading] = useState(false);
-  const [uploadProgress, setUploadProgress] = useState(0);
-  const [isFolderPanelCollapsed, setIsFolderPanelCollapsed] = useState(false);
+  const [isUploading, setIsUploading] = useState<boolean>(false);
+  const [uploadProgress, setUploadProgress] = useState<number>(0);
+  const [isFolderPanelCollapsed, setIsFolderPanelCollapsed] =
+    useState<boolean>(false);
   const [localFolders, setLocalFolders] =
     useState<MediaFolder[]>(initialFolders);
-  const [newFolderName, setNewFolderName] = useState('');
-  const [isNewFolderOpen, setIsNewFolderOpen] = useState(false);
+  const [newFolderName, setNewFolderName] = useState<string>('');
+  const [isNewFolderOpen, setIsNewFolderOpen] = useState<boolean>(false);
   const [expandedFolders, setExpandedFolders] = useState<string[]>([
     'game-assets',
     'ui-elements',
   ]);
-  const fileInputRef = useRef<HTMLInputElement>(null);
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
   const presign = useLibrary();
 
   const filteredFiles = initialFiles.filter((file) => {
@@ -62,7 +63,7 @@ export function LibraryClient({
     fileInputRef.current?.click();
   };
 
-  const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileSelect = (event: ChangeEvent<HTMLInputElement>) => {
     const files = event.target.files;
     if (files) {
       const allowedMimeTypes = ['image/png', 'image/jpeg', 'image/jpg'];
@@ -217,4 +218,4 @@ export function LibraryClient({
       )}
     </>
   );
-}
+};

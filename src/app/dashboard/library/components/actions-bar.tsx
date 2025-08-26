@@ -11,24 +11,25 @@ import {
   SortAsc,
   Upload,
 } from 'lucide-react';
+import { FC } from 'react';
 
-interface ActionsBarProps {
+type ActionsBarProps = {
   searchQuery: string;
   onSearchChange: (query: string) => void;
   onUpload: () => void;
   onNewFolder: () => void;
   viewMode: 'grid' | 'list';
   onViewModeChange: (mode: 'grid' | 'list') => void;
-}
+};
 
-export function ActionsBar({
+export const ActionsBar: FC<ActionsBarProps> = ({
   searchQuery,
   onSearchChange,
   onUpload,
   onNewFolder,
   viewMode,
   onViewModeChange,
-}: ActionsBarProps) {
+}) => {
   return (
     <div className="flex items-center justify-between mb-6">
       <div className="flex items-center gap-4">
@@ -83,4 +84,4 @@ export function ActionsBar({
       </div>
     </div>
   );
-}
+};

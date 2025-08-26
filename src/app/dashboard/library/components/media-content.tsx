@@ -4,25 +4,26 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Edit, Folder, MoreVertical, Settings, Trash2 } from 'lucide-react';
+import { FC } from 'react';
 import type { MediaFile, MediaFolder } from '../lib/data';
 import { MediaFileCard } from './media-file-card';
 import { MediaFileListItem } from './media-file-list-item';
 
-interface MediaContentProps {
+type MediaContentProps = {
   files: MediaFile[];
   folders: MediaFolder[];
   selectedFolder: string;
   viewMode: 'grid' | 'list';
   onFolderOpen?: (folderId: string) => void;
-}
+};
 
-export function MediaContent({
+export const MediaContent: FC<MediaContentProps> = ({
   files,
   folders,
   selectedFolder,
   viewMode,
   onFolderOpen,
-}: MediaContentProps) {
+}) => {
   const selectedFolderData = folders.find((f) => f.id === selectedFolder);
 
   const topLevelFolders = folders.filter(
@@ -71,19 +72,27 @@ export function MediaContent({
   );
 
   const renderListView = () => (
-    <div className="space-y-2">
+    <div className="space-y-1">
+      {/* Folders first */}
       {topLevelFolders.map((folder) => (
         <button
           key={folder.id}
           onClick={() => onFolderOpen?.(folder.id)}
-          className="w-full flex items-center justify-between border rounded-md px-3 py-2 hover:bg-muted"
+          className="w-full flex items-center justify-between rounded-md px-3 py-2 hover:bg-muted/40"
         >
-          <span className="truncate">{folder.name}</span>
-          <span className="text-xs text-muted-foreground">
+          <div className="flex items-center gap-2 min-w-0">
+            <span className="inline-flex items-center justify-center w-6 h-6">
+              <Folder className="w-5 h-5 text-foreground/80" />
+            </span>
+            <span className="truncate text-sm">{folder.name}</span>
+          </div>
+          <span className="text-xs text-muted-foreground whitespace-nowrap">
             {folder.fileCount} files
           </span>
         </button>
       ))}
+
+      {/* Files */}
       {files.map((file) => (
         <MediaFileListItem key={file.id} file={file} />
       ))}
@@ -125,4 +134,4 @@ export function MediaContent({
       </div>
     </div>
   );
-}
+};

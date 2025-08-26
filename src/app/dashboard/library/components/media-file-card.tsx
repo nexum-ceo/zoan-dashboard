@@ -12,14 +12,15 @@ import {
   Video,
 } from 'lucide-react';
 import Image from 'next/image';
+import { FC } from 'react';
 import type { MediaFile } from '../lib/data';
 import { formatDuration, formatFileSize } from '../lib/data';
 
-interface MediaFileCardProps {
+type MediaFileCardProps = {
   file: MediaFile;
-}
+};
 
-export function MediaFileCard({ file }: MediaFileCardProps) {
+export const MediaFileCard: FC<MediaFileCardProps> = ({ file }) => {
   const getFileIcon = (type: MediaFile['type']) => {
     switch (type) {
       case 'image':
@@ -94,4 +95,4 @@ export function MediaFileCard({ file }: MediaFileCardProps) {
       </CardContent>
     </Card>
   );
-}
+};

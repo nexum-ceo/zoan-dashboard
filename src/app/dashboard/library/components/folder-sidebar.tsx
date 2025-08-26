@@ -22,9 +22,10 @@ import {
   Search,
 } from 'lucide-react';
 
+import { FC } from 'react';
 import type { MediaFolder } from '../lib/data';
 
-interface FolderSidebarProps {
+type FolderSidebarProps = {
   folders: MediaFolder[];
   selectedFolder: string;
   onFolderSelect: (folderId: string) => void;
@@ -34,9 +35,9 @@ interface FolderSidebarProps {
   onToggleCollapse: () => void;
   expandedFolders: string[];
   onToggleFolderExpansion: (folderId: string) => void;
-}
+};
 
-export function FolderSidebar({
+export const FolderSidebar: FC<FolderSidebarProps> = ({
   folders,
   selectedFolder,
   onFolderSelect,
@@ -46,7 +47,7 @@ export function FolderSidebar({
   onToggleCollapse,
   expandedFolders,
   onToggleFolderExpansion,
-}: FolderSidebarProps) {
+}) => {
   const filteredFolders = folders.filter((folder) =>
     folder.name.toLowerCase().includes(folderSearchQuery.toLowerCase()),
   );
@@ -302,4 +303,4 @@ export function FolderSidebar({
       </div>
     </TooltipProvider>
   );
-}
+};
