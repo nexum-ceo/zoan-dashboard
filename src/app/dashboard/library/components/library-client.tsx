@@ -1,5 +1,6 @@
 'use client';
 
+import { useLibrary } from '@/queries/useLibrary';
 import { useRef, useState } from 'react';
 import { toast } from 'sonner';
 import type { MediaFile, MediaFolder } from '../lib/data';
@@ -30,6 +31,7 @@ export function LibraryClient({
     'ui-elements',
   ]);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const presign = useLibrary();
 
   const filteredFiles = initialFiles.filter((file) => {
     const matchesSearch = file.name
@@ -68,24 +70,51 @@ export function LibraryClient({
 
       if (!hasOnlyAllowedTypes) {
         toast.error('Only PNG and JPEG (jpg, jpeg) are supported.');
-        // Reset input so the same file can be re-selected
         event.target.value = '';
         return;
       }
 
-      setIsUploading(true);
-      setUploadProgress(0);
+      void (async () => {
+        try {
+          setIsUploading(true);
+          setUploadProgress(0);
 
-      const interval = setInterval(() => {
-        setUploadProgress((prev) => {
-          if (prev >= 100) {
-            clearInterval(interval);
-            setIsUploading(false);
-            return 100;
-          }
-          return prev + 10;
-        });
-      }, 200);
+          const body = {
+            file_list: fileArray.map((f) => ({
+              path: 'abc/',
+              file_name: f.name,
+            })),
+          };
+
+          const res = await presign.mutateAsync(body);
+          const items = res.data?.data ?? [];
+
+          let completed = 0;
+          await Promise.all(
+            items.map(
+              async (item: { presigned_url: string; file_name: string }) => {
+                const file = fileArray.find((f) => f.name === item.file_name);
+                if (!file) return;
+                const put = await fetch(item.presigned_url, {
+                  method: 'PUT',
+                  body: file,
+                });
+                if (!put.ok) throw new Error('Upload failed');
+                completed += 1;
+                setUploadProgress(Math.round((completed / items.length) * 100));
+              },
+            ),
+          );
+
+          toast.success('Upload images successfully');
+        } catch (err) {
+          const msg = err instanceof Error ? err.message : 'Upload error';
+          toast.error(msg);
+        } finally {
+          setIsUploading(false);
+          event.target.value = '';
+        }
+      })();
     }
   };
 

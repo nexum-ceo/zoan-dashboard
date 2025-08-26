@@ -47,7 +47,7 @@ export function MediaFileListItem({ file }: MediaFileListItemProps) {
               <Image
                 // src={file.thumbnail || file.url}
                 src={
-                  'https://minio.buymed.site/library/df23285e-75a8-4b71-8549-01972084fa7d/abc/giga-archery.png'
+                  'https://minio.buymed.site/library/df23285e-75a8-4b71-8549-01972084fa7d/abc/yeiliens-image.png'
                 }
                 // alt={file.name}
                 alt="test"

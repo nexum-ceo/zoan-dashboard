@@ -122,7 +122,7 @@ export const mediaFiles: MediaFile[] = [
     size: 2.4,
     uploadDate: new Date('2024-01-15'),
     folder: 'sprites',
-    url: 'https://minio.buymed.site/library/df23285e-75a8-4b71-8549-01972084fa7d/abc/giga-archery.png',
+    url: 'https://minio.buymed.site/library/408ee6e5-5871-4fdf-a627-53b2bdef06fc/abc/icon.png',
     thumbnail:
       'https://minio.buymed.site/library/df23285e-75a8-4b71-8549-01972084fa7d/abc/giga-archery.png',
     dimensions: { width: 64, height: 64 },
