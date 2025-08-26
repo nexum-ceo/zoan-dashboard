@@ -2,8 +2,26 @@
 
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import {
+  ContextMenu,
+  ContextMenuContent,
+  ContextMenuItem,
+  ContextMenuSeparator,
+  ContextMenuTrigger,
+} from '@/components/ui/context-menu';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Edit, Folder, MoreVertical, Settings, Trash2 } from 'lucide-react';
+import {
+  Edit,
+  FileSpreadsheet,
+  FileText,
+  Folder,
+  FolderPlus,
+  MoreVertical,
+  Presentation,
+  Settings,
+  Trash2,
+  Upload,
+} from 'lucide-react';
 import { FC } from 'react';
 import type { MediaFile, MediaFolder } from '../lib/data';
 import { MediaFileCard } from './media-file-card';
@@ -15,6 +33,8 @@ type MediaContentProps = {
   selectedFolder: string;
   viewMode: 'grid' | 'list';
   onFolderOpen?: (folderId: string) => void;
+  onCreateFolder?: () => void;
+  onUploadFiles?: () => void;
 };
 
 export const MediaContent: FC<MediaContentProps> = ({
@@ -23,6 +43,8 @@ export const MediaContent: FC<MediaContentProps> = ({
   selectedFolder,
   viewMode,
   onFolderOpen,
+  onCreateFolder,
+  onUploadFiles,
 }) => {
   const selectedFolderData = folders.find((f) => f.id === selectedFolder);
 
@@ -128,9 +150,38 @@ export const MediaContent: FC<MediaContentProps> = ({
       </div>
 
       <div className="flex-1 min-h-0">
-        <ScrollArea className="h-full">
-          {viewMode === 'grid' ? renderGridView() : renderListView()}
-        </ScrollArea>
+        <ContextMenu>
+          <ContextMenuTrigger asChild>
+            <div>
+              <ScrollArea className="h-full">
+                {viewMode === 'grid' ? renderGridView() : renderListView()}
+              </ScrollArea>
+            </div>
+          </ContextMenuTrigger>
+          <ContextMenuContent>
+            <ContextMenuItem onClick={onCreateFolder}>
+              <FolderPlus className="w-4 h-4" />
+              New folder
+            </ContextMenuItem>
+            <ContextMenuItem onClick={onUploadFiles}>
+              <Upload className="w-4 h-4" />
+              Upload files
+            </ContextMenuItem>
+            <ContextMenuSeparator />
+            <ContextMenuItem disabled>
+              <FileText className="w-4 h-4" />
+              Docs
+            </ContextMenuItem>
+            <ContextMenuItem disabled>
+              <FileSpreadsheet className="w-4 h-4" />
+              Sheets
+            </ContextMenuItem>
+            <ContextMenuItem disabled>
+              <Presentation className="w-4 h-4" />
+              Slides
+            </ContextMenuItem>
+          </ContextMenuContent>
+        </ContextMenu>
       </div>
     </div>
   );

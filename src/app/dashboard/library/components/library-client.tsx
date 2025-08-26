@@ -122,6 +122,26 @@ export const LibraryClient: FC<LibraryClientProps> = ({
     }
   };
 
+  const cancelNewFolder = () => {
+    setIsNewFolderOpen(false);
+    setNewFolderName('');
+  };
+
+  const createNewFolder = () => {
+    const name = newFolderName.trim();
+    if (!name) return;
+    const newFolder: MediaFolder = {
+      id: name.toLowerCase().replace(/\s+/g, '-'),
+      name,
+      fileCount: 0,
+      size: 0,
+      color: 'blue',
+    };
+    setLocalFolders((prev) => [newFolder, ...prev]);
+    setIsNewFolderOpen(false);
+    setNewFolderName('');
+  };
+
   return (
     <>
       {/* Upload Progress */}
@@ -160,6 +180,8 @@ export const LibraryClient: FC<LibraryClientProps> = ({
           selectedFolder={selectedFolder}
           viewMode={viewMode}
           onFolderOpen={setSelectedFolder}
+          onCreateFolder={() => setIsNewFolderOpen(true)}
+          onUploadFiles={handleFileUpload}
         />
       </div>
 
@@ -182,33 +204,27 @@ export const LibraryClient: FC<LibraryClientProps> = ({
               placeholder="Folder name"
               value={newFolderName}
               onChange={(e) => setNewFolderName(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') {
+                  e.preventDefault();
+                  createNewFolder();
+                }
+                if (e.key === 'Escape') {
+                  e.preventDefault();
+                  cancelNewFolder();
+                }
+              }}
             />
             <div className="flex justify-end gap-2">
               <button
                 className="px-3 py-2 text-sm border rounded"
-                onClick={() => {
-                  setIsNewFolderOpen(false);
-                  setNewFolderName('');
-                }}
+                onClick={cancelNewFolder}
               >
                 Cancel
               </button>
               <button
                 className="px-3 py-2 text-sm rounded bg-primary text-primary-foreground"
-                onClick={() => {
-                  const name = newFolderName.trim();
-                  if (!name) return;
-                  const newFolder: MediaFolder = {
-                    id: name.toLowerCase().replace(/\s+/g, '-'),
-                    name,
-                    fileCount: 0,
-                    size: 0,
-                    color: 'blue',
-                  };
-                  setLocalFolders((prev) => [newFolder, ...prev]);
-                  setIsNewFolderOpen(false);
-                  setNewFolderName('');
-                }}
+                onClick={createNewFolder}
               >
                 Create
               </button>
