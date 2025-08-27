@@ -3,6 +3,7 @@
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
+import { ImageZoom } from '@/components/ui/shadcn-io/image-zoom';
 import {
   Archive,
   FileText,
@@ -41,16 +42,17 @@ export const MediaFileCard: FC<MediaFileCardProps> = ({ file }) => {
   return (
     <Card className="p-0 cursor-pointer hover:shadow-lg transition-shadow group">
       <CardContent className="p-3">
-        <div className="aspect-square bg-gray-100 rounded-lg mb-3 relative overflow-hidden">
+        <div className="aspect-square bg-gray-100 rounded-lg mb-3 relative">
           {file.type === 'image' ? (
-            <Image
-              fill
-              quality={100}
-              sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 16vw"
-              src={file.thumbnail || file.url}
-              alt={file.name}
-              className="absolute inset-0 w-full h-full object-cover"
-            />
+            <ImageZoom backdropClassName="[&_[data-rmiz-modal-overlay=visible]]:bg-black/80">
+              <Image
+                fill
+                quality={100}
+                src={file.thumbnail || file.url}
+                alt={file.name}
+                className="absolute inset-0 w-full h-full object-cover"
+              />
+            </ImageZoom>
           ) : file.type === 'video' ? (
             <div className="w-full h-full bg-gray-200 flex items-center justify-center relative">
               <Video className="w-8 h-8 text-gray-400" />
