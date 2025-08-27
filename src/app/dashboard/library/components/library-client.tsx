@@ -1,12 +1,13 @@
 'use client';
 
 import { FolderSidebar } from '@/app/dashboard/library/components/folder-sidebar';
+import { putZeroByte, s3ToMediaFiles, s3ToMediaFolders } from '@/lib/s3';
 import {
   useGetListFileOfUser,
   useGetListFolder,
   useLibrary,
 } from '@/queries/useLibrary';
-import type { S3ContentsType, S3ListBucketResultType } from '@/types/library';
+import type { S3ListBucketResultType } from '@/types/library';
 import {
   ChangeEvent,
   FC,
@@ -24,7 +25,7 @@ import { UploadNotification, type UploadFile } from './upload-notification';
 type LibraryClientProps = {
   initialFolders: MediaFolder[];
   initialFiles: MediaFile[];
-  userId: string; // Add userId prop
+  userId: string;
 };
 
 export const LibraryClient: FC<LibraryClientProps> = ({
@@ -61,33 +62,8 @@ export const LibraryClient: FC<LibraryClientProps> = ({
 
   // Convert S3 response to MediaFolder format
   const convertS3ToMediaFolders = useCallback(
-    (s3Response: S3ListBucketResultType): MediaFolder[] => {
-      if (!s3Response?.ListBucketResult?.CommonPrefixes) {
-        return [];
-      }
-
-      const prefixes = Array.isArray(s3Response.ListBucketResult.CommonPrefixes)
-        ? s3Response.ListBucketResult.CommonPrefixes
-        : [s3Response.ListBucketResult.CommonPrefixes];
-
-      return prefixes.map((prefix) => {
-        const pathParts = prefix.Prefix.split('/').filter(Boolean);
-        // Extract only the folder name (last part before trailing slash)
-        // From: df23285e-75a8-4b71-8549-01972084fa7d/abc/
-        // We want: abc
-        const folderName = pathParts[pathParts.length - 1] || 'Root';
-
-        return {
-          id: prefix.Prefix,
-          name: folderName,
-          fileCount: 0, // Will be updated when we get file count
-          size: 0, // Will be updated when we get folder size
-          color: 'blue', // Default color
-          parentId: undefined, // No parent for root level folders
-          isExpanded: expandedFolders.includes(prefix.Prefix),
-        };
-      });
-    },
+    (s3Response: S3ListBucketResultType): MediaFolder[] =>
+      s3ToMediaFolders(s3Response, expandedFolders),
     [expandedFolders],
   );
 
@@ -96,77 +72,7 @@ export const LibraryClient: FC<LibraryClientProps> = ({
     (
       s3Response: S3ListBucketResultType | undefined,
       currentUserId: string,
-    ): MediaFile[] => {
-      if (!s3Response?.ListBucketResult?.Contents) {
-        return [];
-      }
-
-      const contents: S3ContentsType[] = Array.isArray(
-        s3Response.ListBucketResult.Contents,
-      )
-        ? s3Response.ListBucketResult.Contents
-        : [s3Response.ListBucketResult.Contents];
-
-      const getTypeByExtension = (filename: string): MediaFile['type'] => {
-        const ext = filename.split('.').pop()?.toLowerCase() || '';
-        const image = ['png', 'jpg', 'jpeg', 'gif', 'webp', 'bmp', 'svg'];
-        const audio = ['mp3', 'wav', 'aac', 'flac', 'ogg'];
-        const video = ['mp4', 'mov', 'avi', 'mkv', 'webm'];
-        const archive = ['zip', 'rar', '7z', 'tar', 'gz'];
-        const document = [
-          'pdf',
-          'doc',
-          'docx',
-          'xls',
-          'xlsx',
-          'ppt',
-          'pptx',
-          'txt',
-          'md',
-        ];
-        if (image.includes(ext)) return 'image';
-        if (audio.includes(ext)) return 'audio';
-        if (video.includes(ext)) return 'video';
-        if (archive.includes(ext)) return 'archive';
-        if (document.includes(ext)) return 'document';
-        return 'document';
-      };
-
-      const baseUrl = process.env.NEXT_PUBLIC_MINIO_URL || '';
-
-      return (
-        contents
-          // Filter out any directory placeholder keys that end with '/'
-          .filter(
-            (item) => typeof item.Key === 'string' && !item.Key.endsWith('/'),
-          )
-          .map((item) => {
-            const key = item.Key;
-            const parts = key.split('/');
-            const fileName = parts[parts.length - 1] || '';
-            // Folder id should match folder sidebar ids, which are S3 prefixes ending with '/'
-            // Example key: `${userId}/abc/filename.png` -> folderId: `${userId}/abc/`
-            const folderId =
-              parts.length > 1
-                ? `${parts.slice(0, parts.length - 1).join('/')}/`
-                : `${currentUserId}/`;
-
-            const fileType = getTypeByExtension(fileName);
-
-            return {
-              id: key,
-              name: fileName,
-              type: fileType,
-              size: Number(item.Size) || 0,
-              uploadDate: new Date(item.LastModified || Date.now()),
-              folder: folderId,
-              url: `${baseUrl}/library/${key}`,
-              thumbnail:
-                fileType === 'image' ? `${baseUrl}/library/${key}` : undefined,
-            } as MediaFile;
-          })
-      );
-    },
+    ): MediaFile[] => s3ToMediaFiles(s3Response, currentUserId),
     [],
   );
 
@@ -371,23 +277,7 @@ export const LibraryClient: FC<LibraryClientProps> = ({
       }
 
       // Perform zero-byte PUT to create the folder placeholder object
-      await new Promise<void>((resolve, reject) => {
-        const xhr = new XMLHttpRequest();
-        xhr.addEventListener('load', () => {
-          if (xhr.status >= 200 && xhr.status < 300) {
-            resolve();
-          } else {
-            reject(
-              new Error(`Create folder failed with status: ${xhr.status}`),
-            );
-          }
-        });
-        xhr.addEventListener('error', () => {
-          reject(new Error('Network error during create folder'));
-        });
-        xhr.open('PUT', item.presigned_url);
-        xhr.send(new Blob());
-      });
+      await putZeroByte(item.presigned_url);
 
       // Optimistic UI: add to expanded list and refresh folders from S3
       setExpandedFolders((prev) =>
