@@ -80,7 +80,7 @@ export const MediaFileCard: FC<MediaFileCardProps> = ({ file }) => {
             {file.name}
           </h4>
           <div className="flex items-center justify-between text-xs text-gray-500">
-            <span>{formatFileSize(file.size * 1024 * 1024)}</span>
+            <span>{formatFileSize(file.size)}</span>
             {file.dimensions && (
               <span>
                 {file.dimensions.width}×{file.dimensions.height}

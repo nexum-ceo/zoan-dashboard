@@ -2,6 +2,7 @@
 
 import { FolderSidebar } from '@/app/dashboard/library/components/folder-sidebar';
 import { putZeroByte, s3ToMediaFiles, s3ToMediaFolders } from '@/lib/s3';
+import { decodeBase64Url, encodeBase64Url } from '@/lib/utils';
 import {
   useGetListFileInFolder,
   useGetListFolder,
@@ -57,23 +58,7 @@ export const LibraryClient: FC<LibraryClientProps> = ({
   const router = useRouter();
   const searchParams = useSearchParams();
 
-  // base64url helpers for compact URL param
-  const encodeBase64Url = useCallback((input: string) => {
-    if (typeof window === 'undefined') return '';
-    const b64 = window.btoa(unescape(encodeURIComponent(input)));
-    return b64.replace(/=/g, '').replace(/\+/g, '-').replace(/\//g, '_');
-  }, []);
-
-  const decodeBase64Url = useCallback((input: string) => {
-    try {
-      const b64 = input.replace(/-/g, '+').replace(/_/g, '/');
-      const pad = b64.length % 4 === 0 ? '' : '='.repeat(4 - (b64.length % 4));
-      const str = decodeURIComponent(escape(window.atob(b64 + pad)));
-      return str;
-    } catch {
-      return '';
-    }
-  }, []);
+  // base64url helpers are imported from utils
 
   // initialize currentPrefix from URL `p` param (base64url), fallback to root
   useEffect(() => {
@@ -86,7 +71,6 @@ export const LibraryClient: FC<LibraryClientProps> = ({
       }
     }
     setCurrentPrefix(`${userId}/`);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [searchParams, userId]);
 
   // keep URL in sync when currentPrefix changes
@@ -96,7 +80,7 @@ export const LibraryClient: FC<LibraryClientProps> = ({
     const url = new URL(window.location.href);
     url.searchParams.set('p', encoded);
     router.replace(url.pathname + '?' + url.searchParams.toString());
-  }, [currentPrefix, encodeBase64Url, router]);
+  }, [currentPrefix, router]);
 
   // S3 API calls - fetch folders and files
   const [foldersQuery] = useGetListFolder(userId);
@@ -204,7 +188,6 @@ export const LibraryClient: FC<LibraryClientProps> = ({
           };
 
           const res = await presign.mutateAsync(body);
-          console.log('res', res);
           const items = res.data?.data ?? [];
 
           // Upload each file with progress tracking

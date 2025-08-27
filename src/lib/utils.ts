@@ -90,3 +90,41 @@ export const formatFileSize = (bytes: number): string => {
 
   return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
 };
+
+// Base64URL helpers for compact, URL-safe encoding/decoding
+export const encodeBase64Url = (input: string): string => {
+  try {
+    // Prefer browser btoa when available
+    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+    // @ts-ignore
+    const b64 =
+      typeof window !== 'undefined' && window.btoa
+        ? window.btoa(unescape(encodeURIComponent(input)))
+        : // Fallback: Node.js Buffer (in case used server-side accidentally)
+        typeof Buffer !== 'undefined'
+        ? Buffer.from(input, 'utf-8').toString('base64')
+        : '';
+    return b64.replace(/=/g, '').replace(/\+/g, '-').replace(/\//g, '_');
+  } catch {
+    return '';
+  }
+};
+
+export const decodeBase64Url = (input: string): string => {
+  try {
+    const b64 = input.replace(/-/g, '+').replace(/_/g, '/');
+    const pad = b64.length % 4 === 0 ? '' : '='.repeat(4 - (b64.length % 4));
+    const full = b64 + pad;
+    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+    // @ts-ignore
+    if (typeof window !== 'undefined' && window.atob) {
+      return decodeURIComponent(escape(window.atob(full)));
+    }
+    if (typeof Buffer !== 'undefined') {
+      return Buffer.from(full, 'base64').toString('utf-8');
+    }
+    return '';
+  } catch {
+    return '';
+  }
+};
