@@ -3,6 +3,26 @@ import {
   PresignedUrlBodyType,
   PresignedUrlResponseType,
 } from '@/types/library';
+import { XMLParser } from 'fast-xml-parser';
+
+// XML Parser configuration for S3 responses
+const xmlParser = new XMLParser({
+  ignoreAttributes: false,
+  attributeNamePrefix: '@_',
+  textNodeName: '#text',
+  parseAttributeValue: true,
+  parseTagValue: true,
+});
+
+// Helper function to parse XML response to JSON
+const parseXmlResponse = (xmlString: string) => {
+  try {
+    return xmlParser.parse(xmlString);
+  } catch (error) {
+    console.error('Error parsing XML:', error);
+    throw new Error('Failed to parse XML response');
+  }
+};
 
 const libraryApiRequest = {
   getPresignedUrls: (body: PresignedUrlBodyType) =>
@@ -10,6 +30,7 @@ const libraryApiRequest = {
       '/library/presigned-url',
       body,
     ),
+
   sGetPresignedUrls: (body: PresignedUrlBodyType) =>
     axiosInstance.post<PresignedUrlResponseType>(
       '/library/presigned-url',
@@ -18,6 +39,37 @@ const libraryApiRequest = {
         baseURL: '',
       },
     ),
+
+  // Call from minio - returns XML, converts to JSON
+  getListFileOfUser: async (userId: string) => {
+    const response = await axiosInstance.get(`/library/?prefix=${userId}`, {
+      baseURL: process.env.NEXT_PUBLIC_MINIO_URL,
+      responseType: 'text', // Ensure we get text response for XML parsing
+    });
+    return parseXmlResponse(response.data);
+  },
+
+  getListFolder: async (userId: string) => {
+    const response = await axiosInstance.get(
+      `/library/?prefix=${userId}/&delimiter=/`,
+      {
+        baseURL: process.env.NEXT_PUBLIC_MINIO_URL,
+        responseType: 'text',
+      },
+    );
+    return parseXmlResponse(response.data);
+  },
+
+  getListFileInFolder: async (userId: string, folderPath: string) => {
+    const response = await axiosInstance.get(
+      `/library/?prefix=${userId}/${folderPath}&delimiter=/`,
+      {
+        baseURL: process.env.NEXT_PUBLIC_MINIO_URL,
+        responseType: 'text',
+      },
+    );
+    return parseXmlResponse(response.data);
+  },
 };
 
 export default libraryApiRequest;

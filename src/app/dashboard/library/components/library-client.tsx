@@ -1,8 +1,9 @@
 'use client';
 
 import { FolderSidebar } from '@/app/dashboard/library/components/folder-sidebar';
-import { useLibrary } from '@/queries/useLibrary';
-import { ChangeEvent, FC, useRef, useState } from 'react';
+import { useGetListFolder, useLibrary } from '@/queries/useLibrary';
+import type { S3ListBucketResultType } from '@/types/library';
+import { ChangeEvent, FC, useEffect, useRef, useState } from 'react';
 import { toast } from 'sonner';
 import type { MediaFile, MediaFolder } from '../lib/data';
 import { ActionsBar } from './actions-bar';
@@ -12,11 +13,13 @@ import { UploadNotification, type UploadFile } from './upload-notification';
 type LibraryClientProps = {
   initialFolders: MediaFolder[];
   initialFiles: MediaFile[];
+  userId: string; // Add userId prop
 };
 
 export const LibraryClient: FC<LibraryClientProps> = ({
   initialFolders,
   initialFiles,
+  userId,
 }) => {
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [folderSearchQuery, setFolderSearchQuery] = useState<string>('');
@@ -38,6 +41,52 @@ export const LibraryClient: FC<LibraryClientProps> = ({
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const presign = useLibrary();
 
+  // S3 API calls - chỉ fetch folders trước
+  const [foldersQuery] = useGetListFolder(userId);
+
+  // Handle loading and error states
+  const isFoldersLoading = foldersQuery.isLoading;
+
+  // Convert S3 response to MediaFolder format
+  const convertS3ToMediaFolders = (
+    s3Response: S3ListBucketResultType,
+  ): MediaFolder[] => {
+    if (!s3Response?.ListBucketResult?.CommonPrefixes) {
+      return [];
+    }
+
+    const prefixes = Array.isArray(s3Response.ListBucketResult.CommonPrefixes)
+      ? s3Response.ListBucketResult.CommonPrefixes
+      : [s3Response.ListBucketResult.CommonPrefixes];
+
+    return prefixes.map((prefix) => {
+      const pathParts = prefix.Prefix.split('/').filter(Boolean);
+      // Extract only the folder name (last part before trailing slash)
+      // From: df23285e-75a8-4b71-8549-01972084fa7d/abc/
+      // We want: abc
+      const folderName = pathParts[pathParts.length - 1] || 'Root';
+
+      return {
+        id: prefix.Prefix,
+        name: folderName,
+        fileCount: 0, // Will be updated when we get file count
+        size: 0, // Will be updated when we get folder size
+        color: 'blue', // Default color
+        parentId: undefined, // No parent for root level folders
+        isExpanded: expandedFolders.includes(prefix.Prefix),
+      };
+    });
+  };
+
+  // Update folders when S3 data changes
+  useEffect(() => {
+    if (foldersQuery.data) {
+      const s3Folders = convertS3ToMediaFolders(foldersQuery.data);
+      setLocalFolders(s3Folders);
+    }
+  }, [foldersQuery.data]);
+
+  // Chỉ sử dụng initialFiles cho bây giờ
   const filteredFiles = initialFiles.filter((file) => {
     const matchesSearch = file.name
       .toLowerCase()
@@ -46,8 +95,8 @@ export const LibraryClient: FC<LibraryClientProps> = ({
       selectedFolder === 'all' ||
       selectedFolder === 'recent' ||
       file.folder === selectedFolder ||
-      (initialFolders.find((f) => f.id === selectedFolder)?.parentId &&
-        initialFolders.find((f) => f.id === file.folder)?.parentId ===
+      (localFolders.find((f) => f.id === selectedFolder)?.parentId &&
+        localFolders.find((f) => f.id === file.folder)?.parentId ===
           selectedFolder);
     return matchesSearch && matchesFolder;
   });
@@ -233,19 +282,29 @@ export const LibraryClient: FC<LibraryClientProps> = ({
 
       <div className="flex gap-6 flex-1 w-full min-h-0 overflow-hidden">
         {/* Folders Sidebar */}
-        <FolderSidebar
-          folders={initialFolders}
-          selectedFolder={selectedFolder}
-          onFolderSelect={setSelectedFolder}
-          folderSearchQuery={folderSearchQuery}
-          onFolderSearchChange={setFolderSearchQuery}
-          isCollapsed={isFolderPanelCollapsed}
-          onToggleCollapse={() =>
-            setIsFolderPanelCollapsed(!isFolderPanelCollapsed)
-          }
-          expandedFolders={expandedFolders}
-          onToggleFolderExpansion={toggleFolderExpansion}
-        />
+        {isFoldersLoading ? (
+          <div className="w-64 bg-gray-50 dark:bg-gray-900 rounded-lg p-4">
+            <div className="animate-pulse space-y-3">
+              <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-3/4"></div>
+              <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-1/2"></div>
+              <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-2/3"></div>
+            </div>
+          </div>
+        ) : (
+          <FolderSidebar
+            folders={localFolders}
+            selectedFolder={selectedFolder}
+            onFolderSelect={setSelectedFolder}
+            folderSearchQuery={folderSearchQuery}
+            onFolderSearchChange={setFolderSearchQuery}
+            isCollapsed={isFolderPanelCollapsed}
+            onToggleCollapse={() =>
+              setIsFolderPanelCollapsed(!isFolderPanelCollapsed)
+            }
+            expandedFolders={expandedFolders}
+            onToggleFolderExpansion={toggleFolderExpansion}
+          />
+        )}
 
         {/* Main Content */}
         <MediaContent
