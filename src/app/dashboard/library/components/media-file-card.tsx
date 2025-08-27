@@ -39,13 +39,14 @@ export const MediaFileCard: FC<MediaFileCardProps> = ({ file }) => {
   };
 
   return (
-    <Card className="cursor-pointer hover:shadow-lg transition-shadow group">
+    <Card className="p-0 cursor-pointer hover:shadow-lg transition-shadow group">
       <CardContent className="p-3">
         <div className="aspect-square bg-gray-100 rounded-lg mb-3 relative overflow-hidden">
           {file.type === 'image' ? (
             <Image
               width={64}
               height={64}
+              quality={100}
               src={file.thumbnail || file.url}
               alt={file.name}
               className="w-full h-full object-cover"

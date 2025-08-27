@@ -122,67 +122,65 @@ export const MediaContent: FC<MediaContentProps> = ({
   );
 
   return (
-    <div className="flex-1 flex flex-col h-full overflow-hidden">
-      <div className="mb-4 flex items-center justify-between">
-        <div className="flex items-center gap-2">
-          <h2 className="text-lg font-medium">
-            {selectedFolderData?.name || 'All Files'}
-          </h2>
-          <Badge variant="secondary">{files.length} files</Badge>
-          {selectedFolder !== 'all' && selectedFolder !== 'recent' && (
-            <div className="flex gap-1 ml-2">
-              <Button variant="ghost" size="sm" className="h-6 w-6 p-0">
-                <Edit className="w-3 h-3" />
-              </Button>
-              <Button variant="ghost" size="sm" className="h-6 w-6 p-0">
-                <Settings className="w-3 h-3" />
-              </Button>
-              <Button
-                variant="ghost"
-                size="sm"
-                className="h-6 w-6 p-0 text-red-500 hover:text-red-700"
-              >
-                <Trash2 className="w-3 h-3" />
-              </Button>
+    <ContextMenu>
+      <ContextMenuTrigger asChild>
+        <div className="flex-1 flex flex-col h-full overflow-hidden">
+          <div className="mb-4 flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <h2 className="text-lg font-medium">
+                {selectedFolderData?.name || 'All Files'}
+              </h2>
+              <Badge variant="secondary">{files.length} files</Badge>
+              {selectedFolder !== 'all' && selectedFolder !== 'recent' && (
+                <div className="flex gap-1 ml-2">
+                  <Button variant="ghost" size="sm" className="h-6 w-6 p-0">
+                    <Edit className="w-3 h-3" />
+                  </Button>
+                  <Button variant="ghost" size="sm" className="h-6 w-6 p-0">
+                    <Settings className="w-3 h-3" />
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="h-6 w-6 p-0 text-red-500 hover:text-red-700"
+                  >
+                    <Trash2 className="w-3 h-3" />
+                  </Button>
+                </div>
+              )}
             </div>
-          )}
-        </div>
-      </div>
+          </div>
 
-      <div className="flex-1 min-h-0">
-        <ContextMenu>
-          <ContextMenuTrigger asChild>
-            <div>
-              <ScrollArea className="h-full">
-                {viewMode === 'grid' ? renderGridView() : renderListView()}
-              </ScrollArea>
-            </div>
-          </ContextMenuTrigger>
-          <ContextMenuContent>
-            <ContextMenuItem onClick={onCreateFolder}>
-              <FolderPlus className="w-4 h-4" />
-              New folder
-            </ContextMenuItem>
-            <ContextMenuItem onClick={onUploadFiles}>
-              <Upload className="w-4 h-4" />
-              Upload files
-            </ContextMenuItem>
-            <ContextMenuSeparator />
-            <ContextMenuItem disabled>
-              <FileText className="w-4 h-4" />
-              Docs
-            </ContextMenuItem>
-            <ContextMenuItem disabled>
-              <FileSpreadsheet className="w-4 h-4" />
-              Sheets
-            </ContextMenuItem>
-            <ContextMenuItem disabled>
-              <Presentation className="w-4 h-4" />
-              Slides
-            </ContextMenuItem>
-          </ContextMenuContent>
-        </ContextMenu>
-      </div>
-    </div>
+          <div className="flex-1 min-h-0">
+            <ScrollArea className="h-full">
+              {viewMode === 'grid' ? renderGridView() : renderListView()}
+            </ScrollArea>
+          </div>
+        </div>
+      </ContextMenuTrigger>
+      <ContextMenuContent>
+        <ContextMenuItem onClick={onCreateFolder}>
+          <FolderPlus className="w-4 h-4" />
+          New folder
+        </ContextMenuItem>
+        <ContextMenuItem onClick={onUploadFiles}>
+          <Upload className="w-4 h-4" />
+          Upload files
+        </ContextMenuItem>
+        <ContextMenuSeparator />
+        <ContextMenuItem disabled>
+          <FileText className="w-4 h-4" />
+          Docs
+        </ContextMenuItem>
+        <ContextMenuItem disabled>
+          <FileSpreadsheet className="w-4 h-4" />
+          Sheets
+        </ContextMenuItem>
+        <ContextMenuItem disabled>
+          <Presentation className="w-4 h-4" />
+          Slides
+        </ContextMenuItem>
+      </ContextMenuContent>
+    </ContextMenu>
   );
 };
