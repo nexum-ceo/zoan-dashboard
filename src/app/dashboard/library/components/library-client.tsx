@@ -7,7 +7,7 @@ import type { MediaFile, MediaFolder } from '../lib/data';
 import { ActionsBar } from './actions-bar';
 import { FolderSidebar } from './folder-sidebar';
 import { MediaContent } from './media-content';
-import { UploadProgress } from './upload-progress';
+import { UploadNotification, type UploadFile } from './upload-notification';
 
 type LibraryClientProps = {
   initialFolders: MediaFolder[];
@@ -22,8 +22,9 @@ export const LibraryClient: FC<LibraryClientProps> = ({
   const [folderSearchQuery, setFolderSearchQuery] = useState<string>('');
   const [selectedFolder, setSelectedFolder] = useState<string>('all');
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
-  const [isUploading, setIsUploading] = useState<boolean>(false);
-  const [uploadProgress, setUploadProgress] = useState<number>(0);
+  const [uploadFiles, setUploadFiles] = useState<UploadFile[]>([]);
+  const [isNotificationVisible, setIsNotificationVisible] =
+    useState<boolean>(false);
   const [isFolderPanelCollapsed, setIsFolderPanelCollapsed] =
     useState<boolean>(false);
   const [localFolders, setLocalFolders] =
@@ -80,8 +81,16 @@ export const LibraryClient: FC<LibraryClientProps> = ({
 
       void (async () => {
         try {
-          setIsUploading(true);
-          setUploadProgress(0);
+          // Tạo danh sách file upload với status ban đầu
+          const newUploadFiles: UploadFile[] = fileArray.map((file, index) => ({
+            id: `${Date.now()}-${index}`,
+            name: file.name,
+            status: 'uploading' as const,
+            progress: 0,
+          }));
+
+          setUploadFiles(newUploadFiles);
+          setIsNotificationVisible(true);
 
           const body = {
             file_list: fileArray.map((f) => ({
@@ -93,29 +102,85 @@ export const LibraryClient: FC<LibraryClientProps> = ({
           const res = await presign.mutateAsync(body);
           const items = res.data?.data ?? [];
 
-          let completed = 0;
-          await Promise.all(
-            items.map(
-              async (item: { presigned_url: string; file_name: string }) => {
-                const file = fileArray.find((f) => f.name === item.file_name);
-                if (!file) return;
-                const put = await fetch(item.presigned_url, {
-                  method: 'PUT',
-                  body: file,
-                });
-                if (!put.ok) throw new Error('Upload failed');
-                completed += 1;
-                setUploadProgress(Math.round((completed / items.length) * 100));
-              },
-            ),
-          );
+          // Upload từng file với progress tracking
+          for (let i = 0; i < items.length; i++) {
+            const item = items[i];
+            const file = fileArray.find((f) => f.name === item.file_name);
+            if (!file) continue;
 
-          toast.success('Upload images successfully');
+            const uploadFile = newUploadFiles[i];
+
+            try {
+              // Sử dụng XMLHttpRequest để track progress thực tế
+              await new Promise<void>((resolve, reject) => {
+                const xhr = new XMLHttpRequest();
+
+                xhr.upload.addEventListener('progress', (event) => {
+                  if (event.lengthComputable) {
+                    const progress = Math.round(
+                      (event.loaded / event.total) * 100,
+                    );
+                    setUploadFiles((prev) =>
+                      prev.map((f) =>
+                        f.id === uploadFile.id ? { ...f, progress } : f,
+                      ),
+                    );
+                  }
+                });
+
+                xhr.addEventListener('load', () => {
+                  if (xhr.status >= 200 && xhr.status < 300) {
+                    // Cập nhật status thành công
+                    setUploadFiles((prev) =>
+                      prev.map((f) =>
+                        f.id === uploadFile.id
+                          ? { ...f, status: 'success' as const, progress: 100 }
+                          : f,
+                      ),
+                    );
+                    resolve();
+                  } else {
+                    reject(
+                      new Error(`Upload failed with status: ${xhr.status}`),
+                    );
+                  }
+                });
+
+                xhr.addEventListener('error', () => {
+                  reject(new Error('Network error during upload'));
+                });
+
+                xhr.open('PUT', item.presigned_url);
+                xhr.send(file);
+              });
+            } catch (error) {
+              // Cập nhật status lỗi
+              setUploadFiles((prev) =>
+                prev.map((f) =>
+                  f.id === uploadFile.id
+                    ? { ...f, status: 'error' as const }
+                    : f,
+                ),
+              );
+            }
+          }
+
+          // Tự động ẩn notification sau 5 giây nếu tất cả thành công
+          const allSuccess = newUploadFiles.every(
+            (f) => f.status === 'success',
+          );
+          if (allSuccess) {
+            setTimeout(() => {
+              setIsNotificationVisible(false);
+              setUploadFiles([]);
+            }, 5000);
+          }
         } catch (err) {
           const msg = err instanceof Error ? err.message : 'Upload error';
           toast.error(msg);
+          setIsNotificationVisible(false);
+          setUploadFiles([]);
         } finally {
-          setIsUploading(false);
           event.target.value = '';
         }
       })();
@@ -144,8 +209,16 @@ export const LibraryClient: FC<LibraryClientProps> = ({
 
   return (
     <>
-      {/* Upload Progress */}
-      <UploadProgress isUploading={isUploading} progress={uploadProgress} />
+      {/* Upload Notification */}
+      <UploadNotification
+        files={uploadFiles}
+        isVisible={isNotificationVisible}
+        onClose={() => {
+          setIsNotificationVisible(false);
+          setUploadFiles([]);
+        }}
+        onMinimize={() => setIsNotificationVisible(false)}
+      />
 
       {/* Actions Bar */}
       <ActionsBar
