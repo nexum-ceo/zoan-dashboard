@@ -56,6 +56,7 @@ export const FolderSidebar: FC<FolderSidebarProps> = ({
     const hasChildren = filteredFolders.some((f) => f.parentId === folder.id);
     const isExpanded = expandedFolders.includes(folder.id);
     const children = filteredFolders.filter((f) => f.parentId === folder.id);
+    const isSelected = selectedFolder === folder.id;
 
     return (
       <div key={folder.id}>
@@ -63,10 +64,14 @@ export const FolderSidebar: FC<FolderSidebarProps> = ({
           <Tooltip>
             <TooltipTrigger asChild>
               <Button
-                variant={selectedFolder === folder.id ? 'default' : 'ghost'}
-                className={`w-full justify-start gap-2 h-auto p-2 text-left ${
+                variant="ghost"
+                className={`w-full justify-start gap-2 h-auto p-2 text-left transition-all duration-200 ${
                   level > 0 && !isCollapsed ? 'ml-4' : ''
-                } ${isCollapsed ? 'justify-center' : ''}`}
+                } ${isCollapsed ? 'justify-center' : ''} ${
+                  isSelected
+                    ? 'bg-gray-100 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 shadow-sm'
+                    : 'hover:bg-gray-50 dark:hover:bg-gray-800/80 hover:border-gray-200 dark:hover:border-gray-600'
+                }`}
                 onClick={() => onFolderSelect(folder.id)}
               >
                 <div
@@ -138,10 +143,14 @@ export const FolderSidebar: FC<FolderSidebarProps> = ({
           </Tooltip>
         ) : (
           <Button
-            variant={selectedFolder === folder.id ? 'default' : 'ghost'}
-            className={`w-full justify-start gap-2 h-auto p-2 text-left ${
+            variant="ghost"
+            className={`w-full justify-start gap-2 h-auto p-2 text-left transition-all duration-200 ${
               level > 0 && !isCollapsed ? 'ml-4' : ''
-            } ${isCollapsed ? 'justify-center' : ''}`}
+            } ${isCollapsed ? 'justify-center' : ''} ${
+              isSelected
+                ? 'bg-gray-100 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 shadow-sm'
+                : 'hover:bg-gray-50 dark:hover:bg-gray-800/80 hover:border-gray-200 dark:hover:border-gray-600'
+            }`}
             onClick={() => onFolderSelect(folder.id)}
           >
             <div
