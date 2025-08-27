@@ -7,9 +7,15 @@ export const useLibrary = () => {
   });
 };
 
-export const useGetListFileOfUser = () => {
-  return useMutation({
-    mutationFn: libraryApiRequest.getListFileOfUser,
+export const useGetListFileOfUser = (userId: string) => {
+  return useQueries({
+    queries: [
+      {
+        queryKey: ['list-file-of-user', userId],
+        queryFn: () => libraryApiRequest.getListFileOfUser(userId),
+        enabled: !!userId,
+      },
+    ],
   });
 };
 
@@ -25,7 +31,7 @@ export const useGetListFolder = (userId: string) => {
   });
 };
 
-export const useGetListFile = (userId: string, folderPath: string) => {
+export const useGetListFileInFolder = (userId: string, folderPath: string) => {
   return useQueries({
     queries: [
       {
