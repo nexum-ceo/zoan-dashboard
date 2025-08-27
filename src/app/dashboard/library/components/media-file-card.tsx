@@ -44,12 +44,12 @@ export const MediaFileCard: FC<MediaFileCardProps> = ({ file }) => {
         <div className="aspect-square bg-gray-100 rounded-lg mb-3 relative overflow-hidden">
           {file.type === 'image' ? (
             <Image
-              width={64}
-              height={64}
+              fill
               quality={100}
+              sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 16vw"
               src={file.thumbnail || file.url}
               alt={file.name}
-              className="w-full h-full object-cover"
+              className="absolute inset-0 w-full h-full object-cover"
             />
           ) : file.type === 'video' ? (
             <div className="w-full h-full bg-gray-200 flex items-center justify-center relative">
