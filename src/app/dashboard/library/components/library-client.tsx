@@ -8,6 +8,7 @@ import {
   useLibrary,
 } from '@/queries/useLibrary';
 import type { S3ListBucketResultType } from '@/types/library';
+import { useRouter, useSearchParams } from 'next/navigation';
 import {
   ChangeEvent,
   FC,
@@ -35,7 +36,8 @@ export const LibraryClient: FC<LibraryClientProps> = ({
 }) => {
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [folderSearchQuery, setFolderSearchQuery] = useState<string>('');
-  const [selectedFolder, setSelectedFolder] = useState<string>('all');
+  // currentPrefix is the absolute S3 prefix for the current view, e.g. `${userId}/designs/`
+  const [currentPrefix, setCurrentPrefix] = useState<string>(`${userId}/`);
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
   const [uploadFiles, setUploadFiles] = useState<UploadFile[]>([]);
   const [isNotificationVisible, setIsNotificationVisible] =
@@ -52,14 +54,55 @@ export const LibraryClient: FC<LibraryClientProps> = ({
   ]);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const presign = useLibrary();
+  const router = useRouter();
+  const searchParams = useSearchParams();
+
+  // base64url helpers for compact URL param
+  const encodeBase64Url = useCallback((input: string) => {
+    if (typeof window === 'undefined') return '';
+    const b64 = window.btoa(unescape(encodeURIComponent(input)));
+    return b64.replace(/=/g, '').replace(/\+/g, '-').replace(/\//g, '_');
+  }, []);
+
+  const decodeBase64Url = useCallback((input: string) => {
+    try {
+      const b64 = input.replace(/-/g, '+').replace(/_/g, '/');
+      const pad = b64.length % 4 === 0 ? '' : '='.repeat(4 - (b64.length % 4));
+      const str = decodeURIComponent(escape(window.atob(b64 + pad)));
+      return str;
+    } catch {
+      return '';
+    }
+  }, []);
+
+  // initialize currentPrefix from URL `p` param (base64url), fallback to root
+  useEffect(() => {
+    const p = searchParams.get('p');
+    if (p) {
+      const decoded = decodeBase64Url(p);
+      if (decoded) {
+        setCurrentPrefix(decoded.endsWith('/') ? decoded : `${decoded}/`);
+        return;
+      }
+    }
+    setCurrentPrefix(`${userId}/`);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchParams, userId]);
+
+  // keep URL in sync when currentPrefix changes
+  useEffect(() => {
+    if (!currentPrefix) return;
+    const encoded = encodeBase64Url(currentPrefix);
+    const url = new URL(window.location.href);
+    url.searchParams.set('p', encoded);
+    router.replace(url.pathname + '?' + url.searchParams.toString());
+  }, [currentPrefix, encodeBase64Url, router]);
 
   // S3 API calls - fetch folders and files
   const [foldersQuery] = useGetListFolder(userId);
   // derive folder path relative to user root for API
   const relativeFolderPath =
-    selectedFolder === 'all' || selectedFolder === 'recent'
-      ? 'all'
-      : selectedFolder.replace(new RegExp(`^${userId}/?`), '');
+    currentPrefix.replace(new RegExp(`^${userId}/?`), '') || 'all';
   const [filesInFolderQuery] = useGetListFileInFolder(
     userId,
     relativeFolderPath,
@@ -148,9 +191,6 @@ export const LibraryClient: FC<LibraryClientProps> = ({
           setIsNotificationVisible(true);
 
           // compute current folder path relative to user root
-          const currentPrefix = selectedFolder.endsWith('/')
-            ? selectedFolder
-            : `${userId}/`;
           const relativeCurrent = currentPrefix.replace(
             new RegExp(`^${userId}/?`),
             '',
@@ -267,8 +307,8 @@ export const LibraryClient: FC<LibraryClientProps> = ({
     const safeName = rawName.replace(/\s+/g, '-');
 
     // Determine parent prefix (S3 style) from selection
-    const parentPrefix = selectedFolder.endsWith('/')
-      ? selectedFolder
+    const parentPrefix = currentPrefix.endsWith('/')
+      ? currentPrefix
       : `${userId}/`;
 
     // Convert absolute prefix to path relative to user root for API body
@@ -347,8 +387,8 @@ export const LibraryClient: FC<LibraryClientProps> = ({
         ) : (
           <FolderSidebar
             folders={localFolders}
-            selectedFolder={selectedFolder}
-            onFolderSelect={setSelectedFolder}
+            selectedFolder={currentPrefix}
+            onFolderSelect={setCurrentPrefix}
             folderSearchQuery={folderSearchQuery}
             onFolderSearchChange={setFolderSearchQuery}
             isCollapsed={isFolderPanelCollapsed}
@@ -364,9 +404,10 @@ export const LibraryClient: FC<LibraryClientProps> = ({
         <MediaContent
           files={filteredFiles}
           folders={localFolders}
-          selectedFolder={selectedFolder}
+          selectedFolder={currentPrefix}
+          rootPrefix={`${userId}/`}
           viewMode={viewMode}
-          onFolderOpen={setSelectedFolder}
+          onFolderOpen={setCurrentPrefix}
           onCreateFolder={() => setIsNewFolderOpen(true)}
           onUploadFiles={handleFileUpload}
         />

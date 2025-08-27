@@ -39,6 +39,7 @@ type MediaContentProps = {
   files: MediaFile[];
   folders: MediaFolder[];
   selectedFolder: string;
+  rootPrefix?: string;
   viewMode: 'grid' | 'list';
   onFolderOpen?: (folderId: string) => void;
   onCreateFolder?: () => void;
@@ -49,6 +50,7 @@ export const MediaContent: FC<MediaContentProps> = ({
   files,
   folders,
   selectedFolder,
+  rootPrefix,
   viewMode,
   onFolderOpen,
   onCreateFolder,
@@ -153,7 +155,15 @@ export const MediaContent: FC<MediaContentProps> = ({
                 <Breadcrumb>
                   <BreadcrumbList>
                     <BreadcrumbItem>
-                      <BreadcrumbLink href="#">Library</BreadcrumbLink>
+                      <BreadcrumbLink
+                        href="#"
+                        onClick={(e) => {
+                          e.preventDefault();
+                          if (rootPrefix) onFolderOpen?.(rootPrefix);
+                        }}
+                      >
+                        Library
+                      </BreadcrumbLink>
                     </BreadcrumbItem>
                     <BreadcrumbSeparator />
                     {folderPath.length > 0 ? (
@@ -180,7 +190,9 @@ export const MediaContent: FC<MediaContentProps> = ({
                     ) : (
                       <BreadcrumbItem>
                         <BreadcrumbPage>
-                          {selectedFolder === 'recent' ? 'Recent' : 'All Files'}
+                          {selectedFolder === rootPrefix
+                            ? 'All Files'
+                            : 'Recent'}
                         </BreadcrumbPage>
                       </BreadcrumbItem>
                     )}
@@ -188,7 +200,7 @@ export const MediaContent: FC<MediaContentProps> = ({
                 </Breadcrumb>
               </div>
               <Badge variant="secondary">{files.length} files</Badge>
-              {selectedFolder !== 'all' && selectedFolder !== 'recent' && (
+              {selectedFolder !== rootPrefix && (
                 <div className="flex gap-1 ml-2">
                   <Button variant="ghost" size="sm" className="h-6 w-6 p-0">
                     <Edit className="w-3 h-3" />
