@@ -150,7 +150,7 @@ export const FolderSidebar: FC<FolderSidebarProps> = ({
               isSelected
                 ? 'bg-gray-100 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 shadow-sm'
                 : 'hover:bg-gray-50 dark:hover:bg-gray-800/80 hover:border-gray-200 dark:hover:border-gray-600'
-            }`}
+            } ${level > 0 ? 'mr-4' : ''}`}
             onClick={() => onFolderSelect(folder.id)}
           >
             <div
@@ -289,7 +289,7 @@ export const FolderSidebar: FC<FolderSidebarProps> = ({
 
         <div className="flex-1 min-h-0">
           <ScrollArea className="h-full">
-            <div className="space-y-1">
+            <div className="space-y-1 pr-4">
               {rootFolders.map((folder) => renderFolder(folder))}
             </div>
           </ScrollArea>
