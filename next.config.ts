@@ -7,7 +7,7 @@ const nextConfig: NextConfig = {
     remotePatterns: [
       {
         protocol: 'https',
-        hostname: 'minio.buymed.site',
+        hostname: process.env.NEXT_PUBLIC_STORAGE_HOSTNAME || '',
       },
     ],
   },

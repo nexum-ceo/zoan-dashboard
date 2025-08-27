@@ -1,11 +1,11 @@
 'use client';
 
+import { FolderSidebar } from '@/app/dashboard/library/components/folder-sidebar';
 import { useLibrary } from '@/queries/useLibrary';
 import { ChangeEvent, FC, useRef, useState } from 'react';
 import { toast } from 'sonner';
 import type { MediaFile, MediaFolder } from '../lib/data';
 import { ActionsBar } from './actions-bar';
-import { FolderSidebar } from './folder-sidebar';
 import { MediaContent } from './media-content';
 import { UploadNotification, type UploadFile } from './upload-notification';
 
@@ -81,7 +81,7 @@ export const LibraryClient: FC<LibraryClientProps> = ({
 
       void (async () => {
         try {
-          // Tạo danh sách file upload với status ban đầu
+          // create list file upload with initial status
           const newUploadFiles: UploadFile[] = fileArray.map((file, index) => ({
             id: `${Date.now()}-${index}`,
             name: file.name,
@@ -102,7 +102,7 @@ export const LibraryClient: FC<LibraryClientProps> = ({
           const res = await presign.mutateAsync(body);
           const items = res.data?.data ?? [];
 
-          // Upload từng file với progress tracking
+          // Upload each file with progress tracking
           for (let i = 0; i < items.length; i++) {
             const item = items[i];
             const file = fileArray.find((f) => f.name === item.file_name);
@@ -111,7 +111,7 @@ export const LibraryClient: FC<LibraryClientProps> = ({
             const uploadFile = newUploadFiles[i];
 
             try {
-              // Sử dụng XMLHttpRequest để track progress thực tế
+              // Use XMLHttpRequest to track actual progress
               await new Promise<void>((resolve, reject) => {
                 const xhr = new XMLHttpRequest();
 
@@ -130,7 +130,7 @@ export const LibraryClient: FC<LibraryClientProps> = ({
 
                 xhr.addEventListener('load', () => {
                   if (xhr.status >= 200 && xhr.status < 300) {
-                    // Cập nhật status thành công
+                    // update status success
                     setUploadFiles((prev) =>
                       prev.map((f) =>
                         f.id === uploadFile.id
@@ -154,7 +154,8 @@ export const LibraryClient: FC<LibraryClientProps> = ({
                 xhr.send(file);
               });
             } catch (error) {
-              // Cập nhật status lỗi
+              console.error(error);
+              // update status error
               setUploadFiles((prev) =>
                 prev.map((f) =>
                   f.id === uploadFile.id
@@ -165,7 +166,7 @@ export const LibraryClient: FC<LibraryClientProps> = ({
             }
           }
 
-          // Tự động ẩn notification sau 5 giây nếu tất cả thành công
+          // auto hide notification after 5 seconds if all success
           const allSuccess = newUploadFiles.every(
             (f) => f.status === 'success',
           );

@@ -142,9 +142,8 @@ export const FolderSidebar: FC<FolderSidebarProps> = ({
             </TooltipContent>
           </Tooltip>
         ) : (
-          <Button
-            variant="ghost"
-            className={`w-full justify-start gap-2 h-auto p-2 text-left transition-all duration-200 ${
+          <div
+            className={`w-full justify-start rounded-md gap-2 h-auto p-2 text-left transition-all duration-200 ${
               level > 0 && !isCollapsed ? 'ml-4' : ''
             } ${isCollapsed ? 'justify-center' : ''} ${
               isSelected
@@ -214,7 +213,7 @@ export const FolderSidebar: FC<FolderSidebarProps> = ({
                   </Button>
                 )}
             </div>
-          </Button>
+          </div>
         )}
 
         {hasChildren && isExpanded && !isCollapsed && (
