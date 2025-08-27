@@ -339,19 +339,71 @@ export const LibraryClient: FC<LibraryClientProps> = ({
     setNewFolderName('');
   };
 
-  const createNewFolder = () => {
-    const name = newFolderName.trim();
-    if (!name) return;
-    const newFolder: MediaFolder = {
-      id: name.toLowerCase().replace(/\s+/g, '-'),
-      name,
-      fileCount: 0,
-      size: 0,
-      color: 'blue',
-    };
-    setLocalFolders((prev) => [newFolder, ...prev]);
-    setIsNewFolderOpen(false);
-    setNewFolderName('');
+  const createNewFolder = async () => {
+    const rawName = newFolderName.trim();
+    if (!rawName) return;
+
+    const safeName = rawName.replace(/\s+/g, '-');
+
+    // Determine parent prefix (S3 style) from selection
+    const parentPrefix = selectedFolder.endsWith('/')
+      ? selectedFolder
+      : `${userId}/`;
+
+    // Convert absolute prefix to path relative to user root for API body
+    const relativeParent = parentPrefix.replace(new RegExp(`^${userId}/?`), '');
+    const path = `${relativeParent}${safeName}/`;
+
+    try {
+      const body = {
+        file_list: [
+          {
+            path,
+            file_name: '',
+          },
+        ],
+      };
+
+      const res = await presign.mutateAsync(body);
+      const item = res.data?.data?.[0];
+      if (!item?.presigned_url) {
+        throw new Error('Failed to get presigned url for folder');
+      }
+
+      // Perform zero-byte PUT to create the folder placeholder object
+      await new Promise<void>((resolve, reject) => {
+        const xhr = new XMLHttpRequest();
+        xhr.addEventListener('load', () => {
+          if (xhr.status >= 200 && xhr.status < 300) {
+            resolve();
+          } else {
+            reject(
+              new Error(`Create folder failed with status: ${xhr.status}`),
+            );
+          }
+        });
+        xhr.addEventListener('error', () => {
+          reject(new Error('Network error during create folder'));
+        });
+        xhr.open('PUT', item.presigned_url);
+        xhr.send(new Blob());
+      });
+
+      // Optimistic UI: add to expanded list and refresh folders from S3
+      setExpandedFolders((prev) =>
+        prev.includes(parentPrefix) ? prev : [...prev, parentPrefix],
+      );
+
+      await foldersQuery.refetch?.();
+
+      toast.success('Folder created');
+      setIsNewFolderOpen(false);
+      setNewFolderName('');
+    } catch (error) {
+      const msg =
+        error instanceof Error ? error.message : 'Create folder error';
+      toast.error(msg);
+    }
   };
 
   return (
