@@ -1,6 +1,14 @@
 'use client';
 
 import { Badge } from '@/components/ui/badge';
+import {
+  Breadcrumb,
+  BreadcrumbItem,
+  BreadcrumbLink,
+  BreadcrumbList,
+  BreadcrumbPage,
+  BreadcrumbSeparator,
+} from '@/components/ui/breadcrumb';
 import { Button } from '@/components/ui/button';
 import {
   ContextMenu,
@@ -22,7 +30,7 @@ import {
   Trash2,
   Upload,
 } from 'lucide-react';
-import { FC } from 'react';
+import { FC, Fragment } from 'react';
 import type { MediaFile, MediaFolder } from '../lib/data';
 import { MediaFileCard } from './media-file-card';
 import { MediaFileListItem } from './media-file-list-item';
@@ -47,6 +55,20 @@ export const MediaContent: FC<MediaContentProps> = ({
   onUploadFiles,
 }) => {
   const selectedFolderData = folders.find((f) => f.id === selectedFolder);
+
+  // Build breadcrumb path based on parentId chain
+  const folderById = new Map(folders.map((f) => [f.id, f] as const));
+  const buildFolderPath = () => {
+    if (!selectedFolderData) return [] as MediaFolder[];
+    const path: MediaFolder[] = [];
+    let current: MediaFolder | undefined = selectedFolderData;
+    while (current) {
+      path.unshift(current);
+      current = current.parentId ? folderById.get(current.parentId) : undefined;
+    }
+    return path;
+  };
+  const folderPath = buildFolderPath();
 
   const topLevelFolders = folders.filter(
     (f) => !f.parentId && f.id !== 'all' && f.id !== 'recent',
@@ -127,9 +149,44 @@ export const MediaContent: FC<MediaContentProps> = ({
         <div className="flex-1 flex flex-col h-full overflow-hidden">
           <div className="mb-4 flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <h2 className="text-lg font-medium">
-                {selectedFolderData?.name || 'All Files'}
-              </h2>
+              <div>
+                <Breadcrumb>
+                  <BreadcrumbList>
+                    <BreadcrumbItem>
+                      <BreadcrumbLink href="#">Library</BreadcrumbLink>
+                    </BreadcrumbItem>
+                    <BreadcrumbSeparator />
+                    {folderPath.length > 0 ? (
+                      <>
+                        {folderPath.slice(0, -1).map((f) => (
+                          <Fragment key={f.id}>
+                            <BreadcrumbItem>
+                              <BreadcrumbLink
+                                href="#"
+                                onClick={() => onFolderOpen?.(f.id)}
+                              >
+                                {f.name}
+                              </BreadcrumbLink>
+                            </BreadcrumbItem>
+                            <BreadcrumbSeparator />
+                          </Fragment>
+                        ))}
+                        <BreadcrumbItem>
+                          <BreadcrumbPage>
+                            {folderPath[folderPath.length - 1]?.name}
+                          </BreadcrumbPage>
+                        </BreadcrumbItem>
+                      </>
+                    ) : (
+                      <BreadcrumbItem>
+                        <BreadcrumbPage>
+                          {selectedFolder === 'recent' ? 'Recent' : 'All Files'}
+                        </BreadcrumbPage>
+                      </BreadcrumbItem>
+                    )}
+                  </BreadcrumbList>
+                </Breadcrumb>
+              </div>
               <Badge variant="secondary">{files.length} files</Badge>
               {selectedFolder !== 'all' && selectedFolder !== 'recent' && (
                 <div className="flex gap-1 ml-2">
