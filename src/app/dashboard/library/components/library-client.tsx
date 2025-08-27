@@ -3,7 +3,7 @@
 import { FolderSidebar } from '@/app/dashboard/library/components/folder-sidebar';
 import { putZeroByte, s3ToMediaFiles, s3ToMediaFolders } from '@/lib/s3';
 import {
-  useGetListFileOfUser,
+  useGetListFileInFolder,
   useGetListFolder,
   useLibrary,
 } from '@/queries/useLibrary';
@@ -55,7 +55,15 @@ export const LibraryClient: FC<LibraryClientProps> = ({
 
   // S3 API calls - fetch folders and files
   const [foldersQuery] = useGetListFolder(userId);
-  const [filesQuery] = useGetListFileOfUser(userId);
+  // derive folder path relative to user root for API
+  const relativeFolderPath =
+    selectedFolder === 'all' || selectedFolder === 'recent'
+      ? 'all'
+      : selectedFolder.replace(new RegExp(`^${userId}/?`), '');
+  const [filesInFolderQuery] = useGetListFileInFolder(
+    userId,
+    relativeFolderPath,
+  );
 
   // Handle loading and error states
   const isFoldersLoading = foldersQuery.isLoading;
@@ -85,22 +93,18 @@ export const LibraryClient: FC<LibraryClientProps> = ({
   }, [foldersQuery.data, convertS3ToMediaFolders]);
 
   // Build files from S3; fall back to initialFiles while loading
-  const allFiles: MediaFile[] = filesQuery?.data
-    ? convertS3ToMediaFiles(filesQuery.data as S3ListBucketResultType, userId)
+  const allFiles: MediaFile[] = filesInFolderQuery?.data
+    ? convertS3ToMediaFiles(
+        filesInFolderQuery.data as S3ListBucketResultType,
+        userId,
+      )
     : initialFiles;
 
   const filteredFiles = allFiles.filter((file) => {
     const matchesSearch = file.name
       .toLowerCase()
       .includes(searchQuery.toLowerCase());
-    const matchesFolder =
-      selectedFolder === 'all' ||
-      selectedFolder === 'recent' ||
-      file.folder === selectedFolder ||
-      (localFolders.find((f) => f.id === selectedFolder)?.parentId &&
-        localFolders.find((f) => f.id === file.folder)?.parentId ===
-          selectedFolder);
-    return matchesSearch && matchesFolder;
+    return matchesSearch;
   });
 
   const toggleFolderExpansion = (folderId: string) => {
@@ -143,9 +147,18 @@ export const LibraryClient: FC<LibraryClientProps> = ({
           setUploadFiles(newUploadFiles);
           setIsNotificationVisible(true);
 
+          // compute current folder path relative to user root
+          const currentPrefix = selectedFolder.endsWith('/')
+            ? selectedFolder
+            : `${userId}/`;
+          const relativeCurrent = currentPrefix.replace(
+            new RegExp(`^${userId}/?`),
+            '',
+          );
+
           const body = {
             file_list: fileArray.map((f) => ({
-              path: 'abc/',
+              path: relativeCurrent,
               file_name: f.name,
             })),
           };
@@ -228,6 +241,8 @@ export const LibraryClient: FC<LibraryClientProps> = ({
               setUploadFiles([]);
             }, 5000);
           }
+          // refresh current folder
+          await filesInFolderQuery.refetch?.();
         } catch (err) {
           const msg = err instanceof Error ? err.message : 'Upload error';
           toast.error(msg);
