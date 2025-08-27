@@ -36,7 +36,7 @@ export const LibraryClient: FC<LibraryClientProps> = ({
 }) => {
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [folderSearchQuery, setFolderSearchQuery] = useState<string>('');
-  // currentPrefix is the absolute S3 prefix for the current view, e.g. `${userId}/designs/`
+  // currentPrefix is the absolute S3 prefix for the current view, e.g. `${userId}/abc/`
   const [currentPrefix, setCurrentPrefix] = useState<string>(`${userId}/`);
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
   const [uploadFiles, setUploadFiles] = useState<UploadFile[]>([]);
