@@ -72,76 +72,144 @@ export const MediaContent: FC<MediaContentProps> = ({
   };
   const folderPath = buildFolderPath();
 
-  const topLevelFolders = folders.filter(
-    (f) => !f.parentId && f.id !== 'all' && f.id !== 'recent',
-  );
+  // Use all folders passed from parent (these are already filtered for current folder)
+  const currentFolders = folders;
 
   const renderGridView = () => (
     <div className="space-y-4">
-      {/* Folders grid (wrap like Drive) */}
-      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-4">
-        {topLevelFolders.map((folder) => (
-          <div
-            key={folder.id}
-            className="group border rounded-lg p-3 bg-muted/40 hover:bg-muted transition-colors cursor-pointer h-16"
-            onClick={() => onFolderOpen?.(folder.id)}
-          >
-            <div className="flex items-center justify-between h-full">
-              <div className="flex items-center gap-2 min-w-0">
-                <Folder className="w-4 h-4 text-foreground/80" />
-                <span className="font-medium text-sm truncate">
-                  {folder.name}
-                </span>
-              </div>
-              <Button
-                variant="ghost"
-                size="icon"
-                className="h-6 w-6 opacity-0 group-hover:opacity-100"
-                onClick={(e) => {
-                  e.stopPropagation();
-                }}
-              >
-                <MoreVertical className="w-3 h-3" />
-              </Button>
+      {/* Show folders and files only when inside a subfolder */}
+      {selectedFolder !== rootPrefix && (
+        <>
+          {/* Folders grid (wrap like Drive) */}
+          {currentFolders.length > 0 && (
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-4">
+              {currentFolders.map((folder) => (
+                <div
+                  key={folder.id}
+                  className="group border rounded-lg p-3 bg-muted/40 hover:bg-muted transition-colors cursor-pointer h-16"
+                  onClick={() => onFolderOpen?.(folder.id)}
+                >
+                  <div className="flex items-center justify-between h-full">
+                    <div className="flex items-center gap-2 min-w-0">
+                      <Folder className="w-4 h-4 text-foreground/80" />
+                      <span className="font-medium text-sm truncate">
+                        {folder.name}
+                      </span>
+                    </div>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-6 w-6 opacity-0 group-hover:opacity-100"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                      }}
+                    >
+                      <MoreVertical className="w-3 h-3" />
+                    </Button>
+                  </div>
+                </div>
+              ))}
             </div>
-          </div>
-        ))}
-      </div>
+          )}
 
-      {/* Files grid */}
-      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-4">
-        {files.map((file) => (
-          <MediaFileCard key={file.id} file={file} />
-        ))}
-      </div>
+          {/* Files grid */}
+          {files.length > 0 && (
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-4">
+              {files.map((file) => (
+                <MediaFileCard key={file.id} file={file} />
+              ))}
+            </div>
+          )}
+        </>
+      )}
+
+      {/* Show root folders when at root level */}
+      {selectedFolder === rootPrefix && (
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-4">
+          {currentFolders.map((folder) => (
+            <div
+              key={folder.id}
+              className="group border rounded-lg p-3 bg-muted/40 hover:bg-muted transition-colors cursor-pointer h-16"
+              onClick={() => onFolderOpen?.(folder.id)}
+            >
+              <div className="flex items-center justify-between h-full">
+                <div className="flex items-center gap-2 min-w-0">
+                  <Folder className="w-4 h-4 text-foreground/80" />
+                  <span className="font-medium text-sm truncate">
+                    {folder.name}
+                  </span>
+                </div>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-6 w-6 opacity-0 group-hover:opacity-100"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                  }}
+                >
+                  <MoreVertical className="w-3 h-3" />
+                </Button>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 
   const renderListView = () => (
     <div className="space-y-1">
-      {/* Folders first */}
-      {topLevelFolders.map((folder) => (
-        <button
-          key={folder.id}
-          onClick={() => onFolderOpen?.(folder.id)}
-          className="w-full flex items-center justify-between rounded-md px-3 py-2 hover:bg-muted/40"
-        >
-          <div className="flex items-center gap-2 min-w-0">
-            <span className="inline-flex items-center justify-center w-6 h-6">
-              <Folder className="w-5 h-5 text-foreground/80" />
-            </span>
-            <span className="truncate text-sm">{folder.name}</span>
-          </div>
-          <span className="text-xs text-muted-foreground whitespace-nowrap">
-            {folder.fileCount} files
-          </span>
-        </button>
-      ))}
+      {/* Show folders and files only when inside a subfolder */}
+      {selectedFolder !== rootPrefix && (
+        <>
+          {/* Folders first */}
+          {currentFolders.map((folder) => (
+            <button
+              key={folder.id}
+              onClick={() => onFolderOpen?.(folder.id)}
+              className="w-full flex items-center justify-between rounded-md px-3 py-2 hover:bg-muted/40"
+            >
+              <div className="flex items-center gap-2 min-w-0">
+                <span className="inline-flex items-center justify-center w-6 h-6">
+                  <Folder className="w-5 h-5 text-foreground/80" />
+                </span>
+                <span className="truncate text-sm">{folder.name}</span>
+              </div>
+              <span className="text-xs text-muted-foreground whitespace-nowrap">
+                {folder.fileCount} files
+              </span>
+            </button>
+          ))}
 
-      {/* Files */}
-      {files.map((file) => (
-        <MediaFileListItem key={file.id} file={file} />
-      ))}
+          {/* Files */}
+          {files.map((file) => (
+            <MediaFileListItem key={file.id} file={file} />
+          ))}
+        </>
+      )}
+
+      {/* Show root folders when at root level */}
+      {selectedFolder === rootPrefix && (
+        <>
+          {currentFolders.map((folder) => (
+            <button
+              key={folder.id}
+              onClick={() => onFolderOpen?.(folder.id)}
+              className="w-full flex items-center justify-between rounded-md px-3 py-2 hover:bg-muted/40"
+            >
+              <div className="flex items-center gap-2 min-w-0">
+                <span className="inline-flex items-center justify-center w-6 h-6">
+                  <Folder className="w-5 h-5 text-foreground/80" />
+                </span>
+                <span className="truncate text-sm">{folder.name}</span>
+              </div>
+              <span className="text-xs text-muted-foreground whitespace-nowrap">
+                {folder.fileCount} files
+              </span>
+            </button>
+          ))}
+        </>
+      )}
     </div>
   );
 
@@ -199,7 +267,11 @@ export const MediaContent: FC<MediaContentProps> = ({
                   </BreadcrumbList>
                 </Breadcrumb>
               </div>
-              <Badge variant="secondary">{files.length} files</Badge>
+              <Badge variant="secondary">
+                {selectedFolder !== rootPrefix
+                  ? `${currentFolders.length} folders, ${files.length} files`
+                  : `${currentFolders.length} folders`}
+              </Badge>
               {selectedFolder !== rootPrefix && (
                 <div className="flex gap-1 ml-2">
                   <Button variant="ghost" size="sm" className="h-6 w-6 p-0">

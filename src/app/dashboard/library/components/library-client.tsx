@@ -119,16 +119,34 @@ export const LibraryClient: FC<LibraryClientProps> = ({
     }
   }, [foldersQuery.data, convertS3ToMediaFolders]);
 
-  // Build files from S3; fall back to initialFiles while loading
-  const allFiles: MediaFile[] = filesInFolderQuery?.data
-    ? convertS3ToMediaFiles(
-        filesInFolderQuery.data as S3ListBucketResultType,
-        userId,
-      )
+  // Extract folders and files from current folder data
+  const currentFolderData = filesInFolderQuery?.data as S3ListBucketResultType;
+
+  // Get folders (CommonPrefixes) from current folder
+  const currentFolders: MediaFolder[] = currentFolderData
+    ? convertS3ToMediaFolders(currentFolderData)
+    : [];
+
+  // Get files (Contents) from current folder
+  const currentFiles: MediaFile[] = currentFolderData
+    ? convertS3ToMediaFiles(currentFolderData, userId)
     : initialFiles;
 
-  const filteredFiles = allFiles.filter((file) => {
+  // When at root level, use folders from the main folders query
+  const displayFolders =
+    currentPrefix === `${userId}/` ? localFolders : currentFolders;
+
+  // Filter files based on search
+  const filteredFiles = currentFiles.filter((file) => {
     const matchesSearch = file.name
+      .toLowerCase()
+      .includes(searchQuery.toLowerCase());
+    return matchesSearch;
+  });
+
+  // Filter folders based on search
+  const filteredFolders = displayFolders.filter((folder) => {
+    const matchesSearch = folder.name
       .toLowerCase()
       .includes(searchQuery.toLowerCase());
     return matchesSearch;
@@ -386,7 +404,7 @@ export const LibraryClient: FC<LibraryClientProps> = ({
         {/* Main Content */}
         <MediaContent
           files={filteredFiles}
-          folders={localFolders}
+          folders={filteredFolders}
           selectedFolder={currentPrefix}
           rootPrefix={`${userId}/`}
           viewMode={viewMode}

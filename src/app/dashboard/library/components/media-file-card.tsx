@@ -44,7 +44,10 @@ export const MediaFileCard: FC<MediaFileCardProps> = ({ file }) => {
       <CardContent className="p-3">
         <div className="aspect-square bg-gray-100 rounded-lg mb-3 relative">
           {file.type === 'image' ? (
-            <ImageZoom backdropClassName="[&_[data-rmiz-modal-overlay=visible]]:bg-black/80">
+            <ImageZoom
+              backdropClassName="[&_[data-rmiz-modal-overlay=visible]]:bg-black/80"
+              className="w-full h-full rounded-lg"
+            >
               <Image
                 fill
                 quality={100}

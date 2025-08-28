@@ -63,7 +63,7 @@ export const MediaFileListItem: FC<MediaFileListItemProps> = ({ file }) => {
         <div className="flex items-center gap-6 text-xs text-muted-foreground whitespace-nowrap">
           {file.duration && <span>{formatDuration(file.duration)}</span>}
           <span>{file.uploadDate.toLocaleDateString()}</span>
-          <span>{formatFileSize(file.size * 1024 * 1024)}</span>
+          <span>{formatFileSize(file.size)}</span>
           <Button variant="ghost" size="sm" className="h-7 w-7 p-0">
             <MoreVertical className="w-4 h-4" />
           </Button>
