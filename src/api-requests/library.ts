@@ -75,10 +75,10 @@ const libraryApiRequest = {
     const response = await axiosInstance.get(
       `/library/list-files?userId=${userId}&folderPath=all`,
       {
-        responseType: 'text',
         baseURL: '',
       },
     );
+    // Response from wrapper is { data: xmlString }
     return parseXmlResponse(response.data);
   },
 
@@ -86,10 +86,10 @@ const libraryApiRequest = {
     const response = await axiosInstance.get(
       `/library/list-folder?userId=${userId}`,
       {
-        responseType: 'text',
         baseURL: '',
       },
     );
+    // Response from wrapper is { data: xmlString }
     return parseXmlResponse(response.data);
   },
 
@@ -97,10 +97,10 @@ const libraryApiRequest = {
     const response = await axiosInstance.get(
       `/library/list-files?userId=${userId}&folderPath=${folderPath}`,
       {
-        responseType: 'text',
         baseURL: '',
       },
     );
+    // Response from wrapper is { data: xmlString }
     return parseXmlResponse(response.data);
   },
 };

@@ -1,43 +1,37 @@
+import { apiWrapper } from '@/lib/api-wrapper';
 import axios from 'axios';
-import { NextRequest, NextResponse } from 'next/server';
+import { NextRequest } from 'next/server';
 
 export async function GET(request: NextRequest) {
-  try {
-    const { searchParams } = new URL(request.url);
-    const userId = searchParams.get('userId');
+  const { searchParams } = new URL(request.url);
+  const userId = searchParams.get('userId');
 
-    if (!userId) {
-      return NextResponse.json(
-        { error: 'userId is required' },
-        { status: 400 },
-      );
-    }
-
-    const minioUrl = process.env.NEXT_PUBLIC_MINIO_URL;
-    if (!minioUrl) {
-      return NextResponse.json(
-        { error: 'MinIO URL not configured' },
-        { status: 500 },
-      );
-    }
-
-    const response = await axios.get(
-      `${minioUrl}/library/?prefix=${userId}/&delimiter=/`,
-      {
-        responseType: 'text',
-      },
-    );
-
-    return new NextResponse(response.data, {
-      headers: {
-        'Content-Type': 'application/xml',
-      },
+  if (!userId) {
+    return new Response(JSON.stringify({ error: 'userId is required' }), {
+      status: 400,
+      headers: { 'Content-Type': 'application/json' },
     });
-  } catch (error) {
-    console.error('Error fetching folders:', error);
-    return NextResponse.json(
-      { error: 'Failed to fetch folders' },
-      { status: 500 },
-    );
   }
+
+  return await apiWrapper(
+    async () => {
+      const minioUrl = process.env.NEXT_PUBLIC_MINIO_URL;
+      if (!minioUrl) {
+        throw new Error('MinIO URL not configured');
+      }
+
+      const response = await axios.get(
+        `${minioUrl}/library/?prefix=${userId}/&delimiter=/`,
+        {
+          responseType: 'text',
+        },
+      );
+
+      // Return XML data wrapped in data property
+      return { data: response.data };
+    },
+    {
+      defaultErrorMessage: 'Failed to fetch folders',
+    },
+  );
 }
