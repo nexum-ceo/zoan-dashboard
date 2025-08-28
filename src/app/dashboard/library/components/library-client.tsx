@@ -26,16 +26,10 @@ import { MediaContent } from './media-content';
 import { UploadNotification, type UploadFile } from './upload-notification';
 
 type LibraryClientProps = {
-  initialFolders: MediaFolder[];
-  initialFiles: MediaFile[];
   userId: string;
 };
 
-export const LibraryClient: FC<LibraryClientProps> = ({
-  initialFolders,
-  initialFiles,
-  userId,
-}) => {
+export const LibraryClient: FC<LibraryClientProps> = ({ userId }) => {
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [folderSearchQuery, setFolderSearchQuery] = useState<string>('');
   // currentPrefix is the absolute S3 prefix for the current view, e.g. `${userId}/abc/`
@@ -46,8 +40,7 @@ export const LibraryClient: FC<LibraryClientProps> = ({
     useState<boolean>(false);
   const [isFolderPanelCollapsed, setIsFolderPanelCollapsed] =
     useState<boolean>(false);
-  const [localFolders, setLocalFolders] =
-    useState<MediaFolder[]>(initialFolders);
+  const [localFolders, setLocalFolders] = useState<MediaFolder[]>([]);
   const [newFolderName, setNewFolderName] = useState<string>('');
   const [isNewFolderOpen, setIsNewFolderOpen] = useState<boolean>(false);
   const [expandedFolders, setExpandedFolders] = useState<string[]>([
@@ -59,8 +52,6 @@ export const LibraryClient: FC<LibraryClientProps> = ({
   const deleteMutation = useDelete();
   const router = useRouter();
   const searchParams = useSearchParams();
-
-  // base64url helpers are imported from utils
 
   // initialize currentPrefix from URL `p` param (base64url), fallback to root
   useEffect(() => {
@@ -129,7 +120,7 @@ export const LibraryClient: FC<LibraryClientProps> = ({
   // Get files (Contents) from current folder
   const currentFiles: MediaFile[] = currentFolderData
     ? convertS3ToMediaFiles(currentFolderData, userId)
-    : initialFiles;
+    : [];
 
   // When at root level, use folders from the main folders query
   const displayFolders =
@@ -340,6 +331,7 @@ export const LibraryClient: FC<LibraryClientProps> = ({
       );
 
       await foldersQuery.refetch?.();
+      await filesInFolderQuery.refetch?.();
 
       toast.success('Folder created');
       setIsNewFolderOpen(false);
@@ -414,17 +406,28 @@ export const LibraryClient: FC<LibraryClientProps> = ({
         )}
 
         {/* Main Content */}
-        <MediaContent
-          files={filteredFiles}
-          folders={filteredFolders}
-          selectedFolder={currentPrefix}
-          rootPrefix={`${userId}/`}
-          viewMode={viewMode}
-          onFolderOpen={setCurrentPrefix}
-          onCreateFolder={() => setIsNewFolderOpen(true)}
-          onUploadFiles={handleFileUpload}
-          onDelete={handleDelete}
-        />
+        {filesInFolderQuery.isLoading ? (
+          <div className="flex-1 grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-4">
+            {Array.from({ length: 12 }).map((_, i) => (
+              <div
+                key={i}
+                className="h-40 rounded-lg bg-gray-100 dark:bg-gray-900 animate-pulse"
+              />
+            ))}
+          </div>
+        ) : (
+          <MediaContent
+            files={filteredFiles}
+            folders={filteredFolders}
+            selectedFolder={currentPrefix}
+            rootPrefix={`${userId}/`}
+            viewMode={viewMode}
+            onFolderOpen={setCurrentPrefix}
+            onCreateFolder={() => setIsNewFolderOpen(true)}
+            onUploadFiles={handleFileUpload}
+            onDelete={handleDelete}
+          />
+        )}
       </div>
 
       {/* Hidden file input */}
