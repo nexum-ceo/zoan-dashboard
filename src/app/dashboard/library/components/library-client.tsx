@@ -83,14 +83,11 @@ export const LibraryClient: FC<LibraryClientProps> = ({
   }, [currentPrefix, router]);
 
   // S3 API calls - fetch folders and files
-  const [foldersQuery] = useGetListFolder(userId);
+  const foldersQuery = useGetListFolder(userId);
   // derive folder path relative to user root for API
   const relativeFolderPath =
     currentPrefix.replace(new RegExp(`^${userId}/?`), '') || 'all';
-  const [filesInFolderQuery] = useGetListFileInFolder(
-    userId,
-    relativeFolderPath,
-  );
+  const filesInFolderQuery = useGetListFileInFolder(userId, relativeFolderPath);
 
   // Handle loading and error states
   const isFoldersLoading = foldersQuery.isLoading;

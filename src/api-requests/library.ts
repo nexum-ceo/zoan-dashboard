@@ -31,20 +31,10 @@ const libraryApiRequest = {
       body,
     ),
 
-  sGetPresignedUrls: (body: PresignedUrlBodyType) =>
-    axiosInstance.post<PresignedUrlResponseType>(
-      '/library/presigned-url',
-      body,
-      {
-        baseURL: '',
-      },
-    ),
-
-  // Call from minio - returns XML, converts to JSON
   getListFileOfUser: async (userId: string) => {
     const response = await axiosInstance.get(`/library/?prefix=${userId}`, {
       baseURL: process.env.NEXT_PUBLIC_MINIO_URL,
-      responseType: 'text', // Ensure we get text response for XML parsing
+      responseType: 'text',
     });
     return parseXmlResponse(response.data);
   },
@@ -66,6 +56,49 @@ const libraryApiRequest = {
       {
         baseURL: process.env.NEXT_PUBLIC_MINIO_URL,
         responseType: 'text',
+      },
+    );
+    return parseXmlResponse(response.data);
+  },
+
+  //Call through Next.js server
+  sGetPresignedUrls: (body: PresignedUrlBodyType) =>
+    axiosInstance.post<PresignedUrlResponseType>(
+      '/library/presigned-url',
+      body,
+      {
+        baseURL: '',
+      },
+    ),
+
+  sGetListFileOfUser: async (userId: string) => {
+    const response = await axiosInstance.get(
+      `/library/list-files?userId=${userId}&folderPath=all`,
+      {
+        responseType: 'text',
+        baseURL: '',
+      },
+    );
+    return parseXmlResponse(response.data);
+  },
+
+  sGetListFolder: async (userId: string) => {
+    const response = await axiosInstance.get(
+      `/library/list-folder?userId=${userId}`,
+      {
+        responseType: 'text',
+        baseURL: '',
+      },
+    );
+    return parseXmlResponse(response.data);
+  },
+
+  sGetListFileInFolder: async (userId: string, folderPath: string) => {
+    const response = await axiosInstance.get(
+      `/library/list-files?userId=${userId}&folderPath=${folderPath}`,
+      {
+        responseType: 'text',
+        baseURL: '',
       },
     );
     return parseXmlResponse(response.data);
