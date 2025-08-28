@@ -1,12 +1,13 @@
 'use client';
 
+import { useSession } from 'next-auth/react';
 import { LibraryClient } from './components/library-client';
 import { LibraryHeader } from './components/library-header';
 import { folders, mediaFiles } from './lib/data';
 
 export default function LibraryPage() {
-  // TODO: Get actual userId from session/context
-  const userId = 'df23285e-75a8-4b71-8549-01972084fa7d'; // Mock userId for now
+  const { data: session } = useSession();
+  if (!session?.user?.id) return null;
 
   return (
     <div className="flex-1 flex flex-col p-10 w-full h-full min-h-0 overflow-hidden">
@@ -14,7 +15,7 @@ export default function LibraryPage() {
       <LibraryClient
         initialFolders={folders}
         initialFiles={mediaFiles}
-        userId={userId}
+        userId={session.user.id}
       />
     </div>
   );
