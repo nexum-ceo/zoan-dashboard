@@ -21,10 +21,9 @@ export const SelectAssistant: FC<SelectAssistantProps> = ({ activeChatId }) => {
     isFetchingNextPage,
   } = useInfiniteChatList();
 
-  // Process chat data
-  const chats = chatData?.pages.flatMap((page) => page.data.data)
-    ? [...chatData.pages.flatMap((page) => page.data.data)]
-    : [];
+  const chats = (chatData?.pages ?? [])
+    .flatMap((page) => (Array.isArray(page?.data?.data) ? page.data.data : []))
+    .filter(Boolean);
 
   return (
     <div className="space-y-4">

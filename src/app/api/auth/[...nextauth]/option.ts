@@ -37,6 +37,7 @@ export const authOptions: NextAuthOptions = {
         const expireAccessToken = jwtDecode(user.accessToken)?.exp;
         token.accessToken = user.accessToken;
         token.accessTokenExpires = expireAccessToken;
+        token.id = user.id;
         return token;
       }
 
@@ -60,6 +61,7 @@ export const authOptions: NextAuthOptions = {
       }
 
       session.accessToken = token.accessToken;
+      session.user = { ...(session.user || {}), id: token.id as string };
       session.expires = token.accessTokenExpires;
       return session;
     },

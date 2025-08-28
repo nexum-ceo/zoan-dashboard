@@ -69,16 +69,17 @@ export function PlaygroundChatClient({ chatId }: PlaygroundChatClientProps) {
     wsConnected,
     sendMessageDirect,
   } = useChat({
-    wsUrl: token
-      ? `${process.env.NEXT_PUBLIC_WS_URL}/${chatId}?token=${token}`
-      : '',
+    wsUrl:
+      token && chatInfo?.user_id
+        ? `${process.env.NEXT_PUBLIC_WS_URL}/${chatId}?token=${token}`
+        : '',
     initialMessages: [],
     chatId: chatId,
     user_id: chatInfo?.user_id || '',
   });
 
   useEffect(() => {
-    if (chatMessages && Array.isArray(chatMessages)) {
+    if (chatInfo?.user_id && chatMessages && Array.isArray(chatMessages)) {
       const safeMessages = chatMessages.map((msg) => ({
         ...msg,
         content: msg.content ?? '',
@@ -87,7 +88,7 @@ export function PlaygroundChatClient({ chatId }: PlaygroundChatClientProps) {
           : ChatRole.USER,
         sender_id: chatInfo?.user_id || '',
       }));
-      setMessages(safeMessages || []);
+      setMessages(safeMessages.reverse() || []);
     }
   }, [chatMessages, setMessages, chatInfo]);
 
