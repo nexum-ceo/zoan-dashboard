@@ -44,6 +44,7 @@ type MediaContentProps = {
   onFolderOpen?: (folderId: string) => void;
   onCreateFolder?: () => void;
   onUploadFiles?: () => void;
+  onDelete?: (path: string) => void;
 };
 
 export const MediaContent: FC<MediaContentProps> = ({
@@ -55,6 +56,7 @@ export const MediaContent: FC<MediaContentProps> = ({
   onFolderOpen,
   onCreateFolder,
   onUploadFiles,
+  onDelete,
 }) => {
   const selectedFolderData = folders.find((f) => f.id === selectedFolder);
 
@@ -84,8 +86,73 @@ export const MediaContent: FC<MediaContentProps> = ({
           {currentFolders.length > 0 && (
             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-4">
               {currentFolders.map((folder) => (
+                <ContextMenu key={folder.id}>
+                  <ContextMenuTrigger asChild>
+                    <div
+                      className="group border rounded-lg p-3 bg-muted/40 hover:bg-muted transition-colors cursor-pointer h-16"
+                      onClick={() => onFolderOpen?.(folder.id)}
+                    >
+                      <div className="flex items-center justify-between h-full">
+                        <div className="flex items-center gap-2 min-w-0">
+                          <Folder className="w-4 h-4 text-foreground/80" />
+                          <span className="font-medium text-sm truncate">
+                            {folder.name}
+                          </span>
+                        </div>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-6 w-6 opacity-0 group-hover:opacity-100"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                          }}
+                        >
+                          <MoreVertical className="w-3 h-3" />
+                        </Button>
+                      </div>
+                    </div>
+                  </ContextMenuTrigger>
+                  <ContextMenuContent>
+                    <ContextMenuItem onClick={() => onFolderOpen?.(folder.id)}>
+                      <Folder className="w-4 h-4 mr-2" />
+                      Open
+                    </ContextMenuItem>
+                    <ContextMenuSeparator />
+                    <ContextMenuItem
+                      onClick={() => {
+                        // Remove userId from the beginning of the path for delete API
+                        const relativePath = folder.id.replace(/^[^/]+\//, '');
+                        onDelete?.(relativePath);
+                      }}
+                      className="text-destructive focus:text-destructive"
+                    >
+                      <Trash2 className="w-4 h-4 mr-2" />
+                      Delete
+                    </ContextMenuItem>
+                  </ContextMenuContent>
+                </ContextMenu>
+              ))}
+            </div>
+          )}
+
+          {/* Files grid */}
+          {files.length > 0 && (
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-4">
+              {files.map((file) => (
+                <MediaFileCard key={file.id} file={file} onDelete={onDelete} />
+              ))}
+            </div>
+          )}
+        </>
+      )}
+
+      {/* Show root folders when at root level */}
+      {selectedFolder === rootPrefix && (
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-4">
+          {currentFolders.map((folder) => (
+            <ContextMenu key={folder.id}>
+              <ContextMenuTrigger asChild>
                 <div
-                  key={folder.id}
                   className="group border rounded-lg p-3 bg-muted/40 hover:bg-muted transition-colors cursor-pointer h-16"
                   onClick={() => onFolderOpen?.(folder.id)}
                 >
@@ -108,49 +175,26 @@ export const MediaContent: FC<MediaContentProps> = ({
                     </Button>
                   </div>
                 </div>
-              ))}
-            </div>
-          )}
-
-          {/* Files grid */}
-          {files.length > 0 && (
-            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-4">
-              {files.map((file) => (
-                <MediaFileCard key={file.id} file={file} />
-              ))}
-            </div>
-          )}
-        </>
-      )}
-
-      {/* Show root folders when at root level */}
-      {selectedFolder === rootPrefix && (
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-4">
-          {currentFolders.map((folder) => (
-            <div
-              key={folder.id}
-              className="group border rounded-lg p-3 bg-muted/40 hover:bg-muted transition-colors cursor-pointer h-16"
-              onClick={() => onFolderOpen?.(folder.id)}
-            >
-              <div className="flex items-center justify-between h-full">
-                <div className="flex items-center gap-2 min-w-0">
-                  <Folder className="w-4 h-4 text-foreground/80" />
-                  <span className="font-medium text-sm truncate">
-                    {folder.name}
-                  </span>
-                </div>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="h-6 w-6 opacity-0 group-hover:opacity-100"
-                  onClick={(e) => {
-                    e.stopPropagation();
+              </ContextMenuTrigger>
+              <ContextMenuContent>
+                <ContextMenuItem onClick={() => onFolderOpen?.(folder.id)}>
+                  <Folder className="w-4 h-4 mr-2" />
+                  Open
+                </ContextMenuItem>
+                <ContextMenuSeparator />
+                <ContextMenuItem
+                  onClick={() => {
+                    // Remove userId from the beginning of the path for delete API
+                    const relativePath = folder.id.replace(/^[^/]+\//, '');
+                    onDelete?.(relativePath);
                   }}
+                  className="text-destructive focus:text-destructive"
                 >
-                  <MoreVertical className="w-3 h-3" />
-                </Button>
-              </div>
-            </div>
+                  <Trash2 className="w-4 h-4 mr-2" />
+                  Delete
+                </ContextMenuItem>
+              </ContextMenuContent>
+            </ContextMenu>
           ))}
         </div>
       )}
@@ -164,26 +208,47 @@ export const MediaContent: FC<MediaContentProps> = ({
         <>
           {/* Folders first */}
           {currentFolders.map((folder) => (
-            <button
-              key={folder.id}
-              onClick={() => onFolderOpen?.(folder.id)}
-              className="w-full flex items-center justify-between rounded-md px-3 py-2 hover:bg-muted/40"
-            >
-              <div className="flex items-center gap-2 min-w-0">
-                <span className="inline-flex items-center justify-center w-6 h-6">
-                  <Folder className="w-5 h-5 text-foreground/80" />
-                </span>
-                <span className="truncate text-sm">{folder.name}</span>
-              </div>
-              <span className="text-xs text-muted-foreground whitespace-nowrap">
-                {folder.fileCount} files
-              </span>
-            </button>
+            <ContextMenu key={folder.id}>
+              <ContextMenuTrigger asChild>
+                <button
+                  onClick={() => onFolderOpen?.(folder.id)}
+                  className="w-full flex items-center justify-between rounded-md px-3 py-2 hover:bg-muted/40"
+                >
+                  <div className="flex items-center gap-2 min-w-0">
+                    <span className="inline-flex items-center justify-center w-6 h-6">
+                      <Folder className="w-5 h-5 text-foreground/80" />
+                    </span>
+                    <span className="truncate text-sm">{folder.name}</span>
+                  </div>
+                  <span className="text-xs text-muted-foreground whitespace-nowrap">
+                    {folder.fileCount} files
+                  </span>
+                </button>
+              </ContextMenuTrigger>
+              <ContextMenuContent>
+                <ContextMenuItem onClick={() => onFolderOpen?.(folder.id)}>
+                  <Folder className="w-4 h-4 mr-2" />
+                  Open
+                </ContextMenuItem>
+                <ContextMenuSeparator />
+                <ContextMenuItem
+                  onClick={() => {
+                    // Remove userId from the beginning of the path for delete API
+                    const relativePath = folder.id.replace(/^[^/]+\//, '');
+                    onDelete?.(relativePath);
+                  }}
+                  className="text-destructive focus:text-destructive"
+                >
+                  <Trash2 className="w-4 h-4 mr-2" />
+                  Delete
+                </ContextMenuItem>
+              </ContextMenuContent>
+            </ContextMenu>
           ))}
 
           {/* Files */}
           {files.map((file) => (
-            <MediaFileListItem key={file.id} file={file} />
+            <MediaFileListItem key={file.id} file={file} onDelete={onDelete} />
           ))}
         </>
       )}
@@ -192,21 +257,42 @@ export const MediaContent: FC<MediaContentProps> = ({
       {selectedFolder === rootPrefix && (
         <>
           {currentFolders.map((folder) => (
-            <button
-              key={folder.id}
-              onClick={() => onFolderOpen?.(folder.id)}
-              className="w-full flex items-center justify-between rounded-md px-3 py-2 hover:bg-muted/40"
-            >
-              <div className="flex items-center gap-2 min-w-0">
-                <span className="inline-flex items-center justify-center w-6 h-6">
-                  <Folder className="w-5 h-5 text-foreground/80" />
-                </span>
-                <span className="truncate text-sm">{folder.name}</span>
-              </div>
-              <span className="text-xs text-muted-foreground whitespace-nowrap">
-                {folder.fileCount} files
-              </span>
-            </button>
+            <ContextMenu key={folder.id}>
+              <ContextMenuTrigger asChild>
+                <button
+                  onClick={() => onFolderOpen?.(folder.id)}
+                  className="w-full flex items-center justify-between rounded-md px-3 py-2 hover:bg-muted/40"
+                >
+                  <div className="flex items-center gap-2 min-w-0">
+                    <span className="inline-flex items-center justify-center w-6 h-6">
+                      <Folder className="w-5 h-5 text-foreground/80" />
+                    </span>
+                    <span className="truncate text-sm">{folder.name}</span>
+                  </div>
+                  <span className="text-xs text-muted-foreground whitespace-nowrap">
+                    {folder.fileCount} files
+                  </span>
+                </button>
+              </ContextMenuTrigger>
+              <ContextMenuContent>
+                <ContextMenuItem onClick={() => onFolderOpen?.(folder.id)}>
+                  <Folder className="w-4 h-4 mr-2" />
+                  Open
+                </ContextMenuItem>
+                <ContextMenuSeparator />
+                <ContextMenuItem
+                  onClick={() => {
+                    // Remove userId from the beginning of the path for delete API
+                    const relativePath = folder.id.replace(/^[^/]+\//, '');
+                    onDelete?.(relativePath);
+                  }}
+                  className="text-destructive focus:text-destructive"
+                >
+                  <Trash2 className="w-4 h-4 mr-2" />
+                  Delete
+                </ContextMenuItem>
+              </ContextMenuContent>
+            </ContextMenu>
           ))}
         </>
       )}

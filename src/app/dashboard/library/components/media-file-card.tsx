@@ -3,6 +3,13 @@
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
+import {
+  ContextMenu,
+  ContextMenuContent,
+  ContextMenuItem,
+  ContextMenuSeparator,
+  ContextMenuTrigger,
+} from '@/components/ui/context-menu';
 import { ImageZoom } from '@/components/ui/shadcn-io/image-zoom';
 import {
   Archive,
@@ -10,6 +17,7 @@ import {
   ImageIcon,
   MoreVertical,
   Music,
+  Trash2,
   Video,
 } from 'lucide-react';
 import Image from 'next/image';
@@ -19,9 +27,10 @@ import { formatDuration, formatFileSize } from '../lib/data';
 
 type MediaFileCardProps = {
   file: MediaFile;
+  onDelete?: (filePath: string) => void;
 };
 
-export const MediaFileCard: FC<MediaFileCardProps> = ({ file }) => {
+export const MediaFileCard: FC<MediaFileCardProps> = ({ file, onDelete }) => {
   const getFileIcon = (type: MediaFile['type']) => {
     switch (type) {
       case 'image':
@@ -69,15 +78,37 @@ export const MediaFileCard: FC<MediaFileCardProps> = ({ file }) => {
             </div>
           )}
 
-          <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity">
-            <Button
-              variant="ghost"
-              size="sm"
-              className="h-6 w-6 p-0 bg-white shadow-sm"
-            >
-              <MoreVertical className="w-3 h-3" />
-            </Button>
-          </div>
+          <ContextMenu>
+            <ContextMenuTrigger asChild>
+              <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="h-6 w-6 p-0 bg-white shadow-sm"
+                >
+                  <MoreVertical className="w-3 h-3" />
+                </Button>
+              </div>
+            </ContextMenuTrigger>
+            <ContextMenuContent>
+              <ContextMenuItem onClick={() => window.open(file.url, '_blank')}>
+                <FileText className="w-4 h-4 mr-2" />
+                Open
+              </ContextMenuItem>
+              <ContextMenuSeparator />
+              <ContextMenuItem
+                onClick={() => {
+                  // Remove userId from the beginning of the path for delete API
+                  const relativePath = file.folder.replace(/^[^/]+\//, '');
+                  onDelete?.(`${relativePath}${file.name}`);
+                }}
+                className="text-destructive focus:text-destructive"
+              >
+                <Trash2 className="w-4 h-4 mr-2" />
+                Delete
+              </ContextMenuItem>
+            </ContextMenuContent>
+          </ContextMenu>
         </div>
 
         <div className="space-y-1">

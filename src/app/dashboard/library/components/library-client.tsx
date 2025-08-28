@@ -4,6 +4,7 @@ import { FolderSidebar } from '@/app/dashboard/library/components/folder-sidebar
 import { putZeroByte, s3ToMediaFiles, s3ToMediaFolders } from '@/lib/s3';
 import { decodeBase64Url, encodeBase64Url } from '@/lib/utils';
 import {
+  useDelete,
   useGetListFileInFolder,
   useGetListFolder,
   useLibrary,
@@ -55,6 +56,7 @@ export const LibraryClient: FC<LibraryClientProps> = ({
   ]);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const presign = useLibrary();
+  const deleteMutation = useDelete();
   const router = useRouter();
   const searchParams = useSearchParams();
 
@@ -349,6 +351,19 @@ export const LibraryClient: FC<LibraryClientProps> = ({
     }
   };
 
+  const handleDelete = async (path: string) => {
+    try {
+      await deleteMutation.mutateAsync(path);
+      toast.success('Item deleted successfully');
+      // Refresh both folders and current folder data
+      await foldersQuery.refetch?.();
+      await filesInFolderQuery.refetch?.();
+    } catch (error) {
+      const msg = error instanceof Error ? error.message : 'Delete error';
+      toast.error(msg);
+    }
+  };
+
   return (
     <>
       {/* Upload Notification */}
@@ -408,6 +423,7 @@ export const LibraryClient: FC<LibraryClientProps> = ({
           onFolderOpen={setCurrentPrefix}
           onCreateFolder={() => setIsNewFolderOpen(true)}
           onUploadFiles={handleFileUpload}
+          onDelete={handleDelete}
         />
       </div>
 

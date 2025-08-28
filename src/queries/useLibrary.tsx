@@ -36,3 +36,9 @@ export const useGetListFileInFolder = (userId: string, folderPath: string) => {
     enabled: !!userId,
   });
 };
+
+export const useDelete = () => {
+  return useMutation({
+    mutationFn: libraryApiRequest.sDeleteFile,
+  });
+};

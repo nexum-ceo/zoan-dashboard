@@ -2,11 +2,19 @@
 
 import { Button } from '@/components/ui/button';
 import {
+  ContextMenu,
+  ContextMenuContent,
+  ContextMenuItem,
+  ContextMenuSeparator,
+  ContextMenuTrigger,
+} from '@/components/ui/context-menu';
+import {
   Archive,
   FileText,
   ImageIcon,
   MoreVertical,
   Music,
+  Trash2,
   Video,
 } from 'lucide-react';
 import Image from 'next/image';
@@ -16,9 +24,13 @@ import { formatDuration, formatFileSize } from '../lib/data';
 
 type MediaFileListItemProps = {
   file: MediaFile;
+  onDelete?: (filePath: string) => void;
 };
 
-export const MediaFileListItem: FC<MediaFileListItemProps> = ({ file }) => {
+export const MediaFileListItem: FC<MediaFileListItemProps> = ({
+  file,
+  onDelete,
+}) => {
   const getFileIcon = (type: MediaFile['type']) => {
     switch (type) {
       case 'image':
@@ -64,9 +76,31 @@ export const MediaFileListItem: FC<MediaFileListItemProps> = ({ file }) => {
           {file.duration && <span>{formatDuration(file.duration)}</span>}
           <span>{file.uploadDate.toLocaleDateString()}</span>
           <span>{formatFileSize(file.size)}</span>
-          <Button variant="ghost" size="sm" className="h-7 w-7 p-0">
-            <MoreVertical className="w-4 h-4" />
-          </Button>
+          <ContextMenu>
+            <ContextMenuTrigger asChild>
+              <Button variant="ghost" size="sm" className="h-7 w-7 p-0">
+                <MoreVertical className="w-4 h-4" />
+              </Button>
+            </ContextMenuTrigger>
+            <ContextMenuContent>
+              <ContextMenuItem onClick={() => window.open(file.url, '_blank')}>
+                <FileText className="w-4 h-4 mr-2" />
+                Open
+              </ContextMenuItem>
+              <ContextMenuSeparator />
+              <ContextMenuItem
+                onClick={() => {
+                  // Remove userId from the beginning of the path for delete API
+                  const relativePath = file.folder.replace(/^[^/]+\//, '');
+                  onDelete?.(`${relativePath}${file.name}`);
+                }}
+                className="text-destructive focus:text-destructive"
+              >
+                <Trash2 className="w-4 h-4 mr-2" />
+                Delete
+              </ContextMenuItem>
+            </ContextMenuContent>
+          </ContextMenu>
         </div>
       </div>
     </div>

@@ -61,6 +61,13 @@ const libraryApiRequest = {
     return parseXmlResponse(response.data);
   },
 
+  deleteFile: async (path: string) =>
+    axiosInstance.delete('/library/file', {
+      data: {
+        path,
+      },
+    }),
+
   //Call through Next.js server
   sGetPresignedUrls: (body: PresignedUrlBodyType) =>
     axiosInstance.post<PresignedUrlResponseType>(
@@ -103,6 +110,14 @@ const libraryApiRequest = {
     // Response from wrapper is { data: xmlString }
     return parseXmlResponse(response.data);
   },
+
+  sDeleteFile: async (path: string) =>
+    axiosInstance.delete('/library/file', {
+      data: {
+        path,
+      },
+      baseURL: '',
+    }),
 };
 
 export default libraryApiRequest;
