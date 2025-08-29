@@ -79,6 +79,7 @@ export const MediaContent: FC<MediaContentProps> = ({
   const [folderToDelete, setFolderToDelete] = useState<MediaFolder | null>(
     null,
   );
+  const isAssets = !!rootPrefix && rootPrefix.startsWith('assets/');
 
   // Build breadcrumb path using util
   const folderPath = buildBreadcrumbCrumbs(selectedFolder, rootPrefix);
@@ -132,41 +133,43 @@ export const MediaContent: FC<MediaContentProps> = ({
                         {folder.name}
                       </span>
                     </div>
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          className="h-6 w-6 p-0 opacity-0 group-hover:opacity-100 transition-opacity"
-                          onClick={(e) => e.stopPropagation()}
-                          disabled={deletingFolder === folder.id}
-                        >
-                          <MoreVertical className="w-3 h-3" />
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end" className="w-48">
-                        <DropdownMenuItem
-                          onClick={() => onFolderOpen?.(folder.id)}
-                          className="cursor-pointer"
-                        >
-                          <Folder className="w-4 h-4 mr-2" />
-                          Open folder
-                        </DropdownMenuItem>
-                        <DropdownMenuSeparator />
-                        {onDelete && (
-                          <DropdownMenuItem
-                            onClick={() => openDeleteDialog(folder)}
-                            className="text-destructive focus:text-destructive cursor-pointer"
+                    {!isAssets && (
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="h-6 w-6 p-0 opacity-0 group-hover:opacity-100 transition-opacity"
+                            onClick={(e) => e.stopPropagation()}
                             disabled={deletingFolder === folder.id}
                           >
-                            <Trash2 className="w-4 h-4 mr-2" />
-                            {deletingFolder === folder.id
-                              ? 'Deleting...'
-                              : 'Delete folder'}
+                            <MoreVertical className="w-3 h-3" />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end" className="w-48">
+                          <DropdownMenuItem
+                            onClick={() => onFolderOpen?.(folder.id)}
+                            className="cursor-pointer"
+                          >
+                            <Folder className="w-4 h-4 mr-2" />
+                            Open folder
                           </DropdownMenuItem>
-                        )}
-                      </DropdownMenuContent>
-                    </DropdownMenu>
+                          <DropdownMenuSeparator />
+                          {onDelete && (
+                            <DropdownMenuItem
+                              onClick={() => openDeleteDialog(folder)}
+                              className="text-destructive focus:text-destructive cursor-pointer"
+                              disabled={deletingFolder === folder.id}
+                            >
+                              <Trash2 className="w-4 h-4 mr-2" />
+                              {deletingFolder === folder.id
+                                ? 'Deleting...'
+                                : 'Delete folder'}
+                            </DropdownMenuItem>
+                          )}
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    )}
                   </div>
                 </div>
               ))}
@@ -177,7 +180,12 @@ export const MediaContent: FC<MediaContentProps> = ({
           {files.length > 0 && (
             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-4">
               {files.map((file) => (
-                <MediaFileCard key={file.id} file={file} onDelete={onDelete} />
+                <MediaFileCard
+                  key={file.id}
+                  file={file}
+                  onDelete={onDelete}
+                  readOnly={isAssets}
+                />
               ))}
             </div>
           )}
@@ -202,41 +210,43 @@ export const MediaContent: FC<MediaContentProps> = ({
                     {folder.name}
                   </span>
                 </div>
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      className="h-6 w-6 p-0 opacity-0 group-hover:opacity-100 transition-opacity"
-                      onClick={(e) => e.stopPropagation()}
-                      disabled={deletingFolder === folder.id}
-                    >
-                      <MoreVertical className="w-3 h-3" />
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end" className="w-48">
-                    <DropdownMenuItem
-                      onClick={() => onFolderOpen?.(folder.id)}
-                      className="cursor-pointer"
-                    >
-                      <Folder className="w-4 h-4 mr-2" />
-                      Open folder
-                    </DropdownMenuItem>
-                    <DropdownMenuSeparator />
-                    {onDelete && (
-                      <DropdownMenuItem
-                        onClick={() => openDeleteDialog(folder)}
-                        className="text-destructive focus:text-destructive cursor-pointer"
+                {!isAssets && (
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="h-6 w-6 p-0 opacity-0 group-hover:opacity-100 transition-opacity"
+                        onClick={(e) => e.stopPropagation()}
                         disabled={deletingFolder === folder.id}
                       >
-                        <Trash2 className="w-4 h-4 mr-2" />
-                        {deletingFolder === folder.id
-                          ? 'Deleting...'
-                          : 'Delete folder'}
+                        <MoreVertical className="w-3 h-3" />
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end" className="w-48">
+                      <DropdownMenuItem
+                        onClick={() => onFolderOpen?.(folder.id)}
+                        className="cursor-pointer"
+                      >
+                        <Folder className="w-4 h-4 mr-2" />
+                        Open folder
                       </DropdownMenuItem>
-                    )}
-                  </DropdownMenuContent>
-                </DropdownMenu>
+                      <DropdownMenuSeparator />
+                      {onDelete && (
+                        <DropdownMenuItem
+                          onClick={() => openDeleteDialog(folder)}
+                          className="text-destructive focus:text-destructive cursor-pointer"
+                          disabled={deletingFolder === folder.id}
+                        >
+                          <Trash2 className="w-4 h-4 mr-2" />
+                          {deletingFolder === folder.id
+                            ? 'Deleting...'
+                            : 'Delete folder'}
+                        </DropdownMenuItem>
+                      )}
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                )}
               </div>
             </div>
           ))}
@@ -269,46 +279,53 @@ export const MediaContent: FC<MediaContentProps> = ({
                 <span className="text-xs text-muted-foreground whitespace-nowrap">
                   {folder.fileCount} files
                 </span>
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      className="h-6 w-6 p-0 opacity-0 group-hover:opacity-100 transition-opacity"
-                      onClick={(e) => e.stopPropagation()}
-                      disabled={deletingFolder === folder.id}
-                    >
-                      <MoreVertical className="w-3 h-3" />
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end" className="w-48">
-                    <DropdownMenuItem
-                      onClick={() => onFolderOpen?.(folder.id)}
-                      className="cursor-pointer"
-                    >
-                      <Folder className="w-4 h-4 mr-2" />
-                      Open folder
-                    </DropdownMenuItem>
-                    <DropdownMenuSeparator />
-                    <DropdownMenuItem
-                      onClick={() => openDeleteDialog(folder)}
-                      className="text-destructive focus:text-destructive cursor-pointer"
-                      disabled={deletingFolder === folder.id}
-                    >
-                      <Trash2 className="w-4 h-4 mr-2" />
-                      {deletingFolder === folder.id
-                        ? 'Deleting...'
-                        : 'Delete folder'}
-                    </DropdownMenuItem>
-                  </DropdownMenuContent>
-                </DropdownMenu>
+                {!isAssets && (
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="h-6 w-6 p-0 opacity-0 group-hover:opacity-100 transition-opacity"
+                        onClick={(e) => e.stopPropagation()}
+                        disabled={deletingFolder === folder.id}
+                      >
+                        <MoreVertical className="w-3 h-3" />
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end" className="w-48">
+                      <DropdownMenuItem
+                        onClick={() => onFolderOpen?.(folder.id)}
+                        className="cursor-pointer"
+                      >
+                        <Folder className="w-4 h-4 mr-2" />
+                        Open folder
+                      </DropdownMenuItem>
+                      <DropdownMenuSeparator />
+                      <DropdownMenuItem
+                        onClick={() => openDeleteDialog(folder)}
+                        className="text-destructive focus:text-destructive cursor-pointer"
+                        disabled={deletingFolder === folder.id}
+                      >
+                        <Trash2 className="w-4 h-4 mr-2" />
+                        {deletingFolder === folder.id
+                          ? 'Deleting...'
+                          : 'Delete folder'}
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                )}
               </div>
             </div>
           ))}
 
           {/* Files */}
           {files.map((file) => (
-            <MediaFileListItem key={file.id} file={file} onDelete={onDelete} />
+            <MediaFileListItem
+              key={file.id}
+              file={file}
+              onDelete={onDelete}
+              readOnly={isAssets}
+            />
           ))}
         </>
       )}

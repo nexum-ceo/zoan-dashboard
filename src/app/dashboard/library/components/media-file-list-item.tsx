@@ -36,11 +36,13 @@ import { formatDuration, formatFileSize } from '../lib/data';
 type MediaFileListItemProps = {
   file: MediaFile;
   onDelete?: (filePath: string) => void;
+  readOnly?: boolean;
 };
 
 export const MediaFileListItem: FC<MediaFileListItemProps> = ({
   file,
   onDelete,
+  readOnly,
 }) => {
   const [isDeleting, setIsDeleting] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
@@ -110,38 +112,40 @@ export const MediaFileListItem: FC<MediaFileListItemProps> = ({
             {file.duration && <span>{formatDuration(file.duration)}</span>}
             <span>{file.uploadDate.toLocaleDateString()}</span>
             <span>{formatFileSize(file.size)}</span>
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className="h-7 w-7 p-0"
-                  disabled={isDeleting}
-                >
-                  <MoreVertical className="w-4 h-4" />
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-48">
-                <DropdownMenuItem
-                  onClick={() => window.open(file.url, '_blank')}
-                  className="cursor-pointer"
-                >
-                  <FileText className="w-4 h-4 mr-2" />
-                  Open file
-                </DropdownMenuItem>
-                <DropdownMenuSeparator />
-                {onDelete && (
-                  <DropdownMenuItem
-                    onClick={() => setIsDeleteDialogOpen(true)}
-                    className="text-destructive focus:text-destructive cursor-pointer"
+            {!readOnly && (
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="h-7 w-7 p-0"
                     disabled={isDeleting}
                   >
-                    <Trash2 className="w-4 h-4 mr-2" />
-                    Delete file
+                    <MoreVertical className="w-4 h-4" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-48">
+                  <DropdownMenuItem
+                    onClick={() => window.open(file.url, '_blank')}
+                    className="cursor-pointer"
+                  >
+                    <FileText className="w-4 h-4 mr-2" />
+                    Open file
                   </DropdownMenuItem>
-                )}
-              </DropdownMenuContent>
-            </DropdownMenu>
+                  <DropdownMenuSeparator />
+                  {onDelete && (
+                    <DropdownMenuItem
+                      onClick={() => setIsDeleteDialogOpen(true)}
+                      className="text-destructive focus:text-destructive cursor-pointer"
+                      disabled={isDeleting}
+                    >
+                      <Trash2 className="w-4 h-4 mr-2" />
+                      Delete file
+                    </DropdownMenuItem>
+                  )}
+                </DropdownMenuContent>
+              </DropdownMenu>
+            )}
           </div>
         </div>
       </div>
