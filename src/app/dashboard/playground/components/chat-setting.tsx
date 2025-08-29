@@ -325,8 +325,6 @@ export const ChatSettings: FC<ChatSettingsProps> = ({ isOpen, onClose }) => {
                       </p>
                     </div>
 
-                    {/* Chat agent setting = all active agent */}
-                    {/* All agent = all available agent + primary agent(+1 because only one primary agent) */}
                     <p className="text-sm text-muted-foreground">
                       <strong>Active Agents:</strong> {chatAgentSetting.length}{' '}
                       of {agents.length}
