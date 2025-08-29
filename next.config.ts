@@ -7,7 +7,7 @@ const nextConfig: NextConfig = {
     remotePatterns: [
       {
         protocol: 'https',
-        hostname: process.env.NEXT_PUBLIC_STORAGE_HOSTNAME || '',
+        hostname: process.env.NEXT_PUBLIC_STORAGE_HOSTNAME || 'localhost',
       },
     ],
   },
