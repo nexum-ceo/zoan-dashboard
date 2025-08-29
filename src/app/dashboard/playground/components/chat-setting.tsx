@@ -61,7 +61,6 @@ export const ChatSettings: FC<ChatSettingsProps> = ({ isOpen, onClose }) => {
   const { data: chatAgentSettingData } = useGetChatAgentSettingByChatId(
     chatId as string,
   );
-  // Use available agents instead of full list
   const { data: agentData } = useGetAgentAvailable();
 
   const createChatAgentSettingMutation = useCreateChatAgentSettingMutation(
