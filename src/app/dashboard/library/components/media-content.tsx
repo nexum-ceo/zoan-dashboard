@@ -34,6 +34,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { buildBreadcrumbCrumbs } from '@/lib/utils';
 import {
   Edit,
   Folder,
@@ -73,26 +74,13 @@ export const MediaContent: FC<MediaContentProps> = ({
   onDelete,
 }) => {
   const [deletingFolder, setDeletingFolder] = useState<string | null>(null);
-  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState<boolean>(false);
   const [folderToDelete, setFolderToDelete] = useState<MediaFolder | null>(
     null,
   );
 
-  const selectedFolderData = folders.find((f) => f.id === selectedFolder);
-
-  // Build breadcrumb path based on parentId chain
-  const folderById = new Map(folders.map((f) => [f.id, f] as const));
-  const buildFolderPath = () => {
-    if (!selectedFolderData) return [] as MediaFolder[];
-    const path: MediaFolder[] = [];
-    let current: MediaFolder | undefined = selectedFolderData;
-    while (current) {
-      path.unshift(current);
-      current = current.parentId ? folderById.get(current.parentId) : undefined;
-    }
-    return path;
-  };
-  const folderPath = buildFolderPath();
+  // Build breadcrumb path using util
+  const folderPath = buildBreadcrumbCrumbs(selectedFolder, rootPrefix);
 
   // Use all folders passed from parent (these are already filtered for current folder)
   const currentFolders = folders;
