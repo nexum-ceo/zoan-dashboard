@@ -71,10 +71,21 @@ export const ChatSettings: FC<ChatSettingsProps> = ({ isOpen, onClose }) => {
     () => chatAgentSettingData?.data.data || [],
     [chatAgentSettingData],
   );
-  const agents = useMemo<AgentType[]>(
+  const agentsAvailable = useMemo<AgentType[]>(
     () => agentData?.data.data || [],
     [agentData],
   );
+
+  // Merge primary agent into available agents (if not already present)
+  const agents: AgentType[] = useMemo(() => {
+    if (!primaryAgent) return agentsAvailable;
+    const exists = (agentsAvailable || []).some(
+      (a) => a.id === primaryAgent.id,
+    );
+    return exists
+      ? agentsAvailable
+      : [primaryAgent as unknown as AgentType, ...agentsAvailable];
+  }, [agentsAvailable, primaryAgent]);
 
   // Enhance agents with derived flags: active (exists in chatAgentSetting) and isPrimary
   type AgentWithState = AgentType & { active: boolean; isPrimary: boolean };
@@ -318,7 +329,7 @@ export const ChatSettings: FC<ChatSettingsProps> = ({ isOpen, onClose }) => {
                     {/* All agent = all available agent + primary agent(+1 because only one primary agent) */}
                     <p className="text-sm text-muted-foreground">
                       <strong>Active Agents:</strong> {chatAgentSetting.length}{' '}
-                      of {agents.length + (primaryAgent ? 1 : 0)}
+                      of {agents.length}
                     </p>
                   </>
                 ) : (
