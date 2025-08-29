@@ -25,6 +25,7 @@ import {
   ContextMenu,
   ContextMenuContent,
   ContextMenuItem,
+  ContextMenuSeparator,
   ContextMenuTrigger,
 } from '@/components/ui/context-menu';
 import {
@@ -394,6 +395,114 @@ export const MediaContent: FC<MediaContentProps> = ({
     </div>
   );
 
+  // Shared main content used with/without context menu
+  const libraryBody = (
+    <div className="flex-1 flex flex-col h-full overflow-hidden">
+      <div className="mb-4 flex items-center justify-between">
+        <div className="flex items-center gap-2">
+          <div>
+            <Breadcrumb>
+              <BreadcrumbList className="text-base">
+                <BreadcrumbItem>
+                  <BreadcrumbLink
+                    href="#"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      if (rootPrefix) onFolderOpen?.(rootPrefix);
+                    }}
+                  >
+                    {rootPrefix?.startsWith('assets/')
+                      ? 'Public Assets'
+                      : 'Library'}
+                  </BreadcrumbLink>
+                </BreadcrumbItem>
+                <BreadcrumbSeparator />
+                {folderPath.length > 0 ? (
+                  <>
+                    {folderPath.length > 2 ? (
+                      <>
+                        <BreadcrumbItem>
+                          <BreadcrumbEllipsis />
+                        </BreadcrumbItem>
+                        <BreadcrumbSeparator />
+                        <BreadcrumbItem>
+                          <BreadcrumbLink
+                            href="#"
+                            onClick={() =>
+                              onFolderOpen?.(
+                                folderPath[folderPath.length - 2]!.id,
+                              )
+                            }
+                          >
+                            {folderPath[folderPath.length - 2]!.name}
+                          </BreadcrumbLink>
+                        </BreadcrumbItem>
+                        <BreadcrumbSeparator />
+                      </>
+                    ) : (
+                      folderPath.slice(0, -1).map((f) => (
+                        <Fragment key={f.id}>
+                          <BreadcrumbItem>
+                            <BreadcrumbLink
+                              href="#"
+                              onClick={() => onFolderOpen?.(f.id)}
+                            >
+                              {f.name}
+                            </BreadcrumbLink>
+                          </BreadcrumbItem>
+                          <BreadcrumbSeparator />
+                        </Fragment>
+                      ))
+                    )}
+                    <BreadcrumbItem>
+                      <BreadcrumbPage>
+                        {folderPath[folderPath.length - 1]?.name}
+                      </BreadcrumbPage>
+                    </BreadcrumbItem>
+                  </>
+                ) : (
+                  <BreadcrumbItem>
+                    <BreadcrumbPage>
+                      {selectedFolder === rootPrefix ? 'All Files' : 'Recent'}
+                    </BreadcrumbPage>
+                  </BreadcrumbItem>
+                )}
+              </BreadcrumbList>
+            </Breadcrumb>
+          </div>
+          <Badge variant="secondary">
+            {selectedFolder !== rootPrefix
+              ? `${currentFolders.length} folders, ${files.length} files`
+              : `${currentFolders.length} folders`}
+          </Badge>
+          {selectedFolder !== rootPrefix && (
+            <div className="flex gap-1 ml-2">
+              <Button variant="ghost" size="sm" className="h-6 w-6 p-0">
+                <Edit className="w-3 h-3" />
+              </Button>
+              <Button variant="ghost" size="sm" className="h-6 w-6 p-0">
+                <Settings className="w-3 h-3" />
+              </Button>
+              <Button
+                variant="ghost"
+                size="sm"
+                className="h-6 w-6 p-0 text-red-500 hover:text-red-700"
+              >
+                <Trash2 className="w-3 h-3" />
+              </Button>
+            </div>
+          )}
+        </div>
+      </div>
+
+      <div className="flex-1 min-h-0">
+        <ScrollArea className="h-full">
+          {viewMode === 'grid' ? renderGridView() : renderListView()}
+        </ScrollArea>
+      </div>
+    </div>
+  );
+
   return (
     <>
       <AlertDialog
@@ -425,130 +534,28 @@ export const MediaContent: FC<MediaContentProps> = ({
         </AlertDialogContent>
       </AlertDialog>
 
-      <ContextMenu>
-        <ContextMenuTrigger asChild>
-          <div className="flex-1 flex flex-col h-full overflow-hidden">
-            <div className="mb-4 flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <div>
-                  <Breadcrumb>
-                    <BreadcrumbList className="text-base">
-                      <BreadcrumbItem>
-                        <BreadcrumbLink
-                          href="#"
-                          onClick={(e) => {
-                            e.preventDefault();
-                            if (rootPrefix) onFolderOpen?.(rootPrefix);
-                          }}
-                        >
-                          {rootPrefix?.startsWith('assets/')
-                            ? 'Public Assets'
-                            : 'Library'}
-                        </BreadcrumbLink>
-                      </BreadcrumbItem>
-                      <BreadcrumbSeparator />
-                      {folderPath.length > 0 ? (
-                        <>
-                          {folderPath.length > 2 ? (
-                            <>
-                              <BreadcrumbItem>
-                                <BreadcrumbEllipsis />
-                              </BreadcrumbItem>
-                              <BreadcrumbSeparator />
-                              <BreadcrumbItem>
-                                <BreadcrumbLink
-                                  href="#"
-                                  onClick={() =>
-                                    onFolderOpen?.(
-                                      folderPath[folderPath.length - 2]!.id,
-                                    )
-                                  }
-                                >
-                                  {folderPath[folderPath.length - 2]!.name}
-                                </BreadcrumbLink>
-                              </BreadcrumbItem>
-                              <BreadcrumbSeparator />
-                            </>
-                          ) : (
-                            folderPath.slice(0, -1).map((f) => (
-                              <Fragment key={f.id}>
-                                <BreadcrumbItem>
-                                  <BreadcrumbLink
-                                    href="#"
-                                    onClick={() => onFolderOpen?.(f.id)}
-                                  >
-                                    {f.name}
-                                  </BreadcrumbLink>
-                                </BreadcrumbItem>
-                                <BreadcrumbSeparator />
-                              </Fragment>
-                            ))
-                          )}
-                          <BreadcrumbItem>
-                            <BreadcrumbPage>
-                              {folderPath[folderPath.length - 1]?.name}
-                            </BreadcrumbPage>
-                          </BreadcrumbItem>
-                        </>
-                      ) : (
-                        <BreadcrumbItem>
-                          <BreadcrumbPage>
-                            {selectedFolder === rootPrefix
-                              ? 'All Files'
-                              : 'Recent'}
-                          </BreadcrumbPage>
-                        </BreadcrumbItem>
-                      )}
-                    </BreadcrumbList>
-                  </Breadcrumb>
-                </div>
-                <Badge variant="secondary">
-                  {selectedFolder !== rootPrefix
-                    ? `${currentFolders.length} folders, ${files.length} files`
-                    : `${currentFolders.length} folders`}
-                </Badge>
-                {selectedFolder !== rootPrefix && (
-                  <div className="flex gap-1 ml-2">
-                    <Button variant="ghost" size="sm" className="h-6 w-6 p-0">
-                      <Edit className="w-3 h-3" />
-                    </Button>
-                    <Button variant="ghost" size="sm" className="h-6 w-6 p-0">
-                      <Settings className="w-3 h-3" />
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      className="h-6 w-6 p-0 text-red-500 hover:text-red-700"
-                    >
-                      <Trash2 className="w-3 h-3" />
-                    </Button>
-                  </div>
-                )}
-              </div>
-            </div>
-
-            <div className="flex-1 min-h-0">
-              <ScrollArea className="h-full">
-                {viewMode === 'grid' ? renderGridView() : renderListView()}
-              </ScrollArea>
-            </div>
-          </div>
-        </ContextMenuTrigger>
-        <ContextMenuContent>
-          {onCreateFolder && (
-            <ContextMenuItem onClick={onCreateFolder}>
-              <FolderPlus className="w-4 h-4 mr-2" />
-              New folder
-            </ContextMenuItem>
-          )}
-          {onUploadFiles && (
-            <ContextMenuItem onClick={onUploadFiles}>
-              <Upload className="w-4 h-4 mr-2" />
-              Upload files
-            </ContextMenuItem>
-          )}
-        </ContextMenuContent>
-      </ContextMenu>
+      {!isAssets ? (
+        <ContextMenu>
+          <ContextMenuTrigger asChild>{libraryBody}</ContextMenuTrigger>
+          <ContextMenuContent>
+            {onCreateFolder && (
+              <ContextMenuItem onClick={onCreateFolder}>
+                <FolderPlus className="w-4 h-4 mr-2" />
+                New folder
+              </ContextMenuItem>
+            )}
+            <ContextMenuSeparator />
+            {onUploadFiles && (
+              <ContextMenuItem onClick={onUploadFiles}>
+                <Upload className="w-4 h-4 mr-2" />
+                Upload files
+              </ContextMenuItem>
+            )}
+          </ContextMenuContent>
+        </ContextMenu>
+      ) : (
+        libraryBody
+      )}
     </>
   );
 };
