@@ -13,6 +13,7 @@ import {
 import { Badge } from '@/components/ui/badge';
 import {
   Breadcrumb,
+  BreadcrumbEllipsis,
   BreadcrumbItem,
   BreadcrumbLink,
   BreadcrumbList,
@@ -431,19 +432,41 @@ export const MediaContent: FC<MediaContentProps> = ({
                       <BreadcrumbSeparator />
                       {folderPath.length > 0 ? (
                         <>
-                          {folderPath.slice(0, -1).map((f) => (
-                            <Fragment key={f.id}>
+                          {folderPath.length > 2 ? (
+                            <>
+                              <BreadcrumbItem>
+                                <BreadcrumbEllipsis />
+                              </BreadcrumbItem>
+                              <BreadcrumbSeparator />
                               <BreadcrumbItem>
                                 <BreadcrumbLink
                                   href="#"
-                                  onClick={() => onFolderOpen?.(f.id)}
+                                  onClick={() =>
+                                    onFolderOpen?.(
+                                      folderPath[folderPath.length - 2]!.id,
+                                    )
+                                  }
                                 >
-                                  {f.name}
+                                  {folderPath[folderPath.length - 2]!.name}
                                 </BreadcrumbLink>
                               </BreadcrumbItem>
                               <BreadcrumbSeparator />
-                            </Fragment>
-                          ))}
+                            </>
+                          ) : (
+                            folderPath.slice(0, -1).map((f) => (
+                              <Fragment key={f.id}>
+                                <BreadcrumbItem>
+                                  <BreadcrumbLink
+                                    href="#"
+                                    onClick={() => onFolderOpen?.(f.id)}
+                                  >
+                                    {f.name}
+                                  </BreadcrumbLink>
+                                </BreadcrumbItem>
+                                <BreadcrumbSeparator />
+                              </Fragment>
+                            ))
+                          )}
                           <BreadcrumbItem>
                             <BreadcrumbPage>
                               {folderPath[folderPath.length - 1]?.name}
