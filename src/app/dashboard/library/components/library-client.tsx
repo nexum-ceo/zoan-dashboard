@@ -1,6 +1,6 @@
 'use client';
 
-import { FolderSidebar } from '@/app/dashboard/library/components/folder-sidebar';
+// import { FolderSidebar } from '@/app/dashboard/library/components/folder-sidebar';
 import { putZeroByte, s3ToMediaFiles, s3ToMediaFolders } from '@/lib/s3';
 import { decodeBase64Url, encodeBase64Url } from '@/lib/utils';
 import {
@@ -36,15 +36,15 @@ export const LibraryClient: FC<LibraryClientProps> = ({
   activeTab,
 }) => {
   const [searchQuery, setSearchQuery] = useState<string>('');
-  const [folderSearchQuery, setFolderSearchQuery] = useState<string>('');
+  // const [folderSearchQuery, setFolderSearchQuery] = useState<string>('');
   // currentPrefix is the absolute S3 prefix for the current view, e.g. `${userId}/abc/`
   const [currentPrefix, setCurrentPrefix] = useState<string>(`${userId}/`);
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
   const [uploadFiles, setUploadFiles] = useState<UploadFile[]>([]);
   const [isNotificationVisible, setIsNotificationVisible] =
     useState<boolean>(false);
-  const [isFolderPanelCollapsed, setIsFolderPanelCollapsed] =
-    useState<boolean>(false);
+  // const [isFolderPanelCollapsed, setIsFolderPanelCollapsed] =
+  // useState<boolean>(false);
   const [localFolders, setLocalFolders] = useState<MediaFolder[]>([]);
   const [newFolderName, setNewFolderName] = useState<string>('');
   const [isNewFolderOpen, setIsNewFolderOpen] = useState<boolean>(false);
@@ -106,7 +106,7 @@ export const LibraryClient: FC<LibraryClientProps> = ({
   const filesInFolderQuery = useGetListFileInFolder(userId, relativeFolderPath);
 
   // Handle loading and error states
-  const isFoldersLoading = foldersQuery.isLoading;
+  // const isFoldersLoading = foldersQuery.isLoading;
 
   // Convert S3 response to MediaFolder format
   const convertS3ToMediaFolders = useCallback(
@@ -175,13 +175,13 @@ export const LibraryClient: FC<LibraryClientProps> = ({
     return matchesSearch;
   });
 
-  const toggleFolderExpansion = (folderId: string) => {
-    setExpandedFolders((prev) =>
-      prev.includes(folderId)
-        ? prev.filter((id) => id !== folderId)
-        : [...prev, folderId],
-    );
-  };
+  // const toggleFolderExpansion = (folderId: string) => {
+  //   setExpandedFolders((prev) =>
+  //     prev.includes(folderId)
+  //       ? prev.filter((id) => id !== folderId)
+  //       : [...prev, folderId],
+  //   );
+  // };
 
   const handleFileUpload = () => {
     fileInputRef.current?.click();
@@ -414,7 +414,7 @@ export const LibraryClient: FC<LibraryClientProps> = ({
 
       <div className="flex gap-6 flex-1 w-full min-h-0 overflow-hidden">
         {/* Folders Sidebar */}
-        {isFoldersLoading ? (
+        {/* {isFoldersLoading ? (
           <div className="w-64 bg-gray-50 dark:bg-gray-900 rounded-lg p-4">
             <div className="animate-pulse space-y-3">
               <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-3/4"></div>
@@ -436,7 +436,7 @@ export const LibraryClient: FC<LibraryClientProps> = ({
             expandedFolders={expandedFolders}
             onToggleFolderExpansion={toggleFolderExpansion}
           />
-        )}
+        )} */}
 
         {/* Main Content */}
         {filesInFolderQuery.isLoading ? (
