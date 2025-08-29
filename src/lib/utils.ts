@@ -128,3 +128,28 @@ export const decodeBase64Url = (input: string): string => {
     return '';
   }
 };
+
+/**
+ * Build breadcrumb path from absolute selected prefix and a root prefix.
+ * Example: selected = "assets/ui/icons/", root = "assets/" =>
+ * returns [
+ *   { id: "assets/ui/", name: "ui" },
+ *   { id: "assets/ui/icons/", name: "icons" }
+ * ]
+ */
+export const buildBreadcrumbCrumbs = (
+  selectedFolder: string | undefined,
+  rootPrefix: string | undefined,
+): Array<{ id: string; name: string }> => {
+  if (!rootPrefix) return [];
+  if (!selectedFolder || !selectedFolder.startsWith(rootPrefix)) return [];
+  const relative = selectedFolder.slice(rootPrefix.length);
+  const parts = relative.split('/').filter(Boolean);
+  const crumbs: Array<{ id: string; name: string }> = [];
+  let accum = rootPrefix;
+  for (const part of parts) {
+    accum = accum.endsWith('/') ? accum + part + '/' : accum + '/' + part + '/';
+    crumbs.push({ id: accum, name: part });
+  }
+  return crumbs;
+};

@@ -14,7 +14,7 @@ import { Slider } from '@/components/ui/slider';
 import { Switch } from '@/components/ui/switch';
 import { Textarea } from '@/components/ui/textarea';
 import { handleErrorApi, HttpError } from '@/lib/utils';
-import { useGetAgentList } from '@/queries/useAgent';
+import { useGetAgentAvailable } from '@/queries/useAgent';
 import {
   useCreateChatAgentSettingMutation,
   useGetChatAgentSettingByChatId,
@@ -61,7 +61,8 @@ export const ChatSettings: FC<ChatSettingsProps> = ({ isOpen, onClose }) => {
   const { data: chatAgentSettingData } = useGetChatAgentSettingByChatId(
     chatId as string,
   );
-  const { data: agentData } = useGetAgentList();
+  const { data: agentData } = useGetAgentAvailable();
+
   const createChatAgentSettingMutation = useCreateChatAgentSettingMutation(
     chatId as string,
   );
@@ -69,10 +70,21 @@ export const ChatSettings: FC<ChatSettingsProps> = ({ isOpen, onClose }) => {
     () => chatAgentSettingData?.data.data || [],
     [chatAgentSettingData],
   );
-  const agents = useMemo<AgentType[]>(
+  const agentsAvailable = useMemo<AgentType[]>(
     () => agentData?.data.data || [],
     [agentData],
   );
+
+  // Merge primary agent into available agents (if not already present)
+  const agents: AgentType[] = useMemo(() => {
+    if (!primaryAgent) return agentsAvailable;
+    const exists = (agentsAvailable || []).some(
+      (a) => a.id === primaryAgent.id,
+    );
+    return exists
+      ? agentsAvailable
+      : [primaryAgent as unknown as AgentType, ...agentsAvailable];
+  }, [agentsAvailable, primaryAgent]);
 
   // Enhance agents with derived flags: active (exists in chatAgentSetting) and isPrimary
   type AgentWithState = AgentType & { active: boolean; isPrimary: boolean };
@@ -90,6 +102,7 @@ export const ChatSettings: FC<ChatSettingsProps> = ({ isOpen, onClose }) => {
       };
     });
   }, [agents, chatAgentSetting]);
+
   // Sort agents: primary agents first, then secondary agents
   const sortedAgents = useMemo(() => {
     if (!agentsWithState) return agentsWithState;
@@ -310,6 +323,7 @@ export const ChatSettings: FC<ChatSettingsProps> = ({ isOpen, onClose }) => {
                         the appropriate agent.
                       </p>
                     </div>
+
                     <p className="text-sm text-muted-foreground">
                       <strong>Active Agents:</strong> {chatAgentSetting.length}{' '}
                       of {agents.length}

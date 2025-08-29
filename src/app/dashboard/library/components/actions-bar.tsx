@@ -20,6 +20,7 @@ type ActionsBarProps = {
   onNewFolder: () => void;
   viewMode: 'grid' | 'list';
   onViewModeChange: (mode: 'grid' | 'list') => void;
+  readOnly?: boolean;
 };
 
 export const ActionsBar: FC<ActionsBarProps> = ({
@@ -29,23 +30,30 @@ export const ActionsBar: FC<ActionsBarProps> = ({
   onNewFolder,
   viewMode,
   onViewModeChange,
+  readOnly,
 }) => {
   return (
-    <div className="flex items-center justify-between mb-6">
-      <div className="flex items-center gap-4">
-        <Button onClick={onUpload} className="gap-2">
-          <Upload className="w-4 h-4" />
-          Upload Files
-        </Button>
-        <Button
-          variant="outline"
-          className="gap-2 bg-transparent"
-          onClick={onNewFolder}
-        >
-          <FolderPlus className="w-4 h-4" />
-          New Folder
-        </Button>
-      </div>
+    <div
+      className={`flex items-center ${
+        readOnly ? 'justify-end' : 'justify-between'
+      } mb-6`}
+    >
+      {!readOnly && (
+        <div className="flex items-center gap-4">
+          <Button onClick={onUpload} className="gap-2">
+            <Upload className="w-4 h-4" />
+            Upload Files
+          </Button>
+          <Button
+            variant="outline"
+            className="gap-2 bg-transparent"
+            onClick={onNewFolder}
+          >
+            <FolderPlus className="w-4 h-4" />
+            New Folder
+          </Button>
+        </div>
+      )}
 
       <div className="flex items-center gap-2">
         <div className="relative">

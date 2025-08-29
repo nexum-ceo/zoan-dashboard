@@ -35,3 +35,10 @@ export const useUpdateAgentMutation = (id: string) => {
     },
   });
 };
+
+export const useGetAgentAvailable = () => {
+  return useQuery({
+    queryKey: ['agent-available'],
+    queryFn: () => agentApiRequest.sGetAgentAvailable(),
+  });
+};

@@ -39,9 +39,14 @@ import { formatDuration, formatFileSize } from '../lib/data';
 type MediaFileCardProps = {
   file: MediaFile;
   onDelete?: (filePath: string) => void;
+  readOnly?: boolean;
 };
 
-export const MediaFileCard: FC<MediaFileCardProps> = ({ file, onDelete }) => {
+export const MediaFileCard: FC<MediaFileCardProps> = ({
+  file,
+  onDelete,
+  readOnly,
+}) => {
   const [isDeleting, setIsDeleting] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
 
@@ -110,38 +115,42 @@ export const MediaFileCard: FC<MediaFileCardProps> = ({ file, onDelete }) => {
               </div>
             )}
 
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    className="h-8 w-8 p-0 bg-white/90 hover:bg-white shadow-sm border"
-                    disabled={isDeleting}
+            {!readOnly && (
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="h-8 w-8 p-0 bg-white/90 hover:bg-white shadow-sm border"
+                      disabled={isDeleting}
+                    >
+                      <MoreVertical className="w-4 h-4" />
+                    </Button>
+                  </div>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-48">
+                  <DropdownMenuItem
+                    onClick={() => window.open(file.url, '_blank')}
+                    className="cursor-pointer"
                   >
-                    <MoreVertical className="w-4 h-4" />
-                  </Button>
-                </div>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-48">
-                <DropdownMenuItem
-                  onClick={() => window.open(file.url, '_blank')}
-                  className="cursor-pointer"
-                >
-                  <FileText className="w-4 h-4 mr-2" />
-                  Open file
-                </DropdownMenuItem>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem
-                  onClick={() => setIsDeleteDialogOpen(true)}
-                  className="text-destructive focus:text-destructive cursor-pointer"
-                  disabled={isDeleting}
-                >
-                  <Trash2 className="w-4 h-4 mr-2" />
-                  Delete file
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
+                    <FileText className="w-4 h-4 mr-2" />
+                    Open file
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator />
+                  {onDelete && (
+                    <DropdownMenuItem
+                      onClick={() => setIsDeleteDialogOpen(true)}
+                      className="text-destructive focus:text-destructive cursor-pointer"
+                      disabled={isDeleting}
+                    >
+                      <Trash2 className="w-4 h-4 mr-2" />
+                      Delete file
+                    </DropdownMenuItem>
+                  )}
+                </DropdownMenuContent>
+              </DropdownMenu>
+            )}
           </div>
 
           <div className="space-y-1">

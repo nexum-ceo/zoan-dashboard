@@ -13,6 +13,7 @@ import {
 import { Badge } from '@/components/ui/badge';
 import {
   Breadcrumb,
+  BreadcrumbEllipsis,
   BreadcrumbItem,
   BreadcrumbLink,
   BreadcrumbList,
@@ -24,6 +25,7 @@ import {
   ContextMenu,
   ContextMenuContent,
   ContextMenuItem,
+  ContextMenuSeparator,
   ContextMenuTrigger,
 } from '@/components/ui/context-menu';
 import {
@@ -34,6 +36,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { buildBreadcrumbCrumbs } from '@/lib/utils';
 import {
   Edit,
   Folder,
@@ -73,26 +76,14 @@ export const MediaContent: FC<MediaContentProps> = ({
   onDelete,
 }) => {
   const [deletingFolder, setDeletingFolder] = useState<string | null>(null);
-  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState<boolean>(false);
   const [folderToDelete, setFolderToDelete] = useState<MediaFolder | null>(
     null,
   );
+  const isAssets = !!rootPrefix && rootPrefix.startsWith('assets/');
 
-  const selectedFolderData = folders.find((f) => f.id === selectedFolder);
-
-  // Build breadcrumb path based on parentId chain
-  const folderById = new Map(folders.map((f) => [f.id, f] as const));
-  const buildFolderPath = () => {
-    if (!selectedFolderData) return [] as MediaFolder[];
-    const path: MediaFolder[] = [];
-    let current: MediaFolder | undefined = selectedFolderData;
-    while (current) {
-      path.unshift(current);
-      current = current.parentId ? folderById.get(current.parentId) : undefined;
-    }
-    return path;
-  };
-  const folderPath = buildFolderPath();
+  // Build breadcrumb path using util
+  const folderPath = buildBreadcrumbCrumbs(selectedFolder, rootPrefix);
 
   // Use all folders passed from parent (these are already filtered for current folder)
   const currentFolders = folders;
@@ -131,7 +122,7 @@ export const MediaContent: FC<MediaContentProps> = ({
               {currentFolders.map((folder) => (
                 <div
                   key={folder.id}
-                  className="group border rounded-lg p-3 bg-muted/40 hover:bg-muted transition-colors cursor-pointer h-16"
+                  className="group border rounded-lg px-2 py-0 bg-muted/40 hover:bg-muted transition-colors cursor-pointer h-12"
                 >
                   <div className="flex items-center justify-between h-full">
                     <div
@@ -143,39 +134,43 @@ export const MediaContent: FC<MediaContentProps> = ({
                         {folder.name}
                       </span>
                     </div>
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          className="h-6 w-6 p-0 opacity-0 group-hover:opacity-100 transition-opacity"
-                          onClick={(e) => e.stopPropagation()}
-                          disabled={deletingFolder === folder.id}
-                        >
-                          <MoreVertical className="w-3 h-3" />
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end" className="w-48">
-                        <DropdownMenuItem
-                          onClick={() => onFolderOpen?.(folder.id)}
-                          className="cursor-pointer"
-                        >
-                          <Folder className="w-4 h-4 mr-2" />
-                          Open folder
-                        </DropdownMenuItem>
-                        <DropdownMenuSeparator />
-                        <DropdownMenuItem
-                          onClick={() => openDeleteDialog(folder)}
-                          className="text-destructive focus:text-destructive cursor-pointer"
-                          disabled={deletingFolder === folder.id}
-                        >
-                          <Trash2 className="w-4 h-4 mr-2" />
-                          {deletingFolder === folder.id
-                            ? 'Deleting...'
-                            : 'Delete folder'}
-                        </DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
+                    {!isAssets && (
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="h-6 w-6 p-0 opacity-0 group-hover:opacity-100 transition-opacity"
+                            onClick={(e) => e.stopPropagation()}
+                            disabled={deletingFolder === folder.id}
+                          >
+                            <MoreVertical className="w-3 h-3" />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end" className="w-48">
+                          <DropdownMenuItem
+                            onClick={() => onFolderOpen?.(folder.id)}
+                            className="cursor-pointer"
+                          >
+                            <Folder className="w-4 h-4 mr-2" />
+                            Open folder
+                          </DropdownMenuItem>
+                          <DropdownMenuSeparator />
+                          {onDelete && (
+                            <DropdownMenuItem
+                              onClick={() => openDeleteDialog(folder)}
+                              className="text-destructive focus:text-destructive cursor-pointer"
+                              disabled={deletingFolder === folder.id}
+                            >
+                              <Trash2 className="w-4 h-4 mr-2" />
+                              {deletingFolder === folder.id
+                                ? 'Deleting...'
+                                : 'Delete folder'}
+                            </DropdownMenuItem>
+                          )}
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    )}
                   </div>
                 </div>
               ))}
@@ -186,7 +181,12 @@ export const MediaContent: FC<MediaContentProps> = ({
           {files.length > 0 && (
             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-4">
               {files.map((file) => (
-                <MediaFileCard key={file.id} file={file} onDelete={onDelete} />
+                <MediaFileCard
+                  key={file.id}
+                  file={file}
+                  onDelete={onDelete}
+                  readOnly={isAssets}
+                />
               ))}
             </div>
           )}
@@ -199,7 +199,7 @@ export const MediaContent: FC<MediaContentProps> = ({
           {currentFolders.map((folder) => (
             <div
               key={folder.id}
-              className="group border rounded-lg p-3 bg-muted/40 hover:bg-muted transition-colors cursor-pointer h-16"
+              className="group border rounded-lg px-2 py-0 bg-muted/40 hover:bg-muted transition-colors cursor-pointer h-12"
             >
               <div className="flex items-center justify-between h-full">
                 <div
@@ -211,39 +211,43 @@ export const MediaContent: FC<MediaContentProps> = ({
                     {folder.name}
                   </span>
                 </div>
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      className="h-6 w-6 p-0 opacity-0 group-hover:opacity-100 transition-opacity"
-                      onClick={(e) => e.stopPropagation()}
-                      disabled={deletingFolder === folder.id}
-                    >
-                      <MoreVertical className="w-3 h-3" />
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end" className="w-48">
-                    <DropdownMenuItem
-                      onClick={() => onFolderOpen?.(folder.id)}
-                      className="cursor-pointer"
-                    >
-                      <Folder className="w-4 h-4 mr-2" />
-                      Open folder
-                    </DropdownMenuItem>
-                    <DropdownMenuSeparator />
-                    <DropdownMenuItem
-                      onClick={() => openDeleteDialog(folder)}
-                      className="text-destructive focus:text-destructive cursor-pointer"
-                      disabled={deletingFolder === folder.id}
-                    >
-                      <Trash2 className="w-4 h-4 mr-2" />
-                      {deletingFolder === folder.id
-                        ? 'Deleting...'
-                        : 'Delete folder'}
-                    </DropdownMenuItem>
-                  </DropdownMenuContent>
-                </DropdownMenu>
+                {!isAssets && (
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="h-6 w-6 p-0 opacity-0 group-hover:opacity-100 transition-opacity"
+                        onClick={(e) => e.stopPropagation()}
+                        disabled={deletingFolder === folder.id}
+                      >
+                        <MoreVertical className="w-3 h-3" />
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end" className="w-48">
+                      <DropdownMenuItem
+                        onClick={() => onFolderOpen?.(folder.id)}
+                        className="cursor-pointer"
+                      >
+                        <Folder className="w-4 h-4 mr-2" />
+                        Open folder
+                      </DropdownMenuItem>
+                      <DropdownMenuSeparator />
+                      {onDelete && (
+                        <DropdownMenuItem
+                          onClick={() => openDeleteDialog(folder)}
+                          className="text-destructive focus:text-destructive cursor-pointer"
+                          disabled={deletingFolder === folder.id}
+                        >
+                          <Trash2 className="w-4 h-4 mr-2" />
+                          {deletingFolder === folder.id
+                            ? 'Deleting...'
+                            : 'Delete folder'}
+                        </DropdownMenuItem>
+                      )}
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                )}
               </div>
             </div>
           ))}
@@ -261,7 +265,7 @@ export const MediaContent: FC<MediaContentProps> = ({
           {currentFolders.map((folder) => (
             <div
               key={folder.id}
-              className="group border rounded-lg p-3 bg-muted/40 hover:bg-muted transition-colors cursor-pointer h-16"
+              className="group border rounded-lg px-2 py-0 bg-muted/40 hover:bg-muted transition-colors cursor-pointer h-12"
             >
               <div className="flex items-center justify-between h-full">
                 <div
@@ -276,46 +280,53 @@ export const MediaContent: FC<MediaContentProps> = ({
                 <span className="text-xs text-muted-foreground whitespace-nowrap">
                   {folder.fileCount} files
                 </span>
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      className="h-6 w-6 p-0 opacity-0 group-hover:opacity-100 transition-opacity"
-                      onClick={(e) => e.stopPropagation()}
-                      disabled={deletingFolder === folder.id}
-                    >
-                      <MoreVertical className="w-3 h-3" />
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end" className="w-48">
-                    <DropdownMenuItem
-                      onClick={() => onFolderOpen?.(folder.id)}
-                      className="cursor-pointer"
-                    >
-                      <Folder className="w-4 h-4 mr-2" />
-                      Open folder
-                    </DropdownMenuItem>
-                    <DropdownMenuSeparator />
-                    <DropdownMenuItem
-                      onClick={() => openDeleteDialog(folder)}
-                      className="text-destructive focus:text-destructive cursor-pointer"
-                      disabled={deletingFolder === folder.id}
-                    >
-                      <Trash2 className="w-4 h-4 mr-2" />
-                      {deletingFolder === folder.id
-                        ? 'Deleting...'
-                        : 'Delete folder'}
-                    </DropdownMenuItem>
-                  </DropdownMenuContent>
-                </DropdownMenu>
+                {!isAssets && (
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="h-6 w-6 p-0 opacity-0 group-hover:opacity-100 transition-opacity"
+                        onClick={(e) => e.stopPropagation()}
+                        disabled={deletingFolder === folder.id}
+                      >
+                        <MoreVertical className="w-3 h-3" />
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end" className="w-48">
+                      <DropdownMenuItem
+                        onClick={() => onFolderOpen?.(folder.id)}
+                        className="cursor-pointer"
+                      >
+                        <Folder className="w-4 h-4 mr-2" />
+                        Open folder
+                      </DropdownMenuItem>
+                      <DropdownMenuSeparator />
+                      <DropdownMenuItem
+                        onClick={() => openDeleteDialog(folder)}
+                        className="text-destructive focus:text-destructive cursor-pointer"
+                        disabled={deletingFolder === folder.id}
+                      >
+                        <Trash2 className="w-4 h-4 mr-2" />
+                        {deletingFolder === folder.id
+                          ? 'Deleting...'
+                          : 'Delete folder'}
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                )}
               </div>
             </div>
           ))}
 
           {/* Files */}
           {files.map((file) => (
-            <MediaFileListItem key={file.id} file={file} onDelete={onDelete} />
+            <MediaFileListItem
+              key={file.id}
+              file={file}
+              onDelete={onDelete}
+              readOnly={isAssets}
+            />
           ))}
         </>
       )}
@@ -326,7 +337,7 @@ export const MediaContent: FC<MediaContentProps> = ({
           {currentFolders.map((folder) => (
             <div
               key={folder.id}
-              className="group border rounded-lg p-3 bg-muted/40 hover:bg-muted transition-colors cursor-pointer h-16"
+              className="group border rounded-lg px-2 py-0 bg-muted/40 hover:bg-muted transition-colors cursor-pointer h-12"
             >
               <div className="flex items-center justify-between h-full">
                 <div
@@ -362,16 +373,18 @@ export const MediaContent: FC<MediaContentProps> = ({
                       Open folder
                     </DropdownMenuItem>
                     <DropdownMenuSeparator />
-                    <DropdownMenuItem
-                      onClick={() => openDeleteDialog(folder)}
-                      className="text-destructive focus:text-destructive cursor-pointer"
-                      disabled={deletingFolder === folder.id}
-                    >
-                      <Trash2 className="w-4 h-4 mr-2" />
-                      {deletingFolder === folder.id
-                        ? 'Deleting...'
-                        : 'Delete folder'}
-                    </DropdownMenuItem>
+                    {onDelete && (
+                      <DropdownMenuItem
+                        onClick={() => openDeleteDialog(folder)}
+                        className="text-destructive focus:text-destructive cursor-pointer"
+                        disabled={deletingFolder === folder.id}
+                      >
+                        <Trash2 className="w-4 h-4 mr-2" />
+                        {deletingFolder === folder.id
+                          ? 'Deleting...'
+                          : 'Delete folder'}
+                      </DropdownMenuItem>
+                    )}
                   </DropdownMenuContent>
                 </DropdownMenu>
               </div>
@@ -379,6 +392,114 @@ export const MediaContent: FC<MediaContentProps> = ({
           ))}
         </>
       )}
+    </div>
+  );
+
+  // Shared main content used with/without context menu
+  const libraryBody = (
+    <div className="flex-1 flex flex-col h-full overflow-hidden">
+      <div className="mb-4 flex items-center justify-between">
+        <div className="flex items-center gap-2">
+          <div>
+            <Breadcrumb>
+              <BreadcrumbList className="text-base">
+                <BreadcrumbItem>
+                  <BreadcrumbLink
+                    href="#"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      if (rootPrefix) onFolderOpen?.(rootPrefix);
+                    }}
+                  >
+                    {rootPrefix?.startsWith('assets/')
+                      ? 'Public Assets'
+                      : 'Library'}
+                  </BreadcrumbLink>
+                </BreadcrumbItem>
+                <BreadcrumbSeparator />
+                {folderPath.length > 0 ? (
+                  <>
+                    {folderPath.length > 2 ? (
+                      <>
+                        <BreadcrumbItem>
+                          <BreadcrumbEllipsis />
+                        </BreadcrumbItem>
+                        <BreadcrumbSeparator />
+                        <BreadcrumbItem>
+                          <BreadcrumbLink
+                            href="#"
+                            onClick={() =>
+                              onFolderOpen?.(
+                                folderPath[folderPath.length - 2]!.id,
+                              )
+                            }
+                          >
+                            {folderPath[folderPath.length - 2]!.name}
+                          </BreadcrumbLink>
+                        </BreadcrumbItem>
+                        <BreadcrumbSeparator />
+                      </>
+                    ) : (
+                      folderPath.slice(0, -1).map((f) => (
+                        <Fragment key={f.id}>
+                          <BreadcrumbItem>
+                            <BreadcrumbLink
+                              href="#"
+                              onClick={() => onFolderOpen?.(f.id)}
+                            >
+                              {f.name}
+                            </BreadcrumbLink>
+                          </BreadcrumbItem>
+                          <BreadcrumbSeparator />
+                        </Fragment>
+                      ))
+                    )}
+                    <BreadcrumbItem>
+                      <BreadcrumbPage>
+                        {folderPath[folderPath.length - 1]?.name}
+                      </BreadcrumbPage>
+                    </BreadcrumbItem>
+                  </>
+                ) : (
+                  <BreadcrumbItem>
+                    <BreadcrumbPage>
+                      {selectedFolder === rootPrefix ? 'All Files' : 'Recent'}
+                    </BreadcrumbPage>
+                  </BreadcrumbItem>
+                )}
+              </BreadcrumbList>
+            </Breadcrumb>
+          </div>
+          <Badge variant="secondary">
+            {selectedFolder !== rootPrefix
+              ? `${currentFolders.length} folders, ${files.length} files`
+              : `${currentFolders.length} folders`}
+          </Badge>
+          {selectedFolder !== rootPrefix && (
+            <div className="flex gap-1 ml-2">
+              <Button variant="ghost" size="sm" className="h-6 w-6 p-0">
+                <Edit className="w-3 h-3" />
+              </Button>
+              <Button variant="ghost" size="sm" className="h-6 w-6 p-0">
+                <Settings className="w-3 h-3" />
+              </Button>
+              <Button
+                variant="ghost"
+                size="sm"
+                className="h-6 w-6 p-0 text-red-500 hover:text-red-700"
+              >
+                <Trash2 className="w-3 h-3" />
+              </Button>
+            </div>
+          )}
+        </div>
+      </div>
+
+      <div className="flex-1 min-h-0">
+        <ScrollArea className="h-full">
+          {viewMode === 'grid' ? renderGridView() : renderListView()}
+        </ScrollArea>
+      </div>
     </div>
   );
 
@@ -413,102 +534,28 @@ export const MediaContent: FC<MediaContentProps> = ({
         </AlertDialogContent>
       </AlertDialog>
 
-      <ContextMenu>
-        <ContextMenuTrigger asChild>
-          <div className="flex-1 flex flex-col h-full overflow-hidden">
-            <div className="mb-4 flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <div>
-                  <Breadcrumb>
-                    <BreadcrumbList>
-                      <BreadcrumbItem>
-                        <BreadcrumbLink
-                          href="#"
-                          onClick={(e) => {
-                            e.preventDefault();
-                            if (rootPrefix) onFolderOpen?.(rootPrefix);
-                          }}
-                        >
-                          Library
-                        </BreadcrumbLink>
-                      </BreadcrumbItem>
-                      <BreadcrumbSeparator />
-                      {folderPath.length > 0 ? (
-                        <>
-                          {folderPath.slice(0, -1).map((f) => (
-                            <Fragment key={f.id}>
-                              <BreadcrumbItem>
-                                <BreadcrumbLink
-                                  href="#"
-                                  onClick={() => onFolderOpen?.(f.id)}
-                                >
-                                  {f.name}
-                                </BreadcrumbLink>
-                              </BreadcrumbItem>
-                              <BreadcrumbSeparator />
-                            </Fragment>
-                          ))}
-                          <BreadcrumbItem>
-                            <BreadcrumbPage>
-                              {folderPath[folderPath.length - 1]?.name}
-                            </BreadcrumbPage>
-                          </BreadcrumbItem>
-                        </>
-                      ) : (
-                        <BreadcrumbItem>
-                          <BreadcrumbPage>
-                            {selectedFolder === rootPrefix
-                              ? 'All Files'
-                              : 'Recent'}
-                          </BreadcrumbPage>
-                        </BreadcrumbItem>
-                      )}
-                    </BreadcrumbList>
-                  </Breadcrumb>
-                </div>
-                <Badge variant="secondary">
-                  {selectedFolder !== rootPrefix
-                    ? `${currentFolders.length} folders, ${files.length} files`
-                    : `${currentFolders.length} folders`}
-                </Badge>
-                {selectedFolder !== rootPrefix && (
-                  <div className="flex gap-1 ml-2">
-                    <Button variant="ghost" size="sm" className="h-6 w-6 p-0">
-                      <Edit className="w-3 h-3" />
-                    </Button>
-                    <Button variant="ghost" size="sm" className="h-6 w-6 p-0">
-                      <Settings className="w-3 h-3" />
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      className="h-6 w-6 p-0 text-red-500 hover:text-red-700"
-                    >
-                      <Trash2 className="w-3 h-3" />
-                    </Button>
-                  </div>
-                )}
-              </div>
-            </div>
-
-            <div className="flex-1 min-h-0">
-              <ScrollArea className="h-full">
-                {viewMode === 'grid' ? renderGridView() : renderListView()}
-              </ScrollArea>
-            </div>
-          </div>
-        </ContextMenuTrigger>
-        <ContextMenuContent>
-          <ContextMenuItem onClick={onCreateFolder}>
-            <FolderPlus className="w-4 h-4 mr-2" />
-            New folder
-          </ContextMenuItem>
-          <ContextMenuItem onClick={onUploadFiles}>
-            <Upload className="w-4 h-4 mr-2" />
-            Upload files
-          </ContextMenuItem>
-        </ContextMenuContent>
-      </ContextMenu>
+      {!isAssets ? (
+        <ContextMenu>
+          <ContextMenuTrigger asChild>{libraryBody}</ContextMenuTrigger>
+          <ContextMenuContent>
+            {onCreateFolder && (
+              <ContextMenuItem onClick={onCreateFolder}>
+                <FolderPlus className="w-4 h-4 mr-2" />
+                New folder
+              </ContextMenuItem>
+            )}
+            <ContextMenuSeparator />
+            {onUploadFiles && (
+              <ContextMenuItem onClick={onUploadFiles}>
+                <Upload className="w-4 h-4 mr-2" />
+                Upload files
+              </ContextMenuItem>
+            )}
+          </ContextMenuContent>
+        </ContextMenu>
+      ) : (
+        libraryBody
+      )}
     </>
   );
 };

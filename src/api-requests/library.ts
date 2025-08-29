@@ -118,6 +118,27 @@ const libraryApiRequest = {
       },
       baseURL: '',
     }),
+
+  getPublicAssets: async (folderPath: string = '') => {
+    const response = await axiosInstance.get(
+      `/library/?prefix=assets/${folderPath}&delimiter=/`,
+      {
+        baseURL: process.env.NEXT_PUBLIC_MINIO_URL,
+        responseType: 'text',
+      },
+    );
+    return parseXmlResponse(response.data);
+  },
+
+  sGetPublicAssets: async (folderPath: string = '') => {
+    const response = await axiosInstance.get(
+      `/library/public-assets?folderPath=${folderPath}`,
+      {
+        baseURL: '',
+      },
+    );
+    return parseXmlResponse(response.data);
+  },
 };
 
 export default libraryApiRequest;

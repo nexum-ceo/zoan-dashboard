@@ -1,12 +1,13 @@
 'use client';
 
-import { FolderSidebar } from '@/app/dashboard/library/components/folder-sidebar';
+// import { FolderSidebar } from '@/app/dashboard/library/components/folder-sidebar';
 import { putZeroByte, s3ToMediaFiles, s3ToMediaFolders } from '@/lib/s3';
 import { decodeBase64Url, encodeBase64Url } from '@/lib/utils';
 import {
   useDelete,
   useGetListFileInFolder,
   useGetListFolder,
+  useGetPublicAssets,
   useLibrary,
 } from '@/queries/useLibrary';
 import type { S3ListBucketResultType } from '@/types/library';
@@ -27,19 +28,23 @@ import { UploadNotification, type UploadFile } from './upload-notification';
 
 type LibraryClientProps = {
   userId: string;
+  activeTab: 'library' | 'assets';
 };
 
-export const LibraryClient: FC<LibraryClientProps> = ({ userId }) => {
+export const LibraryClient: FC<LibraryClientProps> = ({
+  userId,
+  activeTab,
+}) => {
   const [searchQuery, setSearchQuery] = useState<string>('');
-  const [folderSearchQuery, setFolderSearchQuery] = useState<string>('');
+  // const [folderSearchQuery, setFolderSearchQuery] = useState<string>('');
   // currentPrefix is the absolute S3 prefix for the current view, e.g. `${userId}/abc/`
   const [currentPrefix, setCurrentPrefix] = useState<string>(`${userId}/`);
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
   const [uploadFiles, setUploadFiles] = useState<UploadFile[]>([]);
   const [isNotificationVisible, setIsNotificationVisible] =
     useState<boolean>(false);
-  const [isFolderPanelCollapsed, setIsFolderPanelCollapsed] =
-    useState<boolean>(false);
+  // const [isFolderPanelCollapsed, setIsFolderPanelCollapsed] =
+  // useState<boolean>(false);
   const [localFolders, setLocalFolders] = useState<MediaFolder[]>([]);
   const [newFolderName, setNewFolderName] = useState<string>('');
   const [isNewFolderOpen, setIsNewFolderOpen] = useState<boolean>(false);
@@ -63,8 +68,22 @@ export const LibraryClient: FC<LibraryClientProps> = ({ userId }) => {
         return;
       }
     }
-    setCurrentPrefix(`${userId}/`);
-  }, [searchParams, userId]);
+    // Set prefix based on active tab
+    if (activeTab === 'library') {
+      setCurrentPrefix(`${userId}/`);
+    } else {
+      setCurrentPrefix('assets/');
+    }
+  }, [searchParams, userId, activeTab]);
+
+  // Reset currentPrefix when activeTab changes
+  useEffect(() => {
+    if (activeTab === 'library') {
+      setCurrentPrefix(`${userId}/`);
+    } else {
+      setCurrentPrefix('assets/');
+    }
+  }, [activeTab, userId]);
 
   // keep URL in sync when currentPrefix changes
   useEffect(() => {
@@ -75,15 +94,19 @@ export const LibraryClient: FC<LibraryClientProps> = ({ userId }) => {
     router.replace(url.pathname + '?' + url.searchParams.toString());
   }, [currentPrefix, router]);
 
-  // S3 API calls - fetch folders and files
-  const foldersQuery = useGetListFolder(userId);
   // derive folder path relative to user root for API
   const relativeFolderPath =
-    currentPrefix.replace(new RegExp(`^${userId}/?`), '') || 'all';
+    activeTab === 'library'
+      ? currentPrefix.replace(new RegExp(`^${userId}/?`), '') || 'all'
+      : currentPrefix.replace(/^assets\/?/, '') || '';
+
+  // S3 API calls - fetch folders and files
+  const foldersQuery = useGetListFolder(userId);
+  const publicAssetsQuery = useGetPublicAssets(relativeFolderPath);
   const filesInFolderQuery = useGetListFileInFolder(userId, relativeFolderPath);
 
   // Handle loading and error states
-  const isFoldersLoading = foldersQuery.isLoading;
+  // const isFoldersLoading = foldersQuery.isLoading;
 
   // Convert S3 response to MediaFolder format
   const convertS3ToMediaFolders = useCallback(
@@ -109,8 +132,11 @@ export const LibraryClient: FC<LibraryClientProps> = ({ userId }) => {
     }
   }, [foldersQuery.data, convertS3ToMediaFolders]);
 
-  // Extract folders and files from current folder data
-  const currentFolderData = filesInFolderQuery?.data as S3ListBucketResultType;
+  // Extract folders and files from current folder data based on active tab
+  const currentFolderData =
+    activeTab === 'library'
+      ? (filesInFolderQuery?.data as S3ListBucketResultType)
+      : (publicAssetsQuery?.data as S3ListBucketResultType);
 
   // Get folders (CommonPrefixes) from current folder
   const currentFolders: MediaFolder[] = currentFolderData
@@ -119,12 +145,19 @@ export const LibraryClient: FC<LibraryClientProps> = ({ userId }) => {
 
   // Get files (Contents) from current folder
   const currentFiles: MediaFile[] = currentFolderData
-    ? convertS3ToMediaFiles(currentFolderData, userId)
+    ? convertS3ToMediaFiles(
+        currentFolderData,
+        activeTab === 'library' ? userId : 'public',
+      )
     : [];
 
   // When at root level, use folders from the main folders query
   const displayFolders =
-    currentPrefix === `${userId}/` ? localFolders : currentFolders;
+    activeTab === 'library'
+      ? currentPrefix === `${userId}/`
+        ? localFolders
+        : currentFolders
+      : currentFolders;
 
   // Filter files based on search
   const filteredFiles = currentFiles.filter((file) => {
@@ -142,13 +175,13 @@ export const LibraryClient: FC<LibraryClientProps> = ({ userId }) => {
     return matchesSearch;
   });
 
-  const toggleFolderExpansion = (folderId: string) => {
-    setExpandedFolders((prev) =>
-      prev.includes(folderId)
-        ? prev.filter((id) => id !== folderId)
-        : [...prev, folderId],
-    );
-  };
+  // const toggleFolderExpansion = (folderId: string) => {
+  //   setExpandedFolders((prev) =>
+  //     prev.includes(folderId)
+  //       ? prev.filter((id) => id !== folderId)
+  //       : [...prev, folderId],
+  //   );
+  // };
 
   const handleFileUpload = () => {
     fileInputRef.current?.click();
@@ -377,11 +410,12 @@ export const LibraryClient: FC<LibraryClientProps> = ({ userId }) => {
         onNewFolder={() => setIsNewFolderOpen(true)}
         viewMode={viewMode}
         onViewModeChange={setViewMode}
+        readOnly={activeTab === 'assets'}
       />
 
       <div className="flex gap-6 flex-1 w-full min-h-0 overflow-hidden">
         {/* Folders Sidebar */}
-        {isFoldersLoading ? (
+        {/* {isFoldersLoading ? (
           <div className="w-64 bg-gray-50 dark:bg-gray-900 rounded-lg p-4">
             <div className="animate-pulse space-y-3">
               <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-3/4"></div>
@@ -403,7 +437,7 @@ export const LibraryClient: FC<LibraryClientProps> = ({ userId }) => {
             expandedFolders={expandedFolders}
             onToggleFolderExpansion={toggleFolderExpansion}
           />
-        )}
+        )} */}
 
         {/* Main Content */}
         {filesInFolderQuery.isLoading ? (
@@ -420,12 +454,18 @@ export const LibraryClient: FC<LibraryClientProps> = ({ userId }) => {
             files={filteredFiles}
             folders={filteredFolders}
             selectedFolder={currentPrefix}
-            rootPrefix={`${userId}/`}
+            rootPrefix={activeTab === 'library' ? `${userId}/` : 'assets/'}
             viewMode={viewMode}
             onFolderOpen={setCurrentPrefix}
-            onCreateFolder={() => setIsNewFolderOpen(true)}
-            onUploadFiles={handleFileUpload}
-            onDelete={handleDelete}
+            onCreateFolder={
+              activeTab === 'library'
+                ? () => setIsNewFolderOpen(true)
+                : undefined
+            }
+            onUploadFiles={
+              activeTab === 'library' ? handleFileUpload : undefined
+            }
+            onDelete={activeTab === 'library' ? handleDelete : undefined}
           />
         )}
       </div>
