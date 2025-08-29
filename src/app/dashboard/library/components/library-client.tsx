@@ -410,6 +410,7 @@ export const LibraryClient: FC<LibraryClientProps> = ({
         onNewFolder={() => setIsNewFolderOpen(true)}
         viewMode={viewMode}
         onViewModeChange={setViewMode}
+        readOnly={activeTab === 'assets'}
       />
 
       <div className="flex gap-6 flex-1 w-full min-h-0 overflow-hidden">

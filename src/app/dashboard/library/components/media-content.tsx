@@ -432,7 +432,7 @@ export const MediaContent: FC<MediaContentProps> = ({
               <div className="flex items-center gap-2">
                 <div>
                   <Breadcrumb>
-                    <BreadcrumbList>
+                    <BreadcrumbList className="text-base">
                       <BreadcrumbItem>
                         <BreadcrumbLink
                           href="#"
