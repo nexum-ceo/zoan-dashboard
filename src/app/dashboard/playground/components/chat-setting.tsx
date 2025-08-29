@@ -14,7 +14,7 @@ import { Slider } from '@/components/ui/slider';
 import { Switch } from '@/components/ui/switch';
 import { Textarea } from '@/components/ui/textarea';
 import { handleErrorApi, HttpError } from '@/lib/utils';
-import { useGetAgentList } from '@/queries/useAgent';
+import { useGetAgentAvailable } from '@/queries/useAgent';
 import {
   useCreateChatAgentSettingMutation,
   useGetChatAgentSettingByChatId,
@@ -61,7 +61,9 @@ export const ChatSettings: FC<ChatSettingsProps> = ({ isOpen, onClose }) => {
   const { data: chatAgentSettingData } = useGetChatAgentSettingByChatId(
     chatId as string,
   );
-  const { data: agentData } = useGetAgentList();
+  // Use available agents instead of full list
+  const { data: agentData } = useGetAgentAvailable();
+
   const createChatAgentSettingMutation = useCreateChatAgentSettingMutation(
     chatId as string,
   );
@@ -90,6 +92,7 @@ export const ChatSettings: FC<ChatSettingsProps> = ({ isOpen, onClose }) => {
       };
     });
   }, [agents, chatAgentSetting]);
+
   // Sort agents: primary agents first, then secondary agents
   const sortedAgents = useMemo(() => {
     if (!agentsWithState) return agentsWithState;
@@ -310,9 +313,12 @@ export const ChatSettings: FC<ChatSettingsProps> = ({ isOpen, onClose }) => {
                         the appropriate agent.
                       </p>
                     </div>
+
+                    {/* Chat agent setting = all active agent */}
+                    {/* All agent = all available agent + primary agent(+1 because only one primary agent) */}
                     <p className="text-sm text-muted-foreground">
                       <strong>Active Agents:</strong> {chatAgentSetting.length}{' '}
-                      of {agents.length}
+                      of {agents.length + (primaryAgent ? 1 : 0)}
                     </p>
                   </>
                 ) : (
