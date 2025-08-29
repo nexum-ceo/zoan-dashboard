@@ -130,14 +130,16 @@ export const MediaFileListItem: FC<MediaFileListItemProps> = ({
                   Open file
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
-                <DropdownMenuItem
-                  onClick={() => setIsDeleteDialogOpen(true)}
-                  className="text-destructive focus:text-destructive cursor-pointer"
-                  disabled={isDeleting}
-                >
-                  <Trash2 className="w-4 h-4 mr-2" />
-                  Delete file
-                </DropdownMenuItem>
+                {onDelete && (
+                  <DropdownMenuItem
+                    onClick={() => setIsDeleteDialogOpen(true)}
+                    className="text-destructive focus:text-destructive cursor-pointer"
+                    disabled={isDeleting}
+                  >
+                    <Trash2 className="w-4 h-4 mr-2" />
+                    Delete file
+                  </DropdownMenuItem>
+                )}
               </DropdownMenuContent>
             </DropdownMenu>
           </div>

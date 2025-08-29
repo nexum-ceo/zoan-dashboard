@@ -131,7 +131,7 @@ export const MediaContent: FC<MediaContentProps> = ({
               {currentFolders.map((folder) => (
                 <div
                   key={folder.id}
-                  className="group border rounded-lg p-3 bg-muted/40 hover:bg-muted transition-colors cursor-pointer h-16"
+                  className="group border rounded-lg px-2 py-0 bg-muted/40 hover:bg-muted transition-colors cursor-pointer h-12"
                 >
                   <div className="flex items-center justify-between h-full">
                     <div
@@ -164,16 +164,18 @@ export const MediaContent: FC<MediaContentProps> = ({
                           Open folder
                         </DropdownMenuItem>
                         <DropdownMenuSeparator />
-                        <DropdownMenuItem
-                          onClick={() => openDeleteDialog(folder)}
-                          className="text-destructive focus:text-destructive cursor-pointer"
-                          disabled={deletingFolder === folder.id}
-                        >
-                          <Trash2 className="w-4 h-4 mr-2" />
-                          {deletingFolder === folder.id
-                            ? 'Deleting...'
-                            : 'Delete folder'}
-                        </DropdownMenuItem>
+                        {onDelete && (
+                          <DropdownMenuItem
+                            onClick={() => openDeleteDialog(folder)}
+                            className="text-destructive focus:text-destructive cursor-pointer"
+                            disabled={deletingFolder === folder.id}
+                          >
+                            <Trash2 className="w-4 h-4 mr-2" />
+                            {deletingFolder === folder.id
+                              ? 'Deleting...'
+                              : 'Delete folder'}
+                          </DropdownMenuItem>
+                        )}
                       </DropdownMenuContent>
                     </DropdownMenu>
                   </div>
@@ -199,7 +201,7 @@ export const MediaContent: FC<MediaContentProps> = ({
           {currentFolders.map((folder) => (
             <div
               key={folder.id}
-              className="group border rounded-lg p-3 bg-muted/40 hover:bg-muted transition-colors cursor-pointer h-16"
+              className="group border rounded-lg px-2 py-0 bg-muted/40 hover:bg-muted transition-colors cursor-pointer h-12"
             >
               <div className="flex items-center justify-between h-full">
                 <div
@@ -232,16 +234,18 @@ export const MediaContent: FC<MediaContentProps> = ({
                       Open folder
                     </DropdownMenuItem>
                     <DropdownMenuSeparator />
-                    <DropdownMenuItem
-                      onClick={() => openDeleteDialog(folder)}
-                      className="text-destructive focus:text-destructive cursor-pointer"
-                      disabled={deletingFolder === folder.id}
-                    >
-                      <Trash2 className="w-4 h-4 mr-2" />
-                      {deletingFolder === folder.id
-                        ? 'Deleting...'
-                        : 'Delete folder'}
-                    </DropdownMenuItem>
+                    {onDelete && (
+                      <DropdownMenuItem
+                        onClick={() => openDeleteDialog(folder)}
+                        className="text-destructive focus:text-destructive cursor-pointer"
+                        disabled={deletingFolder === folder.id}
+                      >
+                        <Trash2 className="w-4 h-4 mr-2" />
+                        {deletingFolder === folder.id
+                          ? 'Deleting...'
+                          : 'Delete folder'}
+                      </DropdownMenuItem>
+                    )}
                   </DropdownMenuContent>
                 </DropdownMenu>
               </div>
@@ -261,7 +265,7 @@ export const MediaContent: FC<MediaContentProps> = ({
           {currentFolders.map((folder) => (
             <div
               key={folder.id}
-              className="group border rounded-lg p-3 bg-muted/40 hover:bg-muted transition-colors cursor-pointer h-16"
+              className="group border rounded-lg px-2 py-0 bg-muted/40 hover:bg-muted transition-colors cursor-pointer h-12"
             >
               <div className="flex items-center justify-between h-full">
                 <div
@@ -326,7 +330,7 @@ export const MediaContent: FC<MediaContentProps> = ({
           {currentFolders.map((folder) => (
             <div
               key={folder.id}
-              className="group border rounded-lg p-3 bg-muted/40 hover:bg-muted transition-colors cursor-pointer h-16"
+              className="group border rounded-lg px-2 py-0 bg-muted/40 hover:bg-muted transition-colors cursor-pointer h-12"
             >
               <div className="flex items-center justify-between h-full">
                 <div
@@ -362,16 +366,18 @@ export const MediaContent: FC<MediaContentProps> = ({
                       Open folder
                     </DropdownMenuItem>
                     <DropdownMenuSeparator />
-                    <DropdownMenuItem
-                      onClick={() => openDeleteDialog(folder)}
-                      className="text-destructive focus:text-destructive cursor-pointer"
-                      disabled={deletingFolder === folder.id}
-                    >
-                      <Trash2 className="w-4 h-4 mr-2" />
-                      {deletingFolder === folder.id
-                        ? 'Deleting...'
-                        : 'Delete folder'}
-                    </DropdownMenuItem>
+                    {onDelete && (
+                      <DropdownMenuItem
+                        onClick={() => openDeleteDialog(folder)}
+                        className="text-destructive focus:text-destructive cursor-pointer"
+                        disabled={deletingFolder === folder.id}
+                      >
+                        <Trash2 className="w-4 h-4 mr-2" />
+                        {deletingFolder === folder.id
+                          ? 'Deleting...'
+                          : 'Delete folder'}
+                      </DropdownMenuItem>
+                    )}
                   </DropdownMenuContent>
                 </DropdownMenu>
               </div>
@@ -429,7 +435,9 @@ export const MediaContent: FC<MediaContentProps> = ({
                             if (rootPrefix) onFolderOpen?.(rootPrefix);
                           }}
                         >
-                          Library
+                          {rootPrefix?.startsWith('assets/')
+                            ? 'Public Assets'
+                            : 'Library'}
                         </BreadcrumbLink>
                       </BreadcrumbItem>
                       <BreadcrumbSeparator />
@@ -499,14 +507,18 @@ export const MediaContent: FC<MediaContentProps> = ({
           </div>
         </ContextMenuTrigger>
         <ContextMenuContent>
-          <ContextMenuItem onClick={onCreateFolder}>
-            <FolderPlus className="w-4 h-4 mr-2" />
-            New folder
-          </ContextMenuItem>
-          <ContextMenuItem onClick={onUploadFiles}>
-            <Upload className="w-4 h-4 mr-2" />
-            Upload files
-          </ContextMenuItem>
+          {onCreateFolder && (
+            <ContextMenuItem onClick={onCreateFolder}>
+              <FolderPlus className="w-4 h-4 mr-2" />
+              New folder
+            </ContextMenuItem>
+          )}
+          {onUploadFiles && (
+            <ContextMenuItem onClick={onUploadFiles}>
+              <Upload className="w-4 h-4 mr-2" />
+              Upload files
+            </ContextMenuItem>
+          )}
         </ContextMenuContent>
       </ContextMenu>
     </>

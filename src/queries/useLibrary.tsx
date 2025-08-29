@@ -42,3 +42,11 @@ export const useDelete = () => {
     mutationFn: libraryApiRequest.sDeleteFile,
   });
 };
+
+export const useGetPublicAssets = (folderPath: string = '') => {
+  return useQuery({
+    queryKey: ['public-assets', folderPath],
+    queryFn: () => libraryApiRequest.sGetPublicAssets(folderPath),
+    enabled: true, // Always enabled since it's public
+  });
+};
