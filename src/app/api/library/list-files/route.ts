@@ -23,8 +23,8 @@ export async function GET(request: NextRequest) {
 
       let url: string;
       if (!folderPath || folderPath === 'all') {
-        // Get all files for user
-        url = `${minioUrl}/library/?prefix=${userId}`;
+        // Get files in root folder only (not all files recursively)
+        url = `${minioUrl}/library/?prefix=${userId}/&delimiter=/`;
       } else {
         // Get files in specific folder
         url = `${minioUrl}/library/?prefix=${userId}/${folderPath}&delimiter=/`;
