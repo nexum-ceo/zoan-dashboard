@@ -289,6 +289,81 @@ export const ChatSettings: FC<ChatSettingsProps> = ({
                     </div>
                   </div>
 
+                  {/* Primary Agent Section */}
+                  <div className="space-y-4 rounded-xl border border-border bg-card p-6 text-card-foreground">
+                    {primaryAgent ? (
+                      <>
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-3">
+                            <div className="h-9 w-9 p-2 rounded-lg bg-primary/10 text-primary ring-1 ring-primary/20 flex items-center justify-center shadow-sm">
+                              <Bot className="w-4 h-4" />
+                            </div>
+                            <div className="min-w-0">
+                              <h3 className="font-semibold text-foreground leading-tight line-clamp-1">
+                                {primaryAgent.name}
+                              </h3>
+                              <p className="text-xs text-muted-foreground mt-0.5">
+                                Primary Agent
+                              </p>
+                            </div>
+                          </div>
+                          <Badge
+                            variant="secondary"
+                            className="gap-1.5 rounded-full bg-emerald-600/10 text-emerald-700 ring-1 ring-emerald-600/20 hover:bg-emerald-600/15 transition-colors dark:bg-emerald-400/10 dark:text-emerald-300 dark:ring-emerald-400/20"
+                          >
+                            <span className="inline-block w-1.5 h-1.5 rounded-full bg-emerald-500 dark:bg-emerald-400" />
+                            Active
+                          </Badge>
+                        </div>
+
+                        <p className="text-sm text-muted-foreground line-clamp-2">
+                          {primaryAgent.description}
+                        </p>
+                      </>
+                    ) : (
+                      <div className="text-center py-6">
+                        <div className="h-12 w-12 mx-auto mb-3 p-3 rounded-lg bg-muted text-muted-foreground flex items-center justify-center">
+                          <Bot className="w-6 h-6" />
+                        </div>
+                        <h3 className="font-medium text-foreground mb-2">
+                          No Agent Selected
+                        </h3>
+                        <p className="text-sm text-muted-foreground mb-4">
+                          Start a conversation to see your primary agent here
+                        </p>
+                        <Button variant="outline" size="sm" className="gap-2">
+                          <Users className="w-4 h-4" />
+                          Select Agent
+                        </Button>
+                      </div>
+                    )}
+
+                    <div className="space-y-2">
+                      {/* Model Selection - Always show */}
+                      <Label htmlFor="model" className="text-sm font-medium">
+                        AI Model
+                      </Label>
+                      <Select
+                        value={selectedModel}
+                        onValueChange={setSelectedModel}
+                      >
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select a model" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {modelOptions.map((model) => (
+                            <SelectItem key={model} value={model}>
+                              {model}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      <p className="text-xs text-muted-foreground">
+                        Choose the AI model for this conversation
+                      </p>
+                    </div>
+                  </div>
+
                   {/* Chat Parameters Section */}
                   <div className="space-y-3 rounded-lg border border-border bg-card p-4 text-card-foreground">
                     <div className="flex items-center gap-2">
@@ -387,81 +462,6 @@ export const ChatSettings: FC<ChatSettingsProps> = ({
 
                 {/* Agents Tab */}
                 <TabsContent value="agents" className="space-y-6">
-                  {/* Primary Agent Section */}
-                  <div className="space-y-4 rounded-xl border border-border bg-card p-6 text-card-foreground">
-                    {primaryAgent ? (
-                      <>
-                        <div className="flex items-center justify-between">
-                          <div className="flex items-center gap-3">
-                            <div className="h-9 w-9 p-2 rounded-lg bg-primary/10 text-primary ring-1 ring-primary/20 flex items-center justify-center shadow-sm">
-                              <Bot className="w-4 h-4" />
-                            </div>
-                            <div className="min-w-0">
-                              <h3 className="font-semibold text-foreground leading-tight line-clamp-1">
-                                {primaryAgent.name}
-                              </h3>
-                              <p className="text-xs text-muted-foreground mt-0.5">
-                                Primary Agent
-                              </p>
-                            </div>
-                          </div>
-                          <Badge
-                            variant="secondary"
-                            className="gap-1.5 rounded-full bg-emerald-600/10 text-emerald-700 ring-1 ring-emerald-600/20 hover:bg-emerald-600/15 transition-colors dark:bg-emerald-400/10 dark:text-emerald-300 dark:ring-emerald-400/20"
-                          >
-                            <span className="inline-block w-1.5 h-1.5 rounded-full bg-emerald-500 dark:bg-emerald-400" />
-                            Active
-                          </Badge>
-                        </div>
-
-                        <p className="text-sm text-muted-foreground line-clamp-2">
-                          {primaryAgent.description}
-                        </p>
-                      </>
-                    ) : (
-                      <div className="text-center py-6">
-                        <div className="h-12 w-12 mx-auto mb-3 p-3 rounded-lg bg-muted text-muted-foreground flex items-center justify-center">
-                          <Bot className="w-6 h-6" />
-                        </div>
-                        <h3 className="font-medium text-foreground mb-2">
-                          No Agent Selected
-                        </h3>
-                        <p className="text-sm text-muted-foreground mb-4">
-                          Start a conversation to see your primary agent here
-                        </p>
-                        <Button variant="outline" size="sm" className="gap-2">
-                          <Users className="w-4 h-4" />
-                          Select Agent
-                        </Button>
-                      </div>
-                    )}
-
-                    <div className="space-y-2">
-                      {/* Model Selection - Always show */}
-                      <Label htmlFor="model" className="text-sm font-medium">
-                        AI Model
-                      </Label>
-                      <Select
-                        value={selectedModel}
-                        onValueChange={setSelectedModel}
-                      >
-                        <SelectTrigger>
-                          <SelectValue placeholder="Select a model" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {modelOptions.map((model) => (
-                            <SelectItem key={model} value={model}>
-                              {model}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                      <p className="text-xs text-muted-foreground">
-                        Choose the AI model for this conversation
-                      </p>
-                    </div>
-                  </div>
-
                   {/* Available Agents Section */}
                   <div className="space-y-3">
                     <div className="flex items-center gap-2">
