@@ -2,6 +2,7 @@
 
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import {
   Select,
@@ -218,17 +219,17 @@ export const ChatSettings: FC<ChatSettingsProps> = ({ isOpen, onClose }) => {
                   <div className="space-y-3 rounded-xl border border-border bg-card p-6 text-card-foreground">
                     <div className="flex items-center gap-2">
                       <MessageSquare className="w-4 h-4" />
-                      <h3 className="font-medium dark:text-gray-100">
+                      <h3 className="font-medium text-foreground">
                         Chat Title
                       </h3>
                     </div>
                     <p className="text-sm text-muted-foreground">
                       Give your conversation a memorable name
                     </p>
-                    <input
+                    <Input
                       type="text"
                       placeholder="Flappy Bird Game Generator"
-                      className="w-full px-3 py-2 border border-border rounded-md bg-background text-foreground placeholder:text-muted-foreground"
+                      className="w-full"
                     />
                   </div>
 
@@ -236,7 +237,7 @@ export const ChatSettings: FC<ChatSettingsProps> = ({ isOpen, onClose }) => {
                   <div className="space-y-3 rounded-xl border border-border bg-card p-6 text-card-foreground">
                     <div className="flex items-center gap-2">
                       <Sparkles className="w-4 h-4" />
-                      <h3 className="font-medium dark:text-gray-100">Prompt</h3>
+                      <h3 className="font-medium text-foreground">Prompt</h3>
                     </div>
                     <p className="text-sm text-muted-foreground">
                       Set the context and behavior for your chat session.
@@ -248,8 +249,8 @@ export const ChatSettings: FC<ChatSettingsProps> = ({ isOpen, onClose }) => {
                         defaultValue={primaryAgent.prompt}
                       />
                     ) : (
-                      <div className="min-h-[100px] rounded-md border border-dashed border-gray-300 dark:border-gray-600 flex items-center justify-center">
-                        <div className="text-center text-gray-500 dark:text-gray-400">
+                      <div className="min-h-[100px] rounded-md border border-dashed border-muted-foreground/20 flex items-center justify-center">
+                        <div className="text-center text-muted-foreground">
                           <Sparkles className="w-8 h-8 mx-auto mb-2 opacity-50" />
                           <p className="text-sm">
                             Select an agent to configure prompts
@@ -263,7 +264,7 @@ export const ChatSettings: FC<ChatSettingsProps> = ({ isOpen, onClose }) => {
                   <div className="space-y-4 rounded-xl border border-border bg-card p-6 text-card-foreground">
                     <div className="flex items-center gap-2">
                       <Zap className="w-4 h-4" />
-                      <h3 className="font-medium dark:text-gray-100">
+                      <h3 className="font-medium text-foreground">
                         Chat Parameters
                       </h3>
                     </div>
@@ -356,7 +357,7 @@ export const ChatSettings: FC<ChatSettingsProps> = ({ isOpen, onClose }) => {
                       <>
                         <div className="flex items-center justify-between">
                           <div className="flex items-center gap-3">
-                            <div className="h-9 w-9 p-2 rounded-lg bg-blue-50 dark:bg-blue-400/10 text-blue-600 dark:text-blue-300 ring-1 ring-blue-200 dark:ring-blue-400/20 flex items-center justify-center shadow-sm">
+                            <div className="h-9 w-9 p-2 rounded-lg bg-primary/10 text-primary ring-1 ring-primary/20 flex items-center justify-center shadow-sm">
                               <Bot className="w-4 h-4" />
                             </div>
                             <div className="min-w-0">
@@ -383,7 +384,7 @@ export const ChatSettings: FC<ChatSettingsProps> = ({ isOpen, onClose }) => {
                       </>
                     ) : (
                       <div className="text-center py-6">
-                        <div className="h-12 w-12 mx-auto mb-3 p-3 rounded-lg bg-gray-50 dark:bg-gray-800 text-gray-400 flex items-center justify-center">
+                        <div className="h-12 w-12 mx-auto mb-3 p-3 rounded-lg bg-muted text-muted-foreground flex items-center justify-center">
                           <Bot className="w-6 h-6" />
                         </div>
                         <h3 className="font-medium text-foreground mb-2">
@@ -429,7 +430,7 @@ export const ChatSettings: FC<ChatSettingsProps> = ({ isOpen, onClose }) => {
                   <div className="space-y-3 rounded-xl border border-border bg-card p-6 text-card-foreground">
                     <div className="flex items-center gap-2">
                       <Users className="w-4 h-4" />
-                      <h3 className="font-medium dark:text-gray-100">
+                      <h3 className="font-medium text-foreground">
                         Available Agents
                       </h3>
                     </div>
@@ -443,13 +444,15 @@ export const ChatSettings: FC<ChatSettingsProps> = ({ isOpen, onClose }) => {
                         /* Agent Item */
                         <div
                           key={agent.id}
-                          className="border border-border rounded-lg p-4 space-y-3"
+                          className="border border-border rounded-lg p-4 space-y-3 bg-card/50"
                         >
                           <div className="flex items-center justify-between">
                             <div className="flex items-center gap-3">
-                              <Bot className="w-6 h-6 text-blue-600" />
+                              <div className="h-8 w-8 p-1.5 rounded-lg bg-primary/10 text-primary flex items-center justify-center">
+                                <Bot className="w-4 h-4" />
+                              </div>
                               <div>
-                                <div className="font-medium dark:text-gray-100 line-clamp-1">
+                                <div className="font-medium text-foreground line-clamp-1">
                                   {agent.name}
                                 </div>
                                 <Badge variant="secondary" className="text-xs">
@@ -469,12 +472,12 @@ export const ChatSettings: FC<ChatSettingsProps> = ({ isOpen, onClose }) => {
                           </div>
                           <div className="text-sm text-muted-foreground">
                             <div className="mb-2">
-                              {' '}
-                              <b>Model:</b> {agent.model}
+                              <span className="font-medium">Model:</span>{' '}
+                              {agent.model}
                             </div>
                             <p>{agent.description}</p>
                             <div className="mt-2">
-                              <p className="font-medium mb-1">
+                              <p className="font-medium mb-1 text-foreground">
                                 Trigger Keywords:
                               </p>
                               <div className="flex flex-wrap gap-1">
@@ -511,7 +514,7 @@ export const ChatSettings: FC<ChatSettingsProps> = ({ isOpen, onClose }) => {
                       ))
                     ) : (
                       <div className="text-center py-8">
-                        <div className="h-12 w-12 mx-auto mb-3 p-3 rounded-lg bg-gray-50 dark:bg-gray-800 text-gray-400 flex items-center justify-center">
+                        <div className="h-12 w-12 mx-auto mb-3 p-3 rounded-lg bg-muted text-muted-foreground flex items-center justify-center">
                           <Users className="w-6 h-6" />
                         </div>
                         <h4 className="font-medium text-foreground mb-2">
