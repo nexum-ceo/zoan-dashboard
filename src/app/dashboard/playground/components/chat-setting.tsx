@@ -23,7 +23,10 @@ import {
   useGetPrimaryAgentByChatId,
 } from '@/queries/useChat';
 import { AgentType } from '@/types/agent';
-import { GetChatAgentSettingByChatIdResType } from '@/types/chat';
+import {
+  GetChatAgentSettingByChatIdResType,
+  GetSpecificChatResType,
+} from '@/types/chat';
 import { AnimatePresence, motion } from 'framer-motion';
 import {
   Bot,
@@ -40,10 +43,15 @@ import { FC, useMemo, useState } from 'react';
 
 type ChatSettingsProps = {
   isOpen: boolean;
+  chatInfo: GetSpecificChatResType['data'];
   onClose: () => void;
 };
 
-export const ChatSettings: FC<ChatSettingsProps> = ({ isOpen, onClose }) => {
+export const ChatSettings: FC<ChatSettingsProps> = ({
+  isOpen,
+  onClose,
+  chatInfo,
+}) => {
   const { id: chatId } = useParams();
   const { data: primaryAgentData } = useGetPrimaryAgentByChatId(
     chatId as string,
@@ -216,57 +224,91 @@ export const ChatSettings: FC<ChatSettingsProps> = ({ isOpen, onClose }) => {
                 {/* Preferences Tab */}
                 <TabsContent value="preferences" className="space-y-6">
                   {/* Chat Title Section */}
-                  <div className="space-y-3 rounded-xl border border-border bg-card p-6 text-card-foreground">
-                    <div className="flex items-center gap-2">
-                      <MessageSquare className="w-4 h-4" />
-                      <h3 className="font-medium text-foreground">
-                        Chat Title
-                      </h3>
+                  <div className="space-y-4 rounded-xl border border-border bg-card p-6 text-card-foreground">
+                    <div className="flex items-center gap-3">
+                      <div className="h-10 w-10 p-2 rounded-lg bg-blue-50 dark:bg-blue-400/10 text-blue-600 dark:text-blue-300 ring-1 ring-blue-200 dark:ring-blue-400/20 flex items-center justify-center">
+                        <MessageSquare className="w-5 h-5" />
+                      </div>
+                      <div>
+                        <h3 className="font-semibold text-foreground text-lg">
+                          Chat Title
+                        </h3>
+                      </div>
                     </div>
-                    <p className="text-sm text-muted-foreground">
-                      Give your conversation a memorable name
-                    </p>
-                    <Input
-                      type="text"
-                      placeholder="Flappy Bird Game Generator"
-                      className="w-full"
-                    />
+
+                    <div className="space-y-2">
+                      <Input
+                        id="chat-title"
+                        type="text"
+                        placeholder="Enter chat title..."
+                        defaultValue={chatInfo.title}
+                        disabled
+                        className="w-full bg-muted/50 border-muted-foreground/20 text-muted-foreground cursor-not-allowed"
+                      />
+                      <p className="text-xs text-muted-foreground">
+                        Give your conversation a memorable name
+                      </p>
+                    </div>
                   </div>
 
                   {/* Primary Prompt Section */}
-                  <div className="space-y-3 rounded-xl border border-border bg-card p-6 text-card-foreground">
-                    <div className="flex items-center gap-2">
-                      <Sparkles className="w-4 h-4" />
-                      <h3 className="font-medium text-foreground">Prompt</h3>
-                    </div>
-                    <p className="text-sm text-muted-foreground">
-                      Set the context and behavior for your chat session.
-                    </p>
-                    {primaryAgent ? (
-                      <Textarea
-                        placeholder={primaryAgent.prompt}
-                        className="min-h-[100px] resize-none"
-                        defaultValue={primaryAgent.prompt}
-                      />
-                    ) : (
-                      <div className="min-h-[100px] rounded-md border border-dashed border-muted-foreground/20 flex items-center justify-center">
-                        <div className="text-center text-muted-foreground">
-                          <Sparkles className="w-8 h-8 mx-auto mb-2 opacity-50" />
-                          <p className="text-sm">
-                            Select an agent to configure prompts
-                          </p>
-                        </div>
+                  <div className="space-y-4 rounded-xl border border-border bg-card p-6 text-card-foreground">
+                    <div className="flex items-center gap-3">
+                      <div className="h-10 w-10 p-2 rounded-lg bg-purple-50 dark:bg-purple-400/10 text-purple-600 dark:text-purple-300 ring-1 ring-purple-200 dark:ring-purple-400/20 flex items-center justify-center">
+                        <Sparkles className="w-5 h-5" />
                       </div>
-                    )}
+                      <div>
+                        <h3 className="font-semibold text-foreground text-lg">
+                          Prompt
+                        </h3>
+                      </div>
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label
+                        htmlFor="chat-prompt"
+                        className="text-sm font-medium text-foreground"
+                      >
+                        System Prompt
+                      </Label>
+                      {primaryAgent ? (
+                        <Textarea
+                          id="chat-prompt"
+                          placeholder="Enter system prompt..."
+                          className="min-h-[100px] resize-none"
+                          defaultValue={primaryAgent.prompt}
+                        />
+                      ) : (
+                        <div className="min-h-[100px] rounded-md border border-dashed border-muted-foreground/20 flex items-center justify-center bg-muted/30">
+                          <div className="text-center text-muted-foreground">
+                            <Sparkles className="w-8 h-8 mx-auto mb-2 opacity-50" />
+                            <p className="text-sm">
+                              Select an agent to configure prompts
+                            </p>
+                          </div>
+                        </div>
+                      )}
+                      <p className="text-xs text-muted-foreground">
+                        This prompt defines how the AI assistant should behave
+                        and respond
+                      </p>
+                    </div>
                   </div>
 
                   {/* Chat Parameters Section */}
                   <div className="space-y-4 rounded-xl border border-border bg-card p-6 text-card-foreground">
-                    <div className="flex items-center gap-2">
-                      <Zap className="w-4 h-4" />
-                      <h3 className="font-medium text-foreground">
-                        Chat Parameters
-                      </h3>
+                    <div className="flex items-center gap-3">
+                      <div className="h-10 w-10 p-2 rounded-lg bg-orange-50 dark:bg-orange-400/10 text-orange-600 dark:text-orange-300 ring-1 ring-orange-200 dark:ring-orange-400/20 flex items-center justify-center">
+                        <Zap className="w-5 h-5" />
+                      </div>
+                      <div>
+                        <h3 className="font-semibold text-foreground text-lg">
+                          Chat Parameters
+                        </h3>
+                        <p className="text-sm text-muted-foreground">
+                          Configure AI response behavior and settings
+                        </p>
+                      </div>
                     </div>
 
                     {/* Temperature Slider */}
@@ -427,17 +469,21 @@ export const ChatSettings: FC<ChatSettingsProps> = ({ isOpen, onClose }) => {
                   </div>
 
                   {/* Available Agents Section */}
-                  <div className="space-y-3 rounded-xl border border-border bg-card p-6 text-card-foreground">
-                    <div className="flex items-center gap-2">
-                      <Users className="w-4 h-4" />
-                      <h3 className="font-medium text-foreground">
-                        Available Agents
-                      </h3>
+                  <div className="space-y-4 rounded-xl border border-border bg-card p-6 text-card-foreground">
+                    <div className="flex items-center gap-3">
+                      <div className="h-10 w-10 p-2 rounded-lg bg-green-50 dark:bg-green-400/10 text-green-600 dark:text-green-300 ring-1 ring-green-200 dark:ring-green-400/20 flex items-center justify-center">
+                        <Users className="w-5 h-5" />
+                      </div>
+                      <div>
+                        <h3 className="font-semibold text-foreground text-lg">
+                          Available Agents
+                        </h3>
+                        <p className="text-sm text-muted-foreground">
+                          Enable agents that can respond to specific intents in
+                          your conversation
+                        </p>
+                      </div>
                     </div>
-                    <p className="text-sm text-muted-foreground">
-                      Enable agents that can respond to specific intents in your
-                      conversation.
-                    </p>
 
                     {sortedAgents && sortedAgents.length > 0 ? (
                       sortedAgents.map((agent) => (

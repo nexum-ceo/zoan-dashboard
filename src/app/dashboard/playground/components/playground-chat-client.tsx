@@ -388,10 +388,13 @@ export function PlaygroundChatClient({ chatId }: PlaygroundChatClientProps) {
       </div>
 
       {/* Chat Settings Panel */}
-      <ChatSettings
-        isOpen={settingsOpen}
-        onClose={() => setSettingsOpen(false)}
-      />
+      {chatInfo && (
+        <ChatSettings
+          isOpen={settingsOpen}
+          chatInfo={chatInfo}
+          onClose={() => setSettingsOpen(false)}
+        />
+      )}
 
       {/* Explore Panel */}
       <Explore isOpen={exploreOpen} onClose={() => setExploreOpen(false)} />
