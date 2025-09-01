@@ -39,7 +39,7 @@ import {
   Zap,
 } from 'lucide-react';
 import { useParams } from 'next/navigation';
-import { FC, useMemo, useState } from 'react';
+import { FC, useEffect, useMemo, useState } from 'react';
 
 type ChatSettingsProps = {
   isOpen: boolean;
@@ -91,6 +91,12 @@ export const ChatSettings: FC<ChatSettingsProps> = ({
       ? agentsAvailable
       : [primaryAgent as unknown as AgentType, ...agentsAvailable];
   }, [agentsAvailable, primaryAgent]);
+
+  useEffect(() => {
+    if (primaryAgent?.model) {
+      setSelectedModel(primaryAgent.model);
+    }
+  }, [primaryAgent]);
 
   // Enhance agents with derived flags: active (exists in chatAgentSetting) and isPrimary
   type AgentWithState = AgentType & { active: boolean; isPrimary: boolean };
@@ -345,6 +351,7 @@ export const ChatSettings: FC<ChatSettingsProps> = ({
                       </Label>
                       <Select
                         value={selectedModel}
+                        defaultValue={selectedModel}
                         onValueChange={setSelectedModel}
                       >
                         <SelectTrigger>
