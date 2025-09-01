@@ -31,7 +31,9 @@ export const useUpdateAgentMutation = (id: string) => {
   return useMutation({
     mutationFn: (body: UpdateAgentBodyType) => agentApiRequest.sUpdate(body),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['agent', id] });
+      queryClient.invalidateQueries({
+        queryKey: ['primary-agent-by-chat-id', id],
+      });
     },
   });
 };

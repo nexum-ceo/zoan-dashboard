@@ -58,17 +58,15 @@ export const ChatSettings: FC<ChatSettingsProps> = ({
   );
   const primaryAgent = primaryAgentData?.data.data;
 
-  // Chat Parameters State
+  // Chat Parameters State - Initialize with default values
   const [selectedModel, setSelectedModel] = useState<string>('gpt-4o');
   const [creativity, setCreativity] = useState<number[]>([0.4]);
   const [responseLength, setResponseLength] = useState<number[]>([2048]);
   const [memory, setMemory] = useState<number[]>([4000]);
-
   const { data: chatAgentSettingData } = useGetChatAgentSettingByChatId(
     chatId as string,
   );
   const { data: agentData } = useGetAgentAvailable();
-
   const createChatAgentSettingMutation = useCreateChatAgentSettingMutation(
     chatId as string,
   );
@@ -91,12 +89,6 @@ export const ChatSettings: FC<ChatSettingsProps> = ({
       ? agentsAvailable
       : [primaryAgent as unknown as AgentType, ...agentsAvailable];
   }, [agentsAvailable, primaryAgent]);
-
-  useEffect(() => {
-    if (primaryAgent?.model) {
-      setSelectedModel(primaryAgent.model);
-    }
-  }, [primaryAgent]);
 
   // Enhance agents with derived flags: active (exists in chatAgentSetting) and isPrimary
   type AgentWithState = AgentType & { active: boolean; isPrimary: boolean };
@@ -125,6 +117,22 @@ export const ChatSettings: FC<ChatSettingsProps> = ({
       return 0;
     });
   }, [agentsWithState]);
+
+  useEffect(() => {
+    if (primaryAgent) {
+      // Set model from primary agent
+      if (primaryAgent.model) {
+        setSelectedModel(primaryAgent.model);
+      }
+
+      // Set chat parameters from primary agent's model_kwargs
+      if (primaryAgent.model_kwargs) {
+        setCreativity([primaryAgent.model_kwargs.temperature]);
+        setResponseLength([primaryAgent.model_kwargs.max_tokens]);
+        setMemory([primaryAgent.model_kwargs.top_p * 4000]); // Convert top_p (0-1) to memory range (0-4000)
+      }
+    }
+  }, [primaryAgent]);
 
   const handleAgentToggle = async (agentId: string) => {
     try {
@@ -382,7 +390,9 @@ export const ChatSettings: FC<ChatSettingsProps> = ({
                           Chat Parameters
                         </h3>
                         <p className="text-xs text-muted-foreground">
-                          Configure AI response behavior and settings
+                          {primaryAgent
+                            ? 'Configure AI response behavior and settings (values from primary agent)'
+                            : 'Configure AI response behavior and settings'}
                         </p>
                       </div>
                     </div>
@@ -396,9 +406,20 @@ export const ChatSettings: FC<ChatSettingsProps> = ({
                         >
                           Temperature
                         </Label>
-                        <span className="text-sm text-muted-foreground">
-                          {creativity[0]}
-                        </span>
+                        <div className="flex items-center gap-2">
+                          <span className="text-sm text-muted-foreground">
+                            {creativity[0]}
+                          </span>
+                          {primaryAgent?.model_kwargs?.temperature ===
+                            creativity[0] && (
+                            <Badge
+                              variant="outline"
+                              className="text-xs px-2 py-0.5"
+                            >
+                              From Agent
+                            </Badge>
+                          )}
+                        </div>
                       </div>
                       <Slider
                         id="creativity"
@@ -423,9 +444,20 @@ export const ChatSettings: FC<ChatSettingsProps> = ({
                         >
                           Max Tokens
                         </Label>
-                        <span className="text-sm text-muted-foreground">
-                          {responseLength[0]}
-                        </span>
+                        <div className="flex items-center gap-2">
+                          <span className="text-sm text-muted-foreground">
+                            {responseLength[0]}
+                          </span>
+                          {primaryAgent?.model_kwargs?.max_tokens ===
+                            responseLength[0] && (
+                            <Badge
+                              variant="outline"
+                              className="text-xs px-2 py-0.5"
+                            >
+                              From Agent
+                            </Badge>
+                          )}
+                        </div>
                       </div>
                       <Slider
                         id="responseLength"
@@ -447,9 +479,20 @@ export const ChatSettings: FC<ChatSettingsProps> = ({
                         <Label htmlFor="memory" className="text-sm font-medium">
                           Top-p
                         </Label>
-                        <span className="text-sm text-muted-foreground">
-                          {memory[0] / 4000}
-                        </span>
+                        <div className="flex items-center gap-2">
+                          <span className="text-sm text-muted-foreground">
+                            {(memory[0] / 4000).toFixed(2)}
+                          </span>
+                          {primaryAgent?.model_kwargs?.top_p ===
+                            memory[0] / 4000 && (
+                            <Badge
+                              variant="outline"
+                              className="text-xs px-2 py-0.5"
+                            >
+                              From Agent
+                            </Badge>
+                          )}
+                        </div>
                       </div>
                       <Slider
                         id="memory"
@@ -461,7 +504,8 @@ export const ChatSettings: FC<ChatSettingsProps> = ({
                         className="w-full"
                       />
                       <p className="text-xs text-muted-foreground">
-                        Controls diversity of word choices
+                        Controls diversity of word choices (0.0 = focused, 1.0 =
+                        diverse)
                       </p>
                     </div>
                   </div>
