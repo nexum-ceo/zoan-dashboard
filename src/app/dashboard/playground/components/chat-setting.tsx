@@ -463,7 +463,7 @@ export const ChatSettings: FC<ChatSettingsProps> = ({
                   </div>
 
                   {/* Available Agents Section */}
-                  <div className="space-y-3 rounded-lg border border-border bg-card p-4 text-card-foreground">
+                  <div className="space-y-3">
                     <div className="flex items-center gap-2">
                       <div className="h-8 w-8 p-1.5 rounded-lg bg-green-50 dark:bg-green-400/10 text-green-600 dark:text-green-300 ring-1 ring-green-200 dark:ring-green-400/20 flex items-center justify-center">
                         <Users className="w-4 h-4" />
@@ -488,16 +488,27 @@ export const ChatSettings: FC<ChatSettingsProps> = ({
                         >
                           <div className="flex items-center justify-between">
                             <div className="flex items-center gap-3">
-                              <div className="h-8 w-8 p-1.5 rounded-lg bg-primary/10 text-primary flex items-center justify-center">
+                              <div className="h-8 w-8 p-1.5 rounded-lg bg-purple-50 dark:bg-purple-400/10 text-purple-600 dark:text-purple-300 flex items-center justify-center">
                                 <Bot className="w-4 h-4" />
                               </div>
-                              <div>
+                              <div className="flex flex-col gap-1">
                                 <div className="font-medium text-foreground line-clamp-1">
                                   {agent.name}
                                 </div>
-                                <Badge variant="secondary" className="text-xs">
-                                  {agent.isPrimary ? 'Primary' : 'Secondary'}
-                                </Badge>
+                                <div className="flex gap-1">
+                                  {agent.isPrimary ? (
+                                    <Badge className="text-xs px-2 py-0.5 bg-blue-600 text-white">
+                                      Primary
+                                    </Badge>
+                                  ) : (
+                                    <Badge
+                                      variant="outline"
+                                      className="text-xs px-2 py-0.5"
+                                    >
+                                      Secondary
+                                    </Badge>
+                                  )}
+                                </div>
                               </div>
                             </div>
                             <Switch
@@ -510,44 +521,65 @@ export const ChatSettings: FC<ChatSettingsProps> = ({
                               }
                             />
                           </div>
-                          <div className="text-sm text-muted-foreground">
-                            <div className="mb-2">
-                              <span className="font-medium">Model:</span>{' '}
-                              {agent.model}
-                            </div>
-                            <p>{agent.description}</p>
-                            <div className="mt-2">
-                              <p className="font-medium mb-1 text-foreground">
+
+                          <p className="text-sm text-muted-foreground leading-relaxed">
+                            {agent.description}
+                          </p>
+
+                          <div className="space-y-2">
+                            <div>
+                              <p className="font-medium text-xs text-foreground mb-1.5">
                                 Trigger Keywords:
                               </p>
                               <div className="flex flex-wrap gap-1">
-                                <Badge variant="outline" className="text-xs">
+                                <Badge
+                                  variant="outline"
+                                  className="text-xs px-2 py-0.5 bg-gray-50 dark:bg-gray-800 text-gray-700 dark:text-gray-300 border-gray-200 dark:border-gray-600"
+                                >
                                   general
                                 </Badge>
-                                <Badge variant="outline" className="text-xs">
+                                <Badge
+                                  variant="outline"
+                                  className="text-xs px-2 py-0.5 bg-gray-50 dark:bg-gray-800 text-gray-700 dark:text-gray-300 border-gray-200 dark:border-gray-600"
+                                >
                                   help
                                 </Badge>
-                                <Badge variant="outline" className="text-xs">
+                                <Badge
+                                  variant="outline"
+                                  className="text-xs px-2 py-0.5 bg-gray-50 dark:bg-gray-800 text-gray-700 dark:text-gray-300 border-gray-200 dark:border-gray-600"
+                                >
                                   explain
                                 </Badge>
-                                <Badge variant="outline" className="text-xs">
+                                <Badge
+                                  variant="outline"
+                                  className="text-xs px-2 py-0.5 bg-gray-50 dark:bg-gray-800 text-gray-700 dark:text-gray-300 border-gray-200 dark:border-gray-600"
+                                >
                                   what
                                 </Badge>
-                                <Badge variant="outline" className="text-xs">
+                                <Badge
+                                  variant="outline"
+                                  className="text-xs px-2 py-0.5 bg-gray-50 dark:bg-gray-800 text-gray-700 dark:text-gray-300 border-gray-200 dark:border-gray-600"
+                                >
                                   +2 more
                                 </Badge>
                               </div>
                             </div>
-                            <div className="mt-2 flex flex-wrap gap-1">
-                              <Badge className="text-xs">
-                                General Knowledge
-                              </Badge>
-                              <Badge className="text-xs">
-                                Task Coordination
-                              </Badge>
-                              <Badge variant="outline" className="text-xs">
-                                +1 more
-                              </Badge>
+
+                            <div>
+                              <div className="flex flex-wrap gap-1">
+                                <Badge className="text-xs px-2 py-0.5 bg-blue-50 dark:bg-blue-400/10 text-blue-700 dark:text-blue-300 border-blue-200 dark:border-blue-400/20">
+                                  General Knowledge
+                                </Badge>
+                                <Badge className="text-xs px-2 py-0.5 bg-blue-50 dark:bg-blue-400/10 text-blue-700 dark:text-blue-300 border-blue-200 dark:border-blue-400/20">
+                                  Task Coordination
+                                </Badge>
+                                <Badge
+                                  variant="outline"
+                                  className="text-xs px-2 py-0.5"
+                                >
+                                  +1 more
+                                </Badge>
+                              </div>
                             </div>
                           </div>
                         </div>
