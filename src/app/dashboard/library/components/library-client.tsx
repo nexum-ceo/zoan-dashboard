@@ -152,6 +152,7 @@ export const LibraryClient: FC<LibraryClientProps> = ({
     : [];
 
   // When at root level, use folders from the main folders query
+  // But also need to show files at root level
   const displayFolders =
     activeTab === 'library'
       ? currentPrefix === `${userId}/`

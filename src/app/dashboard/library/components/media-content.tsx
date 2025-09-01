@@ -195,63 +195,82 @@ export const MediaContent: FC<MediaContentProps> = ({
 
       {/* Show root folders when at root level */}
       {selectedFolder === rootPrefix && (
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-4">
-          {currentFolders.map((folder) => (
-            <div
-              key={folder.id}
-              className="group border rounded-lg px-2 py-0 bg-muted/40 hover:bg-muted transition-colors cursor-pointer h-12"
-            >
-              <div className="flex items-center justify-between h-full">
+        <>
+          {/* Root folders */}
+          {currentFolders.length > 0 && (
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-4">
+              {currentFolders.map((folder) => (
                 <div
-                  className="flex items-center gap-2 min-w-0 flex-1"
-                  onClick={() => onFolderOpen?.(folder.id)}
+                  key={folder.id}
+                  className="group border rounded-lg px-2 py-0 bg-muted/40 hover:bg-muted transition-colors cursor-pointer h-12"
                 >
-                  <Folder className="w-4 h-4 text-foreground/80" />
-                  <span className="font-medium text-sm truncate">
-                    {folder.name}
-                  </span>
+                  <div className="flex items-center justify-between h-full">
+                    <div
+                      className="flex items-center gap-2 min-w-0 flex-1"
+                      onClick={() => onFolderOpen?.(folder.id)}
+                    >
+                      <Folder className="w-4 h-4 text-foreground/80" />
+                      <span className="font-medium text-sm truncate">
+                        {folder.name}
+                      </span>
+                    </div>
+                    {!isAssets && (
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="h-6 w-6 p-0 opacity-0 group-hover:opacity-100 transition-opacity"
+                            onClick={(e) => e.stopPropagation()}
+                            disabled={deletingFolder === folder.id}
+                          >
+                            <MoreVertical className="w-3 h-3" />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end" className="w-48">
+                          <DropdownMenuItem
+                            onClick={() => onFolderOpen?.(folder.id)}
+                            className="cursor-pointer"
+                          >
+                            <Folder className="w-4 h-4 mr-2" />
+                            Open folder
+                          </DropdownMenuItem>
+                          <DropdownMenuSeparator />
+                          {onDelete && (
+                            <DropdownMenuItem
+                              onClick={() => openDeleteDialog(folder)}
+                              className="text-destructive focus:text-destructive cursor-pointer"
+                              disabled={deletingFolder === folder.id}
+                            >
+                              <Trash2 className="w-4 h-4 mr-2" />
+                              {deletingFolder === folder.id
+                                ? 'Deleting...'
+                                : 'Delete folder'}
+                            </DropdownMenuItem>
+                          )}
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    )}
+                  </div>
                 </div>
-                {!isAssets && (
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        className="h-6 w-6 p-0 opacity-0 group-hover:opacity-100 transition-opacity"
-                        onClick={(e) => e.stopPropagation()}
-                        disabled={deletingFolder === folder.id}
-                      >
-                        <MoreVertical className="w-3 h-3" />
-                      </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end" className="w-48">
-                      <DropdownMenuItem
-                        onClick={() => onFolderOpen?.(folder.id)}
-                        className="cursor-pointer"
-                      >
-                        <Folder className="w-4 h-4 mr-2" />
-                        Open folder
-                      </DropdownMenuItem>
-                      <DropdownMenuSeparator />
-                      {onDelete && (
-                        <DropdownMenuItem
-                          onClick={() => openDeleteDialog(folder)}
-                          className="text-destructive focus:text-destructive cursor-pointer"
-                          disabled={deletingFolder === folder.id}
-                        >
-                          <Trash2 className="w-4 h-4 mr-2" />
-                          {deletingFolder === folder.id
-                            ? 'Deleting...'
-                            : 'Delete folder'}
-                        </DropdownMenuItem>
-                      )}
-                    </DropdownMenuContent>
-                  </DropdownMenu>
-                )}
-              </div>
+              ))}
             </div>
-          ))}
-        </div>
+          )}
+
+          {/* Root files */}
+          {files.length > 0 && (
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-4">
+              {files.map((file) => (
+                <MediaFileCard
+                  key={file.id}
+                  file={file}
+                  onDelete={onDelete}
+                  readOnly={isAssets}
+                />
+              ))}
+            </div>
+          )}
+        </>
       )}
     </div>
   );
@@ -390,6 +409,16 @@ export const MediaContent: FC<MediaContentProps> = ({
               </div>
             </div>
           ))}
+
+          {/* Root files in list view */}
+          {files.map((file) => (
+            <MediaFileListItem
+              key={file.id}
+              file={file}
+              onDelete={onDelete}
+              readOnly={isAssets}
+            />
+          ))}
         </>
       )}
     </div>
@@ -471,9 +500,7 @@ export const MediaContent: FC<MediaContentProps> = ({
             </Breadcrumb>
           </div>
           <Badge variant="secondary">
-            {selectedFolder !== rootPrefix
-              ? `${currentFolders.length} folders, ${files.length} files`
-              : `${currentFolders.length} folders`}
+            {`${currentFolders.length} folders, ${files.length} files`}
           </Badge>
           {selectedFolder !== rootPrefix && (
             <div className="flex gap-1 ml-2">

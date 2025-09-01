@@ -32,10 +32,13 @@ const libraryApiRequest = {
     ),
 
   getListFileOfUser: async (userId: string) => {
-    const response = await axiosInstance.get(`/library/?prefix=${userId}`, {
-      baseURL: process.env.NEXT_PUBLIC_MINIO_URL,
-      responseType: 'text',
-    });
+    const response = await axiosInstance.get(
+      `/library/?prefix=${userId}/&delimiter=/`,
+      {
+        baseURL: process.env.NEXT_PUBLIC_MINIO_URL,
+        responseType: 'text',
+      },
+    );
     return parseXmlResponse(response.data);
   },
 
