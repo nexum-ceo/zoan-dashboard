@@ -16,17 +16,21 @@ import { Switch } from '@/components/ui/switch';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Textarea } from '@/components/ui/textarea';
 import { handleErrorApi, HttpError } from '@/lib/utils';
-import { useGetAgentAvailable } from '@/queries/useAgent';
+import {
+  useGetAgentAvailable,
+  useUpdateAgentMutation,
+} from '@/queries/useAgent';
 import {
   useCreateChatAgentSettingMutation,
   useGetChatAgentSettingByChatId,
   useGetPrimaryAgentByChatId,
 } from '@/queries/useChat';
-import { AgentType } from '@/types/agent';
+import { AgentType, UpdateAgentBodyType } from '@/types/agent';
 import {
   GetChatAgentSettingByChatIdResType,
   GetSpecificChatResType,
 } from '@/types/chat';
+import { zodResolver } from '@hookform/resolvers/zod';
 import { IconRobot } from '@tabler/icons-react';
 import { AnimatePresence, motion } from 'framer-motion';
 import {
@@ -39,7 +43,21 @@ import {
   Zap,
 } from 'lucide-react';
 import { useParams } from 'next/navigation';
-import { FC, useEffect, useMemo, useState } from 'react';
+import { FC, useEffect, useMemo } from 'react';
+import { Controller, useForm } from 'react-hook-form';
+import { z } from 'zod';
+
+// Form validation schema
+const chatSettingsSchema = z.object({
+  chatTitle: z.string().min(1, 'Chat title is required'),
+  prompt: z.string().min(1, 'Prompt is required'),
+  model: z.string().min(1, 'Model is required'),
+  temperature: z.number().min(0).max(2),
+  maxTokens: z.number().min(100).max(4096),
+  topP: z.number().min(0).max(1),
+});
+
+type ChatSettingsFormData = z.infer<typeof chatSettingsSchema>;
 
 type ChatSettingsProps = {
   isOpen: boolean;
@@ -58,11 +76,27 @@ export const ChatSettings: FC<ChatSettingsProps> = ({
   );
   const primaryAgent = primaryAgentData?.data.data;
 
-  // Chat Parameters State - Initialize with default values
-  const [selectedModel, setSelectedModel] = useState<string>('gpt-4o');
-  const [creativity, setCreativity] = useState<number[]>([0.4]);
-  const [responseLength, setResponseLength] = useState<number[]>([2048]);
-  const [memory, setMemory] = useState<number[]>([4000]);
+  // React Hook Form setup
+  const form = useForm<ChatSettingsFormData>({
+    resolver: zodResolver(chatSettingsSchema),
+    defaultValues: {
+      chatTitle: chatInfo.title || '',
+      prompt: '',
+      model: 'gpt-4o',
+      temperature: 0.4,
+      maxTokens: 2048,
+      topP: 0.8,
+    },
+  });
+
+  const {
+    control,
+    handleSubmit,
+    setValue,
+    watch,
+    formState: { errors, isDirty },
+  } = form;
+  const watchedValues = watch();
   const { data: chatAgentSettingData } = useGetChatAgentSettingByChatId(
     chatId as string,
   );
@@ -70,6 +104,7 @@ export const ChatSettings: FC<ChatSettingsProps> = ({
   const createChatAgentSettingMutation = useCreateChatAgentSettingMutation(
     chatId as string,
   );
+  const updateAgentMutation = useUpdateAgentMutation();
   const chatAgentSetting = useMemo<GetChatAgentSettingByChatIdResType['data']>(
     () => chatAgentSettingData?.data.data || [],
     [chatAgentSettingData],
@@ -120,19 +155,38 @@ export const ChatSettings: FC<ChatSettingsProps> = ({
 
   useEffect(() => {
     if (primaryAgent) {
-      // Set model from primary agent
-      if (primaryAgent.model) {
-        setSelectedModel(primaryAgent.model);
-      }
-
-      // Set chat parameters from primary agent's model_kwargs
-      if (primaryAgent.model_kwargs) {
-        setCreativity([primaryAgent.model_kwargs.temperature]);
-        setResponseLength([primaryAgent.model_kwargs.max_tokens]);
-        setMemory([primaryAgent.model_kwargs.top_p * 4000]); // Convert top_p (0-1) to memory range (0-4000)
+      // Set form values from primary agent
+      if (primaryAgent) {
+        setValue('model', primaryAgent.model);
+        setValue('prompt', primaryAgent.prompt);
+        setValue('temperature', primaryAgent.model_kwargs.temperature);
+        setValue('maxTokens', primaryAgent.model_kwargs.max_tokens);
+        setValue('topP', primaryAgent.model_kwargs.top_p);
       }
     }
-  }, [primaryAgent]);
+  }, [primaryAgent, setValue]);
+
+  const onSubmit = async (data: ChatSettingsFormData) => {
+    try {
+      if (primaryAgent) {
+        console.log('data update agent', data);
+        // Update the primary agent with new settings
+        await updateAgentMutation.mutateAsync({
+          ...primaryAgent,
+          prompt: data.prompt,
+          model: data.model,
+          model_kwargs: {
+            ...primaryAgent.model_kwargs,
+            temperature: data.temperature,
+            max_tokens: data.maxTokens,
+            top_p: data.topP,
+          },
+        } as UpdateAgentBodyType); // Type assertion - the API should handle the update correctly
+      }
+    } catch (error) {
+      handleErrorApi({ error });
+    }
+  };
 
   const handleAgentToggle = async (agentId: string) => {
     try {
@@ -251,14 +305,24 @@ export const ChatSettings: FC<ChatSettingsProps> = ({
                     </div>
 
                     <div className="space-y-1.5">
-                      <Input
-                        id="chat-title"
-                        type="text"
-                        placeholder="Enter chat title..."
-                        defaultValue={chatInfo.title}
-                        disabled
-                        className="w-full bg-muted/50 border-muted-foreground/20 text-muted-foreground cursor-not-allowed"
+                      <Controller
+                        name="chatTitle"
+                        control={control}
+                        render={({ field }) => (
+                          <Input
+                            {...field}
+                            id="chat-title"
+                            type="text"
+                            placeholder="Enter chat title..."
+                            className="w-full"
+                          />
+                        )}
                       />
+                      {errors.chatTitle && (
+                        <p className="text-xs text-red-500">
+                          {errors.chatTitle.message}
+                        </p>
+                      )}
                       <p className="text-xs text-muted-foreground">
                         Give your conversation a memorable name
                       </p>
@@ -280,11 +344,17 @@ export const ChatSettings: FC<ChatSettingsProps> = ({
 
                     <div className="space-y-1.5">
                       {primaryAgent ? (
-                        <Textarea
-                          id="chat-prompt"
-                          placeholder="Enter system prompt..."
-                          className="min-h-[80px] resize-none"
-                          defaultValue={primaryAgent.prompt}
+                        <Controller
+                          name="prompt"
+                          control={control}
+                          render={({ field }) => (
+                            <Textarea
+                              {...field}
+                              id="chat-prompt"
+                              placeholder="Enter system prompt..."
+                              className="min-h-[80px] resize-none"
+                            />
+                          )}
                         />
                       ) : (
                         <div className="min-h-[80px] rounded-md border border-dashed border-muted-foreground/20 flex items-center justify-center bg-muted/30">
@@ -295,6 +365,11 @@ export const ChatSettings: FC<ChatSettingsProps> = ({
                             </p>
                           </div>
                         </div>
+                      )}
+                      {errors.prompt && (
+                        <p className="text-xs text-red-500">
+                          {errors.prompt.message}
+                        </p>
                       )}
                       <p className="text-xs text-muted-foreground">
                         This prompt defines how the AI assistant should behave
@@ -357,22 +432,32 @@ export const ChatSettings: FC<ChatSettingsProps> = ({
                       <Label htmlFor="model" className="text-sm font-medium">
                         AI Model
                       </Label>
-                      <Select
-                        value={selectedModel}
-                        defaultValue={selectedModel}
-                        onValueChange={setSelectedModel}
-                      >
-                        <SelectTrigger>
-                          <SelectValue placeholder="Select a model" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {modelOptions.map((model) => (
-                            <SelectItem key={model} value={model}>
-                              {model}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
+                      <Controller
+                        name="model"
+                        control={control}
+                        render={({ field }) => (
+                          <Select
+                            value={field.value}
+                            onValueChange={field.onChange}
+                          >
+                            <SelectTrigger>
+                              <SelectValue placeholder="Select a model" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {modelOptions.map((model) => (
+                                <SelectItem key={model} value={model}>
+                                  {model}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        )}
+                      />
+                      {errors.model && (
+                        <p className="text-xs text-red-500">
+                          {errors.model.message}
+                        </p>
+                      )}
                       <p className="text-xs text-muted-foreground">
                         Choose the AI model for this conversation
                       </p>
@@ -401,17 +486,17 @@ export const ChatSettings: FC<ChatSettingsProps> = ({
                     <div className="space-y-2">
                       <div className="flex items-center justify-between">
                         <Label
-                          htmlFor="creativity"
+                          htmlFor="temperature"
                           className="text-sm font-medium"
                         >
                           Temperature
                         </Label>
                         <div className="flex items-center gap-2">
                           <span className="text-sm text-muted-foreground">
-                            {creativity[0]}
+                            {watchedValues.temperature}
                           </span>
                           {primaryAgent?.model_kwargs?.temperature ===
-                            creativity[0] && (
+                            watchedValues.temperature && (
                             <Badge
                               variant="outline"
                               className="text-xs px-2 py-0.5"
@@ -421,15 +506,26 @@ export const ChatSettings: FC<ChatSettingsProps> = ({
                           )}
                         </div>
                       </div>
-                      <Slider
-                        id="creativity"
-                        min={0}
-                        max={1}
-                        step={0.1}
-                        value={creativity}
-                        onValueChange={setCreativity}
-                        className="w-full"
+                      <Controller
+                        name="temperature"
+                        control={control}
+                        render={({ field }) => (
+                          <Slider
+                            id="temperature"
+                            min={0}
+                            max={2}
+                            step={0.1}
+                            value={[field.value]}
+                            onValueChange={(value) => field.onChange(value[0])}
+                            className="w-full"
+                          />
+                        )}
                       />
+                      {errors.temperature && (
+                        <p className="text-xs text-red-500">
+                          {errors.temperature.message}
+                        </p>
+                      )}
                       <p className="text-xs text-muted-foreground">
                         Controls creativity and randomness
                       </p>
@@ -439,17 +535,17 @@ export const ChatSettings: FC<ChatSettingsProps> = ({
                     <div className="space-y-2">
                       <div className="flex items-center justify-between">
                         <Label
-                          htmlFor="responseLength"
+                          htmlFor="maxTokens"
                           className="text-sm font-medium"
                         >
                           Max Tokens
                         </Label>
                         <div className="flex items-center gap-2">
                           <span className="text-sm text-muted-foreground">
-                            {responseLength[0]}
+                            {watchedValues.maxTokens}
                           </span>
                           {primaryAgent?.model_kwargs?.max_tokens ===
-                            responseLength[0] && (
+                            watchedValues.maxTokens && (
                             <Badge
                               variant="outline"
                               className="text-xs px-2 py-0.5"
@@ -459,15 +555,26 @@ export const ChatSettings: FC<ChatSettingsProps> = ({
                           )}
                         </div>
                       </div>
-                      <Slider
-                        id="responseLength"
-                        min={100}
-                        max={4096}
-                        step={100}
-                        value={responseLength}
-                        onValueChange={setResponseLength}
-                        className="w-full"
+                      <Controller
+                        name="maxTokens"
+                        control={control}
+                        render={({ field }) => (
+                          <Slider
+                            id="maxTokens"
+                            min={100}
+                            max={4096}
+                            step={100}
+                            value={[field.value]}
+                            onValueChange={(value) => field.onChange(value[0])}
+                            className="w-full"
+                          />
+                        )}
                       />
+                      {errors.maxTokens && (
+                        <p className="text-xs text-red-500">
+                          {errors.maxTokens.message}
+                        </p>
+                      )}
                       <p className="text-xs text-muted-foreground">
                         Maximum length of AI responses
                       </p>
@@ -476,15 +583,15 @@ export const ChatSettings: FC<ChatSettingsProps> = ({
                     {/* Top-p Slider */}
                     <div className="space-y-2">
                       <div className="flex items-center justify-between">
-                        <Label htmlFor="memory" className="text-sm font-medium">
+                        <Label htmlFor="topP" className="text-sm font-medium">
                           Top-p
                         </Label>
                         <div className="flex items-center gap-2">
                           <span className="text-sm text-muted-foreground">
-                            {(memory[0] / 4000).toFixed(2)}
+                            {watchedValues.topP.toFixed(2)}
                           </span>
                           {primaryAgent?.model_kwargs?.top_p ===
-                            memory[0] / 4000 && (
+                            watchedValues.topP && (
                             <Badge
                               variant="outline"
                               className="text-xs px-2 py-0.5"
@@ -494,15 +601,26 @@ export const ChatSettings: FC<ChatSettingsProps> = ({
                           )}
                         </div>
                       </div>
-                      <Slider
-                        id="memory"
-                        min={1000}
-                        max={8000}
-                        step={500}
-                        value={memory}
-                        onValueChange={setMemory}
-                        className="w-full"
+                      <Controller
+                        name="topP"
+                        control={control}
+                        render={({ field }) => (
+                          <Slider
+                            id="topP"
+                            min={0}
+                            max={1}
+                            step={0.01}
+                            value={[field.value]}
+                            onValueChange={(value) => field.onChange(value[0])}
+                            className="w-full"
+                          />
+                        )}
                       />
+                      {errors.topP && (
+                        <p className="text-xs text-red-500">
+                          {errors.topP.message}
+                        </p>
+                      )}
                       <p className="text-xs text-muted-foreground">
                         Controls diversity of word choices (0.0 = focused, 1.0 =
                         diverse)
@@ -661,7 +779,15 @@ export const ChatSettings: FC<ChatSettingsProps> = ({
                 <Button variant="outline" onClick={onClose} className="flex-1">
                   Cancel
                 </Button>
-                <Button className="flex-1">Save Settings</Button>
+                <Button
+                  onClick={handleSubmit(onSubmit)}
+                  disabled={!isDirty || updateAgentMutation.isPending}
+                  className="flex-1"
+                >
+                  {updateAgentMutation.isPending
+                    ? 'Saving...'
+                    : 'Save Settings'}
+                </Button>
               </div>
             </div>
           </motion.div>
