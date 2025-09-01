@@ -27,10 +27,10 @@ import {
   GetChatAgentSettingByChatIdResType,
   GetSpecificChatResType,
 } from '@/types/chat';
+import { IconRobot } from '@tabler/icons-react';
 import { AnimatePresence, motion } from 'framer-motion';
 import {
   Bot,
-  Briefcase,
   MessageSquare,
   Settings,
   Sparkles,
@@ -216,7 +216,7 @@ export const ChatSettings: FC<ChatSettingsProps> = ({
                     value="agents"
                     className="flex items-center gap-2"
                   >
-                    <Briefcase className="w-4 h-4" />
+                    <IconRobot className="w-4 h-4" />
                     Agents
                   </TabsTrigger>
                 </TabsList>
@@ -224,19 +224,19 @@ export const ChatSettings: FC<ChatSettingsProps> = ({
                 {/* Preferences Tab */}
                 <TabsContent value="preferences" className="space-y-6">
                   {/* Chat Title Section */}
-                  <div className="space-y-4 rounded-xl border border-border bg-card p-6 text-card-foreground">
-                    <div className="flex items-center gap-3">
-                      <div className="h-10 w-10 p-2 rounded-lg bg-blue-50 dark:bg-blue-400/10 text-blue-600 dark:text-blue-300 ring-1 ring-blue-200 dark:ring-blue-400/20 flex items-center justify-center">
-                        <MessageSquare className="w-5 h-5" />
+                  <div className="space-y-3 rounded-lg border border-border bg-card p-4 text-card-foreground">
+                    <div className="flex items-center gap-2">
+                      <div className="h-8 w-8 p-1.5 rounded-lg bg-blue-50 dark:bg-blue-400/10 text-blue-600 dark:text-blue-300 ring-1 ring-blue-200 dark:ring-blue-400/20 flex items-center justify-center">
+                        <MessageSquare className="w-4 h-4" />
                       </div>
                       <div>
-                        <h3 className="font-semibold text-foreground text-lg">
+                        <h3 className="font-medium text-foreground text-base">
                           Chat Title
                         </h3>
                       </div>
                     </div>
 
-                    <div className="space-y-2">
+                    <div className="space-y-1.5">
                       <Input
                         id="chat-title"
                         type="text"
@@ -252,37 +252,31 @@ export const ChatSettings: FC<ChatSettingsProps> = ({
                   </div>
 
                   {/* Primary Prompt Section */}
-                  <div className="space-y-4 rounded-xl border border-border bg-card p-6 text-card-foreground">
-                    <div className="flex items-center gap-3">
-                      <div className="h-10 w-10 p-2 rounded-lg bg-purple-50 dark:bg-purple-400/10 text-purple-600 dark:text-purple-300 ring-1 ring-purple-200 dark:ring-purple-400/20 flex items-center justify-center">
-                        <Sparkles className="w-5 h-5" />
+                  <div className="space-y-3 rounded-lg border border-border bg-card p-4 text-card-foreground">
+                    <div className="flex items-center gap-2">
+                      <div className="h-8 w-8 p-1.5 rounded-lg bg-purple-50 dark:bg-purple-400/10 text-purple-600 dark:text-purple-300 ring-1 ring-purple-200 dark:ring-purple-400/20 flex items-center justify-center">
+                        <Sparkles className="w-4 h-4" />
                       </div>
                       <div>
-                        <h3 className="font-semibold text-foreground text-lg">
+                        <h3 className="font-medium text-foreground text-base">
                           Prompt
                         </h3>
                       </div>
                     </div>
 
-                    <div className="space-y-2">
-                      <Label
-                        htmlFor="chat-prompt"
-                        className="text-sm font-medium text-foreground"
-                      >
-                        System Prompt
-                      </Label>
+                    <div className="space-y-1.5">
                       {primaryAgent ? (
                         <Textarea
                           id="chat-prompt"
                           placeholder="Enter system prompt..."
-                          className="min-h-[100px] resize-none"
+                          className="min-h-[80px] resize-none"
                           defaultValue={primaryAgent.prompt}
                         />
                       ) : (
-                        <div className="min-h-[100px] rounded-md border border-dashed border-muted-foreground/20 flex items-center justify-center bg-muted/30">
+                        <div className="min-h-[80px] rounded-md border border-dashed border-muted-foreground/20 flex items-center justify-center bg-muted/30">
                           <div className="text-center text-muted-foreground">
-                            <Sparkles className="w-8 h-8 mx-auto mb-2 opacity-50" />
-                            <p className="text-sm">
+                            <Sparkles className="w-6 h-6 mx-auto mb-1 opacity-50" />
+                            <p className="text-xs">
                               Select an agent to configure prompts
                             </p>
                           </div>
@@ -296,16 +290,16 @@ export const ChatSettings: FC<ChatSettingsProps> = ({
                   </div>
 
                   {/* Chat Parameters Section */}
-                  <div className="space-y-4 rounded-xl border border-border bg-card p-6 text-card-foreground">
-                    <div className="flex items-center gap-3">
-                      <div className="h-10 w-10 p-2 rounded-lg bg-orange-50 dark:bg-orange-400/10 text-orange-600 dark:text-orange-300 ring-1 ring-orange-200 dark:ring-orange-400/20 flex items-center justify-center">
-                        <Zap className="w-5 h-5" />
+                  <div className="space-y-3 rounded-lg border border-border bg-card p-4 text-card-foreground">
+                    <div className="flex items-center gap-2">
+                      <div className="h-8 w-8 p-1.5 rounded-lg bg-orange-50 dark:bg-orange-400/10 text-orange-600 dark:text-orange-300 ring-1 ring-orange-200 dark:ring-orange-400/20 flex items-center justify-center">
+                        <Zap className="w-4 h-4" />
                       </div>
                       <div>
-                        <h3 className="font-semibold text-foreground text-lg">
+                        <h3 className="font-medium text-foreground text-base">
                           Chat Parameters
                         </h3>
-                        <p className="text-sm text-muted-foreground">
+                        <p className="text-xs text-muted-foreground">
                           Configure AI response behavior and settings
                         </p>
                       </div>
@@ -469,16 +463,16 @@ export const ChatSettings: FC<ChatSettingsProps> = ({
                   </div>
 
                   {/* Available Agents Section */}
-                  <div className="space-y-4 rounded-xl border border-border bg-card p-6 text-card-foreground">
-                    <div className="flex items-center gap-3">
-                      <div className="h-10 w-10 p-2 rounded-lg bg-green-50 dark:bg-green-400/10 text-green-600 dark:text-green-300 ring-1 ring-green-200 dark:ring-green-400/20 flex items-center justify-center">
-                        <Users className="w-5 h-5" />
+                  <div className="space-y-3 rounded-lg border border-border bg-card p-4 text-card-foreground">
+                    <div className="flex items-center gap-2">
+                      <div className="h-8 w-8 p-1.5 rounded-lg bg-green-50 dark:bg-green-400/10 text-green-600 dark:text-green-300 ring-1 ring-green-200 dark:ring-green-400/20 flex items-center justify-center">
+                        <Users className="w-4 h-4" />
                       </div>
                       <div>
-                        <h3 className="font-semibold text-foreground text-lg">
+                        <h3 className="font-medium text-foreground text-base">
                           Available Agents
                         </h3>
-                        <p className="text-sm text-muted-foreground">
+                        <p className="text-xs text-muted-foreground">
                           Enable agents that can respond to specific intents in
                           your conversation
                         </p>
