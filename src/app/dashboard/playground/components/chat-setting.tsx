@@ -16,17 +16,25 @@ import { Switch } from '@/components/ui/switch';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Textarea } from '@/components/ui/textarea';
 import { handleErrorApi, HttpError } from '@/lib/utils';
-import { useGetAgentAvailable } from '@/queries/useAgent';
+import {
+  useGetAgentAvailable,
+  useUpdateAgentMutation,
+} from '@/queries/useAgent';
 import {
   useCreateChatAgentSettingMutation,
   useGetChatAgentSettingByChatId,
   useGetPrimaryAgentByChatId,
 } from '@/queries/useChat';
-import { AgentType } from '@/types/agent';
+import {
+  AgentType,
+  UpdateAgentBodySchema,
+  UpdateAgentBodyType,
+} from '@/types/agent';
 import {
   GetChatAgentSettingByChatIdResType,
   GetSpecificChatResType,
 } from '@/types/chat';
+import { zodResolver } from '@hookform/resolvers/zod';
 import { IconRobot } from '@tabler/icons-react';
 import { AnimatePresence, motion } from 'framer-motion';
 import {
@@ -39,7 +47,11 @@ import {
   Zap,
 } from 'lucide-react';
 import { useParams } from 'next/navigation';
-import { FC, useMemo, useState } from 'react';
+import { FC, useEffect, useMemo } from 'react';
+import { Controller, useForm } from 'react-hook-form';
+import { z } from 'zod';
+
+type ChatSettingsFormData = z.infer<typeof UpdateAgentBodySchema>;
 
 type ChatSettingsProps = {
   isOpen: boolean;
@@ -58,20 +70,37 @@ export const ChatSettings: FC<ChatSettingsProps> = ({
   );
   const primaryAgent = primaryAgentData?.data.data;
 
-  // Chat Parameters State
-  const [selectedModel, setSelectedModel] = useState<string>('gpt-4o');
-  const [creativity, setCreativity] = useState<number[]>([0.4]);
-  const [responseLength, setResponseLength] = useState<number[]>([2048]);
-  const [memory, setMemory] = useState<number[]>([4000]);
+  // React Hook Form setup
+  const form = useForm<ChatSettingsFormData>({
+    resolver: zodResolver(UpdateAgentBodySchema),
+    defaultValues: {
+      description: '',
+      name: '',
+      prompt: '',
+      model: 'gpt-4o',
+      max_tokens: 2048,
+      temperature: 0.4,
+      top_p: 0.8,
+      type: 'openai',
+    },
+  });
 
+  const {
+    control,
+    handleSubmit,
+    setValue,
+    watch,
+    formState: { errors, isDirty },
+  } = form;
+  const watchedValues = watch();
   const { data: chatAgentSettingData } = useGetChatAgentSettingByChatId(
     chatId as string,
   );
   const { data: agentData } = useGetAgentAvailable();
-
   const createChatAgentSettingMutation = useCreateChatAgentSettingMutation(
     chatId as string,
   );
+  const updateAgentMutation = useUpdateAgentMutation(primaryAgent?.id || '');
   const chatAgentSetting = useMemo<GetChatAgentSettingByChatIdResType['data']>(
     () => chatAgentSettingData?.data.data || [],
     [chatAgentSettingData],
@@ -119,6 +148,50 @@ export const ChatSettings: FC<ChatSettingsProps> = ({
       return 0;
     });
   }, [agentsWithState]);
+
+  useEffect(() => {
+    if (primaryAgent) {
+      // Set form values from primary agent
+      if (primaryAgent) {
+        setValue('model', primaryAgent.model);
+        setValue('prompt', primaryAgent.prompt);
+        setValue('temperature', primaryAgent.model_kwargs.temperature);
+        setValue('max_tokens', primaryAgent.model_kwargs.max_tokens);
+        setValue('top_p', primaryAgent.model_kwargs.top_p);
+      }
+    }
+  }, [primaryAgent, setValue]);
+
+  const onSubmit = async (data: ChatSettingsFormData) => {
+    console.log('data submit', data);
+    try {
+      // Đảm bảo primaryAgent phải có dữ liệu trước khi thực hiện update
+      if (!primaryAgent) {
+        handleErrorApi({
+          error: new HttpError({
+            data: null,
+            message: 'Primary agent is required to save settings',
+            status: 'INVALID',
+          }),
+        });
+        return;
+      }
+
+      // Update the primary agent with new settings
+      await updateAgentMutation.mutateAsync({
+        description: primaryAgent.description,
+        model: data.model,
+        max_tokens: data.max_tokens,
+        temperature: data.temperature,
+        top_p: data.top_p,
+        name: primaryAgent.name,
+        prompt: data.prompt,
+        type: primaryAgent.response_format.type,
+      } as UpdateAgentBodyType);
+    } catch (error) {
+      handleErrorApi({ error });
+    }
+  };
 
   const handleAgentToggle = async (agentId: string) => {
     try {
@@ -241,9 +314,9 @@ export const ChatSettings: FC<ChatSettingsProps> = ({
                         id="chat-title"
                         type="text"
                         placeholder="Enter chat title..."
-                        defaultValue={chatInfo.title}
-                        disabled
-                        className="w-full bg-muted/50 border-muted-foreground/20 text-muted-foreground cursor-not-allowed"
+                        className="w-full"
+                        disabled={true}
+                        value={chatInfo.title}
                       />
                       <p className="text-xs text-muted-foreground">
                         Give your conversation a memorable name
@@ -266,11 +339,17 @@ export const ChatSettings: FC<ChatSettingsProps> = ({
 
                     <div className="space-y-1.5">
                       {primaryAgent ? (
-                        <Textarea
-                          id="chat-prompt"
-                          placeholder="Enter system prompt..."
-                          className="min-h-[80px] resize-none"
-                          defaultValue={primaryAgent.prompt}
+                        <Controller
+                          name="prompt"
+                          control={control}
+                          render={({ field }) => (
+                            <Textarea
+                              {...field}
+                              id="chat-prompt"
+                              placeholder="Enter system prompt..."
+                              className="min-h-[80px] resize-none"
+                            />
+                          )}
                         />
                       ) : (
                         <div className="min-h-[80px] rounded-md border border-dashed border-muted-foreground/20 flex items-center justify-center bg-muted/30">
@@ -282,6 +361,11 @@ export const ChatSettings: FC<ChatSettingsProps> = ({
                           </div>
                         </div>
                       )}
+                      {errors.prompt && (
+                        <p className="text-xs text-red-500">
+                          {errors.prompt.message}
+                        </p>
+                      )}
                       <p className="text-xs text-muted-foreground">
                         This prompt defines how the AI assistant should behave
                         and respond
@@ -289,104 +373,6 @@ export const ChatSettings: FC<ChatSettingsProps> = ({
                     </div>
                   </div>
 
-                  {/* Chat Parameters Section */}
-                  <div className="space-y-3 rounded-lg border border-border bg-card p-4 text-card-foreground">
-                    <div className="flex items-center gap-2">
-                      <div className="h-8 w-8 p-1.5 rounded-lg bg-orange-50 dark:bg-orange-400/10 text-orange-600 dark:text-orange-300 ring-1 ring-orange-200 dark:ring-orange-400/20 flex items-center justify-center">
-                        <Zap className="w-4 h-4" />
-                      </div>
-                      <div>
-                        <h3 className="font-medium text-foreground text-base">
-                          Chat Parameters
-                        </h3>
-                        <p className="text-xs text-muted-foreground">
-                          Configure AI response behavior and settings
-                        </p>
-                      </div>
-                    </div>
-
-                    {/* Temperature Slider */}
-                    <div className="space-y-2">
-                      <div className="flex items-center justify-between">
-                        <Label
-                          htmlFor="creativity"
-                          className="text-sm font-medium"
-                        >
-                          Temperature
-                        </Label>
-                        <span className="text-sm text-muted-foreground">
-                          {creativity[0]}
-                        </span>
-                      </div>
-                      <Slider
-                        id="creativity"
-                        min={0}
-                        max={1}
-                        step={0.1}
-                        value={creativity}
-                        onValueChange={setCreativity}
-                        className="w-full"
-                      />
-                      <p className="text-xs text-muted-foreground">
-                        Controls creativity and randomness
-                      </p>
-                    </div>
-
-                    {/* Max Tokens Slider */}
-                    <div className="space-y-2">
-                      <div className="flex items-center justify-between">
-                        <Label
-                          htmlFor="responseLength"
-                          className="text-sm font-medium"
-                        >
-                          Max Tokens
-                        </Label>
-                        <span className="text-sm text-muted-foreground">
-                          {responseLength[0]}
-                        </span>
-                      </div>
-                      <Slider
-                        id="responseLength"
-                        min={100}
-                        max={4096}
-                        step={100}
-                        value={responseLength}
-                        onValueChange={setResponseLength}
-                        className="w-full"
-                      />
-                      <p className="text-xs text-muted-foreground">
-                        Maximum length of AI responses
-                      </p>
-                    </div>
-
-                    {/* Top-p Slider */}
-                    <div className="space-y-2">
-                      <div className="flex items-center justify-between">
-                        <Label htmlFor="memory" className="text-sm font-medium">
-                          Top-p
-                        </Label>
-                        <span className="text-sm text-muted-foreground">
-                          {memory[0] / 4000}
-                        </span>
-                      </div>
-                      <Slider
-                        id="memory"
-                        min={1000}
-                        max={8000}
-                        step={500}
-                        value={memory}
-                        onValueChange={setMemory}
-                        className="w-full"
-                      />
-                      <p className="text-xs text-muted-foreground">
-                        Controls diversity of word choices
-                      </p>
-                    </div>
-                  </div>
-                </TabsContent>
-
-                {/* Agents Tab */}
-                <TabsContent value="agents" className="space-y-6">
                   {/* Primary Agent Section */}
                   <div className="space-y-4 rounded-xl border border-border bg-card p-6 text-card-foreground">
                     {primaryAgent ? (
@@ -441,27 +427,205 @@ export const ChatSettings: FC<ChatSettingsProps> = ({
                       <Label htmlFor="model" className="text-sm font-medium">
                         AI Model
                       </Label>
-                      <Select
-                        value={selectedModel}
-                        onValueChange={setSelectedModel}
-                      >
-                        <SelectTrigger>
-                          <SelectValue placeholder="Select a model" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {modelOptions.map((model) => (
-                            <SelectItem key={model} value={model}>
-                              {model}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
+                      <Controller
+                        name="model"
+                        control={control}
+                        render={({ field }) => (
+                          <Select
+                            value={field.value}
+                            onValueChange={field.onChange}
+                          >
+                            <SelectTrigger>
+                              <SelectValue placeholder="Select a model" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {modelOptions.map((model) => (
+                                <SelectItem key={model} value={model}>
+                                  {model}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        )}
+                      />
+                      {errors.model && (
+                        <p className="text-xs text-red-500">
+                          {errors.model.message}
+                        </p>
+                      )}
                       <p className="text-xs text-muted-foreground">
                         Choose the AI model for this conversation
                       </p>
                     </div>
                   </div>
 
+                  {/* Chat Parameters Section */}
+                  <div className="space-y-3 rounded-lg border border-border bg-card p-4 text-card-foreground">
+                    <div className="flex items-center gap-2">
+                      <div className="h-8 w-8 p-1.5 rounded-lg bg-orange-50 dark:bg-orange-400/10 text-orange-600 dark:text-orange-300 ring-1 ring-orange-200 dark:ring-orange-400/20 flex items-center justify-center">
+                        <Zap className="w-4 h-4" />
+                      </div>
+                      <div>
+                        <h3 className="font-medium text-foreground text-base">
+                          Chat Parameters
+                        </h3>
+                        <p className="text-xs text-muted-foreground">
+                          {primaryAgent
+                            ? 'Configure AI response behavior and settings (values from primary agent)'
+                            : 'Configure AI response behavior and settings'}
+                        </p>
+                      </div>
+                    </div>
+
+                    {/* Temperature Slider */}
+                    <div className="space-y-2">
+                      <div className="flex items-center justify-between">
+                        <Label
+                          htmlFor="temperature"
+                          className="text-sm font-medium"
+                        >
+                          Temperature
+                        </Label>
+                        <div className="flex items-center gap-2">
+                          <span className="text-sm text-muted-foreground">
+                            {watchedValues.temperature}
+                          </span>
+                          {primaryAgent?.model_kwargs?.temperature ===
+                            watchedValues.temperature && (
+                            <Badge
+                              variant="outline"
+                              className="text-xs px-2 py-0.5"
+                            >
+                              From Agent
+                            </Badge>
+                          )}
+                        </div>
+                      </div>
+                      <Controller
+                        name="temperature"
+                        control={control}
+                        render={({ field }) => (
+                          <Slider
+                            id="temperature"
+                            min={0}
+                            max={2}
+                            step={0.1}
+                            value={[field.value]}
+                            onValueChange={(value) => field.onChange(value[0])}
+                            className="w-full"
+                          />
+                        )}
+                      />
+                      {errors.temperature && (
+                        <p className="text-xs text-red-500">
+                          {errors.temperature.message}
+                        </p>
+                      )}
+                      <p className="text-xs text-muted-foreground">
+                        Controls creativity and randomness
+                      </p>
+                    </div>
+
+                    {/* Max Tokens Slider */}
+                    <div className="space-y-2">
+                      <div className="flex items-center justify-between">
+                        <Label
+                          htmlFor="maxTokens"
+                          className="text-sm font-medium"
+                        >
+                          Max Tokens
+                        </Label>
+                        <div className="flex items-center gap-2">
+                          <span className="text-sm text-muted-foreground">
+                            {watchedValues.max_tokens}
+                          </span>
+                          {primaryAgent?.model_kwargs?.max_tokens ===
+                            watchedValues.max_tokens && (
+                            <Badge
+                              variant="outline"
+                              className="text-xs px-2 py-0.5"
+                            >
+                              From Agent
+                            </Badge>
+                          )}
+                        </div>
+                      </div>
+                      <Controller
+                        name="max_tokens"
+                        control={control}
+                        render={({ field }) => (
+                          <Slider
+                            id="max_tokens"
+                            min={100}
+                            max={4096}
+                            step={100}
+                            value={[field.value]}
+                            onValueChange={(value) => field.onChange(value[0])}
+                            className="w-full"
+                          />
+                        )}
+                      />
+                      {errors.max_tokens && (
+                        <p className="text-xs text-red-500">
+                          {errors.max_tokens.message}
+                        </p>
+                      )}
+                      <p className="text-xs text-muted-foreground">
+                        Maximum length of AI responses
+                      </p>
+                    </div>
+
+                    {/* Top-p Slider */}
+                    <div className="space-y-2">
+                      <div className="flex items-center justify-between">
+                        <Label htmlFor="topP" className="text-sm font-medium">
+                          Top-p
+                        </Label>
+                        <div className="flex items-center gap-2">
+                          <span className="text-sm text-muted-foreground">
+                            {watchedValues.top_p.toFixed(2)}
+                          </span>
+                          {primaryAgent?.model_kwargs?.top_p ===
+                            watchedValues.top_p && (
+                            <Badge
+                              variant="outline"
+                              className="text-xs px-2 py-0.5"
+                            >
+                              From Agent
+                            </Badge>
+                          )}
+                        </div>
+                      </div>
+                      <Controller
+                        name="top_p"
+                        control={control}
+                        render={({ field }) => (
+                          <Slider
+                            id="topP"
+                            min={0}
+                            max={1}
+                            step={0.01}
+                            value={[field.value]}
+                            onValueChange={(value) => field.onChange(value[0])}
+                            className="w-full"
+                          />
+                        )}
+                      />
+                      {errors.top_p && (
+                        <p className="text-xs text-red-500">
+                          {errors.top_p.message}
+                        </p>
+                      )}
+                      <p className="text-xs text-muted-foreground">
+                        Controls diversity of word choices (0.0 = focused, 1.0 =
+                        diverse)
+                      </p>
+                    </div>
+                  </div>
+                </TabsContent>
+
+                {/* Agents Tab */}
+                <TabsContent value="agents" className="space-y-6">
                   {/* Available Agents Section */}
                   <div className="space-y-3">
                     <div className="flex items-center gap-2">
@@ -610,7 +774,17 @@ export const ChatSettings: FC<ChatSettingsProps> = ({
                 <Button variant="outline" onClick={onClose} className="flex-1">
                   Cancel
                 </Button>
-                <Button className="flex-1">Save Settings</Button>
+                <Button
+                  onClick={handleSubmit(onSubmit)}
+                  disabled={
+                    !isDirty || updateAgentMutation.isPending || !primaryAgent
+                  }
+                  className="flex-1"
+                >
+                  {updateAgentMutation.isPending
+                    ? 'Saving...'
+                    : 'Save Settings'}
+                </Button>
               </div>
             </div>
           </motion.div>

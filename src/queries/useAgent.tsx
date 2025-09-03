@@ -29,9 +29,18 @@ export const useGetSpecificAgent = (id: string) => {
 export const useUpdateAgentMutation = (id: string) => {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: (body: UpdateAgentBodyType) => agentApiRequest.sUpdate(body),
+    mutationFn: (body: UpdateAgentBodyType) =>
+      agentApiRequest.sUpdate(id, body),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['agent', id] });
+      queryClient.invalidateQueries({
+        queryKey: ['primary-agent-by-chat-id'],
+      });
+      queryClient.invalidateQueries({
+        queryKey: ['agent-available'],
+      });
+      queryClient.invalidateQueries({
+        queryKey: ['agents'],
+      });
     },
   });
 };

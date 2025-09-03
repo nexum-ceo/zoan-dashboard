@@ -86,10 +86,29 @@ export const CreateAgentResSchema = z.object({
   status: z.string(),
   message: z.string(),
   data: AgentSchema,
+  meta: z.null(),
 });
 
 export type CreateAgentResType = z.infer<typeof CreateAgentResSchema>;
 
-export const UpdateAgentBodySchema = AgentSchema;
+export const UpdateAgentBodySchema = z.object({
+  description: z.string(),
+  model: z.string(),
+  max_tokens: z
+    .number()
+    .min(5, 'Max token must be at least 5')
+    .max(8192, 'Max token must be at most 8192'),
+  temperature: z
+    .number()
+    .min(0, 'Temperature must be at least 0')
+    .max(2, 'Temperature must be at most 2'),
+  top_p: z
+    .number()
+    .min(0, 'Top P must be at least 0')
+    .max(1, 'Top P must be at most 1'),
+  name: z.string(),
+  prompt: z.string(),
+  type: z.string(),
+});
 
 export type UpdateAgentBodyType = z.infer<typeof UpdateAgentBodySchema>;
