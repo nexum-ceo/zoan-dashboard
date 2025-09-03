@@ -65,12 +65,16 @@ export const ActionsBar: FC<ActionsBarProps> = ({
             className="pl-10 w-64"
           />
         </div>
-        <Button variant="outline" size="sm">
-          <Filter className="w-4 h-4" />
-        </Button>
-        <Button variant="outline" size="sm">
-          <SortAsc className="w-4 h-4" />
-        </Button>
+        {!readOnly && (
+          <>
+            <Button variant="outline" size="sm">
+              <Filter className="w-4 h-4" />
+            </Button>
+            <Button variant="outline" size="sm">
+              <SortAsc className="w-4 h-4" />
+            </Button>
+          </>
+        )}
         <div className="flex border rounded-md">
           <Button
             variant={viewMode === 'grid' ? 'default' : 'ghost'}

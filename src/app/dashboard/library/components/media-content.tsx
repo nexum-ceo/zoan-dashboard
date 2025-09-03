@@ -502,23 +502,24 @@ export const MediaContent: FC<MediaContentProps> = ({
           <Badge variant="secondary">
             {`${currentFolders.length} folders, ${files.length} files`}
           </Badge>
-          {selectedFolder !== rootPrefix && (
-            <div className="flex gap-1 ml-2">
-              <Button variant="ghost" size="sm" className="h-6 w-6 p-0">
-                <Edit className="w-3 h-3" />
-              </Button>
-              <Button variant="ghost" size="sm" className="h-6 w-6 p-0">
-                <Settings className="w-3 h-3" />
-              </Button>
-              <Button
-                variant="ghost"
-                size="sm"
-                className="h-6 w-6 p-0 text-red-500 hover:text-red-700"
-              >
-                <Trash2 className="w-3 h-3" />
-              </Button>
-            </div>
-          )}
+          {selectedFolder !== rootPrefix &&
+            !rootPrefix?.startsWith('assets/') && (
+              <div className="flex gap-1 ml-2">
+                <Button variant="ghost" size="sm" className="h-6 w-6 p-0">
+                  <Edit className="w-3 h-3" />
+                </Button>
+                <Button variant="ghost" size="sm" className="h-6 w-6 p-0">
+                  <Settings className="w-3 h-3" />
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="h-6 w-6 p-0 text-red-500 hover:text-red-700"
+                >
+                  <Trash2 className="w-3 h-3" />
+                </Button>
+              </div>
+            )}
         </div>
       </div>
 
