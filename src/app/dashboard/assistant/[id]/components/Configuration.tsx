@@ -242,14 +242,11 @@ export default function Configuration() {
       name: validatedData.name,
       description: validatedData.description,
       prompt: validatedData.prompt,
-      provider_id: validatedData.provider_id,
       model: validatedData.model,
-      response_format: validatedData.response_format,
-      model_kwargs: {
-        max_tokens: validatedData.max_tokens || 1000,
-        temperature: validatedData.temperature,
-        top_p: validatedData.top_p,
-      },
+      type: validatedData.response_format.type,
+      max_tokens: validatedData.max_tokens || 1000,
+      temperature: validatedData.temperature,
+      top_p: validatedData.top_p,
     };
 
     // Use mutation hook to update agent
