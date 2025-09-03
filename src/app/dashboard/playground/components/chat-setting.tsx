@@ -25,7 +25,11 @@ import {
   useGetChatAgentSettingByChatId,
   useGetPrimaryAgentByChatId,
 } from '@/queries/useChat';
-import { AgentType, UpdateAgentBodyType } from '@/types/agent';
+import {
+  AgentType,
+  UpdateAgentBodySchema,
+  UpdateAgentBodyType,
+} from '@/types/agent';
 import {
   GetChatAgentSettingByChatIdResType,
   GetSpecificChatResType,
@@ -47,17 +51,7 @@ import { FC, useEffect, useMemo } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import { z } from 'zod';
 
-// Form validation schema
-const chatSettingsSchema = z.object({
-  chatTitle: z.string().min(1, 'Chat title is required'),
-  prompt: z.string().min(1, 'Prompt is required'),
-  model: z.string().min(1, 'Model is required'),
-  temperature: z.number().min(0).max(2),
-  maxTokens: z.number().min(100).max(4096),
-  topP: z.number().min(0).max(1),
-});
-
-type ChatSettingsFormData = z.infer<typeof chatSettingsSchema>;
+type ChatSettingsFormData = z.infer<typeof UpdateAgentBodySchema>;
 
 type ChatSettingsProps = {
   isOpen: boolean;
@@ -78,14 +72,16 @@ export const ChatSettings: FC<ChatSettingsProps> = ({
 
   // React Hook Form setup
   const form = useForm<ChatSettingsFormData>({
-    resolver: zodResolver(chatSettingsSchema),
+    resolver: zodResolver(UpdateAgentBodySchema),
     defaultValues: {
-      chatTitle: chatInfo.title || '',
+      description: '',
+      name: '',
       prompt: '',
       model: 'gpt-4o',
+      max_tokens: 2048,
       temperature: 0.4,
-      maxTokens: 2048,
-      topP: 0.8,
+      top_p: 0.8,
+      type: 'openai',
     },
   });
 
@@ -104,7 +100,7 @@ export const ChatSettings: FC<ChatSettingsProps> = ({
   const createChatAgentSettingMutation = useCreateChatAgentSettingMutation(
     chatId as string,
   );
-  const updateAgentMutation = useUpdateAgentMutation();
+  const updateAgentMutation = useUpdateAgentMutation(primaryAgent?.id || '');
   const chatAgentSetting = useMemo<GetChatAgentSettingByChatIdResType['data']>(
     () => chatAgentSettingData?.data.data || [],
     [chatAgentSettingData],
@@ -160,29 +156,38 @@ export const ChatSettings: FC<ChatSettingsProps> = ({
         setValue('model', primaryAgent.model);
         setValue('prompt', primaryAgent.prompt);
         setValue('temperature', primaryAgent.model_kwargs.temperature);
-        setValue('maxTokens', primaryAgent.model_kwargs.max_tokens);
-        setValue('topP', primaryAgent.model_kwargs.top_p);
+        setValue('max_tokens', primaryAgent.model_kwargs.max_tokens);
+        setValue('top_p', primaryAgent.model_kwargs.top_p);
       }
     }
   }, [primaryAgent, setValue]);
 
   const onSubmit = async (data: ChatSettingsFormData) => {
+    console.log('data submit', data);
     try {
-      if (primaryAgent) {
-        console.log('data update agent', data);
-        // Update the primary agent with new settings
-        await updateAgentMutation.mutateAsync({
-          ...primaryAgent,
-          prompt: data.prompt,
-          model: data.model,
-          model_kwargs: {
-            ...primaryAgent.model_kwargs,
-            temperature: data.temperature,
-            max_tokens: data.maxTokens,
-            top_p: data.topP,
-          },
-        } as UpdateAgentBodyType); // Type assertion - the API should handle the update correctly
+      // Đảm bảo primaryAgent phải có dữ liệu trước khi thực hiện update
+      if (!primaryAgent) {
+        handleErrorApi({
+          error: new HttpError({
+            data: null,
+            message: 'Primary agent is required to save settings',
+            status: 'INVALID',
+          }),
+        });
+        return;
       }
+
+      // Update the primary agent with new settings
+      await updateAgentMutation.mutateAsync({
+        description: primaryAgent.description,
+        model: data.model,
+        max_tokens: data.max_tokens,
+        temperature: data.temperature,
+        top_p: data.top_p,
+        name: primaryAgent.name,
+        prompt: data.prompt,
+        type: primaryAgent.response_format.type,
+      } as UpdateAgentBodyType);
     } catch (error) {
       handleErrorApi({ error });
     }
@@ -305,24 +310,14 @@ export const ChatSettings: FC<ChatSettingsProps> = ({
                     </div>
 
                     <div className="space-y-1.5">
-                      <Controller
-                        name="chatTitle"
-                        control={control}
-                        render={({ field }) => (
-                          <Input
-                            {...field}
-                            id="chat-title"
-                            type="text"
-                            placeholder="Enter chat title..."
-                            className="w-full"
-                          />
-                        )}
+                      <Input
+                        id="chat-title"
+                        type="text"
+                        placeholder="Enter chat title..."
+                        className="w-full"
+                        disabled={true}
+                        value={chatInfo.title}
                       />
-                      {errors.chatTitle && (
-                        <p className="text-xs text-red-500">
-                          {errors.chatTitle.message}
-                        </p>
-                      )}
                       <p className="text-xs text-muted-foreground">
                         Give your conversation a memorable name
                       </p>
@@ -542,10 +537,10 @@ export const ChatSettings: FC<ChatSettingsProps> = ({
                         </Label>
                         <div className="flex items-center gap-2">
                           <span className="text-sm text-muted-foreground">
-                            {watchedValues.maxTokens}
+                            {watchedValues.max_tokens}
                           </span>
                           {primaryAgent?.model_kwargs?.max_tokens ===
-                            watchedValues.maxTokens && (
+                            watchedValues.max_tokens && (
                             <Badge
                               variant="outline"
                               className="text-xs px-2 py-0.5"
@@ -556,11 +551,11 @@ export const ChatSettings: FC<ChatSettingsProps> = ({
                         </div>
                       </div>
                       <Controller
-                        name="maxTokens"
+                        name="max_tokens"
                         control={control}
                         render={({ field }) => (
                           <Slider
-                            id="maxTokens"
+                            id="max_tokens"
                             min={100}
                             max={4096}
                             step={100}
@@ -570,9 +565,9 @@ export const ChatSettings: FC<ChatSettingsProps> = ({
                           />
                         )}
                       />
-                      {errors.maxTokens && (
+                      {errors.max_tokens && (
                         <p className="text-xs text-red-500">
-                          {errors.maxTokens.message}
+                          {errors.max_tokens.message}
                         </p>
                       )}
                       <p className="text-xs text-muted-foreground">
@@ -588,10 +583,10 @@ export const ChatSettings: FC<ChatSettingsProps> = ({
                         </Label>
                         <div className="flex items-center gap-2">
                           <span className="text-sm text-muted-foreground">
-                            {watchedValues.topP.toFixed(2)}
+                            {watchedValues.top_p.toFixed(2)}
                           </span>
                           {primaryAgent?.model_kwargs?.top_p ===
-                            watchedValues.topP && (
+                            watchedValues.top_p && (
                             <Badge
                               variant="outline"
                               className="text-xs px-2 py-0.5"
@@ -602,7 +597,7 @@ export const ChatSettings: FC<ChatSettingsProps> = ({
                         </div>
                       </div>
                       <Controller
-                        name="topP"
+                        name="top_p"
                         control={control}
                         render={({ field }) => (
                           <Slider
@@ -616,9 +611,9 @@ export const ChatSettings: FC<ChatSettingsProps> = ({
                           />
                         )}
                       />
-                      {errors.topP && (
+                      {errors.top_p && (
                         <p className="text-xs text-red-500">
-                          {errors.topP.message}
+                          {errors.top_p.message}
                         </p>
                       )}
                       <p className="text-xs text-muted-foreground">
@@ -781,7 +776,9 @@ export const ChatSettings: FC<ChatSettingsProps> = ({
                 </Button>
                 <Button
                   onClick={handleSubmit(onSubmit)}
-                  disabled={!isDirty || updateAgentMutation.isPending}
+                  disabled={
+                    !isDirty || updateAgentMutation.isPending || !primaryAgent
+                  }
                   className="flex-1"
                 >
                   {updateAgentMutation.isPending
