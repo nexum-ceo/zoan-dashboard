@@ -37,8 +37,6 @@ const FILTERED_MESSAGE_TYPES = new Set([
   'metadata',
   'status',
   'error',
-  // 'thinking',
-  // 'answer',
 ]);
 
 export function useChat({
@@ -345,6 +343,7 @@ export function useChat({
               console.log('[WS] Filtered system message:', data);
               return null;
             }
+            console.log('data', data);
 
             // For any other JSON message, return the raw JSON string and
             // let the downstream parser handle types (thinking/text/etc.)
@@ -378,6 +377,10 @@ export function useChat({
             !!parsedRecord &&
             typeof parsedRecord['type'] === 'string' &&
             parsedRecord['type'] === 'thinking';
+          const isGameGenerator =
+            !!parsedRecord &&
+            typeof parsedRecord['type'] === 'string' &&
+            parsedRecord['type'] === 'game_generator';
           // Build display text. For thinking, prefer title/elapsed formatting; otherwise use content/raw
           let textContent: string;
           if (isThinking) {
@@ -407,6 +410,13 @@ export function useChat({
             // If both title and content exist, combine with newline to create a block under the header
             textContent =
               contentStr && title ? `${header}\n${contentStr}` : header;
+          } else if (isGameGenerator) {
+            textContent = coerceToString(
+              (parsedRecord as Record<string, unknown>)['content'] ??
+                (parsedRecord as Record<string, unknown>)['text'] ??
+                (parsedRecord as Record<string, unknown>)['data'] ??
+                parsedRecord,
+            );
           } else {
             const primary =
               parsedRecord && typeof parsedRecord['content'] === 'string'
@@ -436,6 +446,18 @@ export function useChat({
               existingParts.push({ type: 'thinking', text: textContent });
               last.parts = existingParts;
               // Do not append thinking to visible assistant content
+            } else if (isGameGenerator) {
+              const existingParts = Array.isArray(last.parts)
+                ? last.parts.slice()
+                : [];
+              if ((textContent || '').trim() !== '') {
+                existingParts.push({
+                  type: 'game_generator',
+                  text: textContent,
+                });
+              }
+              last.parts = existingParts;
+              // Do not append game_generator to visible assistant content
             } else {
               last.content = String(last.content || '') + textContent;
               const existingParts = Array.isArray(last.parts)
@@ -453,10 +475,12 @@ export function useChat({
             const newMsg: ChatMessage = {
               id: Date.now().toString() + '-ws',
               role: ChatRole.ASSISTANT,
-              content: isThinking ? '' : textContent,
+              content: isThinking || isGameGenerator ? '' : textContent,
               sender_id: null,
               parts: isThinking
                 ? [{ type: 'thinking', text: textContent }]
+                : isGameGenerator
+                ? [{ type: 'game_generator', text: textContent }]
                 : [{ type: 'text', text: textContent }],
             };
             return [...prev, newMsg];

@@ -10,6 +10,12 @@ import {
   ReasoningContent,
   ReasoningTrigger,
 } from '@/components/ui/shadcn-io/ai/reasoning';
+import {
+  Task,
+  TaskContent,
+  TaskItem,
+  TaskTrigger,
+} from '@/components/ui/shadcn-io/ai/task';
 import { FC, useMemo } from 'react';
 import ReactMarkdown from 'react-markdown';
 
@@ -18,7 +24,7 @@ type ChatMessageProps = {
     id: string;
     role: 'user' | 'assistant' | 'system' | 'data';
     content?: string;
-    parts?: Array<{ type: string; text?: string }>;
+    parts?: Array<{ type: string; text?: string; content?: string }>;
   };
   isLast: boolean;
   isLoading: boolean;
@@ -48,12 +54,21 @@ export const ChatMessage: FC<ChatMessageProps> = ({
     return message.content || '';
   }, [message.parts, message.content]);
 
+  const gameGeneratorItems = useMemo(() => {
+    if (!Array.isArray(message.parts)) return [] as string[];
+    return message.parts
+      .filter((part) => part.type === 'game_generator')
+      .map((part) => part.text ?? part.content ?? '')
+      .filter((v) => v.trim() !== '');
+  }, [message.parts]);
+  console.log('game generator:', gameGeneratorItems);
+
   return (
     <UIMessage from={isUser ? 'user' : 'assistant'}>
       <div className="flex flex-col gap-2 px-2">
         {!isUser && (
           <>
-            <MessageAvatar name="AI" src="/public/icon.png" />
+            <MessageAvatar name="AI" src="/icon.png" />
             <div className="text-md font-medium">AI Agent priority</div>
           </>
         )}
@@ -66,6 +81,16 @@ export const ChatMessage: FC<ChatMessageProps> = ({
             <ReasoningTrigger />
             <ReasoningContent>{thinkingText}</ReasoningContent>
           </Reasoning>
+        )}
+        {!isUser && gameGeneratorItems.length > 0 && (
+          <Task defaultOpen={true} className="w-full mb-0">
+            <TaskTrigger title="Game Generator" />
+            <TaskContent>
+              {gameGeneratorItems.map((item, index) => (
+                <TaskItem key={index}>{item}</TaskItem>
+              ))}
+            </TaskContent>
+          </Task>
         )}
         <MessageContent>
           <ReactMarkdown>{content}</ReactMarkdown>

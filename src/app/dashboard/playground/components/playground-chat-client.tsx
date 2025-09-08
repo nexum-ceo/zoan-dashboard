@@ -357,7 +357,7 @@ export function PlaygroundChatClient({ chatId }: PlaygroundChatClientProps) {
         </div>
 
         {/* Input Area */}
-        <div className="p-6 bg-sidebar">
+        <div className="bg-sidebar">
           <ChatInput
             value={input}
             onChange={handleInputChange}

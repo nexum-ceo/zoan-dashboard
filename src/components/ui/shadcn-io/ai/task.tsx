@@ -8,6 +8,7 @@ import {
 import { cn } from '@/lib/utils';
 import { ChevronDownIcon, SearchIcon } from 'lucide-react';
 import type { ComponentProps } from 'react';
+import ReactMarkdown from 'react-markdown';
 
 export type TaskItemFileProps = ComponentProps<'div'>;
 
@@ -31,7 +32,7 @@ export type TaskItemProps = ComponentProps<'div'>;
 
 export const TaskItem = ({ children, className, ...props }: TaskItemProps) => (
   <div className={cn('text-muted-foreground text-sm', className)} {...props}>
-    {children}
+    <ReactMarkdown>{children as string}</ReactMarkdown>
   </div>
 );
 
