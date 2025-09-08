@@ -8,6 +8,11 @@ import { Explore } from '@/app/dashboard/playground/components/explore';
 
 import { NavUser } from '@/components/nav-user';
 import { Button } from '@/components/ui/button';
+import {
+  Conversation,
+  ConversationContent,
+  ConversationScrollButton,
+} from '@/components/ui/shadcn-io/ai/conversation';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import { SidebarProvider } from '@/components/ui/sidebar';
 import { useIsMobile } from '@/hooks/use-mobile';
@@ -16,7 +21,6 @@ import { useGetChat, useGetChatMessages } from '@/queries/useChat';
 import { ChatRole } from '@/types/chat';
 import { motion } from 'framer-motion';
 import {
-  ArrowDown,
   Bot,
   Gamepad2,
   Menu,
@@ -27,7 +31,7 @@ import {
   Users,
 } from 'lucide-react';
 import { usePathname, useRouter } from 'next/navigation';
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 
 type PlaygroundChatClientProps = {
   chatId: string;
@@ -39,8 +43,7 @@ export function PlaygroundChatClient({ chatId }: PlaygroundChatClientProps) {
   const router = useRouter();
   const pathname = usePathname();
   const messagesEndRef = useRef<HTMLDivElement>(null);
-  const messagesContainerRef = useRef<HTMLDivElement>(null);
-  const [showScrollButton, setShowScrollButton] = useState<boolean>(false);
+  // const messagesContainerRef = useRef<HTMLDivElement>(null);
   const [settingsOpen, setSettingsOpen] = useState<boolean>(true);
   const [exploreOpen, setExploreOpen] = useState<boolean>(false);
   const isSidePanelOpen = (settingsOpen || exploreOpen) && !isMobile;
@@ -116,22 +119,7 @@ export function PlaygroundChatClient({ chatId }: PlaygroundChatClientProps) {
     scrollToBottom();
   }, [messages]);
 
-  const handleScroll = useCallback(() => {
-    if (messagesContainerRef.current) {
-      const { scrollTop, scrollHeight, clientHeight } =
-        messagesContainerRef.current;
-      const isNearBottom = scrollHeight - scrollTop - clientHeight < 100;
-      setShowScrollButton(!isNearBottom && messages.length > 0);
-    }
-  }, [messages.length]);
-
-  useEffect(() => {
-    const container = messagesContainerRef.current;
-    if (container) {
-      container.addEventListener('scroll', handleScroll);
-      return () => container.removeEventListener('scroll', handleScroll);
-    }
-  }, [messages.length, handleScroll]);
+  // Conversation handles stick-to-bottom visibility internally
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -331,51 +319,41 @@ export function PlaygroundChatClient({ chatId }: PlaygroundChatClientProps) {
         </div>
 
         {/* Messages */}
-        <div
-          ref={messagesContainerRef}
-          className="flex-1 px-6 py-4 space-y-6 w-full overflow-y-auto h-full"
-        >
-          {messages.length === 0 ? (
-            <div className="flex flex-col items-center justify-center h-full text-center">
-              <div className="w-16 h-16  rounded-2xl flex items-center justify-center mb-4">
-                <MessageSquare className="w-8 h-8 text-black" />
-              </div>
-              <h3 className="text-xl font-semibold text-gray-900 mb-2">
-                What should we build today?
-              </h3>
-              <p className="text-gray-500 max-w-md">
-                Ask me anything! I&#39;m here to help with your questions and
-                tasks.
-              </p>
-            </div>
-          ) : (
-            messages.map((message, index) => (
-              <ChatMessage
-                key={message.id}
-                message={message}
-                isLast={index === messages.length - 1}
-                isLoading={
-                  isLoading &&
-                  index === messages.length - 1 &&
-                  message.role === ChatRole.ASSISTANT
-                }
-              />
-            ))
-          )}
-          <div ref={messagesEndRef} />
+        <div className="flex-1 w-full overflow-hidden h-full">
+          <Conversation className="relative h-full" role="log">
+            <ConversationContent className="px-6 py-4 space-y-6">
+              {messages.length === 0 ? (
+                <div className="flex flex-col items-center justify-center h-full text-center">
+                  <div className="w-16 h-16  rounded-2xl flex items-center justify-center mb-4">
+                    <MessageSquare className="w-8 h-8 text-black" />
+                  </div>
+                  <h3 className="text-xl font-semibold text-gray-900 mb-2">
+                    What should we build today?
+                  </h3>
+                  <p className="text-gray-500 max-w-md">
+                    Ask me anything! I&#39;m here to help with your questions
+                    and tasks.
+                  </p>
+                </div>
+              ) : (
+                messages.map((message, index) => (
+                  <ChatMessage
+                    key={message.id}
+                    message={message}
+                    isLast={index === messages.length - 1}
+                    isLoading={
+                      isLoading &&
+                      index === messages.length - 1 &&
+                      message.role === ChatRole.ASSISTANT
+                    }
+                  />
+                ))
+              )}
+              <div ref={messagesEndRef} />
+            </ConversationContent>
+            <ConversationScrollButton />
+          </Conversation>
         </div>
-
-        {/* Scroll to Bottom Button */}
-        {showScrollButton && (
-          <Button
-            type="button"
-            onClick={scrollToBottom}
-            className="absolute bottom-44 left-1/2 -translate-x-1/2 z-10 bg-gradient-to-r from-blue-500 to-purple-600 text-white rounded-full w-12 h-12 flex items-center justify-center shadow-lg hover:scale-110 transition-all"
-            aria-label="Scroll to bottom"
-          >
-            <ArrowDown className="w-6 h-6" />
-          </Button>
-        )}
 
         {/* Input Area */}
         <div className="p-6 bg-sidebar">
