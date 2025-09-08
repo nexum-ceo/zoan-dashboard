@@ -68,6 +68,7 @@ export function PlaygroundChatClient({ chatId }: PlaygroundChatClientProps) {
     handleInputChange,
     handleSubmit,
     isLoading,
+    isAssistantStreaming,
     setMessages,
     wsConnected,
     sendMessageDirect,
@@ -342,7 +343,7 @@ export function PlaygroundChatClient({ chatId }: PlaygroundChatClientProps) {
                     message={message}
                     isLast={index === messages.length - 1}
                     isLoading={
-                      isLoading &&
+                      (isAssistantStreaming || isLoading) &&
                       index === messages.length - 1 &&
                       message.role === ChatRole.ASSISTANT
                     }

@@ -5,6 +5,11 @@ import {
   MessageContent,
   Message as UIMessage,
 } from '@/components/ui/shadcn-io/ai/message';
+import {
+  Reasoning,
+  ReasoningContent,
+  ReasoningTrigger,
+} from '@/components/ui/shadcn-io/ai/reasoning';
 import { FC, useMemo } from 'react';
 import ReactMarkdown from 'react-markdown';
 
@@ -19,8 +24,21 @@ type ChatMessageProps = {
   isLoading: boolean;
 };
 
-export const ChatMessage: FC<ChatMessageProps> = ({ message }) => {
+export const ChatMessage: FC<ChatMessageProps> = ({
+  message,
+  isLast,
+  isLoading,
+}) => {
   const isUser = message.role === 'user';
+  const thinkingText = useMemo(() => {
+    if (!Array.isArray(message.parts)) return '';
+    return message.parts
+      .filter(
+        (part) => part.type === 'thinking' && (part.text || '').trim() !== '',
+      )
+      .map((part) => part.text)
+      .join('\n');
+  }, [message.parts]);
   const content = useMemo(() => {
     if (Array.isArray(message.parts)) {
       return message.parts
@@ -32,9 +50,21 @@ export const ChatMessage: FC<ChatMessageProps> = ({ message }) => {
 
   return (
     <UIMessage from={isUser ? 'user' : 'assistant'}>
-      <MessageContent>
-        <ReactMarkdown>{content}</ReactMarkdown>
-      </MessageContent>
+      <div className="flex flex-col gap-2">
+        {!isUser && thinkingText && (
+          <Reasoning
+            className="w-full"
+            isStreaming={Boolean(isLoading && isLast)}
+            defaultOpen={true}
+          >
+            <ReasoningTrigger />
+            <ReasoningContent>{thinkingText}</ReasoningContent>
+          </Reasoning>
+        )}
+        <MessageContent>
+          <ReactMarkdown>{content}</ReactMarkdown>
+        </MessageContent>
+      </div>
       <MessageAvatar
         name={isUser ? 'You' : 'AI'}
         src={isUser ? '/icon.png' : '/icon.png'}

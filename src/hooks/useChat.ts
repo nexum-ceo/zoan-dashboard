@@ -53,6 +53,8 @@ export function useChat({
   const [messages, setMessages] = useState<ChatMessage[]>(initialMessages);
   const [input, setInput] = useState<string>('');
   const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [isAssistantStreaming, setIsAssistantStreaming] =
+    useState<boolean>(false);
   const wsRef = useRef<WebSocket | null>(null);
   const [wsConnected, setWsConnected] = useState<boolean>(false);
   const lastActiveTimeRef = useRef<number>(Date.now());
@@ -70,6 +72,9 @@ export function useChat({
   // Await-response watchdog
   const responseTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const awaitingResponseRef = useRef<boolean>(false);
+  const assistantStreamEndTimeoutRef = useRef<ReturnType<
+    typeof setTimeout
+  > | null>(null);
   // Idle recycle
   const idleRecycleIntervalRef = useRef<ReturnType<typeof setInterval> | null>(
     null,
@@ -164,6 +169,42 @@ export function useChat({
     },
     [clearIdleRecycle],
   );
+
+  // Extract human-readable text from various payload shapes
+  const coerceToString = useCallback((value: unknown): string => {
+    if (typeof value === 'string') return value;
+    if (typeof value === 'number' || typeof value === 'boolean')
+      return String(value);
+    if (Array.isArray(value)) {
+      return value
+        .map((v) => coerceToString(v))
+        .filter((s) => s.trim() !== '')
+        .join('\n');
+    }
+    if (value && typeof value === 'object') {
+      const obj = value as Record<string, unknown>;
+      const candidateKeys = [
+        'content',
+        'text',
+        'reasoning',
+        'thoughts',
+        'message',
+        'body',
+        'data',
+      ];
+      for (const key of candidateKeys) {
+        if (key in obj) {
+          const result = coerceToString(obj[key]);
+          if (result.trim() !== '') return result;
+        }
+      }
+      // Special case: parts array
+      if (Array.isArray(obj.parts)) {
+        return coerceToString(obj.parts);
+      }
+    }
+    return '';
+  }, []);
 
   // Schedule reconnect with exponential backoff + jitter
   const scheduleReconnect = useCallback(
@@ -283,6 +324,15 @@ export function useChat({
       // Any server activity cancels the expected-response watchdog
       awaitingResponseRef.current = false;
       clearResponseTimeout();
+      // Mark assistant as streaming and debounce end state so UI timer works
+      setIsAssistantStreaming(true);
+      if (assistantStreamEndTimeoutRef.current) {
+        clearTimeout(assistantStreamEndTimeoutRef.current);
+        assistantStreamEndTimeoutRef.current = null;
+      }
+      assistantStreamEndTimeoutRef.current = setTimeout(() => {
+        setIsAssistantStreaming(false);
+      }, 900);
       const chunk = (() => {
         const rawData = String(event.data);
 
@@ -339,10 +389,16 @@ export function useChat({
               parsedRecord && typeof parsedRecord['elapsed'] === 'number'
                 ? (parsedRecord['elapsed'] as number)
                 : undefined;
-            const contentStr =
-              parsedRecord && typeof parsedRecord['content'] === 'string'
-                ? (parsedRecord['content'] as string)
-                : '';
+            const contentStr = coerceToString(
+              (parsedRecord as Record<string, unknown>)['content'] ??
+                (parsedRecord as Record<string, unknown>)['text'] ??
+                (parsedRecord as Record<string, unknown>)['reasoning'] ??
+                (parsedRecord as Record<string, unknown>)['thoughts'] ??
+                (parsedRecord as Record<string, unknown>)['message'] ??
+                (parsedRecord as Record<string, unknown>)['body'] ??
+                (parsedRecord as Record<string, unknown>)['data'] ??
+                parsedRecord,
+            );
             const header = title
               ? `${title}${
                   typeof elapsed === 'number' ? ` -${Math.round(elapsed)}s` : ''
@@ -352,12 +408,18 @@ export function useChat({
             textContent =
               contentStr && title ? `${header}\n${contentStr}` : header;
           } else {
-            textContent =
+            const primary =
               parsedRecord && typeof parsedRecord['content'] === 'string'
                 ? (parsedRecord['content'] as string)
-                : typeof chunk === 'string'
-                ? chunk
-                : String(chunk);
+                : null;
+            if (primary !== null) {
+              textContent = primary;
+            } else if (parsedRecord) {
+              const alt = coerceToString(parsedRecord);
+              textContent = alt.trim() !== '' ? alt : String(chunk);
+            } else {
+              textContent = typeof chunk === 'string' ? chunk : String(chunk);
+            }
           }
 
           if (
@@ -423,6 +485,7 @@ export function useChat({
     startIdleRecycle,
     clearIdleRecycle,
     clearResponseTimeout,
+    coerceToString,
     enableIdleRecycle,
     idleRecycleMs,
   ]);
@@ -595,6 +658,7 @@ export function useChat({
     handleInputChange,
     handleSubmit,
     isLoading,
+    isAssistantStreaming,
     setMessages,
     setInput,
     wsConnected,
