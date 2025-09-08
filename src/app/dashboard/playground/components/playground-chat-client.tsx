@@ -341,7 +341,7 @@ export function PlaygroundChatClient({ chatId }: PlaygroundChatClientProps) {
                 <MessageSquare className="w-8 h-8 text-black" />
               </div>
               <h3 className="text-xl font-semibold text-gray-900 mb-2">
-                Start a conversation
+                What should we build today?
               </h3>
               <p className="text-gray-500 max-w-md">
                 Ask me anything! I&#39;m here to help with your questions and

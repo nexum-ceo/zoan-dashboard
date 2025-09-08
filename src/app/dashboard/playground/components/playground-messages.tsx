@@ -41,7 +41,7 @@ export function PlaygroundMessages({
               <MessageSquare className="w-8 h-8 text-black dark:text-white" />
             </div>
             <h3 className="text-xl font-semibold mb-2 text-foreground">
-              Start a conversation
+              What should we build today?
             </h3>
             <p className="text-muted-foreground max-w-md">
               Ask me anything! I&#39;m here to help with your questions and
