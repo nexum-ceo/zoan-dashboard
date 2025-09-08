@@ -32,7 +32,7 @@ export const MessageContent = ({
       // User bubble: clean white card with subtle border and shadow
       'group-[.is-user]:bg-background group-[.is-user]:text-foreground group-[.is-user]:border group-[.is-user]:border-border group-[.is-user]:shadow-sm',
       // Assistant bubble: softer muted background, thin border for contrast
-      'group-[.is-assistant]:bg-muted/70 group-[.is-assistant]:text-foreground group-[.is-assistant]:border group-[.is-assistant]:border-border',
+      'group-[.is-assistant]:bg-none group-[.is-assistant]:text-foreground group-[.is-assistant]:border-none group-[.is-assistant]:px-0 group-[.is-assistant]:gap-0',
       className,
     )}
     {...props}

@@ -53,7 +53,7 @@ export const ChatMessage: FC<ChatMessageProps> = ({
       <div className="flex flex-col gap-2">
         {!isUser && thinkingText && (
           <Reasoning
-            className="w-full"
+            className="w-full mb-0"
             isStreaming={Boolean(isLoading && isLast)}
             defaultOpen={true}
           >
