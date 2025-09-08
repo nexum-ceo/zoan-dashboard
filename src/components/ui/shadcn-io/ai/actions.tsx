@@ -1,13 +1,13 @@
 'use client';
 
-import { Button } from '@repo/shadcn-ui/components/ui/button';
+import { Button } from '@/components/ui/button';
 import {
   Tooltip,
   TooltipContent,
   TooltipProvider,
   TooltipTrigger,
-} from '@repo/shadcn-ui/components/ui/tooltip';
-import { cn } from '@repo/shadcn-ui/lib/utils';
+} from '@/components/ui/tooltip';
+import { cn } from '@/lib/utils';
 import type { ComponentProps } from 'react';
 
 export type ActionsProps = ComponentProps<'div'>;
@@ -36,7 +36,7 @@ export const Action = ({
     <Button
       className={cn(
         'size-9 p-1.5 text-muted-foreground hover:text-foreground',
-        className
+        className,
       )}
       size={size}
       type="button"

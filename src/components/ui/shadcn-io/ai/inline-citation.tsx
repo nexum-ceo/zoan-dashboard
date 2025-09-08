@@ -1,20 +1,27 @@
 'use client';
 
-import { Badge } from '@repo/shadcn-ui/components/ui/badge';
+import { Badge } from '@/components/ui/badge';
 import {
   Carousel,
   CarouselContent,
   CarouselItem,
   type CarouselApi,
-} from '@repo/shadcn-ui/components/ui/carousel';
+} from '@/components/ui/carousel';
 import {
   HoverCard,
   HoverCardContent,
   HoverCardTrigger,
-} from '@repo/shadcn-ui/components/ui/hover-card';
-import { cn } from '@repo/shadcn-ui/lib/utils';
+} from '@/components/ui/hover-card';
+import { cn } from '@/lib/utils';
 import { ArrowLeftIcon, ArrowRightIcon } from 'lucide-react';
-import { type ComponentProps, useCallback, useEffect, useState, useRef, createContext, useContext } from 'react';
+import {
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useState,
+  type ComponentProps,
+} from 'react';
 
 // Context to share carousel API with child components
 const CarouselApiContext = createContext<CarouselApi | undefined>(undefined);
@@ -99,14 +106,10 @@ export const InlineCitationCarousel = ({
   ...props
 }: InlineCitationCarouselProps) => {
   const [api, setApi] = useState<CarouselApi>();
-  
+
   return (
     <CarouselApiContext.Provider value={api}>
-      <Carousel 
-        className={cn('w-full', className)} 
-        setApi={setApi}
-        {...props} 
-      >
+      <Carousel className={cn('w-full', className)} setApi={setApi} {...props}>
         {children}
       </Carousel>
     </CarouselApiContext.Provider>
@@ -116,7 +119,7 @@ export const InlineCitationCarousel = ({
 export type InlineCitationCarouselContentProps = ComponentProps<'div'>;
 
 export const InlineCitationCarouselContent = (
-  props: InlineCitationCarouselContentProps
+  props: InlineCitationCarouselContentProps,
 ) => <CarouselContent {...props} />;
 
 export type InlineCitationCarouselItemProps = ComponentProps<'div'>;
@@ -137,7 +140,7 @@ export const InlineCitationCarouselHeader = ({
   <div
     className={cn(
       'flex items-center justify-between gap-2 rounded-t-md bg-secondary p-2',
-      className
+      className,
     )}
     {...props}
   />
@@ -171,7 +174,7 @@ export const InlineCitationCarouselIndex = ({
     <div
       className={cn(
         'flex flex-1 items-center justify-end px-3 py-1 text-muted-foreground text-xs',
-        className
+        className,
       )}
       {...props}
     >
@@ -274,7 +277,7 @@ export const InlineCitationQuote = ({
   <blockquote
     className={cn(
       'border-muted border-l-2 pl-3 text-muted-foreground text-sm italic',
-      className
+      className,
     )}
     {...props}
   >

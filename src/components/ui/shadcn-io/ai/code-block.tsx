@@ -1,7 +1,7 @@
 'use client';
 
-import { Button } from '@repo/shadcn-ui/components/ui/button';
-import { cn } from '@repo/shadcn-ui/lib/utils';
+import { Button } from '@/components/ui/button';
+import { cn } from '@/lib/utils';
 import { CheckIcon, CopyIcon } from 'lucide-react';
 import type { ComponentProps, HTMLAttributes, ReactNode } from 'react';
 import { createContext, useContext, useState } from 'react';
@@ -38,7 +38,7 @@ export const CodeBlock = ({
     <div
       className={cn(
         'relative w-full overflow-hidden rounded-md border bg-background text-foreground',
-        className
+        className,
       )}
       {...props}
     >

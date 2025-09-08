@@ -1,4 +1,4 @@
-import { cn } from '@repo/shadcn-ui/lib/utils';
+import { cn } from '@/lib/utils';
 import type { HTMLAttributes } from 'react';
 
 type LoaderIconProps = {
@@ -87,7 +87,7 @@ export const Loader = ({ className, size = 16, ...props }: LoaderProps) => (
   <div
     className={cn(
       'inline-flex animate-spin items-center justify-center',
-      className
+      className,
     )}
     {...props}
   >

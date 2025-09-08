@@ -1,7 +1,7 @@
 'use client';
 
-import { Button } from '@repo/shadcn-ui/components/ui/button';
-import { cn } from '@repo/shadcn-ui/lib/utils';
+import { Button } from '@/components/ui/button';
+import { cn } from '@/lib/utils';
 import { ArrowDownIcon } from 'lucide-react';
 import type { ComponentProps } from 'react';
 import { useCallback } from 'react';
@@ -47,7 +47,7 @@ export const ConversationScrollButton = ({
       <Button
         className={cn(
           'absolute bottom-4 left-[50%] translate-x-[-50%] rounded-full',
-          className
+          className,
         )}
         onClick={handleScrollToBottom}
         size="icon"
