@@ -50,7 +50,13 @@ export const ChatMessage: FC<ChatMessageProps> = ({
 
   return (
     <UIMessage from={isUser ? 'user' : 'assistant'}>
-      <div className="flex flex-col gap-2">
+      <div className="flex flex-col gap-2 px-2">
+        {!isUser && (
+          <>
+            <MessageAvatar name="AI" src="/public/icon.png" />
+            <div className="text-md font-medium">AI Agent priority</div>
+          </>
+        )}
         {!isUser && thinkingText && (
           <Reasoning
             className="w-full mb-0"
@@ -65,10 +71,6 @@ export const ChatMessage: FC<ChatMessageProps> = ({
           <ReactMarkdown>{content}</ReactMarkdown>
         </MessageContent>
       </div>
-      <MessageAvatar
-        name={isUser ? 'You' : 'AI'}
-        src={isUser ? '/icon.png' : '/icon.png'}
-      />
     </UIMessage>
   );
 };
