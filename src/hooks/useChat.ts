@@ -320,9 +320,12 @@ export function useChat({
             prev[prev.length - 1].role === ChatRole.ASSISTANT
           ) {
             const updated = [...prev];
+            const chunkContent = JSON.parse(chunk);
             updated[updated.length - 1] = {
               ...updated[updated.length - 1],
-              content: String(updated[updated.length - 1].content) + chunk,
+              content:
+                String(updated[updated.length - 1].content) +
+                chunkContent.content,
               sender_id: null,
             };
             return updated;
