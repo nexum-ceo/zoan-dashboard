@@ -1,14 +1,11 @@
 'use client';
 
-import { Button } from '@/components/ui/button';
 import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from '@/components/ui/tooltip';
-import { Bot, Copy, ThumbsDown, ThumbsUp, User } from 'lucide-react';
-import { FC, useState } from 'react';
+  MessageAvatar,
+  MessageContent,
+  Message as UIMessage,
+} from '@/components/ui/shadcn-io/ai/message';
+import { FC, useMemo } from 'react';
 import ReactMarkdown from 'react-markdown';
 
 type ChatMessageProps = {
@@ -22,123 +19,26 @@ type ChatMessageProps = {
   isLoading: boolean;
 };
 
-export const ChatMessage: FC<ChatMessageProps> = ({ message, isLoading }) => {
-  const [showActions, setShowActions] = useState<boolean>(false);
+export const ChatMessage: FC<ChatMessageProps> = ({ message }) => {
   const isUser = message.role === 'user';
-
-  const content = Array.isArray(message.parts)
-    ? message.parts
+  const content = useMemo(() => {
+    if (Array.isArray(message.parts)) {
+      return message.parts
         .map((part) => (part.type === 'text' ? part.text : ''))
-        .join('')
-    : message.content;
-
-  const [copied, setCopied] = useState<boolean>(false);
-  const copyToClipboard = () => {
-    navigator.clipboard.writeText(content ?? '').then(() => {
-      setCopied(true);
-      setTimeout(() => setCopied(false), 1200);
-    });
-  };
+        .join('');
+    }
+    return message.content || '';
+  }, [message.parts, message.content]);
 
   return (
-    <div
-      className={`flex gap-4 ${isUser ? 'flex-row-reverse' : 'flex-row'} group`}
-      onMouseEnter={() => setShowActions(true)}
-      onMouseLeave={() => setShowActions(false)}
-    >
-      {/* Avatar */}
-      <div
-        className={`w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 ${
-          isUser
-            ? 'bg-muted-foreground/40 dark:bg-muted-foreground/40'
-            : 'bg-gradient-to-r from-green-400 to-blue-500'
-        }`}
-      >
-        {isUser ? (
-          <User className="w-4 h-4 text-foreground" />
-        ) : (
-          <Bot className="w-4 h-4 text-foreground" />
-        )}
-      </div>
-
-      {/* Message Content */}
-      <div className={`flex-1 ${isUser ? 'flex justify-end' : ''}`}>
-        <div
-          className={`relative max-w-3xl ${
-            isUser
-              ? 'bg-white text-gray-900 rounded-2xl rounded-tr-md border border-border/60 shadow-sm'
-              : 'bg-muted text-foreground rounded-2xl rounded-tl-md border border-border/60 dark:bg-transparent dark:border-transparent'
-          } px-4 py-3`}
-        >
-          <div className="prose prose-sm max-w-none whitespace-pre-wrap leading-relaxed">
-            <ReactMarkdown>{content ?? ''}</ReactMarkdown>
-          </div>
-        </div>
-
-        {/* Message Actions */}
-        {!isUser && !isLoading && (
-          <div
-            className={`flex items-center gap-1 mt-2 transition-opacity duration-200 ${
-              showActions ? 'opacity-100' : 'opacity-0'
-            }`}
-          >
-            <TooltipProvider>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    onClick={copyToClipboard}
-                    className={`transition-all duration-300 ${
-                      copied ? 'scale-110' : ''
-                    }`}
-                  >
-                    {copied ? (
-                      <svg
-                        className="w-3 h-3"
-                        viewBox="0 0 16 16"
-                        fill="none"
-                        xmlns="http://www.w3.org/2000/svg"
-                      >
-                        <path
-                          d="M4 8l3 3 5-5"
-                          stroke="currentColor"
-                          strokeWidth="2"
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                        />
-                      </svg>
-                    ) : (
-                      <Copy className="w-3 h-3 text-muted-foreground" />
-                    )}
-                  </Button>
-                </TooltipTrigger>
-                <TooltipContent>{copied ? 'Copied!' : 'Copy'}</TooltipContent>
-              </Tooltip>
-            </TooltipProvider>
-            <TooltipProvider>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Button variant="ghost" size="icon">
-                    <ThumbsUp className="w-3 h-3 text-muted-foreground" />
-                  </Button>
-                </TooltipTrigger>
-                <TooltipContent>Like</TooltipContent>
-              </Tooltip>
-            </TooltipProvider>
-            <TooltipProvider>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Button variant="ghost" size="icon">
-                    <ThumbsDown className="w-3 h-3 text-muted-foreground" />
-                  </Button>
-                </TooltipTrigger>
-                <TooltipContent>Dislike</TooltipContent>
-              </Tooltip>
-            </TooltipProvider>
-          </div>
-        )}
-      </div>
-    </div>
+    <UIMessage from={isUser ? 'user' : 'assistant'}>
+      <MessageContent>
+        <ReactMarkdown>{content}</ReactMarkdown>
+      </MessageContent>
+      <MessageAvatar
+        name={isUser ? 'You' : 'AI'}
+        src={isUser ? '/icon.png' : '/icon.png'}
+      />
+    </UIMessage>
   );
 };

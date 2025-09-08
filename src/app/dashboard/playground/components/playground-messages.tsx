@@ -5,6 +5,11 @@ import {
   ConversationContent,
   ConversationScrollButton,
 } from '@/components/ui/shadcn-io/ai/conversation';
+import {
+  Reasoning,
+  ReasoningContent,
+  ReasoningTrigger,
+} from '@/components/ui/shadcn-io/ai/reasoning';
 import { MessageSquare } from 'lucide-react';
 import { RefObject } from 'react';
 
@@ -13,6 +18,7 @@ type ChatMessageType = {
   id: string;
   role: 'user' | 'assistant' | 'system' | 'data';
   content: string;
+  parts?: Array<{ type: string; text?: string }>;
 };
 
 interface PlaygroundMessagesProps {
@@ -49,18 +55,32 @@ export function PlaygroundMessages({
               </p>
             </div>
           ) : (
-            messages.map((message, index) => (
-              <ChatMessage
-                key={message.id}
-                message={message}
-                isLast={index === messages.length - 1}
-                isLoading={
-                  isLoading &&
-                  index === messages.length - 1 &&
-                  message.role === 'assistant'
-                }
-              />
-            ))
+            messages.map((message, index) => {
+              const isLast = index === messages.length - 1;
+              const isAssistant = message.role === 'assistant';
+              const thinkingParts = (message.parts || []).filter(
+                (p) => p.type === 'thinking' && (p.text || '').trim() !== '',
+              );
+              const thinkingText = thinkingParts.map((p) => p.text).join('\n');
+              return (
+                <div key={message.id} className="space-y-2">
+                  {isAssistant && thinkingParts.length > 0 && (
+                    <Reasoning
+                      isStreaming={isLoading && isLast}
+                      defaultOpen={false}
+                    >
+                      <ReasoningTrigger />
+                      <ReasoningContent>{thinkingText}</ReasoningContent>
+                    </Reasoning>
+                  )}
+                  <ChatMessage
+                    message={message}
+                    isLast={isLast}
+                    isLoading={isLoading && isLast && isAssistant}
+                  />
+                </div>
+              );
+            })
           )}
           <div ref={messagesEndRef} />
         </ConversationContent>

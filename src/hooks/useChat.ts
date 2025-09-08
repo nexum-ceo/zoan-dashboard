@@ -14,6 +14,7 @@ export type ChatMessage = {
   role: 'user' | 'assistant' | 'system' | 'data';
   content: string;
   sender_id: string | null;
+  parts?: Array<{ type: string; text?: string }>;
 };
 
 export type UseCustomChatProps = {
@@ -36,12 +37,13 @@ const FILTERED_MESSAGE_TYPES = new Set([
   'metadata',
   'status',
   'error',
+  // 'thinking',
+  // 'answer',
 ]);
 
 export function useChat({
   wsUrl,
   chatId,
-  // agentId,
   user_id,
   initialMessages = [],
   expectedResponseTimeoutMs = 25000,
@@ -294,11 +296,8 @@ export function useChat({
               return null;
             }
 
-            if (data && data.role && data.content !== undefined) {
-              return String(data.content);
-            }
-
-            // If JSON but doesn't match expected structure, return raw
+            // For any other JSON message, return the raw JSON string and
+            // let the downstream parser handle types (thinking/text/etc.)
             return rawData;
           } catch (err) {
             // JSON-like but invalid, return raw data
@@ -315,30 +314,90 @@ export function useChat({
 
       try {
         setMessages((prev) => {
+          // Try to parse the incoming chunk as JSON to inspect type/content
+          let parsed: unknown = null;
+          try {
+            parsed = JSON.parse(chunk);
+          } catch {}
+
+          const parsedRecord: Record<string, unknown> | null =
+            parsed && typeof parsed === 'object'
+              ? (parsed as Record<string, unknown>)
+              : null;
+          const isThinking =
+            !!parsedRecord &&
+            typeof parsedRecord['type'] === 'string' &&
+            parsedRecord['type'] === 'thinking';
+          // Build display text. For thinking, prefer title/elapsed formatting; otherwise use content/raw
+          let textContent: string;
+          if (isThinking) {
+            const title =
+              parsedRecord && typeof parsedRecord['title'] === 'string'
+                ? (parsedRecord['title'] as string)
+                : '';
+            const elapsed =
+              parsedRecord && typeof parsedRecord['elapsed'] === 'number'
+                ? (parsedRecord['elapsed'] as number)
+                : undefined;
+            const contentStr =
+              parsedRecord && typeof parsedRecord['content'] === 'string'
+                ? (parsedRecord['content'] as string)
+                : '';
+            const header = title
+              ? `${title}${
+                  typeof elapsed === 'number' ? ` -${Math.round(elapsed)}s` : ''
+                }`
+              : contentStr;
+            // If both title and content exist, combine with newline to create a block under the header
+            textContent =
+              contentStr && title ? `${header}\n${contentStr}` : header;
+          } else {
+            textContent =
+              parsedRecord && typeof parsedRecord['content'] === 'string'
+                ? (parsedRecord['content'] as string)
+                : typeof chunk === 'string'
+                ? chunk
+                : String(chunk);
+          }
+
           if (
             prev.length > 0 &&
             prev[prev.length - 1].role === ChatRole.ASSISTANT
           ) {
             const updated = [...prev];
-            const chunkContent = JSON.parse(chunk);
-            updated[updated.length - 1] = {
-              ...updated[updated.length - 1],
-              content:
-                String(updated[updated.length - 1].content) +
-                chunkContent.content,
-              sender_id: null,
-            };
+            const last = { ...updated[updated.length - 1] } as ChatMessage;
+
+            if (isThinking) {
+              const existingParts = Array.isArray(last.parts)
+                ? last.parts.slice()
+                : [];
+              existingParts.push({ type: 'thinking', text: textContent });
+              last.parts = existingParts;
+              // Do not append thinking to visible assistant content
+            } else {
+              last.content = String(last.content || '') + textContent;
+              const existingParts = Array.isArray(last.parts)
+                ? last.parts.slice()
+                : [];
+              existingParts.push({ type: 'text', text: textContent });
+              last.parts = existingParts;
+            }
+
+            last.sender_id = null;
+            updated[updated.length - 1] = last;
             return updated;
           } else {
-            return [
-              ...prev,
-              {
-                id: Date.now().toString() + '-ws',
-                role: ChatRole.ASSISTANT,
-                content: chunk,
-                sender_id: null,
-              },
-            ];
+            // Start a new assistant message
+            const newMsg: ChatMessage = {
+              id: Date.now().toString() + '-ws',
+              role: ChatRole.ASSISTANT,
+              content: isThinking ? '' : textContent,
+              sender_id: null,
+              parts: isThinking
+                ? [{ type: 'thinking', text: textContent }]
+                : [{ type: 'text', text: textContent }],
+            };
+            return [...prev, newMsg];
           }
         });
       } catch (error) {

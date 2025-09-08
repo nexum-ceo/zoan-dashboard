@@ -320,8 +320,8 @@ export function PlaygroundChatClient({ chatId }: PlaygroundChatClientProps) {
 
         {/* Messages */}
         <div className="flex-1 w-full overflow-hidden h-full">
-          <Conversation className="relative h-full" role="log">
-            <ConversationContent className="px-6 py-4 space-y-6">
+          <Conversation className="relative size-full">
+            <ConversationContent className="px-4 py-2">
               {messages.length === 0 ? (
                 <div className="flex flex-col items-center justify-center h-full text-center">
                   <div className="w-16 h-16  rounded-2xl flex items-center justify-center mb-4">
