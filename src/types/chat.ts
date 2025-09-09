@@ -49,6 +49,7 @@ export enum ChatRole {
 export const ChatMessageSchema = z.object({
   id: z.string(),
   chat_id: z.string(),
+  sender_id: z.string(),
   role: z.enum(ChatRole),
   content: z.string().optional(),
   metadata: z.record(z.string(), z.string()).optional(),

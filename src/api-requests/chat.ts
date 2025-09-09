@@ -43,11 +43,26 @@ const chatApiRequest = {
     axiosInstance.get<GetSpecificChatResType>(`/chat/${id}`, {
       baseURL: '',
     }),
-  getChatMessages: (id: string) =>
-    axiosInstance.get<GetChatMessagesResType>(`/chat/${id}/messages`),
-  sGetChatMessages: (id: string) =>
+  getChatMessages: (
+    id: string,
+    pageParams: { offset?: number; limit?: number },
+  ) =>
+    axiosInstance.get<GetChatMessagesResType>(`/chat/${id}/messages`, {
+      params: {
+        offset: pageParams.offset?.toString(),
+        limit: pageParams.limit?.toString(),
+      },
+    }),
+  sGetChatMessages: (
+    id: string,
+    pageParams: { offset?: number; limit?: number },
+  ) =>
     axiosInstance.get<GetChatMessagesResType>(`/chat-message/${id}`, {
       baseURL: '',
+      params: {
+        offset: pageParams.offset?.toString(),
+        limit: pageParams.limit?.toString(),
+      },
     }),
   getPrimaryAgentByChatId: (id: string) =>
     axiosInstance.get<GetPrimaryAgentByChatIdResType>(

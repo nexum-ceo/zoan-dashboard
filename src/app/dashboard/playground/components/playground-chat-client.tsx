@@ -17,7 +17,7 @@ import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import { SidebarProvider } from '@/components/ui/sidebar';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { useChat } from '@/hooks/useChat';
-import { useGetChat, useGetChatMessages } from '@/queries/useChat';
+import { useGetChat, useGetChatMessagesInfinite } from '@/queries/useChat';
 import { ChatRole } from '@/types/chat';
 import { motion } from 'framer-motion';
 import {
@@ -57,9 +57,9 @@ export function PlaygroundChatClient({ chatId }: PlaygroundChatClientProps) {
   const [firstMsgSent, setFirstMsgSent] = useState<boolean>(false);
   const [token, setToken] = useState<string>('');
   const { data: chatData } = useGetChat(chatId);
-  const { data: chatMessageData } = useGetChatMessages(chatId);
+  const { data: chatMessageData } = useGetChatMessagesInfinite(chatId);
 
-  const chatMessages = chatMessageData?.data?.data;
+  const chatMessages = chatMessageData?.pages.flatMap((page) => page.data.data);
   const chatInfo = chatData?.data?.data;
 
   const {
@@ -92,9 +92,29 @@ export function PlaygroundChatClient({ chatId }: PlaygroundChatClientProps) {
           : ChatRole.USER,
         sender_id: chatInfo?.user_id || '',
       }));
-      setMessages(safeMessages.reverse() || []);
+      const reversedMessages = [...safeMessages].reverse();
+
+      // Only update if messages are actually different
+      setMessages((prevMessages) => {
+        if (prevMessages.length !== reversedMessages.length) {
+          return reversedMessages;
+        }
+
+        // Check if any message content has changed
+        const hasChanged = prevMessages.some((prevMsg, index) => {
+          const newMsg = reversedMessages[index];
+          return (
+            !newMsg ||
+            prevMsg.id !== newMsg.id ||
+            prevMsg.content !== newMsg.content
+          );
+        });
+
+        return hasChanged ? reversedMessages : prevMessages;
+      });
     }
-  }, [chatMessages, setMessages, chatInfo]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [chatMessages, chatInfo]);
 
   useEffect(() => {
     fetch('/api/auth/session')
@@ -115,16 +135,6 @@ export function PlaygroundChatClient({ chatId }: PlaygroundChatClientProps) {
       }
     }
   }, [pendingMsg, firstMsgSent, wsConnected, sendMessageDirect]);
-
-  useEffect(() => {
-    scrollToBottom();
-  }, [messages]);
-
-  // Conversation handles stick-to-bottom visibility internally
-
-  const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  };
 
   // Navigation items with dynamic active state
   const navigationItems = [
