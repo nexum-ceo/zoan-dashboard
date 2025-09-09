@@ -13,11 +13,68 @@ import {
 import {
   Task,
   TaskContent,
-  TaskItem,
+  TaskItemFile,
   TaskTrigger,
 } from '@/components/ui/shadcn-io/ai/task';
-import { FC, useMemo } from 'react';
+import React, { FC, useMemo } from 'react';
 import ReactMarkdown from 'react-markdown';
+
+// Component để render Game Generator content với TaskItemFile
+const GameGeneratorContent = ({ content }: { content: string }) => {
+  const parseGameGeneratorContent = (text: string) => {
+    const lines = text.split('\n');
+    const result: React.ReactElement[] = [];
+
+    for (let i = 0; i < lines.length; i++) {
+      const line = lines[i];
+
+      // Detect file manifest format: "File Manifest:- file1-file2-file3-..."
+      const fileManifestMatch = line.match(/^File Manifest:-\s*(.+)$/);
+      if (fileManifestMatch) {
+        const files = fileManifestMatch[1]
+          .split('-')
+          .filter((f) => f.trim() !== '');
+        result.push(
+          <div key={i} className="mb-4">
+            <div className="font-semibold text-sm mb-2">File Manifest:</div>
+            <div className="flex flex-wrap gap-2">
+              {files.map((file, index) => (
+                <TaskItemFile key={index}>{file.trim()}</TaskItemFile>
+              ))}
+            </div>
+          </div>,
+        );
+      }
+      // Detect file references (lines starting with * `filename`:)
+      else if (line.match(/^\*\s*`([^`]+)`:\s*(.+)$/)) {
+        const fileMatch = line.match(/^\*\s*`([^`]+)`:\s*(.+)$/);
+        console.log('handled file match');
+        if (fileMatch) {
+          const [, filename, description] = fileMatch;
+          result.push(
+            <div key={i} className="flex items-start gap-2 mb-2">
+              <TaskItemFile>{filename}</TaskItemFile>
+              <span className="text-sm text-muted-foreground">
+                {description}
+              </span>
+            </div>,
+          );
+        }
+      } else {
+        // Regular markdown content
+        result.push(
+          <div key={i} className="mb-2">
+            <ReactMarkdown>{line}</ReactMarkdown>
+          </div>,
+        );
+      }
+    }
+
+    return result;
+  };
+
+  return <div className="space-y-1">{parseGameGeneratorContent(content)}</div>;
+};
 
 type ChatMessageProps = {
   message: {
@@ -86,9 +143,7 @@ export const ChatMessage: FC<ChatMessageProps> = ({
           <Task defaultOpen={true} className="w-full mb-0">
             <TaskTrigger title="Game Generator" />
             <TaskContent>
-              {gameGeneratorItems.map((item, index) => (
-                <TaskItem key={index}>{item}</TaskItem>
-              ))}
+              <GameGeneratorContent content={gameGeneratorItems.join('')} />
             </TaskContent>
           </Task>
         )}
