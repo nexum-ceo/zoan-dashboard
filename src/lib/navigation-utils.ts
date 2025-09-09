@@ -1,7 +1,7 @@
-import { Bot, Settings, Users } from 'lucide-react';
+import { Bot, LucideIcon, Settings, Users } from 'lucide-react';
 
 export type NavigationItem = {
-  icon: any;
+  icon: LucideIcon;
   label: string;
   href: string;
   isActive: (path: string) => boolean;
