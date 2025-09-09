@@ -51,13 +51,6 @@ export const useCreateChatMutation = () => {
   });
 };
 
-// export const useGetChatMessages = (id: string) => {
-//   return useQuery({
-//     queryKey: ['chat-messages', id],
-//     queryFn: () => chatApiRequest.sGetChatMessages(id),
-//   });
-// };
-
 export const useGetChatMessagesInfinite = (id: string) => {
   return useInfiniteQuery({
     queryKey: ['chat-messages-infinite', id],
