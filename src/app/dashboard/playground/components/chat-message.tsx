@@ -1,144 +1,173 @@
 'use client';
 
-import { Button } from '@/components/ui/button';
 import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from '@/components/ui/tooltip';
-import { Bot, Copy, ThumbsDown, ThumbsUp, User } from 'lucide-react';
-import { FC, useState } from 'react';
+  MessageAvatar,
+  MessageContent,
+  Message as UIMessage,
+} from '@/components/ui/shadcn-io/ai/message';
+import {
+  Reasoning,
+  ReasoningContent,
+  ReasoningTrigger,
+} from '@/components/ui/shadcn-io/ai/reasoning';
+import {
+  Task,
+  TaskContent,
+  TaskItemFile,
+  TaskTrigger,
+} from '@/components/ui/shadcn-io/ai/task';
+import React, { FC, useMemo } from 'react';
 import ReactMarkdown from 'react-markdown';
+
+// Component to render Game Generator content with TaskItemFile
+const GameGeneratorContent = ({ content }: { content: string }) => {
+  const parseGameGeneratorContent = (text: string) => {
+    const lines = text.split('\n');
+    const result: React.ReactElement[] = [];
+
+    for (let i = 0; i < lines.length; i++) {
+      const line = lines[i];
+
+      // Detect file manifest format: "File Manifest:- file1-file2-file3-..."
+      const fileManifestMatch = line.match(/^File Manifest:-\s*(.+)$/);
+      if (fileManifestMatch) {
+        const files = fileManifestMatch[1]
+          .split('-')
+          .filter((f) => f.trim() !== '');
+        result.push(
+          <div key={i} className="mb-4">
+            <div className="font-semibold text-sm mb-2">File Manifest:</div>
+            <div className="flex flex-wrap gap-2">
+              {files.map((file, index) => (
+                <TaskItemFile key={index}>{file.trim()}</TaskItemFile>
+              ))}
+            </div>
+          </div>,
+        );
+      }
+      // Detect file references (lines starting with * `filename`:)
+      else if (line.match(/^\*\s*`([^`]+)`:\s*(.+)$/)) {
+        const fileMatch = line.match(/^\*\s*`([^`]+)`:\s*(.+)$/);
+        if (fileMatch) {
+          const [, filename, description] = fileMatch;
+          result.push(
+            <div key={i} className="flex items-start gap-2 mb-2">
+              <TaskItemFile>{filename}</TaskItemFile>
+              <span className="text-sm text-muted-foreground">
+                {description}
+              </span>
+            </div>,
+          );
+        }
+      } else {
+        // Regular markdown content
+        result.push(
+          <div key={i} className="mb-2 text-sm">
+            <ReactMarkdown>{line}</ReactMarkdown>
+          </div>,
+        );
+      }
+    }
+
+    return result;
+  };
+
+  return <div className="space-y-1">{parseGameGeneratorContent(content)}</div>;
+};
 
 type ChatMessageProps = {
   message: {
     id: string;
     role: 'user' | 'assistant' | 'system' | 'data';
     content?: string;
-    parts?: Array<{ type: string; text?: string }>;
+    parts?: Array<{ type: string; text?: string; content?: string }>;
+    metadata?: Record<string, string>;
   };
   isLast: boolean;
   isLoading: boolean;
 };
 
-export const ChatMessage: FC<ChatMessageProps> = ({ message, isLoading }) => {
-  const [showActions, setShowActions] = useState<boolean>(false);
+export const ChatMessage: FC<ChatMessageProps> = ({
+  message,
+  isLast,
+  isLoading,
+}) => {
   const isUser = message.role === 'user';
-
-  const content = Array.isArray(message.parts)
-    ? message.parts
+  const thinkingText = useMemo(() => {
+    if (!Array.isArray(message.parts)) return '';
+    return message.parts
+      .filter(
+        (part) => part.type === 'thinking' && (part.text || '').trim() !== '',
+      )
+      .map((part) => part.text)
+      .join('\n');
+  }, [message.parts]);
+  const content = useMemo(() => {
+    if (Array.isArray(message.parts)) {
+      return message.parts
         .map((part) => (part.type === 'text' ? part.text : ''))
-        .join('')
-    : message.content;
+        .join('');
+    }
+    return message.content || '';
+  }, [message.parts, message.content]);
 
-  const [copied, setCopied] = useState<boolean>(false);
-  const copyToClipboard = () => {
-    navigator.clipboard.writeText(content ?? '').then(() => {
-      setCopied(true);
-      setTimeout(() => setCopied(false), 1200);
-    });
-  };
+  const gameGeneratorItems = useMemo(() => {
+    const items: string[] = [];
+
+    // Check parts for game_generator
+    if (Array.isArray(message.parts)) {
+      const partItems = message.parts
+        .filter((part) => part.type === 'game_generator')
+        .map((part) => part.text ?? part.content ?? '')
+        .filter((v) => v.trim() !== '');
+      items.push(...partItems);
+    }
+
+    // Check metadata for game_generator
+    if (message.metadata?.game_generator) {
+      const metadataContent =
+        typeof message.metadata.game_generator === 'string'
+          ? message.metadata.game_generator
+          : JSON.stringify(message.metadata.game_generator);
+      if (metadataContent.trim() !== '') {
+        items.push(metadataContent);
+      }
+    }
+
+    return items;
+  }, [message.parts, message.metadata]);
 
   return (
-    <div
-      className={`flex gap-4 ${isUser ? 'flex-row-reverse' : 'flex-row'} group`}
-      onMouseEnter={() => setShowActions(true)}
-      onMouseLeave={() => setShowActions(false)}
-    >
-      {/* Avatar */}
-      <div
-        className={`w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 ${
-          isUser
-            ? 'bg-muted-foreground/40 dark:bg-muted-foreground/40'
-            : 'bg-gradient-to-r from-green-400 to-blue-500'
-        }`}
-      >
-        {isUser ? (
-          <User className="w-4 h-4 text-foreground" />
-        ) : (
-          <Bot className="w-4 h-4 text-foreground" />
+    <UIMessage from={isUser ? 'user' : 'assistant'}>
+      <div className="flex flex-col gap-2 px-2">
+        {!isUser && (
+          <>
+            <MessageAvatar name="AI" src="/icon.png" />
+            <div className="text-md font-medium">AI Agent priority</div>
+          </>
         )}
-      </div>
-
-      {/* Message Content */}
-      <div className={`flex-1 ${isUser ? 'flex justify-end' : ''}`}>
-        <div
-          className={`relative max-w-3xl ${
-            isUser
-              ? 'bg-white text-gray-900 rounded-2xl rounded-tr-md border border-border/60 shadow-sm'
-              : 'bg-muted text-foreground rounded-2xl rounded-tl-md border border-border/60 dark:bg-transparent dark:border-transparent'
-          } px-4 py-3`}
-        >
-          <div className="prose prose-sm max-w-none whitespace-pre-wrap leading-relaxed">
-            <ReactMarkdown>{content ?? ''}</ReactMarkdown>
-          </div>
-        </div>
-
-        {/* Message Actions */}
-        {!isUser && !isLoading && (
-          <div
-            className={`flex items-center gap-1 mt-2 transition-opacity duration-200 ${
-              showActions ? 'opacity-100' : 'opacity-0'
-            }`}
+        {!isUser && thinkingText && (
+          <Reasoning
+            className="w-full mb-0"
+            isStreaming={Boolean(isLoading && isLast)}
+            defaultOpen={true}
           >
-            <TooltipProvider>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    onClick={copyToClipboard}
-                    className={`transition-all duration-300 ${
-                      copied ? 'scale-110' : ''
-                    }`}
-                  >
-                    {copied ? (
-                      <svg
-                        className="w-3 h-3"
-                        viewBox="0 0 16 16"
-                        fill="none"
-                        xmlns="http://www.w3.org/2000/svg"
-                      >
-                        <path
-                          d="M4 8l3 3 5-5"
-                          stroke="currentColor"
-                          strokeWidth="2"
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                        />
-                      </svg>
-                    ) : (
-                      <Copy className="w-3 h-3 text-muted-foreground" />
-                    )}
-                  </Button>
-                </TooltipTrigger>
-                <TooltipContent>{copied ? 'Copied!' : 'Copy'}</TooltipContent>
-              </Tooltip>
-            </TooltipProvider>
-            <TooltipProvider>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Button variant="ghost" size="icon">
-                    <ThumbsUp className="w-3 h-3 text-muted-foreground" />
-                  </Button>
-                </TooltipTrigger>
-                <TooltipContent>Like</TooltipContent>
-              </Tooltip>
-            </TooltipProvider>
-            <TooltipProvider>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Button variant="ghost" size="icon">
-                    <ThumbsDown className="w-3 h-3 text-muted-foreground" />
-                  </Button>
-                </TooltipTrigger>
-                <TooltipContent>Dislike</TooltipContent>
-              </Tooltip>
-            </TooltipProvider>
-          </div>
+            <ReasoningTrigger />
+            <ReasoningContent>{thinkingText}</ReasoningContent>
+          </Reasoning>
         )}
+        {!isUser && gameGeneratorItems.length > 0 && (
+          <Task defaultOpen={true} className="w-full mb-0">
+            <TaskTrigger title="Game Generator" />
+            <TaskContent>
+              <GameGeneratorContent content={gameGeneratorItems.join('')} />
+            </TaskContent>
+          </Task>
+        )}
+        <MessageContent>
+          <ReactMarkdown>{content}</ReactMarkdown>
+        </MessageContent>
       </div>
-    </div>
+    </UIMessage>
   );
 };

@@ -14,6 +14,7 @@ export type ChatMessage = {
   role: 'user' | 'assistant' | 'system' | 'data';
   content: string;
   sender_id: string | null;
+  parts?: Array<{ type: string; text?: string }>;
 };
 
 export type UseCustomChatProps = {
@@ -41,7 +42,6 @@ const FILTERED_MESSAGE_TYPES = new Set([
 export function useChat({
   wsUrl,
   chatId,
-  // agentId,
   user_id,
   initialMessages = [],
   expectedResponseTimeoutMs = 25000,
@@ -51,6 +51,8 @@ export function useChat({
   const [messages, setMessages] = useState<ChatMessage[]>(initialMessages);
   const [input, setInput] = useState<string>('');
   const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [isAssistantStreaming, setIsAssistantStreaming] =
+    useState<boolean>(false);
   const wsRef = useRef<WebSocket | null>(null);
   const [wsConnected, setWsConnected] = useState<boolean>(false);
   const lastActiveTimeRef = useRef<number>(Date.now());
@@ -68,6 +70,9 @@ export function useChat({
   // Await-response watchdog
   const responseTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const awaitingResponseRef = useRef<boolean>(false);
+  const assistantStreamEndTimeoutRef = useRef<ReturnType<
+    typeof setTimeout
+  > | null>(null);
   // Idle recycle
   const idleRecycleIntervalRef = useRef<ReturnType<typeof setInterval> | null>(
     null,
@@ -162,6 +167,42 @@ export function useChat({
     },
     [clearIdleRecycle],
   );
+
+  // Extract human-readable text from various payload shapes
+  const coerceToString = useCallback((value: unknown): string => {
+    if (typeof value === 'string') return value;
+    if (typeof value === 'number' || typeof value === 'boolean')
+      return String(value);
+    if (Array.isArray(value)) {
+      return value
+        .map((v) => coerceToString(v))
+        .filter((s) => s.trim() !== '')
+        .join('\n');
+    }
+    if (value && typeof value === 'object') {
+      const obj = value as Record<string, unknown>;
+      const candidateKeys = [
+        'content',
+        'text',
+        'reasoning',
+        'thoughts',
+        'message',
+        'body',
+        'data',
+      ];
+      for (const key of candidateKeys) {
+        if (key in obj) {
+          const result = coerceToString(obj[key]);
+          if (result.trim() !== '') return result;
+        }
+      }
+      // Special case: parts array
+      if (Array.isArray(obj.parts)) {
+        return coerceToString(obj.parts);
+      }
+    }
+    return '';
+  }, []);
 
   // Schedule reconnect with exponential backoff + jitter
   const scheduleReconnect = useCallback(
@@ -281,6 +322,15 @@ export function useChat({
       // Any server activity cancels the expected-response watchdog
       awaitingResponseRef.current = false;
       clearResponseTimeout();
+      // Mark assistant as streaming and debounce end state so UI timer works
+      setIsAssistantStreaming(true);
+      if (assistantStreamEndTimeoutRef.current) {
+        clearTimeout(assistantStreamEndTimeoutRef.current);
+        assistantStreamEndTimeoutRef.current = null;
+      }
+      assistantStreamEndTimeoutRef.current = setTimeout(() => {
+        setIsAssistantStreaming(false);
+      }, 900);
       const chunk = (() => {
         const rawData = String(event.data);
 
@@ -294,11 +344,8 @@ export function useChat({
               return null;
             }
 
-            if (data && data.role && data.content !== undefined) {
-              return String(data.content);
-            }
-
-            // If JSON but doesn't match expected structure, return raw
+            // For any other JSON message, return the raw JSON string and
+            // let the downstream parser handle types (thinking/text/etc.)
             return rawData;
           } catch (err) {
             // JSON-like but invalid, return raw data
@@ -315,30 +362,127 @@ export function useChat({
 
       try {
         setMessages((prev) => {
+          // Try to parse the incoming chunk as JSON to inspect type/content
+          let parsed: unknown = null;
+          try {
+            parsed = JSON.parse(chunk);
+          } catch {}
+
+          const parsedRecord: Record<string, unknown> | null =
+            parsed && typeof parsed === 'object'
+              ? (parsed as Record<string, unknown>)
+              : null;
+          const isThinking =
+            !!parsedRecord &&
+            typeof parsedRecord['type'] === 'string' &&
+            parsedRecord['type'] === 'thinking';
+          const isGameGenerator =
+            !!parsedRecord &&
+            typeof parsedRecord['type'] === 'string' &&
+            parsedRecord['type'] === 'game_generator';
+          // Build display text. For thinking, prefer title/elapsed formatting; otherwise use content/raw
+          let textContent: string;
+          if (isThinking) {
+            const title =
+              parsedRecord && typeof parsedRecord['title'] === 'string'
+                ? (parsedRecord['title'] as string)
+                : '';
+            const elapsed =
+              parsedRecord && typeof parsedRecord['elapsed'] === 'number'
+                ? (parsedRecord['elapsed'] as number)
+                : undefined;
+            const contentStr = coerceToString(
+              (parsedRecord as Record<string, unknown>)['content'] ??
+                (parsedRecord as Record<string, unknown>)['text'] ??
+                (parsedRecord as Record<string, unknown>)['reasoning'] ??
+                (parsedRecord as Record<string, unknown>)['thoughts'] ??
+                (parsedRecord as Record<string, unknown>)['message'] ??
+                (parsedRecord as Record<string, unknown>)['body'] ??
+                (parsedRecord as Record<string, unknown>)['data'] ??
+                parsedRecord,
+            );
+            const header = title
+              ? `${title}${
+                  typeof elapsed === 'number' ? ` -${Math.round(elapsed)}s` : ''
+                }`
+              : contentStr;
+            // If both title and content exist, combine with newline to create a block under the header
+            textContent =
+              contentStr && title ? `${header}\n${contentStr}` : header;
+          } else if (isGameGenerator) {
+            textContent = coerceToString(
+              (parsedRecord as Record<string, unknown>)['content'] ??
+                (parsedRecord as Record<string, unknown>)['text'] ??
+                (parsedRecord as Record<string, unknown>)['data'] ??
+                parsedRecord,
+            );
+          } else {
+            const primary =
+              parsedRecord && typeof parsedRecord['content'] === 'string'
+                ? (parsedRecord['content'] as string)
+                : null;
+            if (primary !== null) {
+              textContent = primary;
+            } else if (parsedRecord) {
+              const alt = coerceToString(parsedRecord);
+              textContent = alt.trim() !== '' ? alt : String(chunk);
+            } else {
+              textContent = typeof chunk === 'string' ? chunk : String(chunk);
+            }
+          }
+
           if (
             prev.length > 0 &&
             prev[prev.length - 1].role === ChatRole.ASSISTANT
           ) {
             const updated = [...prev];
-            const chunkContent = JSON.parse(chunk);
-            updated[updated.length - 1] = {
-              ...updated[updated.length - 1],
-              content:
-                String(updated[updated.length - 1].content) +
-                chunkContent.content,
-              sender_id: null,
-            };
+            const last = { ...updated[updated.length - 1] } as ChatMessage;
+
+            if (isThinking) {
+              const existingParts = Array.isArray(last.parts)
+                ? last.parts.slice()
+                : [];
+              existingParts.push({ type: 'thinking', text: textContent });
+              last.parts = existingParts;
+              // Do not append thinking to visible assistant content
+            } else if (isGameGenerator) {
+              const existingParts = Array.isArray(last.parts)
+                ? last.parts.slice()
+                : [];
+              if ((textContent || '').trim() !== '') {
+                existingParts.push({
+                  type: 'game_generator',
+                  text: textContent,
+                });
+              }
+              last.parts = existingParts;
+              // Do not append game_generator to visible assistant content
+            } else {
+              last.content = String(last.content || '') + textContent;
+              const existingParts = Array.isArray(last.parts)
+                ? last.parts.slice()
+                : [];
+              existingParts.push({ type: 'text', text: textContent });
+              last.parts = existingParts;
+            }
+
+            last.sender_id = null;
+            updated[updated.length - 1] = last;
             return updated;
           } else {
-            return [
-              ...prev,
-              {
-                id: Date.now().toString() + '-ws',
-                role: ChatRole.ASSISTANT,
-                content: chunk,
-                sender_id: null,
-              },
-            ];
+            // Start a new assistant message
+            const newMsg: ChatMessage = {
+              id: Date.now().toString() + '-ws',
+              role: ChatRole.ASSISTANT,
+              content: isThinking || isGameGenerator ? '' : textContent,
+              sender_id: null,
+              parts: isThinking
+                ? [{ type: 'thinking', text: textContent }]
+                : isGameGenerator
+                ? [{ type: 'game_generator', text: textContent }]
+                : [{ type: 'text', text: textContent }],
+            };
+            return [...prev, newMsg];
           }
         });
       } catch (error) {
@@ -364,6 +508,7 @@ export function useChat({
     startIdleRecycle,
     clearIdleRecycle,
     clearResponseTimeout,
+    coerceToString,
     enableIdleRecycle,
     idleRecycleMs,
   ]);
@@ -536,6 +681,7 @@ export function useChat({
     handleInputChange,
     handleSubmit,
     isLoading,
+    isAssistantStreaming,
     setMessages,
     setInput,
     wsConnected,

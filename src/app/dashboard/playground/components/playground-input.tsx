@@ -16,7 +16,7 @@ export function PlaygroundInput({
   disabled,
 }: PlaygroundInputProps) {
   return (
-    <div className="p-6 bg-sidebar">
+    <div className="bg-sidebar">
       <ChatInput
         value={value}
         onChange={onChange}

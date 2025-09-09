@@ -8,26 +8,37 @@ import { Explore } from '@/app/dashboard/playground/components/explore';
 
 import { NavUser } from '@/components/nav-user';
 import { Button } from '@/components/ui/button';
+import {
+  Conversation,
+  ConversationContent,
+  ConversationScrollButton,
+} from '@/components/ui/shadcn-io/ai/conversation';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import { SidebarProvider } from '@/components/ui/sidebar';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { useChat } from '@/hooks/useChat';
-import { useGetChat, useGetChatMessages } from '@/queries/useChat';
+import { useInfiniteScroll } from '@/hooks/useInfiniteScroll';
+import {
+  clearPendingMessage,
+  fetchAuthToken,
+  getPendingMessage,
+  shouldSyncMessagesFromAPI,
+  transformChatMessages,
+} from '@/lib/chat-utils';
+import { getNavigationItems } from '@/lib/navigation-utils';
+import { useGetChat, useGetChatMessagesInfinite } from '@/queries/useChat';
 import { ChatRole } from '@/types/chat';
 import { motion } from 'framer-motion';
 import {
-  ArrowDown,
-  Bot,
   Gamepad2,
   Menu,
   MessageSquare,
   Plus,
   Settings,
   Sparkles,
-  Users,
 } from 'lucide-react';
 import { usePathname, useRouter } from 'next/navigation';
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 
 type PlaygroundChatClientProps = {
   chatId: string;
@@ -40,23 +51,27 @@ export function PlaygroundChatClient({ chatId }: PlaygroundChatClientProps) {
   const pathname = usePathname();
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const messagesContainerRef = useRef<HTMLDivElement>(null);
-  const [showScrollButton, setShowScrollButton] = useState<boolean>(false);
   const [settingsOpen, setSettingsOpen] = useState<boolean>(true);
   const [exploreOpen, setExploreOpen] = useState<boolean>(false);
   const isSidePanelOpen = (settingsOpen || exploreOpen) && !isMobile;
 
   // Get the first message from localStorage if it exists
-  const [pendingMsg, setPendingMsg] = useState<string>(() => {
-    return typeof window !== 'undefined'
-      ? localStorage.getItem('pendingMessage') || ''
-      : '';
-  });
+  const [pendingMsg, setPendingMsg] = useState<string>(() =>
+    getPendingMessage(),
+  );
   const [firstMsgSent, setFirstMsgSent] = useState<boolean>(false);
   const [token, setToken] = useState<string>('');
+  const [previousScrollHeight, setPreviousScrollHeight] = useState<number>(0);
+  const [isLoadingMore, setIsLoadingMore] = useState<boolean>(false);
   const { data: chatData } = useGetChat(chatId);
-  const { data: chatMessageData } = useGetChatMessages(chatId);
+  const {
+    data: chatMessageData,
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage,
+  } = useGetChatMessagesInfinite(chatId);
 
-  const chatMessages = chatMessageData?.data?.data;
+  const chatMessages = chatMessageData?.pages.flatMap((page) => page.data.data);
   const chatInfo = chatData?.data?.data;
 
   const {
@@ -65,6 +80,7 @@ export function PlaygroundChatClient({ chatId }: PlaygroundChatClientProps) {
     handleInputChange,
     handleSubmit,
     isLoading,
+    isAssistantStreaming,
     setMessages,
     wsConnected,
     sendMessageDirect,
@@ -78,26 +94,20 @@ export function PlaygroundChatClient({ chatId }: PlaygroundChatClientProps) {
     user_id: chatInfo?.user_id || '',
   });
 
+  // Only sync messages from API on initial load, not on every update
   useEffect(() => {
-    if (chatInfo?.user_id && chatMessages && Array.isArray(chatMessages)) {
-      const safeMessages = chatMessages.map((msg) => ({
-        ...msg,
-        content: msg.content ?? '',
-        role: Object.values(ChatRole).includes(msg.role)
-          ? msg.role
-          : ChatRole.USER,
-        sender_id: chatInfo?.user_id || '',
-      }));
-      setMessages(safeMessages.reverse() || []);
+    if (shouldSyncMessagesFromAPI(chatInfo, chatMessages || [], messages)) {
+      const transformedMessages = transformChatMessages(
+        chatMessages || [],
+        chatInfo?.user_id || '',
+      );
+      setMessages(transformedMessages);
     }
-  }, [chatMessages, setMessages, chatInfo]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [chatMessages, chatInfo]);
 
   useEffect(() => {
-    fetch('/api/auth/session')
-      .then((res) => res.json())
-      .then((data) => {
-        setToken(data.accessToken);
-      });
+    fetchAuthToken().then(setToken);
   }, []);
 
   // Only send the first message when WebSocket is connected, otherwise keep it to send later
@@ -106,58 +116,45 @@ export function PlaygroundChatClient({ chatId }: PlaygroundChatClientProps) {
       sendMessageDirect(pendingMsg);
       setFirstMsgSent(true);
       setPendingMsg('');
-      if (typeof window !== 'undefined') {
-        localStorage.removeItem('pendingMessage');
-      }
+      clearPendingMessage();
     }
   }, [pendingMsg, firstMsgSent, wsConnected, sendMessageDirect]);
 
-  useEffect(() => {
-    scrollToBottom();
-  }, [messages]);
+  // Infinite scroll functionality
+  useInfiniteScroll({
+    containerRef: messagesContainerRef,
+    hasNextPage: !!hasNextPage,
+    isFetchingNextPage: !!isFetchingNextPage,
+    isLoadingMore,
+    onFetchNextPage: () => {
+      setIsLoadingMore(true);
+      fetchNextPage().finally(() => {
+        setIsLoadingMore(false);
+      });
+    },
+    onScrollHeightChange: setPreviousScrollHeight,
+  });
 
-  const handleScroll = useCallback(() => {
-    if (messagesContainerRef.current) {
-      const { scrollTop, scrollHeight, clientHeight } =
-        messagesContainerRef.current;
-      const isNearBottom = scrollHeight - scrollTop - clientHeight < 100;
-      setShowScrollButton(!isNearBottom && messages.length > 0);
-    }
-  }, [messages.length]);
-
+  // Restore scroll position after new messages are loaded
   useEffect(() => {
     const container = messagesContainerRef.current;
-    if (container) {
-      container.addEventListener('scroll', handleScroll);
-      return () => container.removeEventListener('scroll', handleScroll);
-    }
-  }, [messages.length, handleScroll]);
+    if (!container || !isFetchingNextPage || previousScrollHeight === 0) return;
 
-  const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  };
+    // Wait for DOM to update with new messages
+    const timeoutId = setTimeout(() => {
+      const newScrollHeight = container.scrollHeight;
+      const scrollDifference = newScrollHeight - previousScrollHeight;
+
+      // Adjust scroll position to maintain user's view
+      container.scrollTop = container.scrollTop + scrollDifference;
+      setPreviousScrollHeight(0); // Reset
+    }, 100);
+
+    return () => clearTimeout(timeoutId);
+  }, [isFetchingNextPage, previousScrollHeight]);
 
   // Navigation items with dynamic active state
-  const navigationItems = [
-    {
-      icon: Bot,
-      label: 'Playground',
-      href: '/dashboard/playground',
-      isActive: (path: string) => path.startsWith('/dashboard/playground'),
-    },
-    {
-      icon: Users,
-      label: 'Assistants',
-      href: '/dashboard/assistant',
-      isActive: (path: string) => path.startsWith('/dashboard/assistant'),
-    },
-    {
-      icon: Settings,
-      label: 'Settings',
-      href: '/dashboard/setting',
-      isActive: (path: string) => path.startsWith('/dashboard/setting'),
-    },
-  ];
+  const navigationItems = getNavigationItems();
 
   // Mobile sidebar content (with navigation and user info)
   const MobileSidebarContent = () => (
@@ -331,54 +328,57 @@ export function PlaygroundChatClient({ chatId }: PlaygroundChatClientProps) {
         </div>
 
         {/* Messages */}
-        <div
-          ref={messagesContainerRef}
-          className="flex-1 px-6 py-4 space-y-6 w-full overflow-y-auto h-full"
-        >
-          {messages.length === 0 ? (
-            <div className="flex flex-col items-center justify-center h-full text-center">
-              <div className="w-16 h-16  rounded-2xl flex items-center justify-center mb-4">
-                <MessageSquare className="w-8 h-8 text-black" />
-              </div>
-              <h3 className="text-xl font-semibold text-gray-900 mb-2">
-                Start a conversation
-              </h3>
-              <p className="text-gray-500 max-w-md">
-                Ask me anything! I&#39;m here to help with your questions and
-                tasks.
-              </p>
-            </div>
-          ) : (
-            messages.map((message, index) => (
-              <ChatMessage
-                key={message.id}
-                message={message}
-                isLast={index === messages.length - 1}
-                isLoading={
-                  isLoading &&
-                  index === messages.length - 1 &&
-                  message.role === ChatRole.ASSISTANT
-                }
-              />
-            ))
-          )}
-          <div ref={messagesEndRef} />
+        <div className="flex-1 w-full overflow-hidden h-full">
+          <div
+            ref={messagesContainerRef}
+            className="relative size-full overflow-y-auto"
+          >
+            <Conversation className="relative size-full">
+              <ConversationContent className="px-4 py-2">
+                {/* Loading indicator for fetching more messages */}
+                {isFetchingNextPage && (
+                  <div className="flex justify-center py-4">
+                    <div className="text-sm text-muted-foreground">
+                      Loading more messages...
+                    </div>
+                  </div>
+                )}
+                {messages.length === 0 ? (
+                  <div className="flex flex-col items-center justify-center h-full text-center">
+                    <div className="w-16 h-16  rounded-2xl flex items-center justify-center mb-4">
+                      <MessageSquare className="w-8 h-8 text-black" />
+                    </div>
+                    <h3 className="text-xl font-semibold text-gray-900 mb-2">
+                      What should we build today?
+                    </h3>
+                    <p className="text-gray-500 max-w-md">
+                      Ask me anything! I&#39;m here to help with your questions
+                      and tasks.
+                    </p>
+                  </div>
+                ) : (
+                  messages.map((message, index) => (
+                    <ChatMessage
+                      key={message.id}
+                      message={message}
+                      isLast={index === messages.length - 1}
+                      isLoading={
+                        (isAssistantStreaming || isLoading) &&
+                        index === messages.length - 1 &&
+                        message.role === ChatRole.ASSISTANT
+                      }
+                    />
+                  ))
+                )}
+                <div ref={messagesEndRef} />
+              </ConversationContent>
+              <ConversationScrollButton />
+            </Conversation>
+          </div>
         </div>
 
-        {/* Scroll to Bottom Button */}
-        {showScrollButton && (
-          <Button
-            type="button"
-            onClick={scrollToBottom}
-            className="absolute bottom-44 left-1/2 -translate-x-1/2 z-10 bg-gradient-to-r from-blue-500 to-purple-600 text-white rounded-full w-12 h-12 flex items-center justify-center shadow-lg hover:scale-110 transition-all"
-            aria-label="Scroll to bottom"
-          >
-            <ArrowDown className="w-6 h-6" />
-          </Button>
-        )}
-
         {/* Input Area */}
-        <div className="p-6 bg-sidebar">
+        <div className="bg-sidebar">
           <ChatInput
             value={input}
             onChange={handleInputChange}
