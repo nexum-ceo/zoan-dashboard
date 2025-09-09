@@ -51,10 +51,31 @@ export const useCreateChatMutation = () => {
   });
 };
 
-export const useGetChatMessages = (id: string) => {
-  return useQuery({
-    queryKey: ['chat-messages', id],
-    queryFn: () => chatApiRequest.sGetChatMessages(id),
+export const useGetChatMessagesInfinite = (id: string) => {
+  return useInfiniteQuery({
+    queryKey: ['chat-messages-infinite', id],
+    queryFn: ({ pageParam = 0 }) =>
+      chatApiRequest.sGetChatMessages(id, {
+        offset: Number(pageParam),
+        limit: 10,
+      }),
+    initialPageParam: 0,
+    getNextPageParam: (lastPage, allPages) => {
+      const meta = lastPage?.data?.meta;
+      const inferredLimit = Number(meta?.limit) || 10;
+      const total = Number(meta?.total ?? 0);
+      const currentOffset = Number(
+        meta?.offset ?? (allPages.length - 1) * inferredLimit,
+      );
+      const pageLength = lastPage?.data?.data?.length ?? 0;
+      const nextOffset = currentOffset + inferredLimit;
+      if (total > 0) {
+        if (nextOffset >= total) return undefined;
+        return nextOffset;
+      }
+      if (pageLength < inferredLimit) return undefined;
+      return nextOffset;
+    },
   });
 };
 
