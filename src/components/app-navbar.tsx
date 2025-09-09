@@ -1,11 +1,6 @@
 'use client';
 
 import {
-  NavigationMenu,
-  NavigationMenuItem,
-  NavigationMenuList,
-} from '@/components/ui/navigation-menu';
-import {
   Sheet,
   SheetContent,
   SheetHeader,
@@ -131,10 +126,10 @@ export default function AppNavbar() {
   };
 
   return (
-    <header className="sticky top-0 z-40 w-full border-b bg-white/90 backdrop-blur supports-[backdrop-filter]:bg-white/70 dark:border-b-slate-700 dark:bg-background">
-      <NavigationMenu className="mx-auto">
-        <NavigationMenuList className="container h-12 px-4 w-screen flex items-center justify-between">
-          <NavigationMenuItem className="flex">
+    <header className="p-3 sticky top-0 z-40 w-full border-b bg-[#fbfbfb] backdrop-blur supports-[backdrop-filter]:bg-white/70 dark:border-b-slate-700 dark:bg-background">
+      <div className="w-full">
+        <div className="flex justify-between">
+          <div className="flex justify-between items-center gap-6">
             <Link
               rel="noreferrer noopener"
               href="/"
@@ -145,7 +140,19 @@ export default function AppNavbar() {
                 Zoan AI
               </span>
             </Link>
-          </NavigationMenuItem>
+            {/* <nav className="hidden md:flex items-center gap-1"> */}
+            {routeList.map((route: RouteProps, i) => (
+              <a
+                rel="noreferrer noopener"
+                href={route.href}
+                key={i}
+                className={`px-3 py-2 text-sm text-muted-foreground hover:text-foreground transition-none border-b-2 border-transparent hover:border-foreground/80`}
+              >
+                {route.label}
+              </a>
+            ))}
+            {/* </nav> */}
+          </div>
 
           {/* mobile */}
           <span className="flex md:hidden">
@@ -194,18 +201,6 @@ export default function AppNavbar() {
           </span>
 
           {/* desktop */}
-          <nav className="hidden md:flex items-center gap-1">
-            {routeList.map((route: RouteProps, i) => (
-              <a
-                rel="noreferrer noopener"
-                href={route.href}
-                key={i}
-                className={`px-3 py-2 text-sm text-muted-foreground hover:text-foreground transition-none border-b-2 border-transparent hover:border-foreground/80`}
-              >
-                {route.label}
-              </a>
-            ))}
-          </nav>
 
           <div className="hidden md:flex items-center gap-2">
             {user ? (
@@ -327,16 +322,13 @@ export default function AppNavbar() {
                 </DropdownMenuContent>
               </DropdownMenu>
             ) : (
-              <Button
-                onClick={openLoginPopup}
-                className="h-8 rounded-full px-4 bg-emerald-100 text-foreground border border-emerald-300 hover:bg-emerald-200"
-              >
-                Log in
+              <Button onClick={openLoginPopup} variant={'stroke'}>
+                Button
               </Button>
             )}
           </div>
-        </NavigationMenuList>
-      </NavigationMenu>
+        </div>
+      </div>
     </header>
   );
 }
