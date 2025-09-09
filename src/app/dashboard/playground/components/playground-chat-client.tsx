@@ -17,18 +17,25 @@ import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import { SidebarProvider } from '@/components/ui/sidebar';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { useChat } from '@/hooks/useChat';
+import { useInfiniteScroll } from '@/hooks/useInfiniteScroll';
+import {
+  clearPendingMessage,
+  fetchAuthToken,
+  getPendingMessage,
+  shouldSyncMessagesFromAPI,
+  transformChatMessages,
+} from '@/lib/chat-utils';
+import { getNavigationItems } from '@/lib/navigation-utils';
 import { useGetChat, useGetChatMessagesInfinite } from '@/queries/useChat';
 import { ChatRole } from '@/types/chat';
 import { motion } from 'framer-motion';
 import {
-  Bot,
   Gamepad2,
   Menu,
   MessageSquare,
   Plus,
   Settings,
   Sparkles,
-  Users,
 } from 'lucide-react';
 import { usePathname, useRouter } from 'next/navigation';
 import { useEffect, useRef, useState } from 'react';
@@ -49,11 +56,9 @@ export function PlaygroundChatClient({ chatId }: PlaygroundChatClientProps) {
   const isSidePanelOpen = (settingsOpen || exploreOpen) && !isMobile;
 
   // Get the first message from localStorage if it exists
-  const [pendingMsg, setPendingMsg] = useState<string>(() => {
-    return typeof window !== 'undefined'
-      ? localStorage.getItem('pendingMessage') || ''
-      : '';
-  });
+  const [pendingMsg, setPendingMsg] = useState<string>(() =>
+    getPendingMessage(),
+  );
   const [firstMsgSent, setFirstMsgSent] = useState<boolean>(false);
   const [token, setToken] = useState<string>('');
   const [previousScrollHeight, setPreviousScrollHeight] = useState<number>(0);
@@ -91,32 +96,18 @@ export function PlaygroundChatClient({ chatId }: PlaygroundChatClientProps) {
 
   // Only sync messages from API on initial load, not on every update
   useEffect(() => {
-    if (
-      chatInfo?.user_id &&
-      chatMessages &&
-      Array.isArray(chatMessages) &&
-      messages.length === 0
-    ) {
-      const safeMessages = chatMessages.map((msg) => ({
-        ...msg,
-        content: msg.content ?? '',
-        role: Object.values(ChatRole).includes(msg.role)
-          ? msg.role
-          : ChatRole.USER,
-        sender_id: chatInfo?.user_id || '',
-      }));
-      const reversedMessages = [...safeMessages].reverse();
-      setMessages(reversedMessages);
+    if (shouldSyncMessagesFromAPI(chatInfo, chatMessages || [], messages)) {
+      const transformedMessages = transformChatMessages(
+        chatMessages || [],
+        chatInfo?.user_id || '',
+      );
+      setMessages(transformedMessages);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [chatMessages, chatInfo]);
 
   useEffect(() => {
-    fetch('/api/auth/session')
-      .then((res) => res.json())
-      .then((data) => {
-        setToken(data.accessToken);
-      });
+    fetchAuthToken().then(setToken);
   }, []);
 
   // Only send the first message when WebSocket is connected, otherwise keep it to send later
@@ -125,83 +116,24 @@ export function PlaygroundChatClient({ chatId }: PlaygroundChatClientProps) {
       sendMessageDirect(pendingMsg);
       setFirstMsgSent(true);
       setPendingMsg('');
-      if (typeof window !== 'undefined') {
-        localStorage.removeItem('pendingMessage');
-      }
+      clearPendingMessage();
     }
   }, [pendingMsg, firstMsgSent, wsConnected, sendMessageDirect]);
 
-  // Infinite scroll functionality using both IntersectionObserver and scroll event
-  useEffect(() => {
-    const container = messagesContainerRef.current;
-    if (!container || !hasNextPage || isFetchingNextPage || isLoadingMore)
-      return;
-
-    // Create a sentinel element at the top of the messages
-    const sentinel = document.createElement('div');
-    sentinel.style.height = '1px';
-    sentinel.style.position = 'absolute';
-    sentinel.style.top = '0';
-    sentinel.style.left = '0';
-    sentinel.style.right = '0';
-    sentinel.style.pointerEvents = 'none';
-
-    // Insert sentinel at the top of the conversation content
-    const conversationContent = container.querySelector('.p-4'); // ConversationContent has className="p-4"
-    if (conversationContent) {
-      conversationContent.insertBefore(
-        sentinel,
-        conversationContent.firstChild,
-      );
-    }
-
-    // IntersectionObserver approach
-    const observer = new IntersectionObserver(
-      (entries) => {
-        const [entry] = entries;
-        if (entry.isIntersecting) {
-          // Store current scroll height before fetching more messages
-          setPreviousScrollHeight(container.scrollHeight);
-          setIsLoadingMore(true);
-          fetchNextPage().finally(() => {
-            setIsLoadingMore(false);
-          });
-        }
-      },
-      {
-        root: container,
-        rootMargin: '100px 0px 0px 0px',
-        threshold: 0.1,
-      },
-    );
-
-    observer.observe(sentinel);
-
-    // Backup scroll event listener
-    const handleScroll = () => {
-      const { scrollTop } = container;
-
-      // Check if user has scrolled to the top (within 100px threshold)
-      if (scrollTop <= 100) {
-        // Store current scroll height before fetching more messages
-        setPreviousScrollHeight(container.scrollHeight);
-        setIsLoadingMore(true);
-        fetchNextPage().finally(() => {
-          setIsLoadingMore(false);
-        });
-      }
-    };
-
-    container.addEventListener('scroll', handleScroll);
-
-    return () => {
-      observer.disconnect();
-      container.removeEventListener('scroll', handleScroll);
-      if (sentinel.parentNode) {
-        sentinel.parentNode.removeChild(sentinel);
-      }
-    };
-  }, [hasNextPage, isFetchingNextPage, fetchNextPage, isLoadingMore]);
+  // Infinite scroll functionality
+  useInfiniteScroll({
+    containerRef: messagesContainerRef,
+    hasNextPage: !!hasNextPage,
+    isFetchingNextPage: !!isFetchingNextPage,
+    isLoadingMore,
+    onFetchNextPage: () => {
+      setIsLoadingMore(true);
+      fetchNextPage().finally(() => {
+        setIsLoadingMore(false);
+      });
+    },
+    onScrollHeightChange: setPreviousScrollHeight,
+  });
 
   // Restore scroll position after new messages are loaded
   useEffect(() => {
@@ -222,26 +154,7 @@ export function PlaygroundChatClient({ chatId }: PlaygroundChatClientProps) {
   }, [isFetchingNextPage, previousScrollHeight]);
 
   // Navigation items with dynamic active state
-  const navigationItems = [
-    {
-      icon: Bot,
-      label: 'Playground',
-      href: '/dashboard/playground',
-      isActive: (path: string) => path.startsWith('/dashboard/playground'),
-    },
-    {
-      icon: Users,
-      label: 'Assistants',
-      href: '/dashboard/assistant',
-      isActive: (path: string) => path.startsWith('/dashboard/assistant'),
-    },
-    {
-      icon: Settings,
-      label: 'Settings',
-      href: '/dashboard/setting',
-      isActive: (path: string) => path.startsWith('/dashboard/setting'),
-    },
-  ];
+  const navigationItems = getNavigationItems();
 
   // Mobile sidebar content (with navigation and user info)
   const MobileSidebarContent = () => (

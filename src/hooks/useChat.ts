@@ -346,6 +346,7 @@ export function useChat({
 
             // For any other JSON message, return the raw JSON string and
             // let the downstream parser handle types (thinking/text/etc.)
+            console.log('data: ', data);
             return rawData;
           } catch (err) {
             // JSON-like but invalid, return raw data
