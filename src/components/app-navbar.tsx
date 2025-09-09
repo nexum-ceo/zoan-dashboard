@@ -51,12 +51,8 @@ interface RouteProps {
 
 const routeList: RouteProps[] = [
   {
-    href: '#features',
-    label: 'Features',
-  },
-  {
-    href: '#testimonials',
-    label: 'Testimonials',
+    href: '#enterprise',
+    label: 'Enterprise',
   },
   {
     href: '#pricing',
@@ -135,17 +131,19 @@ export default function AppNavbar() {
   };
 
   return (
-    <header className="sticky border-b-[1px] top-0 z-40 w-full bg-white dark:border-b-slate-700 dark:bg-background">
+    <header className="sticky top-0 z-40 w-full border-b bg-white/90 backdrop-blur supports-[backdrop-filter]:bg-white/70 dark:border-b-slate-700 dark:bg-background">
       <NavigationMenu className="mx-auto">
-        <NavigationMenuList className="container h-14 px-4 w-screen flex justify-between ">
-          <NavigationMenuItem className="font-bold flex">
+        <NavigationMenuList className="container h-12 px-4 w-screen flex items-center justify-between">
+          <NavigationMenuItem className="flex">
             <Link
               rel="noreferrer noopener"
               href="/"
-              className="ml-2 font-bold text-xl flex items-center"
+              className="ml-2 flex items-center gap-2"
             >
               <Image src="/icon.png" alt="Logo" width={32} height={32} />
-              <span className="ml-2">Zoan AI</span>
+              <span className="text-[15px] font-medium tracking-tight">
+                Zoan AI
+              </span>
             </Link>
           </NavigationMenuItem>
 
@@ -196,22 +194,20 @@ export default function AppNavbar() {
           </span>
 
           {/* desktop */}
-          <nav className="hidden md:flex gap-2">
+          <nav className="hidden md:flex items-center gap-1">
             {routeList.map((route: RouteProps, i) => (
               <a
                 rel="noreferrer noopener"
                 href={route.href}
                 key={i}
-                className={`text-[17px] ${buttonVariants({
-                  variant: 'ghost',
-                })}`}
+                className={`px-3 py-2 text-sm text-muted-foreground hover:text-foreground transition-none border-b-2 border-transparent hover:border-foreground/80`}
               >
                 {route.label}
               </a>
             ))}
           </nav>
 
-          <div className="hidden md:flex gap-2">
+          <div className="hidden md:flex items-center gap-2">
             {user ? (
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
@@ -333,9 +329,9 @@ export default function AppNavbar() {
             ) : (
               <Button
                 onClick={openLoginPopup}
-                className={`border ${buttonVariants({ variant: 'secondary' })}`}
+                className="h-8 rounded-full px-4 bg-emerald-100 text-foreground border border-emerald-300 hover:bg-emerald-200"
               >
-                Login With Zoan Passport
+                Log in
               </Button>
             )}
           </div>
