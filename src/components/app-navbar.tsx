@@ -34,9 +34,9 @@ import {
 } from 'lucide-react';
 import { signIn, signOut, useSession } from 'next-auth/react';
 import { useTheme } from 'next-themes';
-import Image from 'next/image';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
+import ZoanLogo from '../../public/icon/zoan-logo';
 import { Button, buttonVariants } from './ui/button';
 
 interface RouteProps {
@@ -135,21 +135,14 @@ export default function AppNavbar() {
               href="/"
               className="ml-2 flex items-center gap-2"
             >
-              <Image src="/icon.png" alt="Logo" width={32} height={32} />
-              <span className="text-[15px] font-medium tracking-tight">
-                Zoan AI
-              </span>
+              {/* <Image src="/icon.png" alt="Logo" width={32} height={32} /> */}
+              <ZoanLogo />
             </Link>
             {/* <nav className="hidden md:flex items-center gap-1"> */}
             {routeList.map((route: RouteProps, i) => (
-              <a
-                rel="noreferrer noopener"
-                href={route.href}
-                key={i}
-                className={`px-3 py-2 text-sm text-muted-foreground hover:text-foreground transition-none border-b-2 border-transparent hover:border-foreground/80`}
-              >
+              <Button className="px-0 py-0" key={i} variant={'tertiary'}>
                 {route.label}
-              </a>
+              </Button>
             ))}
             {/* </nav> */}
           </div>
@@ -172,17 +165,11 @@ export default function AppNavbar() {
                 <SheetHeader>
                   <SheetTitle className="font-bold text-xl">Zoan AI</SheetTitle>
                 </SheetHeader>
-                <nav className="flex flex-col justify-center items-center gap-2 mt-4">
+                <nav className="flex flex-col justify-center items-center mt-4">
                   {routeList.map(({ href, label }: RouteProps) => (
-                    <a
-                      rel="noreferrer noopener"
-                      key={label}
-                      href={href}
-                      onClick={() => setIsOpen(false)}
-                      className={buttonVariants({ variant: 'ghost' })}
-                    >
+                    <Button key={href} variant={'tertiary'}>
                       {label}
-                    </a>
+                    </Button>
                   ))}
                   <a
                     rel="noreferrer noopener"
@@ -322,9 +309,10 @@ export default function AppNavbar() {
                 </DropdownMenuContent>
               </DropdownMenu>
             ) : (
-              <Button onClick={openLoginPopup} variant={'stroke'}>
-                Button
-              </Button>
+              <>
+                <Button variant={'secondary'}>Sign up</Button>
+                <Button onClick={openLoginPopup}>Log in</Button>
+              </>
             )}
           </div>
         </div>
