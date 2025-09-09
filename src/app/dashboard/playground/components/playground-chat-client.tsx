@@ -51,6 +51,7 @@ export function PlaygroundChatClient({ chatId }: PlaygroundChatClientProps) {
   const pathname = usePathname();
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const messagesContainerRef = useRef<HTMLDivElement>(null);
+  const hasSyncedInitialMessagesRef = useRef<boolean>(false);
   const [settingsOpen, setSettingsOpen] = useState<boolean>(true);
   const [exploreOpen, setExploreOpen] = useState<boolean>(false);
   const isSidePanelOpen = (settingsOpen || exploreOpen) && !isMobile;
@@ -96,12 +97,16 @@ export function PlaygroundChatClient({ chatId }: PlaygroundChatClientProps) {
 
   // Only sync messages from API on initial load, not on every update
   useEffect(() => {
-    if (shouldSyncMessagesFromAPI(chatInfo, chatMessages || [], messages)) {
+    if (
+      !hasSyncedInitialMessagesRef.current &&
+      shouldSyncMessagesFromAPI(chatInfo, chatMessages || [], messages)
+    ) {
       const transformedMessages = transformChatMessages(
         chatMessages || [],
         chatInfo?.user_id || '',
       );
       setMessages(transformedMessages);
+      hasSyncedInitialMessagesRef.current = true;
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [chatMessages, chatInfo]);
