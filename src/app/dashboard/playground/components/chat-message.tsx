@@ -19,7 +19,7 @@ import {
 import React, { FC, useMemo } from 'react';
 import ReactMarkdown from 'react-markdown';
 
-// Component để render Game Generator content với TaskItemFile
+// Component to render Game Generator content with TaskItemFile
 const GameGeneratorContent = ({ content }: { content: string }) => {
   const parseGameGeneratorContent = (text: string) => {
     const lines = text.split('\n');
