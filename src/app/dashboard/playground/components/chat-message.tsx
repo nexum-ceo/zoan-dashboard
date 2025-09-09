@@ -48,7 +48,6 @@ const GameGeneratorContent = ({ content }: { content: string }) => {
       // Detect file references (lines starting with * `filename`:)
       else if (line.match(/^\*\s*`([^`]+)`:\s*(.+)$/)) {
         const fileMatch = line.match(/^\*\s*`([^`]+)`:\s*(.+)$/);
-        console.log('handled file match');
         if (fileMatch) {
           const [, filename, description] = fileMatch;
           result.push(
@@ -63,7 +62,7 @@ const GameGeneratorContent = ({ content }: { content: string }) => {
       } else {
         // Regular markdown content
         result.push(
-          <div key={i} className="mb-2">
+          <div key={i} className="mb-2 text-sm">
             <ReactMarkdown>{line}</ReactMarkdown>
           </div>,
         );
@@ -118,7 +117,6 @@ export const ChatMessage: FC<ChatMessageProps> = ({
       .map((part) => part.text ?? part.content ?? '')
       .filter((v) => v.trim() !== '');
   }, [message.parts]);
-  console.log('game generator:', gameGeneratorItems);
 
   return (
     <UIMessage from={isUser ? 'user' : 'assistant'}>
