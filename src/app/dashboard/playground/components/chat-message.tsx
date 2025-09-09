@@ -81,6 +81,7 @@ type ChatMessageProps = {
     role: 'user' | 'assistant' | 'system' | 'data';
     content?: string;
     parts?: Array<{ type: string; text?: string; content?: string }>;
+    metadata?: Record<string, string>;
   };
   isLast: boolean;
   isLoading: boolean;
@@ -111,12 +112,30 @@ export const ChatMessage: FC<ChatMessageProps> = ({
   }, [message.parts, message.content]);
 
   const gameGeneratorItems = useMemo(() => {
-    if (!Array.isArray(message.parts)) return [] as string[];
-    return message.parts
-      .filter((part) => part.type === 'game_generator')
-      .map((part) => part.text ?? part.content ?? '')
-      .filter((v) => v.trim() !== '');
-  }, [message.parts]);
+    const items: string[] = [];
+
+    // Check parts for game_generator
+    if (Array.isArray(message.parts)) {
+      const partItems = message.parts
+        .filter((part) => part.type === 'game_generator')
+        .map((part) => part.text ?? part.content ?? '')
+        .filter((v) => v.trim() !== '');
+      items.push(...partItems);
+    }
+
+    // Check metadata for game_generator
+    if (message.metadata?.game_generator) {
+      const metadataContent =
+        typeof message.metadata.game_generator === 'string'
+          ? message.metadata.game_generator
+          : JSON.stringify(message.metadata.game_generator);
+      if (metadataContent.trim() !== '') {
+        items.push(metadataContent);
+      }
+    }
+
+    return items;
+  }, [message.parts, message.metadata]);
 
   return (
     <UIMessage from={isUser ? 'user' : 'assistant'}>
