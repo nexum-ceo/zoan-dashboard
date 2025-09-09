@@ -16,15 +16,24 @@ export type ChatMessage = {
  * Transform API chat messages to safe format for UI
  */
 export const transformChatMessages = (
-  chatMessages: ChatMessageType[] | null | undefined,
+  chatMessages:
+    | ChatMessageType[]
+    | Array<ChatMessageType | null | undefined>
+    | null
+    | undefined,
   userId: string,
 ): ChatMessage[] => {
   if (!Array.isArray(chatMessages) || chatMessages.length === 0) {
     return [];
   }
 
-  const safeMessages = chatMessages.map((msg) => ({
+  const validMessages: ChatMessageType[] = (
+    chatMessages as Array<ChatMessageType | null | undefined>
+  ).filter((m): m is ChatMessageType => m != null);
+
+  const safeMessages = validMessages.map((msg) => ({
     ...msg,
+    id: msg.id ?? `${Date.now()}-${Math.random()}`,
     content: msg.content ?? '',
     role: Object.values(ChatRole).includes(msg.role) ? msg.role : ChatRole.USER,
     sender_id: userId || '',
