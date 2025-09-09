@@ -103,18 +103,6 @@ export function PlaygroundClient() {
           disabled={false}
         />
       </div>
-
-      {/* Chat Settings Panel */}
-      {/* <ChatSettings
-        isOpen={activePanel === 'settings'}
-        onClose={() => setActivePanel(null)}
-      /> */}
-
-      {/* Explore Panel */}
-      {/* <Explore
-        isOpen={activePanel === 'explore'}
-        onClose={() => setActivePanel(null)}
-      /> */}
     </>
   );
 }

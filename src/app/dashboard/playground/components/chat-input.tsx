@@ -30,7 +30,7 @@ export const ChatInput: FC<ChatInputProps> = ({
   return (
     <div className="w-full max-w-4xl mx-auto px-4 py-4">
       <PromptInput
-        className="rounded-2xl border border-border bg-card text-card-foreground shadow-sm"
+        className="rounded-2xl border active:border-primary-brand-darker-green bg-card text-card-foreground shadow-sm"
         onSubmit={onSubmit}
       >
         <PromptInputTextarea

@@ -1,28 +1,28 @@
 'use client';
 import { ChatInput } from '@/app/dashboard/playground/components/chat-input';
-import { ChangeEvent } from 'react';
+import { ChangeEvent, FC } from 'react';
 
-interface PlaygroundInputProps {
+type PlaygroundInputProps = {
   value: string;
-  onChange: (e: ChangeEvent<HTMLTextAreaElement>) => void;
-  onSubmit: (e: React.FormEvent<HTMLFormElement>) => void;
+  onChange?: (e: ChangeEvent<HTMLTextAreaElement>) => void;
+  onSubmit?: (e: React.FormEvent<HTMLFormElement>) => void;
   disabled: boolean;
-}
+};
 
-export function PlaygroundInput({
+export const PlaygroundInput: FC<PlaygroundInputProps> = ({
   value,
   onChange,
   onSubmit,
   disabled,
-}: PlaygroundInputProps) {
+}: PlaygroundInputProps) => {
   return (
-    <div className="bg-sidebar">
+    <div>
       <ChatInput
         value={value}
-        onChange={onChange}
-        onSubmit={onSubmit}
+        onChange={onChange || (() => {})}
+        onSubmit={onSubmit || (() => {})}
         disabled={disabled}
       />
     </div>
   );
-}
+};
