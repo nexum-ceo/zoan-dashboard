@@ -343,7 +343,6 @@ export function useChat({
               console.log('[WS] Filtered system message:', data);
               return null;
             }
-            console.log('data', data);
 
             // For any other JSON message, return the raw JSON string and
             // let the downstream parser handle types (thinking/text/etc.)
