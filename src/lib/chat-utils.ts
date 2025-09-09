@@ -16,9 +16,13 @@ export type ChatMessage = {
  * Transform API chat messages to safe format for UI
  */
 export const transformChatMessages = (
-  chatMessages: ChatMessageType[],
+  chatMessages: ChatMessageType[] | null | undefined,
   userId: string,
 ): ChatMessage[] => {
+  if (!Array.isArray(chatMessages) || chatMessages.length === 0) {
+    return [];
+  }
+
   const safeMessages = chatMessages.map((msg) => ({
     ...msg,
     content: msg.content ?? '',
@@ -34,12 +38,11 @@ export const transformChatMessages = (
  */
 export const shouldSyncMessagesFromAPI = (
   chatInfo: GetSpecificChatResType['data'] | undefined,
-  chatMessages: ChatMessageType[],
+  chatMessages: ChatMessageType[] | null | undefined,
   currentMessages: ChatMessage[],
 ): boolean => {
   return !!(
     chatInfo?.user_id &&
-    chatMessages &&
     Array.isArray(chatMessages) &&
     currentMessages.length === 0
   );
