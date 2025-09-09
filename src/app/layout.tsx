@@ -5,16 +5,12 @@ import SessionProvider from '@/components/session-provider';
 import { baseOpenGraph } from '@/shared-metadata';
 import type { Metadata } from 'next';
 import { getServerSession } from 'next-auth';
-import { Geist, Geist_Mono } from 'next/font/google';
+import { Inter } from 'next/font/google';
 import { Toaster } from 'sonner';
 import './globals.css';
-const geistSans = Geist({
-  variable: '--font-geist-sans',
-  subsets: ['latin'],
-});
 
-const geistMono = Geist_Mono({
-  variable: '--font-geist-mono',
+const inter = Inter({
+  variable: '--font-inter',
   subsets: ['latin'],
 });
 
@@ -40,9 +36,7 @@ export default async function RootLayout({
   console.log('session root:', session);
   return (
     <html lang="en" suppressHydrationWarning>
-      <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased h-screen w-full m-0 p-0`}
-      >
+      <body className={`${inter.variable} antialiased h-screen w-full m-0 p-0`}>
         <AppProvider>
           <SessionProvider>
             <div className="h-full w-full">{children}</div>
