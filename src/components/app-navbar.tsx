@@ -242,65 +242,54 @@ export default function AppNavbar() {
                         {user.email}
                       </div>
                     </DropdownMenuLabel>
-
                     <DropdownMenuSeparator />
-
                     {/* General Setting Section */}
                     <DropdownMenuLabel className="px-3 py-2">
                       <div className="text-paragraph !text-sm">
                         General setting
                       </div>
                     </DropdownMenuLabel>
-
                     <DropdownMenuItem className="px-3 py-2 bg-gray-100">
                       <User className="mr-2 h-4 w-4 text-[#272727]" />
                       <span className="text-paragraph !text-sm">Profile</span>
                     </DropdownMenuItem>
-
                     <DropdownMenuItem className="px-3 py-2">
                       <Settings className="mr-2 h-4 w-4 text-[#272727]" />
                       <span className="text-paragraph !text-sm !text-[#272727]/50">
                         Settings
                       </span>
                     </DropdownMenuItem>
-
                     <DropdownMenuItem className="px-3 py-2">
                       <DollarSign className="mr-2 h-4 w-4 text-[#272727]" />
                       <span className="text-paragraph !text-sm !text-[#272727]/50">
                         Pricing
                       </span>
                     </DropdownMenuItem>
-
                     <DropdownMenuItem className="px-3 py-2">
                       <BookOpen className="mr-2 h-4 w-4 !text-[#272727]" />
                       <span className="text-paragraph !text-sm !text-[#272727]/50">
                         Documentation
                       </span>
                     </DropdownMenuItem>
-
                     <DropdownMenuItem className="px-3 py-2">
                       <Users className="mr-2 h-4 w-4 text-[#272727]" />
                       <span className="text-paragraph !text-sm !text-[#272727]/50">
                         Community Forum
                       </span>
                     </DropdownMenuItem>
-
                     <DropdownMenuItem className="px-3 py-2">
                       <MessageSquare className="mr-2 h-4 w-4 text-[#272727]" />
                       <span className="text-paragraph !text-sm !text-[#272727]/50">
                         Feedback
                       </span>
                     </DropdownMenuItem>
-
                     <DropdownMenuSeparator />
-
                     {/* Credit Balance Section */}
                     <DropdownMenuLabel className="px-3 py-2">
                       <div className="text-paragraph !text-sm">
                         Credit Balance
                       </div>
                     </DropdownMenuLabel>
-
                     <div className="px-3 py-2">
                       <div className="flex justify-between items-center mb-2">
                         <span className="text-paragraph !text-sm !text-[#272727]/50">
@@ -324,14 +313,11 @@ export default function AppNavbar() {
                         </span>
                       </span>
                     </div>
-
                     <DropdownMenuSeparator />
-
                     {/* Preferences Section */}
                     <DropdownMenuLabel className="px-3 py-2">
                       <div className="text-paragraph !text-sm">Preferences</div>
                     </DropdownMenuLabel>
-
                     <div className="px-3 py-2">
                       <div className="flex justify-between items-center mb-3">
                         <span className="text-paragraph !text-sm !text-[#272727]/50">
@@ -421,9 +407,8 @@ export default function AppNavbar() {
                         </Select>
                       </div>
                     </div>
-
+                    k
                     <DropdownMenuSeparator />
-
                     {/* Sign Out Button */}
                     <DropdownMenuItem onClick={handleLogout} className="p-3">
                       <Button className="w-full text-[#ef3d40] bg-transparent hover:bg-transparent">
