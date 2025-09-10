@@ -1,6 +1,7 @@
 import { Download, Play, Star } from 'lucide-react';
 import Image from 'next/image';
 import { FC } from 'react';
+import VectorIcon from '../../../../public/icon/vector';
 
 type CommunityProject = {
   id: string;
@@ -99,16 +100,14 @@ export const CommunitySection: FC<CommunitySectionProps> = ({
         {/* Header */}
         <div className="flex items-center justify-between mb-8">
           <div>
-            <h2 className="text-3xl font-bold text-gray-900 mb-2">
-              From the Community
-            </h2>
-            <p className="text-gray-600">
+            <div className="text-body-b1 mb-2">From the Community</div>
+            <div className="text-paragraph text-sm !text-[#272727]/50">
               Explore what the community is building with ZOAN.
-            </p>
+            </div>
           </div>
-          <button className="text-green-600 hover:text-green-700 font-medium text-sm flex items-center gap-1">
+          <button className="text-paragraph !text-[#272727]/50 flex items-center gap-1.5">
             Explore all
-            <span className="text-lg">→</span>
+            <VectorIcon />
           </button>
         </div>
 
