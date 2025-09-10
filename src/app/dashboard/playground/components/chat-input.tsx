@@ -36,7 +36,7 @@ export const ChatInput: FC<ChatInputProps> = ({
       >
         <PromptInputTextarea
           placeholder="Ask ZOAN to build something amazing"
-          className="leading-6 min-h-[72px] border-0 focus:border-0 focus:ring-0 focus:outline-none resize-none w-full bg-transparent placeholder:text-muted-foreground"
+          className="leading-6 min-h-[72px] border-0 focus:border-0 focus:ring-0 focus:outline-none resize-none w-full bg-transparent text-paragraph text-sm placeholder:text-[#272727]/40"
           style={{ lineHeight: '1.5' }}
           name="message"
           value={value}
@@ -64,10 +64,10 @@ export const ChatInput: FC<ChatInputProps> = ({
         </PromptInputToolbar>
       </PromptInput>
       {showUpgradeBanner && (
-        <div className="rounded-b-xl -mt-3 flex items-center justify-between bg-primary-brand-green px-4 pb-3 pt-7 text-sm text-paragraph border border-emerald-100 shadow-sm z-0">
-          <span className="flex items-center gap-2">
+        <div className="rounded-b-xl -mt-3 flex items-center justify-between bg-primary-brand-green px-4 pb-3 pt-7 text-paragraph">
+          <span>
             <span>Upgrade now to get more tokens and unlock access to</span>
-            <span className="font-bold">AI V2</span>
+            <span className="font-bold"> &nbsp;AI V2</span>
             <span>!</span>
           </span>
           <span
