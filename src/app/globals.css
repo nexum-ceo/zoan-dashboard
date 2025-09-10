@@ -134,6 +134,16 @@
     letter-spacing: 0.24px;
   }
 
+  .text-paragraph {
+    font-family: var(--Font, Inter);
+    font-size: 12px;
+    font-style: normal;
+    font-weight: 500;
+    line-height: 120%; /* 14.4px */
+    letter-spacing: 0.12px;
+    color: #272727;
+  }
+
   .my-container {
     padding: 40px 100px;
     width: 100%;

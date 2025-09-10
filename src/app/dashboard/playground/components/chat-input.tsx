@@ -10,6 +10,7 @@ import {
 import type { ChatStatus } from 'ai';
 import { Paperclip } from 'lucide-react';
 import { ChangeEvent, FC, FormEvent, useState } from 'react';
+import CloseIcon from '../../../../../public/icon/close';
 
 type ChatInputProps = {
   value: string;
@@ -30,7 +31,7 @@ export const ChatInput: FC<ChatInputProps> = ({
   return (
     <div className="w-full max-w-4xl mx-auto px-4 py-4">
       <PromptInput
-        className="rounded-2xl border active:border-primary-brand-darker-green bg-card text-card-foreground shadow-sm"
+        className="z-10 relative rounded-xl border focus-within:border-primary-brand-darker-green bg-card text-card-foreground"
         onSubmit={onSubmit}
       >
         <PromptInputTextarea
@@ -63,19 +64,18 @@ export const ChatInput: FC<ChatInputProps> = ({
         </PromptInputToolbar>
       </PromptInput>
       {showUpgradeBanner && (
-        <div className="mt-2 flex items-center justify-between rounded-xl bg-emerald-50 px-3 py-2 text-sm text-emerald-700">
-          <span>
-            Upgrade now to get more tokens and unlock access to{' '}
-            <span className="font-semibold">AI V2</span>!
+        <div className="rounded-b-xl -mt-3 flex items-center justify-between bg-primary-brand-green px-4 pb-3 pt-7 text-sm text-paragraph border border-emerald-100 shadow-sm z-0">
+          <span className="flex items-center gap-2">
+            <span>Upgrade now to get more tokens and unlock access to</span>
+            <span className="font-bold">AI V2</span>
+            <span>!</span>
           </span>
-          <button
-            type="button"
-            className="rounded p-1 text-emerald-700/70 hover:bg-emerald-100"
+          <span
+            className="cursor-pointer text-[#272727]/50"
             onClick={() => setShowUpgradeBanner(false)}
-            aria-label="Dismiss upgrade banner"
           >
-            ×
-          </button>
+            <CloseIcon />
+          </span>
         </div>
       )}
     </div>
