@@ -150,6 +150,15 @@
     height: 100%;
     margin: 0 0;
   }
+
+  .text-tag-label {
+    font-family: var(--Font, Inter);
+    font-size: 10px;
+    font-style: normal;
+    font-weight: 500;
+    line-height: 100%; /* 10px */
+    letter-spacing: 0.1px;
+  }
 }
 
 /* Remove spinner for Chrome, Safari, Edge */

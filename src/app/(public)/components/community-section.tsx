@@ -1,4 +1,7 @@
-import { Download, Play, Star } from 'lucide-react';
+import { Avatar, AvatarFallback } from '@/components/ui/avatar';
+import { Button } from '@/components/ui/button';
+import { IconLabel } from '@tabler/icons-react';
+import { ArrowUpRight, Dot, Star } from 'lucide-react';
 import Image from 'next/image';
 import { FC } from 'react';
 import VectorIcon from '../../../../public/icon/vector';
@@ -19,48 +22,70 @@ type CommunitySectionProps = {
   projects?: CommunityProject[];
 };
 
+// Group Avatar Component using shadcn Avatar
+const GroupAvatar: FC = () => {
+  const avatars = [
+    { color: 'bg-red-500', initial: 'R' },
+    { color: 'bg-orange-500', initial: 'O' },
+    { color: 'bg-green-500', initial: 'G' },
+    { color: 'bg-blue-500', initial: 'B' },
+    { color: 'bg-purple-500', initial: 'P' },
+  ];
+
+  return (
+    <div className="flex -space-x-1">
+      {avatars.map((avatar, index) => (
+        <Avatar key={index} className="w-3 h-3 border border-white">
+          <AvatarFallback
+            className={`${avatar.color} text-white text-[8px] font-medium`}
+          >
+            {avatar.initial}
+          </AvatarFallback>
+        </Avatar>
+      ))}
+    </div>
+  );
+};
+
 const CommunityProjectCard: FC<{ project: CommunityProject }> = ({
   project,
 }) => {
   return (
-    <div className="bg-white rounded-xl border border-gray-200 shadow-sm hover:shadow-md transition-shadow duration-200 overflow-hidden">
+    <div className="bg-white rounded-lg border border-gray-200 shadow-sm hover:shadow-md transition-shadow duration-200 overflow-hidden">
       {/* Project Image */}
       <div className="relative w-full h-60.5">
         <Image
           src={project.image}
           alt={project.title}
           fill
-          className="object-cover rounded-t-xl"
+          className="object-cover rounded-t-lg"
         />
       </div>
 
       {/* Project Content */}
-      <div className="p-4 space-y-3">
+      <div className="p-4 space-y-1 w-full">
         {/* Title and Category */}
-        <div className="flex items-center justify-between">
-          <h3 className="font-semibold text-gray-900 text-sm">
-            {project.title}
-          </h3>
+        <div className="flex items-center gap-1">
+          <h3 className="text-paragraph">{project.title}</h3>
           <div className="flex items-center gap-1">
-            <div className="w-4 h-4 bg-blue-100 rounded flex items-center justify-center">
-              <span className="text-xs">🎮</span>
-            </div>
-            <span className="text-xs text-gray-600">{project.category}</span>
+            <IconLabel className="w-3 h-3 text-primary-brand-darker-green" />
+            <span className="text-primary-brand-darker-green text-[10px] font-normal">
+              {project.category}
+            </span>
           </div>
         </div>
 
-        {/* Creator */}
-        <p className="text-xs text-gray-500">By {project.creator}</p>
-
-        {/* Stats */}
-        <div className="flex items-center gap-4 text-xs text-gray-600">
+        {/* Creator, Group Avatar and Stats */}
+        <div className="flex items-center gap-1">
+          <p className="text-tag-label">By {project.creator}</p>
+          <Dot className="w-2 h-2" />
+          <GroupAvatar />
+          <Dot className="w-2 h-2" />
+          <span className="text-xs text-[#272727]/50">{project.installs}</span>
+          <Dot className="w-2 h-2" />
           <div className="flex items-center gap-1">
-            <Download className="w-3 h-3" />
-            <span>{project.installs}</span>
-          </div>
-          <div className="flex items-center gap-1">
-            <Star className="w-3 h-3 fill-yellow-400 text-yellow-400" />
-            <span>{project.rating}</span>
+            <Star className="w-3 h-3 text-[#272727]/50" />
+            <span className="text-xs text-[#272727]/50">{project.rating}</span>
           </div>
         </div>
 
@@ -69,7 +94,7 @@ const CommunityProjectCard: FC<{ project: CommunityProject }> = ({
           {project.tags.map((tag, index) => (
             <span
               key={index}
-              className="px-2 py-1 bg-gray-100 text-gray-600 text-xs rounded-md"
+              className="text-tag-label bg-[#272727]/5 p-1.5 rounded-lg"
             >
               {tag}
             </span>
@@ -77,15 +102,19 @@ const CommunityProjectCard: FC<{ project: CommunityProject }> = ({
         </div>
 
         {/* Description */}
-        <p className="text-xs text-gray-600 leading-relaxed">
+        <p className="text-xs font-normal line-clamp-2 text-[#272727]/50">
           {project.description}
         </p>
 
         {/* Play Demo Button */}
-        <button className="w-full flex items-center justify-center gap-2 bg-green-500 hover:bg-green-600 text-white text-xs font-medium py-2 px-3 rounded-lg transition-colors duration-200">
-          <Play className="w-3 h-3" />
-          Play demo
-        </button>
+        <div className="flex gap-1 w-full">
+          <Button className="flex-1" size="l">
+            Play demo
+          </Button>
+          <Button size={'l'} variant="secondary" className="!p-1">
+            <ArrowUpRight />
+          </Button>
+        </div>
       </div>
     </div>
   );
@@ -112,7 +141,7 @@ export const CommunitySection: FC<CommunitySectionProps> = ({
         </div>
 
         {/* Projects Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
           {projects.map((project) => (
             <CommunityProjectCard key={project.id} project={project} />
           ))}
