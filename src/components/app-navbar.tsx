@@ -19,9 +19,12 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import {
-  ThemeToggleButton,
-  useThemeTransition,
-} from '@/components/ui/shadcn-io/theme-toggle-button';
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import { IconLogout } from '@tabler/icons-react';
 import {
   BookOpen,
@@ -33,7 +36,6 @@ import {
   Users,
 } from 'lucide-react';
 import { signIn, signOut, useSession } from 'next-auth/react';
-import { useTheme } from 'next-themes';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import SettingIcon from '../../public/icon/setting';
@@ -66,8 +68,6 @@ export default function AppNavbar() {
   const router = useRouter();
   const { data: session } = useSession();
   const user = session?.user;
-  const { theme, setTheme } = useTheme();
-  const { startTransition } = useThemeTransition();
 
   // BroadcastChannel allow logout across tabs
   useEffect(() => {
@@ -235,107 +235,202 @@ export default function AppNavbar() {
                       </Avatar>
                     </Button>
                   </DropdownMenuTrigger>
-                  <DropdownMenuContent className="w-56" align="end" forceMount>
-                    <DropdownMenuLabel className="p-0 font-normal">
-                      <div className="flex items-center gap-2 px-1 py-1.5 text-left text-sm">
-                        <Avatar className="h-8 w-8 rounded-lg">
-                          <AvatarImage
-                            src={user?.image || ''}
-                            alt={user?.email || ''}
-                          />
-                          <AvatarFallback className="rounded-lg">
-                            CN
-                          </AvatarFallback>
-                        </Avatar>
-                        <div className="grid flex-1 text-left text-sm leading-tight">
-                          <span className="truncate font-medium">
-                            {user.email}
-                          </span>
-                          <span className="text-muted-foreground truncate text-xs">
-                            {user.email}
-                          </span>
-                        </div>
+                  <DropdownMenuContent className="w-68" align="end" forceMount>
+                    {/* Email Address at top */}
+                    <DropdownMenuLabel className="px-3 py-2">
+                      <div className="text-sm text-[#272727]/50">
+                        {user.email}
                       </div>
                     </DropdownMenuLabel>
+
                     <DropdownMenuSeparator />
-                    <DropdownMenuItem>
-                      <User className="mr-2 h-4 w-4" />
-                      <span>Profile</span>
-                    </DropdownMenuItem>
-                    <DropdownMenuItem>
-                      <Settings className="mr-2 h-4 w-4" />
-                      <span>Settings</span>
-                    </DropdownMenuItem>
-                    <DropdownMenuItem>
-                      <DollarSign className="mr-2 h-4 w-4" />
-                      <span>Pricing</span>
-                    </DropdownMenuItem>
-                    <DropdownMenuItem>
-                      <BookOpen className="mr-2 h-4 w-4" />
-                      <span>Documentation</span>
-                    </DropdownMenuItem>
-                    <DropdownMenuItem>
-                      <Users className="mr-2 h-4 w-4" />
-                      <span>Community Forum</span>
-                    </DropdownMenuItem>
-                    <DropdownMenuItem>
-                      <MessageSquare className="mr-2 h-4 w-4" />
-                      <span>Feedback</span>
-                    </DropdownMenuItem>
-                    <DropdownMenuSeparator />
-                    <div className="px-2 py-2">
-                      <div className="text-xs font-medium text-muted-foreground">
-                        Preferences
+
+                    {/* General Setting Section */}
+                    <DropdownMenuLabel className="px-3 py-2">
+                      <div className="text-paragraph !text-sm">
+                        General setting
                       </div>
-                      <div className="flex items-center justify-between py-2">
-                        <span className="text-sm">Theme</span>
-                        <div className="flex gap-1 items-center bg-muted rounded-lg p-1">
-                          <ThemeToggleButton
-                            className={`rounded-full p-1 w-fit h-fit ${
-                              theme === 'light'
-                                ? 'text-primary'
-                                : 'text-gray-400'
-                            }`}
-                            theme="light"
-                            onClick={() =>
-                              startTransition(() => setTheme('light'))
-                            }
-                            variant="circle"
-                            start="top-right"
-                          />
-                          <ThemeToggleButton
-                            className={`rounded-full p-1 w-fit h-fit ${
-                              theme === 'system'
-                                ? 'text-primary'
-                                : 'text-gray-400'
-                            }`}
-                            theme="system"
-                            onClick={() =>
-                              startTransition(() => setTheme('system'))
-                            }
-                            variant="circle"
-                            start="top-right"
-                          />
-                          <ThemeToggleButton
-                            className={`rounded-full p-1 w-fit h-fit ${
-                              theme === 'dark'
-                                ? 'text-primary'
-                                : 'text-gray-400'
-                            }`}
-                            theme="dark"
-                            onClick={() =>
-                              startTransition(() => setTheme('dark'))
-                            }
-                            variant="circle"
-                            start="top-right"
-                          />
-                        </div>
+                    </DropdownMenuLabel>
+
+                    <DropdownMenuItem className="px-3 py-2 bg-gray-100">
+                      <User className="mr-2 h-4 w-4 text-[#272727]" />
+                      <span className="text-paragraph !text-sm">Profile</span>
+                    </DropdownMenuItem>
+
+                    <DropdownMenuItem className="px-3 py-2">
+                      <Settings className="mr-2 h-4 w-4 text-[#272727]" />
+                      <span className="text-paragraph !text-sm !text-[#272727]/50">
+                        Settings
+                      </span>
+                    </DropdownMenuItem>
+
+                    <DropdownMenuItem className="px-3 py-2">
+                      <DollarSign className="mr-2 h-4 w-4 text-[#272727]" />
+                      <span className="text-paragraph !text-sm !text-[#272727]/50">
+                        Pricing
+                      </span>
+                    </DropdownMenuItem>
+
+                    <DropdownMenuItem className="px-3 py-2">
+                      <BookOpen className="mr-2 h-4 w-4 !text-[#272727]" />
+                      <span className="text-paragraph !text-sm !text-[#272727]/50">
+                        Documentation
+                      </span>
+                    </DropdownMenuItem>
+
+                    <DropdownMenuItem className="px-3 py-2">
+                      <Users className="mr-2 h-4 w-4 text-[#272727]" />
+                      <span className="text-paragraph !text-sm !text-[#272727]/50">
+                        Community Forum
+                      </span>
+                    </DropdownMenuItem>
+
+                    <DropdownMenuItem className="px-3 py-2">
+                      <MessageSquare className="mr-2 h-4 w-4 text-[#272727]" />
+                      <span className="text-paragraph !text-sm !text-[#272727]/50">
+                        Feedback
+                      </span>
+                    </DropdownMenuItem>
+
+                    <DropdownMenuSeparator />
+
+                    {/* Credit Balance Section */}
+                    <DropdownMenuLabel className="px-3 py-2">
+                      <div className="text-paragraph !text-sm">
+                        Credit Balance
+                      </div>
+                    </DropdownMenuLabel>
+
+                    <div className="px-3 py-2">
+                      <div className="flex justify-between items-center mb-2">
+                        <span className="text-paragraph !text-sm !text-[#272727]/50">
+                          Gifted credits
+                        </span>
+                        <span className="text-paragraph !text-sm">0.00</span>
+                      </div>
+                      <div className="flex justify-between items-center mb-3">
+                        <span className="text-paragraph !text-sm !text-[#272727]/50">
+                          Monthly credits
+                        </span>
+                        <span className="text-paragraph !text-sm">4.71</span>
                       </div>
                     </div>
+                    {/* Upgrade Banner */}
+                    <div className="bg-primary-brand-green rounded-lg px-3 py-2">
+                      <span className="text-paragraph !text-sm  !text-primary-brand-darker-green">
+                        Upgrade your plan to buy more credits.
+                        <span className="underline underline-offset-2">
+                          Upgrade plan
+                        </span>
+                      </span>
+                    </div>
+
                     <DropdownMenuSeparator />
-                    <DropdownMenuItem onClick={handleLogout}>
-                      <IconLogout className="mr-2 h-4 w-4" />
-                      <span>Log out</span>
+
+                    {/* Preferences Section */}
+                    <DropdownMenuLabel className="px-3 py-2">
+                      <div className="text-paragraph !text-sm">Preferences</div>
+                    </DropdownMenuLabel>
+
+                    <div className="px-3 py-2">
+                      <div className="flex justify-between items-center mb-3">
+                        <span className="text-paragraph !text-sm !text-[#272727]/50">
+                          Theme
+                        </span>
+                        <Select>
+                          <SelectTrigger
+                            defaultValue={'system'}
+                            value={'system'}
+                          >
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent
+                            className="!text-sm !text-[#272727]"
+                            defaultValue={'system'}
+                          >
+                            <SelectItem
+                              className="text-[#272727]"
+                              value="system"
+                            >
+                              System
+                            </SelectItem>
+                            <SelectItem className="text-[#272727]" value="dark">
+                              Dark
+                            </SelectItem>
+                            <SelectItem
+                              className="text-[#272727]"
+                              value="light"
+                            >
+                              Light
+                            </SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      <div className="flex justify-between items-center mb-3">
+                        <span className="text-paragraph !text-sm !text-[#272727]/50">
+                          Language
+                        </span>
+                        <Select>
+                          <SelectTrigger
+                            defaultValue={'system'}
+                            value={'system'}
+                          >
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent
+                            className="!text-sm !text-[#272727]"
+                            defaultValue={'english'}
+                          >
+                            <SelectItem
+                              className="text-[#272727]"
+                              value="english"
+                            >
+                              English
+                            </SelectItem>
+                            <SelectItem
+                              className="text-[#272727]"
+                              value="vietnamese"
+                            >
+                              Vietnamese
+                            </SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      <div className="flex justify-between items-center">
+                        <span className="text-paragraph !text-sm !text-[#272727]/50">
+                          Chat Position
+                        </span>
+                        <Select>
+                          <SelectTrigger defaultValue={'leftl'} value={'left'}>
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent
+                            className="!text-sm !text-[#272727]"
+                            defaultValue={'left'}
+                          >
+                            <SelectItem className="text-[#272727]" value="left">
+                              Left
+                            </SelectItem>
+                            <SelectItem
+                              className="text-[#272727]"
+                              value="right"
+                            >
+                              Right
+                            </SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    </div>
+
+                    <DropdownMenuSeparator />
+
+                    {/* Sign Out Button */}
+                    <DropdownMenuItem
+                      onClick={handleLogout}
+                      className="px-4 py-2 text-red-600 hover:bg-red-50"
+                    >
+                      <IconLogout className="mr-3 h-4 w-4" />
+                      <span>Sign Out</span>
                     </DropdownMenuItem>
                   </DropdownMenuContent>
                 </DropdownMenu>
