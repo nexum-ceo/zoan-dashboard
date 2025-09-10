@@ -48,7 +48,7 @@ export const ChatInput: FC<ChatInputProps> = ({
             <PromptInputButton
               type="button"
               disabled={disabled}
-              className="rounded-full bg-accent/40 hover:bg-accent/60"
+              className="bg-[#2727270D]"
             >
               <Paperclip className="w-4 h-4 text-muted-foreground" />
             </PromptInputButton>
