@@ -36,6 +36,8 @@ import { signIn, signOut, useSession } from 'next-auth/react';
 import { useTheme } from 'next-themes';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
+import SettingIcon from '../../public/icon/setting';
+import ShareIcon from '../../public/icon/share';
 import ZoanLogo from '../../public/icon/zoan-logo';
 import { Button, buttonVariants } from './ui/button';
 
@@ -191,123 +193,153 @@ export default function AppNavbar() {
 
           <div className="hidden md:flex items-center gap-2">
             {user ? (
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button
-                    variant="ghost"
-                    className="relative h-8 w-8 rounded-full"
-                  >
-                    <Avatar className="h-8 w-8 rounded-lg">
-                      <AvatarImage
-                        src={user.image || ''}
-                        alt={user.email || ''}
-                      />
-                      <AvatarFallback className="rounded-lg">
-                        {user.name?.[0] || user.email?.[0] || 'U'}
-                      </AvatarFallback>
-                    </Avatar>
+              <>
+                {/* Action buttons matching the image - only show when user is logged in */}
+                <div className="flex items-center gap-2">
+                  {/* Settings icon button */}
+                  <Button variant="secondary" size="icon" className="h-8 w-8">
+                    <SettingIcon />
                   </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent className="w-56" align="end" forceMount>
-                  <DropdownMenuLabel className="p-0 font-normal">
-                    <div className="flex items-center gap-2 px-1 py-1.5 text-left text-sm">
+
+                  {/* Share icon button */}
+                  <Button variant="secondary" size="icon" className="h-8 w-8">
+                    <ShareIcon />
+                  </Button>
+
+                  {/* Share text button */}
+                  <Button variant="secondary">Share</Button>
+
+                  {/* Public text button with green background */}
+                  <Button
+                    variant="default"
+                    className="h-8 px-3 bg-green-100 hover:bg-green-200 text-gray-800 border-0"
+                  >
+                    Public
+                  </Button>
+                </div>
+
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button
+                      variant="ghost"
+                      className="relative h-8 w-8 rounded-full"
+                    >
                       <Avatar className="h-8 w-8 rounded-lg">
                         <AvatarImage
-                          src={user?.image || ''}
-                          alt={user?.email || ''}
+                          src={user.image || ''}
+                          alt={user.email || ''}
                         />
                         <AvatarFallback className="rounded-lg">
-                          CN
+                          {user.name?.[0] || user.email?.[0] || 'U'}
                         </AvatarFallback>
                       </Avatar>
-                      <div className="grid flex-1 text-left text-sm leading-tight">
-                        <span className="truncate font-medium">
-                          {user.email}
-                        </span>
-                        <span className="text-muted-foreground truncate text-xs">
-                          {user.email}
-                        </span>
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent className="w-56" align="end" forceMount>
+                    <DropdownMenuLabel className="p-0 font-normal">
+                      <div className="flex items-center gap-2 px-1 py-1.5 text-left text-sm">
+                        <Avatar className="h-8 w-8 rounded-lg">
+                          <AvatarImage
+                            src={user?.image || ''}
+                            alt={user?.email || ''}
+                          />
+                          <AvatarFallback className="rounded-lg">
+                            CN
+                          </AvatarFallback>
+                        </Avatar>
+                        <div className="grid flex-1 text-left text-sm leading-tight">
+                          <span className="truncate font-medium">
+                            {user.email}
+                          </span>
+                          <span className="text-muted-foreground truncate text-xs">
+                            {user.email}
+                          </span>
+                        </div>
+                      </div>
+                    </DropdownMenuLabel>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem>
+                      <User className="mr-2 h-4 w-4" />
+                      <span>Profile</span>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem>
+                      <Settings className="mr-2 h-4 w-4" />
+                      <span>Settings</span>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem>
+                      <DollarSign className="mr-2 h-4 w-4" />
+                      <span>Pricing</span>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem>
+                      <BookOpen className="mr-2 h-4 w-4" />
+                      <span>Documentation</span>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem>
+                      <Users className="mr-2 h-4 w-4" />
+                      <span>Community Forum</span>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem>
+                      <MessageSquare className="mr-2 h-4 w-4" />
+                      <span>Feedback</span>
+                    </DropdownMenuItem>
+                    <DropdownMenuSeparator />
+                    <div className="px-2 py-2">
+                      <div className="text-xs font-medium text-muted-foreground">
+                        Preferences
+                      </div>
+                      <div className="flex items-center justify-between py-2">
+                        <span className="text-sm">Theme</span>
+                        <div className="flex gap-1 items-center bg-muted rounded-lg p-1">
+                          <ThemeToggleButton
+                            className={`rounded-full p-1 w-fit h-fit ${
+                              theme === 'light'
+                                ? 'text-primary'
+                                : 'text-gray-400'
+                            }`}
+                            theme="light"
+                            onClick={() =>
+                              startTransition(() => setTheme('light'))
+                            }
+                            variant="circle"
+                            start="top-right"
+                          />
+                          <ThemeToggleButton
+                            className={`rounded-full p-1 w-fit h-fit ${
+                              theme === 'system'
+                                ? 'text-primary'
+                                : 'text-gray-400'
+                            }`}
+                            theme="system"
+                            onClick={() =>
+                              startTransition(() => setTheme('system'))
+                            }
+                            variant="circle"
+                            start="top-right"
+                          />
+                          <ThemeToggleButton
+                            className={`rounded-full p-1 w-fit h-fit ${
+                              theme === 'dark'
+                                ? 'text-primary'
+                                : 'text-gray-400'
+                            }`}
+                            theme="dark"
+                            onClick={() =>
+                              startTransition(() => setTheme('dark'))
+                            }
+                            variant="circle"
+                            start="top-right"
+                          />
+                        </div>
                       </div>
                     </div>
-                  </DropdownMenuLabel>
-                  <DropdownMenuSeparator />
-                  <DropdownMenuItem>
-                    <User className="mr-2 h-4 w-4" />
-                    <span>Profile</span>
-                  </DropdownMenuItem>
-                  <DropdownMenuItem>
-                    <Settings className="mr-2 h-4 w-4" />
-                    <span>Settings</span>
-                  </DropdownMenuItem>
-                  <DropdownMenuItem>
-                    <DollarSign className="mr-2 h-4 w-4" />
-                    <span>Pricing</span>
-                  </DropdownMenuItem>
-                  <DropdownMenuItem>
-                    <BookOpen className="mr-2 h-4 w-4" />
-                    <span>Documentation</span>
-                  </DropdownMenuItem>
-                  <DropdownMenuItem>
-                    <Users className="mr-2 h-4 w-4" />
-                    <span>Community Forum</span>
-                  </DropdownMenuItem>
-                  <DropdownMenuItem>
-                    <MessageSquare className="mr-2 h-4 w-4" />
-                    <span>Feedback</span>
-                  </DropdownMenuItem>
-                  <DropdownMenuSeparator />
-                  <div className="px-2 py-2">
-                    <div className="text-xs font-medium text-muted-foreground">
-                      Preferences
-                    </div>
-                    <div className="flex items-center justify-between py-2">
-                      <span className="text-sm">Theme</span>
-                      <div className="flex gap-1 items-center bg-muted rounded-lg p-1">
-                        <ThemeToggleButton
-                          className={`rounded-full p-1 w-fit h-fit ${
-                            theme === 'light' ? 'text-primary' : 'text-gray-400'
-                          }`}
-                          theme="light"
-                          onClick={() =>
-                            startTransition(() => setTheme('light'))
-                          }
-                          variant="circle"
-                          start="top-right"
-                        />
-                        <ThemeToggleButton
-                          className={`rounded-full p-1 w-fit h-fit ${
-                            theme === 'system'
-                              ? 'text-primary'
-                              : 'text-gray-400'
-                          }`}
-                          theme="system"
-                          onClick={() =>
-                            startTransition(() => setTheme('system'))
-                          }
-                          variant="circle"
-                          start="top-right"
-                        />
-                        <ThemeToggleButton
-                          className={`rounded-full p-1 w-fit h-fit ${
-                            theme === 'dark' ? 'text-primary' : 'text-gray-400'
-                          }`}
-                          theme="dark"
-                          onClick={() =>
-                            startTransition(() => setTheme('dark'))
-                          }
-                          variant="circle"
-                          start="top-right"
-                        />
-                      </div>
-                    </div>
-                  </div>
-                  <DropdownMenuSeparator />
-                  <DropdownMenuItem onClick={handleLogout}>
-                    <IconLogout className="mr-2 h-4 w-4" />
-                    <span>Log out</span>
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem onClick={handleLogout}>
+                      <IconLogout className="mr-2 h-4 w-4" />
+                      <span>Log out</span>
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              </>
             ) : (
               <>
                 <Button variant={'secondary'}>Sign up</Button>

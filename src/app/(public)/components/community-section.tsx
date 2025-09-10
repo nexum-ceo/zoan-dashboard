@@ -112,7 +112,7 @@ const CommunityProjectCard: FC<{ project: CommunityProject }> = ({
             Play demo
           </Button>
           <Button size={'l'} variant="secondary" className="!p-1">
-            <ArrowUpRight />
+            <ArrowUpRight className="text-[#272727]" />
           </Button>
         </div>
       </div>
