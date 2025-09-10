@@ -431,7 +431,11 @@ export function PlaygroundChatClient({ chatId }: PlaygroundChatClientProps) {
       )}
 
       {/* Explore Panel */}
-      <Explore isOpen={exploreOpen} onClose={() => setExploreOpen(false)} />
+      <Explore
+        chatId={chatId}
+        isOpen={exploreOpen}
+        onClose={() => setExploreOpen(false)}
+      />
     </div>
   );
 }

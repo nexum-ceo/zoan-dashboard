@@ -114,3 +114,11 @@ export const useCreateChatAgentSettingMutation = (id: string) => {
     },
   });
 };
+
+export const useGetChatGameVersionList = (id: string) => {
+  return useQuery({
+    queryKey: ['chat-game-version-list', id],
+    queryFn: () => chatApiRequest.getChatGameVersionList(id),
+    enabled: !!id,
+  });
+};

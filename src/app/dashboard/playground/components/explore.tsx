@@ -8,18 +8,22 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import { useGetChatGameVersionList } from '@/queries/useChat';
 import { AnimatePresence, motion } from 'framer-motion';
 import { Download, Eye, Play, X } from 'lucide-react';
 import { FC, useState } from 'react';
 
 type ExploreProps = {
+  chatId: string;
   isOpen: boolean;
   onClose: () => void;
 };
 
-export const Explore: FC<ExploreProps> = ({ isOpen, onClose }) => {
+export const Explore: FC<ExploreProps> = ({ isOpen, onClose, chatId }) => {
   const [isGameModalOpen, setIsGameModalOpen] = useState<boolean>(false);
+  const { data: chatGameVersionList } = useGetChatGameVersionList(chatId);
 
+  console.log(chatGameVersionList);
   return (
     <AnimatePresence initial={false} mode="wait">
       {isOpen && (
