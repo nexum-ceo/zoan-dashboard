@@ -21,14 +21,14 @@ type ChatMessageType = {
   parts?: Array<{ type: string; text?: string }>;
 };
 
-interface PlaygroundMessagesProps {
+type PlaygroundMessagesProps = {
   messages: ChatMessageType[];
   isLoading: boolean;
   messagesContainerRef: RefObject<HTMLDivElement | null>;
   messagesEndRef: RefObject<HTMLDivElement | null>;
   showScrollButton: boolean;
   onScrollToBottom: () => void;
-}
+};
 
 export function PlaygroundMessages({
   messages,

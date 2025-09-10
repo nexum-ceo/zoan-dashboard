@@ -16,6 +16,7 @@ import {
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import { SidebarProvider } from '@/components/ui/sidebar';
 import { useIsMobile } from '@/hooks/use-mobile';
+import type { ChatMessage as HookChatMessage } from '@/hooks/useChat';
 import { useChat } from '@/hooks/useChat';
 import { useInfiniteScroll } from '@/hooks/useInfiniteScroll';
 import {
@@ -157,6 +158,34 @@ export function PlaygroundChatClient({ chatId }: PlaygroundChatClientProps) {
 
     return () => clearTimeout(timeoutId);
   }, [isFetchingNextPage, previousScrollHeight]);
+
+  // Auto-open Explore panel when assistant emits a game-signal
+  const lastGameSignalMessageIdRef = useRef<string | null>(null);
+  useEffect(() => {
+    if (!Array.isArray(messages) || messages.length === 0) return;
+
+    // Find the latest assistant message that contains a part with type 'game-signal'
+    const latestWithSignal = [...messages]
+      .reverse()
+      .find((m: HookChatMessage) => {
+        if (m.role !== ChatRole.ASSISTANT) return false;
+        const parts = m.parts as Array<{ type?: string }> | undefined;
+        return (
+          Array.isArray(parts) && parts.some((p) => p?.type === 'game-signal')
+        );
+      });
+
+    if (!latestWithSignal) return;
+
+    if (
+      latestWithSignal.id &&
+      lastGameSignalMessageIdRef.current !== latestWithSignal.id
+    ) {
+      lastGameSignalMessageIdRef.current = latestWithSignal.id;
+      setExploreOpen(true);
+      setSettingsOpen(false);
+    }
+  }, [messages]);
 
   // Navigation items with dynamic active state
   const navigationItems = getNavigationItems();
