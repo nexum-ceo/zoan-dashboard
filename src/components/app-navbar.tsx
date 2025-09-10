@@ -425,12 +425,11 @@ export default function AppNavbar() {
                     <DropdownMenuSeparator />
 
                     {/* Sign Out Button */}
-                    <DropdownMenuItem
-                      onClick={handleLogout}
-                      className="px-4 py-2 text-red-600 hover:bg-red-50"
-                    >
-                      <IconLogout className="mr-3 h-4 w-4" />
-                      <span>Sign Out</span>
+                    <DropdownMenuItem onClick={handleLogout} className="p-3">
+                      <Button className="w-full text-[#ef3d40] bg-transparent hover:bg-transparent">
+                        <IconLogout className="text-[#ef3d40]" />
+                        Sign out
+                      </Button>
                     </DropdownMenuItem>
                   </DropdownMenuContent>
                 </DropdownMenu>
