@@ -42,6 +42,7 @@ export const Explore: FC<ExploreProps> = ({
   useEffect(() => {
     if (
       chatGameVersionList?.data?.data &&
+      Array.isArray(chatGameVersionList?.data?.data) &&
       chatGameVersionList?.data?.data.length > 0
     ) {
       setGameVersion(chatGameVersionList?.data?.data[0] || null);
