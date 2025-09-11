@@ -343,6 +343,7 @@ export function useChat({
               console.log('[WS] Filtered system message:', data);
               return null;
             }
+            console.log('data: ', data);
 
             // For any other JSON message, return the raw JSON string and
             // let the downstream parser handle types (thinking/text/etc.)
@@ -380,7 +381,10 @@ export function useChat({
             !!parsedRecord &&
             typeof parsedRecord['type'] === 'string' &&
             parsedRecord['type'] === 'game_generator';
-          // Build display text. For thinking, prefer title/elapsed formatting; otherwise use content/raw
+          const isGameSignal =
+            !!parsedRecord &&
+            typeof parsedRecord['type'] === 'string' &&
+            parsedRecord['type'] === 'game-signal';
           let textContent: string;
           if (isThinking) {
             const title =
@@ -410,6 +414,13 @@ export function useChat({
             textContent =
               contentStr && title ? `${header}\n${contentStr}` : header;
           } else if (isGameGenerator) {
+            textContent = coerceToString(
+              (parsedRecord as Record<string, unknown>)['content'] ??
+                (parsedRecord as Record<string, unknown>)['text'] ??
+                (parsedRecord as Record<string, unknown>)['data'] ??
+                parsedRecord,
+            );
+          } else if (isGameSignal) {
             textContent = coerceToString(
               (parsedRecord as Record<string, unknown>)['content'] ??
                 (parsedRecord as Record<string, unknown>)['text'] ??
@@ -457,6 +468,18 @@ export function useChat({
               }
               last.parts = existingParts;
               // Do not append game_generator to visible assistant content
+            } else if (isGameSignal) {
+              const existingParts = Array.isArray(last.parts)
+                ? last.parts.slice()
+                : [];
+              if ((textContent || '').trim() !== '') {
+                existingParts.push({
+                  type: 'game-signal',
+                  text: textContent,
+                });
+              }
+              last.parts = existingParts;
+              // Do not append game-signal to visible assistant content
             } else {
               last.content = String(last.content || '') + textContent;
               const existingParts = Array.isArray(last.parts)
@@ -474,12 +497,17 @@ export function useChat({
             const newMsg: ChatMessage = {
               id: Date.now().toString() + '-ws',
               role: ChatRole.ASSISTANT,
-              content: isThinking || isGameGenerator ? '' : textContent,
+              content:
+                isThinking || isGameGenerator || isGameSignal
+                  ? ''
+                  : textContent,
               sender_id: null,
               parts: isThinking
                 ? [{ type: 'thinking', text: textContent }]
                 : isGameGenerator
                 ? [{ type: 'game_generator', text: textContent }]
+                : isGameSignal
+                ? [{ type: 'game-signal', text: textContent }]
                 : [{ type: 'text', text: textContent }],
             };
             return [...prev, newMsg];
