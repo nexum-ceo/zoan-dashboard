@@ -76,6 +76,8 @@ export function PlaygroundChatClient({ chatId }: PlaygroundChatClientProps) {
   const chatMessages = chatMessageData?.pages.flatMap((page) => page.data.data);
   const chatInfo = chatData?.data?.data;
 
+  const exploreRefetchRef = useRef<(() => void) | null>(null);
+
   const {
     messages,
     input,
@@ -184,6 +186,9 @@ export function PlaygroundChatClient({ chatId }: PlaygroundChatClientProps) {
       lastGameSignalMessageIdRef.current = latestWithSignal.id;
       setExploreOpen(true);
       setSettingsOpen(false);
+      if (exploreRefetchRef.current) {
+        exploreRefetchRef.current();
+      }
     }
   }, [messages]);
 
@@ -431,11 +436,18 @@ export function PlaygroundChatClient({ chatId }: PlaygroundChatClientProps) {
       )}
 
       {/* Explore Panel */}
-      <Explore
-        chatId={chatId}
-        isOpen={exploreOpen}
-        onClose={() => setExploreOpen(false)}
-      />
+      {exploreOpen && (
+        <Explore
+          chatId={chatId}
+          isOpen={exploreOpen}
+          onClose={() => setExploreOpen(false)}
+          onGameSignalReceived={() => {
+            if (exploreRefetchRef.current) {
+              exploreRefetchRef.current();
+            }
+          }}
+        />
+      )}
     </div>
   );
 }

@@ -11,20 +11,46 @@ import {
 import { useGetChatGameVersionList } from '@/queries/useChat';
 import { AnimatePresence, motion } from 'framer-motion';
 import { Download, Eye, Play, X } from 'lucide-react';
-import { FC, useState } from 'react';
+import { FC, useEffect, useState } from 'react';
 
 type ExploreProps = {
   chatId: string;
   isOpen: boolean;
   onClose: () => void;
+  onGameSignalReceived: () => void;
 };
 
-export const Explore: FC<ExploreProps> = ({ isOpen, onClose, chatId }) => {
+type GameVersion = {
+  id: string;
+  chat_id: string;
+  version: string;
+  description: string;
+  game_url: string;
+};
+
+export const Explore: FC<ExploreProps> = ({
+  isOpen,
+  onClose,
+  chatId,
+  onGameSignalReceived,
+}) => {
   const [isGameModalOpen, setIsGameModalOpen] = useState<boolean>(false);
-  console.log(chatId);
+  const [gameVersion, setGameVersion] = useState<GameVersion | null>(null);
+
   const { data: chatGameVersionList } = useGetChatGameVersionList(chatId);
 
-  console.log('chatGameVersionList', chatGameVersionList);
+  useEffect(() => {
+    if (
+      chatGameVersionList?.data?.data &&
+      chatGameVersionList?.data?.data.length > 0
+    ) {
+      setGameVersion(chatGameVersionList?.data?.data[0] || null);
+      onGameSignalReceived?.();
+    } else {
+      setGameVersion(null);
+    }
+  }, [chatGameVersionList, onGameSignalReceived]);
+
   return (
     <AnimatePresence initial={false} mode="wait">
       {isOpen && (
@@ -70,19 +96,36 @@ export const Explore: FC<ExploreProps> = ({ isOpen, onClose, chatId }) => {
                 <label className="text-sm font-medium text-foreground">
                   Game Version
                 </label>
-                <Select defaultValue="version-1.0">
+                <Select
+                  defaultValue="version-1.0"
+                  onValueChange={(value: string) => {
+                    setGameVersion(
+                      chatGameVersionList?.data?.data.find(
+                        (gameVersion) => gameVersion.version === value,
+                      ) || null,
+                    );
+                  }}
+                >
                   <SelectTrigger className="w-full">
                     <SelectValue placeholder="Select Version" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="version-1.0">
-                      <div className="flex flex-col items-start">
-                        <span className="font-medium">Version 1.0</span>
-                        <span className="text-xs text-muted-foreground">
-                          5 minutes ago • Initial Flappy Bird game
-                        </span>
-                      </div>
-                    </SelectItem>
+                    {chatGameVersionList?.data?.data?.map(
+                      (gameVersion: GameVersion, index: number) => (
+                        <SelectItem value={gameVersion.version}>
+                          <div className="flex flex-col items-start">
+                            <span className="text-xs text-muted-foreground">
+                              <div className="flex flex-col items-start">
+                                <div className="font-medium text-black">
+                                  Version {index + 1}
+                                </div>
+                                {gameVersion.version}
+                              </div>
+                            </span>
+                          </div>
+                        </SelectItem>
+                      ),
+                    )}
                   </SelectContent>
                 </Select>
               </div>
@@ -99,42 +142,40 @@ export const Explore: FC<ExploreProps> = ({ isOpen, onClose, chatId }) => {
                 {/* Game Info */}
                 <div>
                   <h4 className="text-lg font-semibold text-foreground mb-1">
-                    Flappy Bird
+                    {gameVersion?.version}
                   </h4>
                   <p className="text-sm text-muted-foreground mb-3">
-                    Version 1.0
-                  </p>
-                  <p className="text-sm text-foreground/80 leading-relaxed">
-                    Navigate the bird through pipes by clicking or pressing
-                    spacebar
+                    {gameVersion?.description}
                   </p>
                 </div>
 
                 {/* Action Buttons */}
                 <div className="space-y-3">
-                  <Dialog
-                    open={isGameModalOpen}
-                    onOpenChange={setIsGameModalOpen}
-                  >
-                    <DialogTrigger asChild>
-                      <Button className="w-full">
-                        <Play className="w-4 h-4 mr-2" />
-                        Play Game
-                      </Button>
-                    </DialogTrigger>
-                    <DialogContent className="min-w-full h-[95vh] p-0">
-                      <div className="w-full h-full px-4 py-6">
-                        <div className="h-3"></div>
-                        <iframe
-                          src="https://minio.buymed.site/builds/truck_town/index.html"
-                          className="w-full h-full border-0 rounded"
-                          title="Truck Town Game"
-                          allowFullScreen
-                        />
-                        <div className="h-4"></div>
-                      </div>
-                    </DialogContent>
-                  </Dialog>
+                  {gameVersion && (
+                    <Dialog
+                      open={isGameModalOpen}
+                      onOpenChange={setIsGameModalOpen}
+                    >
+                      <DialogTrigger asChild>
+                        <Button className="w-full">
+                          <Play className="w-4 h-4 mr-2" />
+                          Play Game
+                        </Button>
+                      </DialogTrigger>
+                      <DialogContent className="min-w-full h-[95vh] p-0">
+                        <div className="w-full h-full px-4 py-6">
+                          <div className="h-3"></div>
+                          <iframe
+                            src={`https://minio.buymed.site/${gameVersion?.game_url}`}
+                            className="w-full h-full border-0 rounded"
+                            title={gameVersion?.version}
+                            allowFullScreen
+                          />
+                          <div className="h-4"></div>
+                        </div>
+                      </DialogContent>
+                    </Dialog>
+                  )}
 
                   <div className="flex gap-2">
                     <Button variant="outline" className="flex-1 bg-background">
