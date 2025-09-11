@@ -7,7 +7,7 @@ export async function GET(
 ) {
   const { id } = await params;
 
-  return await apiWrapper(() => chatApiRequest.sGetChatGameVersionList(id), {
+  return await apiWrapper(() => chatApiRequest.getChatGameVersionList(id), {
     defaultErrorMessage: 'Fetch failed',
   });
 }

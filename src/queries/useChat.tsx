@@ -119,6 +119,6 @@ export const useGetChatGameVersionList = (id: string) => {
   return useQuery({
     queryKey: ['chat-game-version-list', id],
     queryFn: () => chatApiRequest.sGetChatGameVersionList(id),
-    enabled: !!id,
+    // enabled: !!id,
   });
 };
