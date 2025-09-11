@@ -113,7 +113,10 @@ export const Explore: FC<ExploreProps> = ({
                   <SelectContent>
                     {chatGameVersionList?.data?.data?.map(
                       (gameVersion: GameVersion, index: number) => (
-                        <SelectItem value={gameVersion.version}>
+                        <SelectItem
+                          value={gameVersion.version}
+                          key={gameVersion.id}
+                        >
                           <div className="flex flex-col items-start">
                             <span className="text-xs text-muted-foreground">
                               <div className="flex flex-col items-start">
