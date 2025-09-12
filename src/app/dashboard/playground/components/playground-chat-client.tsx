@@ -23,7 +23,6 @@ import {
   clearPendingMessage,
   fetchAuthToken,
   getPendingMessage,
-  shouldSyncMessagesFromAPI,
   transformChatMessages,
 } from '@/lib/chat-utils';
 import { getNavigationItems } from '@/lib/navigation-utils';
@@ -39,7 +38,7 @@ import {
   Sparkles,
 } from 'lucide-react';
 import { usePathname, useRouter } from 'next/navigation';
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 
 type PlaygroundChatClientProps = {
   chatId: string;
@@ -52,7 +51,6 @@ export function PlaygroundChatClient({ chatId }: PlaygroundChatClientProps) {
   const pathname = usePathname();
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const messagesContainerRef = useRef<HTMLDivElement>(null);
-  const hasSyncedInitialMessagesRef = useRef<boolean>(false);
   const [settingsOpen, setSettingsOpen] = useState<boolean>(true);
   const [exploreOpen, setExploreOpen] = useState<boolean>(false);
   const isSidePanelOpen = (settingsOpen || exploreOpen) && !isMobile;
@@ -78,6 +76,18 @@ export function PlaygroundChatClient({ chatId }: PlaygroundChatClientProps) {
 
   const exploreRefetchRef = useRef<(() => void) | null>(null);
 
+  // Transform API messages to use as initial messages
+  const initialMessages = useMemo(() => {
+    if (
+      chatInfo?.user_id &&
+      Array.isArray(chatMessages) &&
+      chatMessages.length > 0
+    ) {
+      return transformChatMessages(chatMessages, chatInfo.user_id);
+    }
+    return [];
+  }, [chatInfo?.user_id, chatMessages]);
+
   const {
     messages,
     input,
@@ -85,7 +95,6 @@ export function PlaygroundChatClient({ chatId }: PlaygroundChatClientProps) {
     handleSubmit,
     isLoading,
     isAssistantStreaming,
-    setMessages,
     wsConnected,
     sendMessageDirect,
     isProcessing,
@@ -94,26 +103,10 @@ export function PlaygroundChatClient({ chatId }: PlaygroundChatClientProps) {
       token && chatInfo?.user_id
         ? `${process.env.NEXT_PUBLIC_WS_URL}/${chatId}?token=${token}`
         : '',
-    initialMessages: [],
+    initialMessages,
     chatId: chatId,
     user_id: chatInfo?.user_id || '',
   });
-
-  // Only sync messages from API on initial load, not on every update
-  useEffect(() => {
-    if (
-      !hasSyncedInitialMessagesRef.current &&
-      shouldSyncMessagesFromAPI(chatInfo, chatMessages || [], messages)
-    ) {
-      const transformedMessages = transformChatMessages(
-        chatMessages || [],
-        chatInfo?.user_id || '',
-      );
-      setMessages(transformedMessages);
-      hasSyncedInitialMessagesRef.current = true;
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [chatMessages, chatInfo]);
 
   useEffect(() => {
     fetchAuthToken().then(setToken);
