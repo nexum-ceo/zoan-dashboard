@@ -1,11 +1,6 @@
 'use client';
 
 import {
-  NavigationMenu,
-  NavigationMenuItem,
-  NavigationMenuList,
-} from '@/components/ui/navigation-menu';
-import {
   Sheet,
   SheetContent,
   SheetHeader,
@@ -24,9 +19,12 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import {
-  ThemeToggleButton,
-  useThemeTransition,
-} from '@/components/ui/shadcn-io/theme-toggle-button';
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import { IconLogout } from '@tabler/icons-react';
 import {
   BookOpen,
@@ -38,10 +36,11 @@ import {
   Users,
 } from 'lucide-react';
 import { signIn, signOut, useSession } from 'next-auth/react';
-import { useTheme } from 'next-themes';
-import Image from 'next/image';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
+import SettingIcon from '../../public/icon/setting';
+import ShareIcon from '../../public/icon/share';
+import ZoanLogo from '../../public/icon/zoan-logo';
 import { Button, buttonVariants } from './ui/button';
 
 interface RouteProps {
@@ -51,12 +50,8 @@ interface RouteProps {
 
 const routeList: RouteProps[] = [
   {
-    href: '#features',
-    label: 'Features',
-  },
-  {
-    href: '#testimonials',
-    label: 'Testimonials',
+    href: '#enterprise',
+    label: 'Enterprise',
   },
   {
     href: '#pricing',
@@ -73,8 +68,6 @@ export default function AppNavbar() {
   const router = useRouter();
   const { data: session } = useSession();
   const user = session?.user;
-  const { theme, setTheme } = useTheme();
-  const { startTransition } = useThemeTransition();
 
   // BroadcastChannel allow logout across tabs
   useEffect(() => {
@@ -135,19 +128,26 @@ export default function AppNavbar() {
   };
 
   return (
-    <header className="sticky border-b-[1px] top-0 z-40 w-full bg-white dark:border-b-slate-700 dark:bg-background">
-      <NavigationMenu className="mx-auto">
-        <NavigationMenuList className="container h-14 px-4 w-screen flex justify-between ">
-          <NavigationMenuItem className="font-bold flex">
+    <header className="p-3 sticky top-0 z-40 w-full border-b bg-[#fbfbfb] backdrop-blur supports-[backdrop-filter]:bg-white/70 dark:border-b-slate-700 dark:bg-background">
+      <div className="w-full">
+        <div className="flex justify-between">
+          <div className="flex justify-between items-center gap-6">
             <Link
               rel="noreferrer noopener"
               href="/"
-              className="ml-2 font-bold text-xl flex items-center"
+              className="ml-2 flex items-center gap-2"
             >
-              <Image src="/icon.png" alt="Logo" width={32} height={32} />
-              <span className="ml-2">Zoan AI</span>
+              {/* <Image src="/icon.png" alt="Logo" width={32} height={32} /> */}
+              <ZoanLogo />
             </Link>
-          </NavigationMenuItem>
+            {/* <nav className="hidden md:flex items-center gap-1"> */}
+            {routeList.map((route: RouteProps, i) => (
+              <Button className="px-0 py-0" key={i} variant={'tertiary'}>
+                {route.label}
+              </Button>
+            ))}
+            {/* </nav> */}
+          </div>
 
           {/* mobile */}
           <span className="flex md:hidden">
@@ -167,17 +167,11 @@ export default function AppNavbar() {
                 <SheetHeader>
                   <SheetTitle className="font-bold text-xl">Zoan AI</SheetTitle>
                 </SheetHeader>
-                <nav className="flex flex-col justify-center items-center gap-2 mt-4">
+                <nav className="flex flex-col justify-center items-center mt-4">
                   {routeList.map(({ href, label }: RouteProps) => (
-                    <a
-                      rel="noreferrer noopener"
-                      key={label}
-                      href={href}
-                      onClick={() => setIsOpen(false)}
-                      className={buttonVariants({ variant: 'ghost' })}
-                    >
+                    <Button key={href} variant={'tertiary'}>
                       {label}
-                    </a>
+                    </Button>
                   ))}
                   <a
                     rel="noreferrer noopener"
@@ -196,151 +190,237 @@ export default function AppNavbar() {
           </span>
 
           {/* desktop */}
-          <nav className="hidden md:flex gap-2">
-            {routeList.map((route: RouteProps, i) => (
-              <a
-                rel="noreferrer noopener"
-                href={route.href}
-                key={i}
-                className={`text-[17px] ${buttonVariants({
-                  variant: 'ghost',
-                })}`}
-              >
-                {route.label}
-              </a>
-            ))}
-          </nav>
 
-          <div className="hidden md:flex gap-2">
+          <div className="hidden md:flex items-center gap-2">
             {user ? (
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button
-                    variant="ghost"
-                    className="relative h-8 w-8 rounded-full"
-                  >
-                    <Avatar className="h-8 w-8 rounded-lg">
-                      <AvatarImage
-                        src={user.image || ''}
-                        alt={user.email || ''}
-                      />
-                      <AvatarFallback className="rounded-lg">
-                        {user.name?.[0] || user.email?.[0] || 'U'}
-                      </AvatarFallback>
-                    </Avatar>
+              <>
+                {/* Action buttons matching the image - only show when user is logged in */}
+                <div className="flex items-center gap-2">
+                  {/* Settings icon button */}
+                  <Button variant="secondary" size="icon" className="h-8 w-8">
+                    <SettingIcon />
                   </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent className="w-56" align="end" forceMount>
-                  <DropdownMenuLabel className="p-0 font-normal">
-                    <div className="flex items-center gap-2 px-1 py-1.5 text-left text-sm">
+
+                  {/* Share icon button */}
+                  <Button variant="secondary" size="icon" className="h-8 w-8">
+                    <ShareIcon />
+                  </Button>
+
+                  {/* Share text button */}
+                  <Button variant="secondary">Share</Button>
+
+                  {/* Public text button with green background */}
+                  <Button
+                    variant="default"
+                    className="h-8 px-3 bg-green-100 hover:bg-green-200 text-gray-800 border-0"
+                  >
+                    Public
+                  </Button>
+                </div>
+
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button
+                      variant="ghost"
+                      className="relative h-8 w-8 rounded-full"
+                    >
                       <Avatar className="h-8 w-8 rounded-lg">
                         <AvatarImage
-                          src={user?.image || ''}
-                          alt={user?.email || ''}
+                          src={user.image || ''}
+                          alt={user.email || ''}
                         />
                         <AvatarFallback className="rounded-lg">
-                          CN
+                          {user.name?.[0] || user.email?.[0] || 'U'}
                         </AvatarFallback>
                       </Avatar>
-                      <div className="grid flex-1 text-left text-sm leading-tight">
-                        <span className="truncate font-medium">
-                          {user.email}
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent className="w-68" align="end" forceMount>
+                    {/* Email Address at top */}
+                    <DropdownMenuLabel className="px-3 py-2">
+                      <div className="text-sm text-[#272727]/50">
+                        {user.email}
+                      </div>
+                    </DropdownMenuLabel>
+                    <DropdownMenuSeparator />
+                    {/* General Setting Section */}
+                    <DropdownMenuLabel className="px-3 py-2">
+                      <div className="text-paragraph !text-sm">
+                        General setting
+                      </div>
+                    </DropdownMenuLabel>
+                    <DropdownMenuItem className="px-3 py-2 bg-gray-100 cursor-pointer">
+                      <User className="mr-2 h-4 w-4 text-[#272727]" />
+                      <span className="text-paragraph !text-sm">Profile</span>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem className="px-3 py-2 cursor-pointer">
+                      <Settings className="mr-2 h-4 w-4 text-[#272727]" />
+                      <span className="text-paragraph !text-sm !text-[#272727]/50">
+                        Settings
+                      </span>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem className="px-3 py-2 cursor-pointer">
+                      <DollarSign className="mr-2 h-4 w-4 text-[#272727]" />
+                      <span className="text-paragraph !text-sm !text-[#272727]/50">
+                        Pricing
+                      </span>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem className="px-3 py-2 cursor-pointer">
+                      <BookOpen className="mr-2 h-4 w-4 !text-[#272727]" />
+                      <span className="text-paragraph !text-sm !text-[#272727]/50">
+                        Documentation
+                      </span>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem className="px-3 py-2 cursor-pointer">
+                      <Users className="mr-2 h-4 w-4 text-[#272727]" />
+                      <span className="text-paragraph !text-sm !text-[#272727]/50">
+                        Community Forum
+                      </span>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem className="px-3 py-2 cursor-pointer">
+                      <MessageSquare className="mr-2 h-4 w-4 text-[#272727]" />
+                      <span className="text-paragraph !text-sm !text-[#272727]/50">
+                        Feedback
+                      </span>
+                    </DropdownMenuItem>
+                    <DropdownMenuSeparator />
+                    {/* Credit Balance Section */}
+                    <DropdownMenuLabel className="px-3 py-2">
+                      <div className="text-paragraph !text-sm">
+                        Credit Balance
+                      </div>
+                    </DropdownMenuLabel>
+                    <div className="px-3 py-2">
+                      <div className="flex justify-between items-center mb-2">
+                        <span className="text-paragraph !text-sm !text-[#272727]/50">
+                          Gifted credits
                         </span>
-                        <span className="text-muted-foreground truncate text-xs">
-                          {user.email}
+                        <span className="text-paragraph !text-sm">0.00</span>
+                      </div>
+                      <div className="flex justify-between items-center mb-3">
+                        <span className="text-paragraph !text-sm !text-[#272727]/50">
+                          Monthly credits
                         </span>
+                        <span className="text-paragraph !text-sm">4.71</span>
                       </div>
                     </div>
-                  </DropdownMenuLabel>
-                  <DropdownMenuSeparator />
-                  <DropdownMenuItem>
-                    <User className="mr-2 h-4 w-4" />
-                    <span>Profile</span>
-                  </DropdownMenuItem>
-                  <DropdownMenuItem>
-                    <Settings className="mr-2 h-4 w-4" />
-                    <span>Settings</span>
-                  </DropdownMenuItem>
-                  <DropdownMenuItem>
-                    <DollarSign className="mr-2 h-4 w-4" />
-                    <span>Pricing</span>
-                  </DropdownMenuItem>
-                  <DropdownMenuItem>
-                    <BookOpen className="mr-2 h-4 w-4" />
-                    <span>Documentation</span>
-                  </DropdownMenuItem>
-                  <DropdownMenuItem>
-                    <Users className="mr-2 h-4 w-4" />
-                    <span>Community Forum</span>
-                  </DropdownMenuItem>
-                  <DropdownMenuItem>
-                    <MessageSquare className="mr-2 h-4 w-4" />
-                    <span>Feedback</span>
-                  </DropdownMenuItem>
-                  <DropdownMenuSeparator />
-                  <div className="px-2 py-2">
-                    <div className="text-xs font-medium text-muted-foreground">
-                      Preferences
+                    {/* Upgrade Banner */}
+                    <div className="bg-primary-brand-green rounded-lg px-3 py-2">
+                      <span className="text-paragraph !text-sm  !text-primary-brand-darker-green">
+                        Upgrade your plan to buy more credits.
+                        <span className="underline underline-offset-2">
+                          Upgrade plan
+                        </span>
+                      </span>
                     </div>
-                    <div className="flex items-center justify-between py-2">
-                      <span className="text-sm">Theme</span>
-                      <div className="flex gap-1 items-center bg-muted rounded-lg p-1">
-                        <ThemeToggleButton
-                          className={`rounded-full p-1 w-fit h-fit ${
-                            theme === 'light' ? 'text-primary' : 'text-gray-400'
-                          }`}
-                          theme="light"
-                          onClick={() =>
-                            startTransition(() => setTheme('light'))
-                          }
-                          variant="circle"
-                          start="top-right"
-                        />
-                        <ThemeToggleButton
-                          className={`rounded-full p-1 w-fit h-fit ${
-                            theme === 'system'
-                              ? 'text-primary'
-                              : 'text-gray-400'
-                          }`}
-                          theme="system"
-                          onClick={() =>
-                            startTransition(() => setTheme('system'))
-                          }
-                          variant="circle"
-                          start="top-right"
-                        />
-                        <ThemeToggleButton
-                          className={`rounded-full p-1 w-fit h-fit ${
-                            theme === 'dark' ? 'text-primary' : 'text-gray-400'
-                          }`}
-                          theme="dark"
-                          onClick={() =>
-                            startTransition(() => setTheme('dark'))
-                          }
-                          variant="circle"
-                          start="top-right"
-                        />
+                    <DropdownMenuSeparator />
+                    {/* Preferences Section */}
+                    <DropdownMenuLabel className="px-3 py-2">
+                      <div className="text-paragraph !text-sm">Preferences</div>
+                    </DropdownMenuLabel>
+                    <div className="px-3 py-2">
+                      <div className="flex justify-between items-center mb-3">
+                        <span className="text-paragraph !text-sm !text-[#272727]/50">
+                          Theme
+                        </span>
+                        <Select defaultValue={'system'} value={'system'}>
+                          <SelectTrigger>
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent
+                            className="!text-sm !text-[#272727]"
+                            defaultValue={'system'}
+                          >
+                            <SelectItem
+                              className="text-[#272727]"
+                              value="system"
+                            >
+                              System
+                            </SelectItem>
+                            <SelectItem className="text-[#272727]" value="dark">
+                              Dark
+                            </SelectItem>
+                            <SelectItem
+                              className="text-[#272727]"
+                              value="light"
+                            >
+                              Light
+                            </SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      <div className="flex justify-between items-center mb-3">
+                        <span className="text-paragraph !text-sm !text-[#272727]/50">
+                          Language
+                        </span>
+                        <Select defaultValue={'enlist'} value={'english'}>
+                          <SelectTrigger>
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent
+                            className="!text-sm !text-[#272727]"
+                            defaultValue={'english'}
+                          >
+                            <SelectItem
+                              className="text-[#272727]"
+                              value="english"
+                            >
+                              English
+                            </SelectItem>
+                            <SelectItem
+                              className="text-[#272727]"
+                              value="vietnamese"
+                            >
+                              Vietnamese
+                            </SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      <div className="flex justify-between items-center">
+                        <span className="text-paragraph !text-sm !text-[#272727]/50">
+                          Chat Position
+                        </span>
+                        <Select defaultValue={'left'} value="left">
+                          <SelectTrigger>
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent
+                            className="!text-sm !text-[#272727]"
+                            defaultValue={'left'}
+                          >
+                            <SelectItem className="text-[#272727]" value="left">
+                              Left
+                            </SelectItem>
+                            <SelectItem
+                              className="text-[#272727]"
+                              value="right"
+                            >
+                              Right
+                            </SelectItem>
+                          </SelectContent>
+                        </Select>
                       </div>
                     </div>
-                  </div>
-                  <DropdownMenuSeparator />
-                  <DropdownMenuItem onClick={handleLogout}>
-                    <IconLogout className="mr-2 h-4 w-4" />
-                    <span>Log out</span>
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
+                    <DropdownMenuSeparator />
+                    {/* Sign Out Button */}
+                    <DropdownMenuItem onClick={handleLogout}>
+                      <Button className="w-full text-[#ef3d40] bg-transparent hover:bg-transparent p-0 border-none shadow-none">
+                        <IconLogout className="text-[#ef3d40]" />
+                        Sign out
+                      </Button>
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              </>
             ) : (
-              <Button
-                onClick={openLoginPopup}
-                className={`border ${buttonVariants({ variant: 'secondary' })}`}
-              >
-                Login With Zoan Passport
-              </Button>
+              <>
+                <Button variant={'secondary'}>Sign up</Button>
+                <Button onClick={openLoginPopup}>Log in</Button>
+              </>
             )}
           </div>
-        </NavigationMenuList>
-      </NavigationMenu>
+        </div>
+      </div>
     </header>
   );
 }

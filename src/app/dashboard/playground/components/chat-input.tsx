@@ -1,4 +1,5 @@
-//
+'use client';
+
 import {
   PromptInput,
   PromptInputButton,
@@ -9,7 +10,9 @@ import {
 } from '@/components/ui/shadcn-io/ai/prompt-input';
 import type { ChatStatus } from 'ai';
 import { Paperclip } from 'lucide-react';
+import { useSession } from 'next-auth/react';
 import { ChangeEvent, FC, FormEvent, useState } from 'react';
+import CloseIcon from '../../../../../public/icon/close';
 
 type ChatInputProps = {
   value: string;
@@ -29,15 +32,17 @@ export const ChatInput: FC<ChatInputProps> = ({
   status,
 }) => {
   const [showUpgradeBanner, setShowUpgradeBanner] = useState(true);
+  const { data: session } = useSession();
+  // console.log('session in chat input', session);
   return (
     <div className="w-full max-w-4xl mx-auto px-4 py-4">
       <PromptInput
-        className="rounded-2xl border border-border bg-card text-card-foreground shadow-sm"
+        className="z-10 relative rounded-xl border focus-within:border-primary-brand-darker-green bg-card text-card-foreground"
         onSubmit={onSubmit}
       >
         <PromptInputTextarea
           placeholder="Ask ZOAN to build something amazing"
-          className="leading-6 min-h-[72px] border-0 focus:border-0 focus:ring-0 focus:outline-none resize-none w-full bg-transparent placeholder:text-muted-foreground"
+          className="leading-6 min-h-[72px] border-0 focus:border-0 focus:ring-0 focus:outline-none resize-none w-full bg-transparent text-paragraph text-sm placeholder:text-[#272727]/40"
           style={{ lineHeight: '1.5' }}
           name="message"
           value={value}
@@ -49,7 +54,7 @@ export const ChatInput: FC<ChatInputProps> = ({
             <PromptInputButton
               type="button"
               disabled={disabled}
-              className="rounded-full bg-accent/40 hover:bg-accent/60"
+              className="bg-[#2727270D]"
             >
               <Paperclip className="w-4 h-4 text-muted-foreground" />
             </PromptInputButton>
@@ -65,19 +70,26 @@ export const ChatInput: FC<ChatInputProps> = ({
         </PromptInputToolbar>
       </PromptInput>
       {showUpgradeBanner && (
-        <div className="mt-2 flex items-center justify-between rounded-xl bg-emerald-50 px-3 py-2 text-sm text-emerald-700">
+        <div className="rounded-b-xl -mt-3 flex items-center justify-between bg-primary-brand-green px-4 pb-3 pt-7 text-paragraph">
           <span>
-            Upgrade now to get more tokens and unlock access to{' '}
-            <span className="font-semibold">AI V2</span>!
+            {session ? (
+              <>
+                <span>Upgrade now to get more tokens and unlock access to</span>
+                <span className="font-bold"> &nbsp;AI V2</span>
+                <span>!</span>
+              </>
+            ) : (
+              <>
+                <span>Log in to explore more our features</span>
+              </>
+            )}
           </span>
-          <button
-            type="button"
-            className="rounded p-1 text-emerald-700/70 hover:bg-emerald-100"
+          <span
+            className="cursor-pointer text-[#272727]/50"
             onClick={() => setShowUpgradeBanner(false)}
-            aria-label="Dismiss upgrade banner"
           >
-            ×
-          </button>
+            <CloseIcon />
+          </span>
         </div>
       )}
     </div>
