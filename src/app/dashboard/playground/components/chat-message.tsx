@@ -157,7 +157,10 @@ export const ChatMessage: FC<ChatMessageProps> = ({
           </Reasoning>
         )}
         {!isUser && gameGeneratorItems.length > 0 && (
-          <Task defaultOpen={true} className="w-full mb-0">
+          <Task
+            defaultOpen={Boolean(isLoading && isLast)}
+            className="w-full mb-0"
+          >
             <TaskTrigger title="Game Generator" />
             <TaskContent>
               <GameGeneratorContent content={gameGeneratorItems.join('')} />

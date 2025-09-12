@@ -53,6 +53,13 @@ export function useChat({
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [isAssistantStreaming, setIsAssistantStreaming] =
     useState<boolean>(false);
+
+  // Update messages when initialMessages change (e.g., when API data loads)
+  useEffect(() => {
+    if (initialMessages.length > 0 && messages.length === 0) {
+      setMessages(initialMessages);
+    }
+  }, [initialMessages, messages.length]);
   const wsRef = useRef<WebSocket | null>(null);
   const [wsConnected, setWsConnected] = useState<boolean>(false);
   const lastActiveTimeRef = useRef<number>(Date.now());
@@ -144,6 +151,18 @@ export function useChat({
       clearInterval(idleRecycleIntervalRef.current);
       idleRecycleIntervalRef.current = null;
     }
+  }, []);
+
+  // Reset streaming timeout for text content
+  const resetStreamingTimeout = useCallback(() => {
+    if (assistantStreamEndTimeoutRef.current) {
+      clearTimeout(assistantStreamEndTimeoutRef.current);
+      assistantStreamEndTimeoutRef.current = null;
+    }
+    assistantStreamEndTimeoutRef.current = setTimeout(() => {
+      setIsAssistantStreaming(false);
+      setIsLoading(false);
+    }, 900);
   }, []);
 
   const startIdleRecycle = useCallback(
@@ -337,17 +356,8 @@ export function useChat({
       // Any server activity cancels the expected-response watchdog
       awaitingResponseRef.current = false;
       clearResponseTimeout();
-      // Mark assistant as streaming and debounce end state so UI timer works
+      // Mark assistant as streaming
       setIsAssistantStreaming(true);
-      if (assistantStreamEndTimeoutRef.current) {
-        clearTimeout(assistantStreamEndTimeoutRef.current);
-        assistantStreamEndTimeoutRef.current = null;
-      }
-      assistantStreamEndTimeoutRef.current = setTimeout(() => {
-        setIsAssistantStreaming(false);
-        // Clear loading state only when assistant completely finishes streaming
-        setIsLoading(false);
-      }, 900);
       const chunk = (() => {
         const rawData = String(event.data);
 
@@ -504,6 +514,9 @@ export function useChat({
                 : [];
               existingParts.push({ type: 'text', text: textContent });
               last.parts = existingParts;
+
+              // Only reset timeout for actual text content (not thinking/game generation)
+              resetStreamingTimeout();
             }
 
             last.sender_id = null;
@@ -527,6 +540,12 @@ export function useChat({
                 ? [{ type: 'game-signal', text: textContent }]
                 : [{ type: 'text', text: textContent }],
             };
+
+            // Only reset timeout for actual text content (not thinking/game generation)
+            if (!isThinking && !isGameGenerator && !isGameSignal) {
+              resetStreamingTimeout();
+            }
+
             return [...prev, newMsg];
           }
         });
@@ -556,6 +575,7 @@ export function useChat({
     coerceToString,
     enableIdleRecycle,
     idleRecycleMs,
+    resetStreamingTimeout,
   ]);
 
   // Keep a stable ref to the latest setupWebSocket implementation

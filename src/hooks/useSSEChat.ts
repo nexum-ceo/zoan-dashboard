@@ -58,6 +58,7 @@ export function useSSEChat({
   > | null>(null);
   const responseTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const lastMessageAtRef = useRef<number>(Date.now());
+  const scheduleReconnectRef = useRef<(reason?: string) => void>(() => {});
 
   const RECONNECT_BASE_DELAY = 1000;
   const RECONNECT_MAX_DELAY = 15000;
@@ -108,42 +109,46 @@ export function useSSEChat({
           if (result.trim() !== '') return result;
         }
       }
-      if (Array.isArray((obj as any).parts)) {
-        return coerceToString((obj as any).parts);
+      if (Array.isArray((obj as Record<string, unknown>).parts)) {
+        return coerceToString((obj as Record<string, unknown>).parts);
       }
     }
     return '';
   }, []);
 
-  const scheduleReconnect = useCallback(
-    (reason?: string) => {
-      if (manualCloseRef.current) return;
-      if (!sseUrl || sseUrl.trim() === '') return;
-      if (isReconnectingRef.current) return;
-      const attempt = reconnectAttemptsRef.current;
-      const delay =
-        Math.min(
-          RECONNECT_BASE_DELAY * Math.pow(2, attempt),
-          RECONNECT_MAX_DELAY,
-        ) + Math.floor(Math.random() * 300);
-      isReconnectingRef.current = true;
-      if (reconnectTimeoutRef.current) {
-        clearTimeout(reconnectTimeoutRef.current);
-        reconnectTimeoutRef.current = null;
+  const scheduleReconnect = useCallback(() => {
+    if (manualCloseRef.current) return;
+    if (!sseUrl || sseUrl.trim() === '') return;
+    if (isReconnectingRef.current) return;
+    const attempt = reconnectAttemptsRef.current;
+    const delay =
+      Math.min(
+        RECONNECT_BASE_DELAY * Math.pow(2, attempt),
+        RECONNECT_MAX_DELAY,
+      ) + Math.floor(Math.random() * 300);
+    isReconnectingRef.current = true;
+    if (reconnectTimeoutRef.current) {
+      clearTimeout(reconnectTimeoutRef.current);
+      reconnectTimeoutRef.current = null;
+    }
+    reconnectTimeoutRef.current = setTimeout(() => {
+      isReconnectingRef.current = false;
+      try {
+        // Defer to latest setupSSE via ref to avoid circular deps
+        setupSSERef.current();
+      } catch (e) {
+        console.error('[SSE] reconnect setup failed', e);
       }
-      reconnectTimeoutRef.current = setTimeout(() => {
-        isReconnectingRef.current = false;
-        try {
-          setupSSE();
-        } catch (e) {
-          console.error('[SSE] reconnect setup failed', e);
-        }
-      }, delay);
-      reconnectAttemptsRef.current = attempt + 1;
-    },
-    [sseUrl],
-  );
+    }, delay);
+    reconnectAttemptsRef.current = attempt + 1;
+  }, [sseUrl]);
 
+  // Keep a ref to the latest scheduleReconnect
+  useEffect(() => {
+    scheduleReconnectRef.current = scheduleReconnect;
+  }, [scheduleReconnect]);
+
+  const setupSSERef = useRef<() => void>(() => {});
   const setupSSE = useCallback(() => {
     if (!sseUrl || sseUrl.trim() === '') {
       console.log('[SSE] No valid sseUrl provided, skipping connection');
@@ -160,21 +165,24 @@ export function useSSEChat({
     } catch (error) {
       console.error('[SSE] Failed to create EventSource:', error);
       setSseConnected(false);
-      scheduleReconnect('create failed');
+      scheduleReconnectRef.current('create failed');
       return;
     }
-    // @ts-ignore
-    esRef.current.onopen = () => {
-      setSseConnected(true);
-      reconnectAttemptsRef.current = 0;
-      lastMessageAtRef.current = Date.now();
-      console.log('[SSE] Connection established');
-    };
-    // @ts-ignore
-    esRef.current.onerror = (err: MessageEvent) => {
+    (esRef.current as unknown as { onopen: (() => void) | null }).onopen =
+      () => {
+        setSseConnected(true);
+        reconnectAttemptsRef.current = 0;
+        lastMessageAtRef.current = Date.now();
+        console.log('[SSE] Connection established');
+      };
+    (
+      esRef.current as unknown as {
+        onerror: ((err: MessageEvent) => void) | null;
+      }
+    ).onerror = (err: MessageEvent) => {
       setSseConnected(false);
       console.error('[SSE] Connection error:', err);
-      if (!manualCloseRef.current) scheduleReconnect('onerror');
+      if (!manualCloseRef.current) scheduleReconnectRef.current('onerror');
     };
     esRef.current.onmessage = (event) => {
       lastMessageAtRef.current = Date.now();
@@ -338,6 +346,11 @@ export function useSSEChat({
       }
     };
   }, [sseUrl, scheduleReconnect, clearResponseTimeout, coerceToString]);
+
+  // Keep a ref to latest setupSSE to avoid dependency cycles
+  useEffect(() => {
+    setupSSERef.current = setupSSE;
+  }, [setupSSE]);
 
   useEffect(() => {
     if (!sseUrl || sseUrl.trim() === '') return;
