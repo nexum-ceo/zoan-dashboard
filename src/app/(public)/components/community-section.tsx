@@ -134,7 +134,7 @@ export const CommunitySection: FC<CommunitySectionProps> = ({
               Explore what the community is building with ZOAN.
             </div>
           </div>
-          <button className="text-paragraph !text-[#272727]/50 flex items-center gap-1.5">
+          <button className="text-paragraph !text-[#272727]/50 flex items-center gap-1.5 cursor-pointer">
             Explore all
             <VectorIcon />
           </button>

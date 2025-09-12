@@ -10,6 +10,7 @@ import {
 } from '@/components/ui/shadcn-io/ai/prompt-input';
 import type { ChatStatus } from 'ai';
 import { Paperclip } from 'lucide-react';
+import { useSession } from 'next-auth/react';
 import { ChangeEvent, FC, FormEvent, useState } from 'react';
 import CloseIcon from '../../../../../public/icon/close';
 
@@ -31,6 +32,8 @@ export const ChatInput: FC<ChatInputProps> = ({
   status,
 }) => {
   const [showUpgradeBanner, setShowUpgradeBanner] = useState(true);
+  const { data: session } = useSession();
+  // console.log('session in chat input', session);
   return (
     <div className="w-full max-w-4xl mx-auto px-4 py-4">
       <PromptInput
@@ -69,9 +72,17 @@ export const ChatInput: FC<ChatInputProps> = ({
       {showUpgradeBanner && (
         <div className="rounded-b-xl -mt-3 flex items-center justify-between bg-primary-brand-green px-4 pb-3 pt-7 text-paragraph">
           <span>
-            <span>Upgrade now to get more tokens and unlock access to</span>
-            <span className="font-bold"> &nbsp;AI V2</span>
-            <span>!</span>
+            {session ? (
+              <>
+                <span>Upgrade now to get more tokens and unlock access to</span>
+                <span className="font-bold"> &nbsp;AI V2</span>
+                <span>!</span>
+              </>
+            ) : (
+              <>
+                <span>Login to explore more our features</span>
+              </>
+            )}
           </span>
           <span
             className="cursor-pointer text-[#272727]/50"
