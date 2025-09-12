@@ -80,7 +80,7 @@ export const ChatInput: FC<ChatInputProps> = ({
               </>
             ) : (
               <>
-                <span>Login to explore more our features</span>
+                <span>Log in to explore more our features</span>
               </>
             )}
           </span>

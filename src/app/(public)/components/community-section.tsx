@@ -58,7 +58,7 @@ const CommunityProjectCard: FC<{ project: CommunityProject }> = ({
           src={project.image}
           alt={project.title}
           fill
-          className="object-cover rounded-t-lg"
+          className="object-cover rounded-t-lg cursor-pointer"
         />
       </div>
 
