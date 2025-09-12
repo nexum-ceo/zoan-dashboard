@@ -16,12 +16,11 @@ import {
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import { SidebarProvider } from '@/components/ui/sidebar';
 import { useIsMobile } from '@/hooks/use-mobile';
-import type { ChatMessage as HookChatMessage } from '@/hooks/useChat';
-import { useChat } from '@/hooks/useChat';
 import { useInfiniteScroll } from '@/hooks/useInfiniteScroll';
+import type { ChatMessage as HookChatMessage } from '@/hooks/useSSEChat';
+import { useSSEChat } from '@/hooks/useSSEChat';
 import {
   clearPendingMessage,
-  fetchAuthToken,
   getPendingMessage,
   transformChatMessages,
 } from '@/lib/chat-utils';
@@ -60,7 +59,7 @@ export function PlaygroundChatClient({ chatId }: PlaygroundChatClientProps) {
     getPendingMessage(),
   );
   const [firstMsgSent, setFirstMsgSent] = useState<boolean>(false);
-  const [token, setToken] = useState<string>('');
+  // const [token, setToken] = useState<string>('');
   const [previousScrollHeight, setPreviousScrollHeight] = useState<number>(0);
   const [isLoadingMore, setIsLoadingMore] = useState<boolean>(false);
   const { data: chatData } = useGetChat(chatId);
@@ -95,32 +94,29 @@ export function PlaygroundChatClient({ chatId }: PlaygroundChatClientProps) {
     handleSubmit,
     isLoading,
     isAssistantStreaming,
-    wsConnected,
+    sseConnected,
     sendMessageDirect,
     isProcessing,
-  } = useChat({
-    wsUrl:
-      token && chatInfo?.user_id
-        ? `${process.env.NEXT_PUBLIC_WS_URL}/${chatId}?token=${token}`
-        : '',
+  } = useSSEChat({
+    sseUrl: chatInfo?.user_id ? `/api/chat/${chatId}/stream` : '',
     initialMessages,
     chatId: chatId,
     user_id: chatInfo?.user_id || '',
   });
 
-  useEffect(() => {
-    fetchAuthToken().then(setToken);
-  }, []);
+  // useEffect(() => {
+  //   fetchAuthToken().then(setToken);
+  // }, []);
 
-  // Only send the first message when WebSocket is connected, otherwise keep it to send later
+  // Only send the first message when SSE is connected, otherwise keep it to send later
   useEffect(() => {
-    if (pendingMsg && !firstMsgSent && wsConnected) {
+    if (pendingMsg && !firstMsgSent && sseConnected) {
       sendMessageDirect(pendingMsg);
       setFirstMsgSent(true);
       setPendingMsg('');
       clearPendingMessage();
     }
-  }, [pendingMsg, firstMsgSent, wsConnected, sendMessageDirect]);
+  }, [pendingMsg, firstMsgSent, sseConnected, sendMessageDirect]);
 
   // Infinite scroll functionality
   useInfiniteScroll({
