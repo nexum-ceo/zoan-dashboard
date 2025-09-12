@@ -337,17 +337,8 @@ export function useChat({
       // Any server activity cancels the expected-response watchdog
       awaitingResponseRef.current = false;
       clearResponseTimeout();
-      // Mark assistant as streaming and debounce end state so UI timer works
+      // Mark assistant as streaming
       setIsAssistantStreaming(true);
-      if (assistantStreamEndTimeoutRef.current) {
-        clearTimeout(assistantStreamEndTimeoutRef.current);
-        assistantStreamEndTimeoutRef.current = null;
-      }
-      assistantStreamEndTimeoutRef.current = setTimeout(() => {
-        setIsAssistantStreaming(false);
-        // Clear loading state only when assistant completely finishes streaming
-        setIsLoading(false);
-      }, 900);
       const chunk = (() => {
         const rawData = String(event.data);
 
@@ -504,6 +495,16 @@ export function useChat({
                 : [];
               existingParts.push({ type: 'text', text: textContent });
               last.parts = existingParts;
+
+              // Only reset timeout for actual text content (not thinking/game generation)
+              if (assistantStreamEndTimeoutRef.current) {
+                clearTimeout(assistantStreamEndTimeoutRef.current);
+                assistantStreamEndTimeoutRef.current = null;
+              }
+              assistantStreamEndTimeoutRef.current = setTimeout(() => {
+                setIsAssistantStreaming(false);
+                setIsLoading(false);
+              }, 900);
             }
 
             last.sender_id = null;
@@ -527,6 +528,19 @@ export function useChat({
                 ? [{ type: 'game-signal', text: textContent }]
                 : [{ type: 'text', text: textContent }],
             };
+
+            // Only reset timeout for actual text content (not thinking/game generation)
+            if (!isThinking && !isGameGenerator && !isGameSignal) {
+              if (assistantStreamEndTimeoutRef.current) {
+                clearTimeout(assistantStreamEndTimeoutRef.current);
+                assistantStreamEndTimeoutRef.current = null;
+              }
+              assistantStreamEndTimeoutRef.current = setTimeout(() => {
+                setIsAssistantStreaming(false);
+                setIsLoading(false);
+              }, 900);
+            }
+
             return [...prev, newMsg];
           }
         });
