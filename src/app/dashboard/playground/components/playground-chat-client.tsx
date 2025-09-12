@@ -88,6 +88,7 @@ export function PlaygroundChatClient({ chatId }: PlaygroundChatClientProps) {
     setMessages,
     wsConnected,
     sendMessageDirect,
+    isProcessing,
   } = useChat({
     wsUrl:
       token && chatInfo?.user_id
@@ -422,6 +423,7 @@ export function PlaygroundChatClient({ chatId }: PlaygroundChatClientProps) {
             value={input}
             onChange={handleInputChange}
             onSubmit={handleSubmit}
+            submitDisabled={isProcessing}
           />
         </div>
       </div>
