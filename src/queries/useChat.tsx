@@ -60,6 +60,7 @@ export const useGetChatMessagesInfinite = (id: string) => {
         limit: 10,
       }),
     initialPageParam: 0,
+    enabled: !!id,
     getNextPageParam: (lastPage, allPages) => {
       const meta = lastPage?.data?.meta;
       const inferredLimit = Number(meta?.limit) || 10;
