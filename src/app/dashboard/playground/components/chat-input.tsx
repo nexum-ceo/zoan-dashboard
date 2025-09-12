@@ -17,6 +17,7 @@ type ChatInputProps = {
   onChange: (e: ChangeEvent<HTMLTextAreaElement>) => void;
   onSubmit: (e: FormEvent<HTMLFormElement>) => void;
   disabled?: boolean;
+  submitDisabled?: boolean;
   status?: ChatStatus;
 };
 
@@ -25,6 +26,7 @@ export const ChatInput: FC<ChatInputProps> = ({
   onChange,
   onSubmit,
   disabled = false,
+  submitDisabled = false,
   status,
 }) => {
   const [showUpgradeBanner, setShowUpgradeBanner] = useState(true);
@@ -56,7 +58,7 @@ export const ChatInput: FC<ChatInputProps> = ({
           <div className="flex items-center gap-2">
             <PromptInputSubmit
               status={status}
-              disabled={disabled || !value.trim()}
+              disabled={disabled || submitDisabled || !value.trim()}
             >
               <span className="px-1">»»</span>
             </PromptInputSubmit>

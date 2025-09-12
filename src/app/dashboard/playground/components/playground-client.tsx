@@ -21,7 +21,7 @@ export function PlaygroundClient() {
   const agents = agentData?.data.data || [];
   const selectedAgent = agents.find((agent) => agent.id === selectedAgentId);
 
-  const { messages, handleSubmit, isLoading } = useChat({
+  const { messages, handleSubmit, isLoading, isProcessing } = useChat({
     initialMessages: [],
     chatId: '',
     user_id: '',
@@ -101,6 +101,7 @@ export function PlaygroundClient() {
           onChange={(e) => setPendingMessage(e.target.value)}
           onSubmit={messages.length === 0 ? handleFirstSubmit : handleSubmit}
           disabled={false}
+          submitDisabled={isProcessing}
         />
       </div>
     </>

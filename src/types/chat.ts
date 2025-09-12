@@ -153,3 +153,23 @@ export const CreateChatAgentSettingResSchema = z.object({
 export type CreateChatAgentSettingResType = z.infer<
   typeof CreateChatAgentSettingResSchema
 >;
+
+export const GetChatGameVersionListResSchema = z.object({
+  status: z.string(),
+  message: z.string(),
+  data: z.array(
+    z.object({
+      id: z.string(),
+      chat_id: z.string(),
+      version: z.string(),
+      description: z.string(),
+      game_url: z.string(),
+      created_at: z.string(),
+      updated_at: z.string(),
+    }),
+  ),
+});
+
+export type GetChatGameVersionListResSchema = z.infer<
+  typeof GetChatGameVersionListResSchema
+>;

@@ -53,6 +53,13 @@ export function useChat({
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [isAssistantStreaming, setIsAssistantStreaming] =
     useState<boolean>(false);
+
+  // Update messages when initialMessages change (e.g., when API data loads)
+  useEffect(() => {
+    if (initialMessages.length > 0 && messages.length === 0) {
+      setMessages(initialMessages);
+    }
+  }, [initialMessages, messages.length]);
   const wsRef = useRef<WebSocket | null>(null);
   const [wsConnected, setWsConnected] = useState<boolean>(false);
   const lastActiveTimeRef = useRef<number>(Date.now());
@@ -123,6 +130,11 @@ export function useChat({
       if (!timeoutMs || timeoutMs <= 0) return;
       responseTimeoutRef.current = setTimeout(() => {
         if (!awaitingResponseRef.current) return;
+        console.log('[WS] Response timeout triggered, resetting states');
+        // Reset states when timeout occurs
+        setIsLoading(false);
+        setIsAssistantStreaming(false);
+        awaitingResponseRef.current = false;
         if (!wsRef.current) return;
         if (wsRef.current.readyState !== WebSocket.OPEN) return;
         try {
@@ -139,6 +151,18 @@ export function useChat({
       clearInterval(idleRecycleIntervalRef.current);
       idleRecycleIntervalRef.current = null;
     }
+  }, []);
+
+  // Reset streaming timeout for text content
+  const resetStreamingTimeout = useCallback(() => {
+    if (assistantStreamEndTimeoutRef.current) {
+      clearTimeout(assistantStreamEndTimeoutRef.current);
+      assistantStreamEndTimeoutRef.current = null;
+    }
+    assistantStreamEndTimeoutRef.current = setTimeout(() => {
+      setIsAssistantStreaming(false);
+      setIsLoading(false);
+    }, 900);
   }, []);
 
   const startIdleRecycle = useCallback(
@@ -301,6 +325,11 @@ export function useChat({
       setWsConnected(false);
       clearHeartbeat();
       clearIdleRecycle();
+      // Reset loading states when connection closes
+      setIsLoading(false);
+      setIsAssistantStreaming(false);
+      awaitingResponseRef.current = false;
+      clearResponseTimeout();
       console.log('[WS] Connection closed:', event.code, event.reason);
       if (!manualCloseRef.current && event.code !== 1000) {
         scheduleReconnect('onclose');
@@ -311,6 +340,11 @@ export function useChat({
       setWsConnected(false);
       clearHeartbeat();
       clearIdleRecycle();
+      // Reset loading states when connection errors
+      setIsLoading(false);
+      setIsAssistantStreaming(false);
+      awaitingResponseRef.current = false;
+      clearResponseTimeout();
       console.error('[WS] Connection error:', err);
       if (!manualCloseRef.current) {
         scheduleReconnect('onerror');
@@ -322,15 +356,8 @@ export function useChat({
       // Any server activity cancels the expected-response watchdog
       awaitingResponseRef.current = false;
       clearResponseTimeout();
-      // Mark assistant as streaming and debounce end state so UI timer works
+      // Mark assistant as streaming
       setIsAssistantStreaming(true);
-      if (assistantStreamEndTimeoutRef.current) {
-        clearTimeout(assistantStreamEndTimeoutRef.current);
-        assistantStreamEndTimeoutRef.current = null;
-      }
-      assistantStreamEndTimeoutRef.current = setTimeout(() => {
-        setIsAssistantStreaming(false);
-      }, 900);
       const chunk = (() => {
         const rawData = String(event.data);
 
@@ -343,6 +370,7 @@ export function useChat({
               console.log('[WS] Filtered system message:', data);
               return null;
             }
+            console.log('data: ', data);
 
             // For any other JSON message, return the raw JSON string and
             // let the downstream parser handle types (thinking/text/etc.)
@@ -380,7 +408,10 @@ export function useChat({
             !!parsedRecord &&
             typeof parsedRecord['type'] === 'string' &&
             parsedRecord['type'] === 'game_generator';
-          // Build display text. For thinking, prefer title/elapsed formatting; otherwise use content/raw
+          const isGameSignal =
+            !!parsedRecord &&
+            typeof parsedRecord['type'] === 'string' &&
+            parsedRecord['type'] === 'game-signal';
           let textContent: string;
           if (isThinking) {
             const title =
@@ -410,6 +441,13 @@ export function useChat({
             textContent =
               contentStr && title ? `${header}\n${contentStr}` : header;
           } else if (isGameGenerator) {
+            textContent = coerceToString(
+              (parsedRecord as Record<string, unknown>)['content'] ??
+                (parsedRecord as Record<string, unknown>)['text'] ??
+                (parsedRecord as Record<string, unknown>)['data'] ??
+                parsedRecord,
+            );
+          } else if (isGameSignal) {
             textContent = coerceToString(
               (parsedRecord as Record<string, unknown>)['content'] ??
                 (parsedRecord as Record<string, unknown>)['text'] ??
@@ -457,6 +495,18 @@ export function useChat({
               }
               last.parts = existingParts;
               // Do not append game_generator to visible assistant content
+            } else if (isGameSignal) {
+              const existingParts = Array.isArray(last.parts)
+                ? last.parts.slice()
+                : [];
+              if ((textContent || '').trim() !== '') {
+                existingParts.push({
+                  type: 'game-signal',
+                  text: textContent,
+                });
+              }
+              last.parts = existingParts;
+              // Do not append game-signal to visible assistant content
             } else {
               last.content = String(last.content || '') + textContent;
               const existingParts = Array.isArray(last.parts)
@@ -464,6 +514,9 @@ export function useChat({
                 : [];
               existingParts.push({ type: 'text', text: textContent });
               last.parts = existingParts;
+
+              // Only reset timeout for actual text content (not thinking/game generation)
+              resetStreamingTimeout();
             }
 
             last.sender_id = null;
@@ -474,14 +527,25 @@ export function useChat({
             const newMsg: ChatMessage = {
               id: Date.now().toString() + '-ws',
               role: ChatRole.ASSISTANT,
-              content: isThinking || isGameGenerator ? '' : textContent,
+              content:
+                isThinking || isGameGenerator || isGameSignal
+                  ? ''
+                  : textContent,
               sender_id: null,
               parts: isThinking
                 ? [{ type: 'thinking', text: textContent }]
                 : isGameGenerator
                 ? [{ type: 'game_generator', text: textContent }]
+                : isGameSignal
+                ? [{ type: 'game-signal', text: textContent }]
                 : [{ type: 'text', text: textContent }],
             };
+
+            // Only reset timeout for actual text content (not thinking/game generation)
+            if (!isThinking && !isGameGenerator && !isGameSignal) {
+              resetStreamingTimeout();
+            }
+
             return [...prev, newMsg];
           }
         });
@@ -511,6 +575,7 @@ export function useChat({
     coerceToString,
     enableIdleRecycle,
     idleRecycleMs,
+    resetStreamingTimeout,
   ]);
 
   // Keep a stable ref to the latest setupWebSocket implementation
@@ -619,6 +684,19 @@ export function useChat({
   const handleSubmit = (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (!input.trim()) return;
+
+    // Prevent sending new messages while assistant is processing
+    if (isLoading || isAssistantStreaming) {
+      console.log('[Chat] Message blocked: assistant is still processing');
+      return;
+    }
+
+    // Check if WebSocket is connected
+    if (!wsRef.current || wsRef.current.readyState !== WebSocket.OPEN) {
+      console.log('[Chat] Message blocked: WebSocket not connected');
+      return;
+    }
+
     const userMsg: ChatMessage = {
       id: Date.now().toString(),
       role: 'user',
@@ -627,7 +705,8 @@ export function useChat({
     };
     setMessages((prev) => [...prev, userMsg]);
     setIsLoading(true);
-    if (wsRef.current && wsRef.current.readyState === WebSocket.OPEN) {
+
+    try {
       wsRef.current.send(
         JSON.stringify({
           role: 'user',
@@ -641,14 +720,33 @@ export function useChat({
       awaitingResponseRef.current = true;
       lastMessageAtRef.current = Date.now();
       armResponseTimeout(Number(expectedResponseTimeoutMs || 0));
+    } catch (error) {
+      console.error('[Chat] Failed to send message:', error);
+      setIsLoading(false);
+      return;
     }
+
     setInput('');
-    setIsLoading(false);
   };
 
   // Send message directly via WebSocket
   const sendMessageDirect = (msg: string) => {
     if (!msg.trim()) return;
+
+    // Prevent sending new messages while assistant is processing
+    if (isLoading || isAssistantStreaming) {
+      console.log(
+        '[Chat] Direct message blocked: assistant is still processing',
+      );
+      return;
+    }
+
+    // Check if WebSocket is connected
+    if (!wsRef.current || wsRef.current.readyState !== WebSocket.OPEN) {
+      console.log('[Chat] Direct message blocked: WebSocket not connected');
+      return;
+    }
+
     const userMsg: ChatMessage = {
       id: Date.now().toString(),
       role: ChatRole.USER,
@@ -657,7 +755,8 @@ export function useChat({
     };
     setMessages((prev) => [...prev, userMsg]);
     setIsLoading(true);
-    if (wsRef.current && wsRef.current.readyState === WebSocket.OPEN) {
+
+    try {
       wsRef.current.send(
         JSON.stringify({
           role: 'user',
@@ -671,8 +770,11 @@ export function useChat({
       awaitingResponseRef.current = true;
       lastMessageAtRef.current = Date.now();
       armResponseTimeout(Number(expectedResponseTimeoutMs || 0));
+    } catch (error) {
+      console.error('[Chat] Failed to send direct message:', error);
+      setIsLoading(false);
+      return;
     }
-    setIsLoading(false);
   };
 
   return {
@@ -686,5 +788,9 @@ export function useChat({
     setInput,
     wsConnected,
     sendMessageDirect,
+    // Helper to check if currently processing (useful for UI state)
+    // isLoading: true from send until assistant starts responding
+    // isAssistantStreaming: true while assistant is actively streaming
+    isProcessing: isLoading || isAssistantStreaming,
   };
 }

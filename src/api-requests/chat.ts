@@ -5,6 +5,7 @@ import {
   CreateChatBodyType,
   CreateChatResType,
   GetChatAgentSettingByChatIdResType,
+  GetChatGameVersionListResSchema,
   GetChatListResType,
   GetChatMessagesResType,
   GetPrimaryAgentByChatIdResType,
@@ -99,6 +100,14 @@ const chatApiRequest = {
         baseURL: '',
       },
     ),
+
+  getChatGameVersionList: (id: string) =>
+    axiosInstance.get<GetChatGameVersionListResSchema>(`/game-version/${id}`),
+
+  sGetChatGameVersionList: (id: string) =>
+    axiosInstance.get<GetChatGameVersionListResSchema>(`/game-version/${id}`, {
+      baseURL: '',
+    }),
 };
 
 export default chatApiRequest;

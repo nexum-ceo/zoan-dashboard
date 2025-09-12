@@ -16,13 +16,12 @@ import {
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import { SidebarProvider } from '@/components/ui/sidebar';
 import { useIsMobile } from '@/hooks/use-mobile';
-import { useChat } from '@/hooks/useChat';
 import { useInfiniteScroll } from '@/hooks/useInfiniteScroll';
+import type { ChatMessage as HookChatMessage } from '@/hooks/useSSEChat';
+import { useSSEChat } from '@/hooks/useSSEChat';
 import {
   clearPendingMessage,
-  fetchAuthToken,
   getPendingMessage,
-  shouldSyncMessagesFromAPI,
   transformChatMessages,
 } from '@/lib/chat-utils';
 import { getNavigationItems } from '@/lib/navigation-utils';
@@ -38,7 +37,7 @@ import {
   Sparkles,
 } from 'lucide-react';
 import { usePathname, useRouter } from 'next/navigation';
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 
 type PlaygroundChatClientProps = {
   chatId: string;
@@ -51,7 +50,6 @@ export function PlaygroundChatClient({ chatId }: PlaygroundChatClientProps) {
   const pathname = usePathname();
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const messagesContainerRef = useRef<HTMLDivElement>(null);
-  const hasSyncedInitialMessagesRef = useRef<boolean>(false);
   const [settingsOpen, setSettingsOpen] = useState<boolean>(true);
   const [exploreOpen, setExploreOpen] = useState<boolean>(false);
   const isSidePanelOpen = (settingsOpen || exploreOpen) && !isMobile;
@@ -61,7 +59,7 @@ export function PlaygroundChatClient({ chatId }: PlaygroundChatClientProps) {
     getPendingMessage(),
   );
   const [firstMsgSent, setFirstMsgSent] = useState<boolean>(false);
-  const [token, setToken] = useState<string>('');
+  // const [token, setToken] = useState<string>('');
   const [previousScrollHeight, setPreviousScrollHeight] = useState<number>(0);
   const [isLoadingMore, setIsLoadingMore] = useState<boolean>(false);
   const { data: chatData } = useGetChat(chatId);
@@ -75,6 +73,20 @@ export function PlaygroundChatClient({ chatId }: PlaygroundChatClientProps) {
   const chatMessages = chatMessageData?.pages.flatMap((page) => page.data.data);
   const chatInfo = chatData?.data?.data;
 
+  const exploreRefetchRef = useRef<(() => void) | null>(null);
+
+  // Transform API messages to use as initial messages
+  const initialMessages = useMemo(() => {
+    if (
+      chatInfo?.user_id &&
+      Array.isArray(chatMessages) &&
+      chatMessages.length > 0
+    ) {
+      return transformChatMessages(chatMessages, chatInfo.user_id);
+    }
+    return [];
+  }, [chatInfo?.user_id, chatMessages]);
+
   const {
     messages,
     input,
@@ -82,48 +94,29 @@ export function PlaygroundChatClient({ chatId }: PlaygroundChatClientProps) {
     handleSubmit,
     isLoading,
     isAssistantStreaming,
-    setMessages,
-    wsConnected,
+    sseConnected,
     sendMessageDirect,
-  } = useChat({
-    wsUrl:
-      token && chatInfo?.user_id
-        ? `${process.env.NEXT_PUBLIC_WS_URL}/${chatId}?token=${token}`
-        : '',
-    initialMessages: [],
+    isProcessing,
+  } = useSSEChat({
+    sseUrl: chatInfo?.user_id ? `/api/chat/${chatId}/stream` : '',
+    initialMessages,
     chatId: chatId,
     user_id: chatInfo?.user_id || '',
   });
 
-  // Only sync messages from API on initial load, not on every update
-  useEffect(() => {
-    if (
-      !hasSyncedInitialMessagesRef.current &&
-      shouldSyncMessagesFromAPI(chatInfo, chatMessages || [], messages)
-    ) {
-      const transformedMessages = transformChatMessages(
-        chatMessages || [],
-        chatInfo?.user_id || '',
-      );
-      setMessages(transformedMessages);
-      hasSyncedInitialMessagesRef.current = true;
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [chatMessages, chatInfo]);
+  // useEffect(() => {
+  //   fetchAuthToken().then(setToken);
+  // }, []);
 
+  // Only send the first message when SSE is connected, otherwise keep it to send later
   useEffect(() => {
-    fetchAuthToken().then(setToken);
-  }, []);
-
-  // Only send the first message when WebSocket is connected, otherwise keep it to send later
-  useEffect(() => {
-    if (pendingMsg && !firstMsgSent && wsConnected) {
+    if (pendingMsg && !firstMsgSent && sseConnected) {
       sendMessageDirect(pendingMsg);
       setFirstMsgSent(true);
       setPendingMsg('');
       clearPendingMessage();
     }
-  }, [pendingMsg, firstMsgSent, wsConnected, sendMessageDirect]);
+  }, [pendingMsg, firstMsgSent, sseConnected, sendMessageDirect]);
 
   // Infinite scroll functionality
   useInfiniteScroll({
@@ -157,6 +150,37 @@ export function PlaygroundChatClient({ chatId }: PlaygroundChatClientProps) {
 
     return () => clearTimeout(timeoutId);
   }, [isFetchingNextPage, previousScrollHeight]);
+
+  // Auto-open Explore panel when assistant emits a game-signal
+  const lastGameSignalMessageIdRef = useRef<string | null>(null);
+  useEffect(() => {
+    if (!Array.isArray(messages) || messages.length === 0) return;
+
+    // Find the latest assistant message that contains a part with type 'game-signal'
+    const latestWithSignal = [...messages]
+      .reverse()
+      .find((m: HookChatMessage) => {
+        if (m.role !== ChatRole.ASSISTANT) return false;
+        const parts = m.parts as Array<{ type?: string }> | undefined;
+        return (
+          Array.isArray(parts) && parts.some((p) => p?.type === 'game-signal')
+        );
+      });
+
+    if (!latestWithSignal) return;
+
+    if (
+      latestWithSignal.id &&
+      lastGameSignalMessageIdRef.current !== latestWithSignal.id
+    ) {
+      lastGameSignalMessageIdRef.current = latestWithSignal.id;
+      setExploreOpen(true);
+      setSettingsOpen(false);
+      if (exploreRefetchRef.current) {
+        exploreRefetchRef.current();
+      }
+    }
+  }, [messages]);
 
   // Navigation items with dynamic active state
   const navigationItems = getNavigationItems();
@@ -388,6 +412,7 @@ export function PlaygroundChatClient({ chatId }: PlaygroundChatClientProps) {
             value={input}
             onChange={handleInputChange}
             onSubmit={handleSubmit}
+            submitDisabled={isProcessing}
           />
         </div>
       </div>
@@ -402,7 +427,18 @@ export function PlaygroundChatClient({ chatId }: PlaygroundChatClientProps) {
       )}
 
       {/* Explore Panel */}
-      <Explore isOpen={exploreOpen} onClose={() => setExploreOpen(false)} />
+      {exploreOpen && (
+        <Explore
+          chatId={chatId}
+          isOpen={exploreOpen}
+          onClose={() => setExploreOpen(false)}
+          onGameSignalReceived={() => {
+            if (exploreRefetchRef.current) {
+              exploreRefetchRef.current();
+            }
+          }}
+        />
+      )}
     </div>
   );
 }

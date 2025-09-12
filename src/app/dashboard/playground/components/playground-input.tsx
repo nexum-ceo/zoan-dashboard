@@ -7,13 +7,15 @@ type PlaygroundInputProps = {
   onChange?: (e: ChangeEvent<HTMLTextAreaElement>) => void;
   onSubmit?: (e: React.FormEvent<HTMLFormElement>) => void;
   disabled: boolean;
-};
+  submitDisabled?: boolean;
+}
 
 export const PlaygroundInput: FC<PlaygroundInputProps> = ({
   value,
   onChange,
   onSubmit,
   disabled,
+  submitDisabled = false,
 }: PlaygroundInputProps) => {
   return (
     <div>
@@ -22,6 +24,7 @@ export const PlaygroundInput: FC<PlaygroundInputProps> = ({
         onChange={onChange || (() => {})}
         onSubmit={onSubmit || (() => {})}
         disabled={disabled}
+        submitDisabled={submitDisabled}
       />
     </div>
   );
