@@ -7,6 +7,7 @@ interface PlaygroundInputProps {
   onChange: (e: ChangeEvent<HTMLTextAreaElement>) => void;
   onSubmit: (e: React.FormEvent<HTMLFormElement>) => void;
   disabled: boolean;
+  submitDisabled?: boolean;
 }
 
 export function PlaygroundInput({
@@ -14,6 +15,7 @@ export function PlaygroundInput({
   onChange,
   onSubmit,
   disabled,
+  submitDisabled = false,
 }: PlaygroundInputProps) {
   return (
     <div className="bg-sidebar">
@@ -22,6 +24,7 @@ export function PlaygroundInput({
         onChange={onChange}
         onSubmit={onSubmit}
         disabled={disabled}
+        submitDisabled={submitDisabled}
       />
     </div>
   );

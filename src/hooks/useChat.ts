@@ -123,6 +123,11 @@ export function useChat({
       if (!timeoutMs || timeoutMs <= 0) return;
       responseTimeoutRef.current = setTimeout(() => {
         if (!awaitingResponseRef.current) return;
+        console.log('[WS] Response timeout triggered, resetting states');
+        // Reset states when timeout occurs
+        setIsLoading(false);
+        setIsAssistantStreaming(false);
+        awaitingResponseRef.current = false;
         if (!wsRef.current) return;
         if (wsRef.current.readyState !== WebSocket.OPEN) return;
         try {
@@ -301,6 +306,11 @@ export function useChat({
       setWsConnected(false);
       clearHeartbeat();
       clearIdleRecycle();
+      // Reset loading states when connection closes
+      setIsLoading(false);
+      setIsAssistantStreaming(false);
+      awaitingResponseRef.current = false;
+      clearResponseTimeout();
       console.log('[WS] Connection closed:', event.code, event.reason);
       if (!manualCloseRef.current && event.code !== 1000) {
         scheduleReconnect('onclose');
@@ -311,6 +321,11 @@ export function useChat({
       setWsConnected(false);
       clearHeartbeat();
       clearIdleRecycle();
+      // Reset loading states when connection errors
+      setIsLoading(false);
+      setIsAssistantStreaming(false);
+      awaitingResponseRef.current = false;
+      clearResponseTimeout();
       console.error('[WS] Connection error:', err);
       if (!manualCloseRef.current) {
         scheduleReconnect('onerror');
@@ -330,6 +345,8 @@ export function useChat({
       }
       assistantStreamEndTimeoutRef.current = setTimeout(() => {
         setIsAssistantStreaming(false);
+        // Clear loading state only when assistant completely finishes streaming
+        setIsLoading(false);
       }, 900);
       const chunk = (() => {
         const rawData = String(event.data);
@@ -647,6 +664,19 @@ export function useChat({
   const handleSubmit = (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (!input.trim()) return;
+
+    // Prevent sending new messages while assistant is processing
+    if (isLoading || isAssistantStreaming) {
+      console.log('[Chat] Message blocked: assistant is still processing');
+      return;
+    }
+
+    // Check if WebSocket is connected
+    if (!wsRef.current || wsRef.current.readyState !== WebSocket.OPEN) {
+      console.log('[Chat] Message blocked: WebSocket not connected');
+      return;
+    }
+
     const userMsg: ChatMessage = {
       id: Date.now().toString(),
       role: 'user',
@@ -655,7 +685,8 @@ export function useChat({
     };
     setMessages((prev) => [...prev, userMsg]);
     setIsLoading(true);
-    if (wsRef.current && wsRef.current.readyState === WebSocket.OPEN) {
+
+    try {
       wsRef.current.send(
         JSON.stringify({
           role: 'user',
@@ -669,14 +700,33 @@ export function useChat({
       awaitingResponseRef.current = true;
       lastMessageAtRef.current = Date.now();
       armResponseTimeout(Number(expectedResponseTimeoutMs || 0));
+    } catch (error) {
+      console.error('[Chat] Failed to send message:', error);
+      setIsLoading(false);
+      return;
     }
+
     setInput('');
-    setIsLoading(false);
   };
 
   // Send message directly via WebSocket
   const sendMessageDirect = (msg: string) => {
     if (!msg.trim()) return;
+
+    // Prevent sending new messages while assistant is processing
+    if (isLoading || isAssistantStreaming) {
+      console.log(
+        '[Chat] Direct message blocked: assistant is still processing',
+      );
+      return;
+    }
+
+    // Check if WebSocket is connected
+    if (!wsRef.current || wsRef.current.readyState !== WebSocket.OPEN) {
+      console.log('[Chat] Direct message blocked: WebSocket not connected');
+      return;
+    }
+
     const userMsg: ChatMessage = {
       id: Date.now().toString(),
       role: ChatRole.USER,
@@ -685,7 +735,8 @@ export function useChat({
     };
     setMessages((prev) => [...prev, userMsg]);
     setIsLoading(true);
-    if (wsRef.current && wsRef.current.readyState === WebSocket.OPEN) {
+
+    try {
       wsRef.current.send(
         JSON.stringify({
           role: 'user',
@@ -699,8 +750,11 @@ export function useChat({
       awaitingResponseRef.current = true;
       lastMessageAtRef.current = Date.now();
       armResponseTimeout(Number(expectedResponseTimeoutMs || 0));
+    } catch (error) {
+      console.error('[Chat] Failed to send direct message:', error);
+      setIsLoading(false);
+      return;
     }
-    setIsLoading(false);
   };
 
   return {
@@ -714,5 +768,17 @@ export function useChat({
     setInput,
     wsConnected,
     sendMessageDirect,
+    // Helper to check if currently processing (useful for UI state)
+    // isLoading: true from send until assistant starts responding
+    // isAssistantStreaming: true while assistant is actively streaming
+    isProcessing: isLoading || isAssistantStreaming,
+    // Debug helpers (remove in production)
+    _debug: {
+      isLoading,
+      isAssistantStreaming,
+      wsConnected,
+      wsReadyState: wsRef.current?.readyState ?? 'null',
+      awaitingResponse: awaitingResponseRef.current,
+    },
   };
 }
