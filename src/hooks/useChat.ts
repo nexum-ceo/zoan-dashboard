@@ -772,13 +772,5 @@ export function useChat({
     // isLoading: true from send until assistant starts responding
     // isAssistantStreaming: true while assistant is actively streaming
     isProcessing: isLoading || isAssistantStreaming,
-    // Debug helpers (remove in production)
-    _debug: {
-      isLoading,
-      isAssistantStreaming,
-      wsConnected,
-      wsReadyState: wsRef.current?.readyState ?? 'null',
-      awaitingResponse: awaitingResponseRef.current,
-    },
   };
 }
