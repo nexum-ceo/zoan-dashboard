@@ -249,35 +249,35 @@ export default function AppNavbar() {
                         General setting
                       </div>
                     </DropdownMenuLabel>
-                    <DropdownMenuItem className="px-3 py-2 bg-gray-100">
+                    <DropdownMenuItem className="px-3 py-2 bg-gray-100 cursor-pointer">
                       <User className="mr-2 h-4 w-4 text-[#272727]" />
                       <span className="text-paragraph !text-sm">Profile</span>
                     </DropdownMenuItem>
-                    <DropdownMenuItem className="px-3 py-2">
+                    <DropdownMenuItem className="px-3 py-2 cursor-pointer">
                       <Settings className="mr-2 h-4 w-4 text-[#272727]" />
                       <span className="text-paragraph !text-sm !text-[#272727]/50">
                         Settings
                       </span>
                     </DropdownMenuItem>
-                    <DropdownMenuItem className="px-3 py-2">
+                    <DropdownMenuItem className="px-3 py-2 cursor-pointer">
                       <DollarSign className="mr-2 h-4 w-4 text-[#272727]" />
                       <span className="text-paragraph !text-sm !text-[#272727]/50">
                         Pricing
                       </span>
                     </DropdownMenuItem>
-                    <DropdownMenuItem className="px-3 py-2">
+                    <DropdownMenuItem className="px-3 py-2 cursor-pointer">
                       <BookOpen className="mr-2 h-4 w-4 !text-[#272727]" />
                       <span className="text-paragraph !text-sm !text-[#272727]/50">
                         Documentation
                       </span>
                     </DropdownMenuItem>
-                    <DropdownMenuItem className="px-3 py-2">
+                    <DropdownMenuItem className="px-3 py-2 cursor-pointer">
                       <Users className="mr-2 h-4 w-4 text-[#272727]" />
                       <span className="text-paragraph !text-sm !text-[#272727]/50">
                         Community Forum
                       </span>
                     </DropdownMenuItem>
-                    <DropdownMenuItem className="px-3 py-2">
+                    <DropdownMenuItem className="px-3 py-2 cursor-pointer">
                       <MessageSquare className="mr-2 h-4 w-4 text-[#272727]" />
                       <span className="text-paragraph !text-sm !text-[#272727]/50">
                         Feedback
@@ -323,11 +323,8 @@ export default function AppNavbar() {
                         <span className="text-paragraph !text-sm !text-[#272727]/50">
                           Theme
                         </span>
-                        <Select>
-                          <SelectTrigger
-                            defaultValue={'system'}
-                            value={'system'}
-                          >
+                        <Select defaultValue={'system'} value={'system'}>
+                          <SelectTrigger>
                             <SelectValue />
                           </SelectTrigger>
                           <SelectContent
@@ -356,11 +353,8 @@ export default function AppNavbar() {
                         <span className="text-paragraph !text-sm !text-[#272727]/50">
                           Language
                         </span>
-                        <Select>
-                          <SelectTrigger
-                            defaultValue={'system'}
-                            value={'system'}
-                          >
+                        <Select defaultValue={'enlist'} value={'english'}>
+                          <SelectTrigger>
                             <SelectValue />
                           </SelectTrigger>
                           <SelectContent
@@ -386,8 +380,8 @@ export default function AppNavbar() {
                         <span className="text-paragraph !text-sm !text-[#272727]/50">
                           Chat Position
                         </span>
-                        <Select>
-                          <SelectTrigger defaultValue={'leftl'} value={'left'}>
+                        <Select defaultValue={'left'} value="left">
+                          <SelectTrigger>
                             <SelectValue />
                           </SelectTrigger>
                           <SelectContent
@@ -407,11 +401,10 @@ export default function AppNavbar() {
                         </Select>
                       </div>
                     </div>
-                    k
                     <DropdownMenuSeparator />
                     {/* Sign Out Button */}
-                    <DropdownMenuItem onClick={handleLogout} className="p-3">
-                      <Button className="w-full text-[#ef3d40] bg-transparent hover:bg-transparent">
+                    <DropdownMenuItem onClick={handleLogout}>
+                      <Button className="w-full text-[#ef3d40] bg-transparent hover:bg-transparent p-0 border-none shadow-none">
                         <IconLogout className="text-[#ef3d40]" />
                         Sign out
                       </Button>
