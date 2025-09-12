@@ -1,12 +1,14 @@
+'use client';
+
 import { Bot, Building2, Settings } from 'lucide-react';
 import { FC } from 'react';
 
-interface OptionButtonProps {
+type OptionButtonProps = {
   icon: React.ReactNode;
   text: string;
   isSelected?: boolean;
   onClick?: () => void;
-}
+};
 
 const OptionButton: FC<OptionButtonProps> = ({
   icon,
@@ -33,10 +35,10 @@ const OptionButton: FC<OptionButtonProps> = ({
   );
 };
 
-interface OptionButtonsProps {
+type OptionButtonsProps = {
   selectedOption?: string;
   onOptionChange?: (option: string) => void;
-}
+};
 
 export const OptionButtons: FC<OptionButtonsProps> = ({
   selectedOption = 'default',

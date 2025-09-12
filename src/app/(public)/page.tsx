@@ -1,4 +1,3 @@
-'use client';
 import CommunitySection from '@/app/(public)/components/community-section';
 import { PlaygroundInput } from '@/app/dashboard/playground/components';
 import OptionButtons from '@/components/ui/option-buttons';

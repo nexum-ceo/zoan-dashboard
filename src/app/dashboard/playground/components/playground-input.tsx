@@ -1,4 +1,5 @@
 'use client';
+
 import { ChatInput } from '@/app/dashboard/playground/components/chat-input';
 import { ChangeEvent, FC } from 'react';
 
@@ -8,7 +9,7 @@ type PlaygroundInputProps = {
   onSubmit?: (e: React.FormEvent<HTMLFormElement>) => void;
   disabled: boolean;
   submitDisabled?: boolean;
-}
+};
 
 export const PlaygroundInput: FC<PlaygroundInputProps> = ({
   value,
