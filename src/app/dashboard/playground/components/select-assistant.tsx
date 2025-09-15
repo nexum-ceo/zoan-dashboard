@@ -69,7 +69,7 @@ export const SelectAssistant: FC<SelectAssistantProps> = ({ activeChatId }) => {
           </div>
         </div>
       ) : (
-        <div className="rounded-xl border bg-background p-2">
+        <div className="rounded-xl border bg-background p-2 pb-4">
           <button
             type="button"
             className="w-full flex items-center justify-between px-2 py-1.5 text-xs"
@@ -145,9 +145,9 @@ export const SelectAssistant: FC<SelectAssistantProps> = ({ activeChatId }) => {
 
               {(hasNextPage ||
                 (!chatLoading && chats.length > displayedChats.length)) && (
-                <div className="px-3 py-2">
+                <div className="">
                   <button
-                    className="text-sm underline underline-offset-2 cursor-pointer"
+                    className="text-sm underline underline-offset-3 cursor-pointer"
                     disabled={isFetchingNextPage}
                     onClick={() => fetchNextPage()}
                     aria-busy={isFetchingNextPage}
