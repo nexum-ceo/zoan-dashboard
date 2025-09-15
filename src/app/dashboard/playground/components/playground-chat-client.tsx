@@ -97,6 +97,7 @@ export function PlaygroundChatClient({ chatId }: PlaygroundChatClientProps) {
     sseConnected,
     sendMessageDirect,
     isProcessing,
+    setMessages,
   } = useSSEChat({
     sseUrl: chatInfo?.user_id ? `/api/chat/${chatId}/stream` : '',
     initialMessages,
@@ -117,6 +118,25 @@ export function PlaygroundChatClient({ chatId }: PlaygroundChatClientProps) {
       clearPendingMessage();
     }
   }, [pendingMsg, firstMsgSent, sseConnected, sendMessageDirect]);
+
+  // Sync fetched initial messages into UI state on first load
+  useEffect(() => {
+    if (
+      Array.isArray(initialMessages) &&
+      initialMessages.length > 0 &&
+      messages.length === 0 &&
+      !isAssistantStreaming &&
+      !isLoading
+    ) {
+      setMessages(initialMessages);
+    }
+  }, [
+    initialMessages,
+    messages.length,
+    isAssistantStreaming,
+    isLoading,
+    setMessages,
+  ]);
 
   // Infinite scroll functionality
   useInfiniteScroll({
@@ -409,6 +429,7 @@ export function PlaygroundChatClient({ chatId }: PlaygroundChatClientProps) {
         {/* Input Area */}
         <div className="bg-sidebar">
           <ChatInput
+            disabled={isProcessing}
             value={input}
             onChange={handleInputChange}
             onSubmit={handleSubmit}

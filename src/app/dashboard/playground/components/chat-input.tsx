@@ -33,6 +33,13 @@ export const ChatInput: FC<ChatInputProps> = ({
 }) => {
   const [showUpgradeBanner, setShowUpgradeBanner] = useState(true);
   const { data: session } = useSession();
+
+  // Handle input change with disabled state check
+  const handleInputChange = (e: ChangeEvent<HTMLTextAreaElement>) => {
+    if (disabled) return; // Prevent input when disabled
+    onChange(e);
+  };
+
   // console.log('session in chat input', session);
   return (
     <div className="w-full max-w-4xl mx-auto px-4 py-4">
@@ -42,19 +49,20 @@ export const ChatInput: FC<ChatInputProps> = ({
       >
         <PromptInputTextarea
           placeholder="Ask ZOAN to build something amazing"
-          className="leading-6 min-h-[72px] border-0 focus:border-0 focus:ring-0 focus:outline-none resize-none w-full bg-transparent text-paragraph text-sm placeholder:text-[#272727]/40"
+          className={`leading-6 min-h-[72px] border-0 focus:border-0 focus:ring-0 focus:outline-none resize-none w-full bg-transparent text-paragraph text-sm placeholder:text-[#272727]/40 ${
+            disabled ? 'opacity-50' : ''
+          }`}
           style={{ lineHeight: '1.5' }}
           name="message"
           value={value}
-          onChange={onChange}
-          disabled={disabled}
+          onChange={handleInputChange}
         />
         <PromptInputToolbar className="px-3 py-2">
           <PromptInputTools>
             <PromptInputButton
               type="button"
               disabled={disabled}
-              className="bg-[#2727270D]"
+              className={`bg-[#2727270D] ${disabled ? 'opacity-50' : ''}`}
             >
               <Paperclip className="w-4 h-4 text-muted-foreground" />
             </PromptInputButton>
