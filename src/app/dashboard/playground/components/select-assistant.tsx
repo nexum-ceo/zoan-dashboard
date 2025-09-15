@@ -87,7 +87,7 @@ export const SelectAssistant: FC<SelectAssistantProps> = ({ activeChatId }) => {
           </button>
 
           {isOpen && (
-            <div className="">
+            <div className="text-xs">
               {chatLoading &&
                 Array.from({ length: 5 }).map((_, idx) => (
                   <div key={idx} className="px-2 py-1.5">
@@ -118,7 +118,7 @@ export const SelectAssistant: FC<SelectAssistantProps> = ({ activeChatId }) => {
                   return (
                     <button
                       key={chat.id || index}
-                      className={`cursor-pointer w-full text-left px-2 py-1.5 text-sm rounded-lg transition-colors truncate ${
+                      className={`cursor-pointer w-full text-left px-2 py-1.5 text-xs rounded-lg transition-colors truncate ${
                         isActive
                           ? 'bg-accent text-accent-foreground'
                           : 'hover:bg-muted text-foreground'
@@ -147,7 +147,7 @@ export const SelectAssistant: FC<SelectAssistantProps> = ({ activeChatId }) => {
                 (!chatLoading && chats.length > displayedChats.length)) && (
                 <div className="">
                   <button
-                    className="text-sm underline underline-offset-3 cursor-pointer"
+                    className="text-xs underline underline-offset-3 cursor-pointer"
                     disabled={isFetchingNextPage}
                     onClick={() => fetchNextPage()}
                     aria-busy={isFetchingNextPage}

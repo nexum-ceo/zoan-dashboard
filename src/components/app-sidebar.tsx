@@ -273,11 +273,10 @@ export function AppSidebar() {
               </div>
             </div>
 
+            <SidebarSeparator className="my-3 w-full mx-0" />
             {/* Dynamic Content Based on Active Tab */}
             {state !== 'collapsed' && (
-              <div className="border-t border-sidebar-border overflow-y-auto">
-                {renderSidebarContent(pathname)}
-              </div>
+              <div className="">{renderSidebarContent(pathname)}</div>
             )}
 
             {/* Spacer for user and trigger */}
