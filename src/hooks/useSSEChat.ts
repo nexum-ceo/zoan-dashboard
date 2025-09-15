@@ -151,13 +151,14 @@ export function useSSEChat({
   const setupSSERef = useRef<() => void>(() => {});
   const setupSSE = useCallback(() => {
     if (!sseUrl || sseUrl.trim() === '') {
-      console.log('[SSE] No valid sseUrl provided, skipping connection');
       return;
     }
     if (esRef.current) {
       try {
         esRef.current.close();
-      } catch {}
+      } catch (error) {
+        console.error('[SSE] Error closing existing connection:', error);
+      }
       esRef.current = null;
     }
     try {
@@ -173,7 +174,6 @@ export function useSSEChat({
         setSseConnected(true);
         reconnectAttemptsRef.current = 0;
         lastMessageAtRef.current = Date.now();
-        console.log('[SSE] Connection established');
       };
     (
       esRef.current as unknown as {
@@ -345,7 +345,7 @@ export function useSSEChat({
         console.error('[SSE] Error updating messages:', error);
       }
     };
-  }, [sseUrl, scheduleReconnect, clearResponseTimeout, coerceToString]);
+  }, [sseUrl, clearResponseTimeout, coerceToString]);
 
   // Keep a ref to latest setupSSE to avoid dependency cycles
   useEffect(() => {
@@ -365,12 +365,22 @@ export function useSSEChat({
       if (esRef.current) {
         try {
           esRef.current.close();
-        } catch {}
+        } catch (error) {
+          console.error('[SSE] Error closing EventSource:', error);
+        }
         esRef.current = null;
       }
       clearResponseTimeout();
     };
-  }, [sseUrl, setupSSE, clearResponseTimeout]);
+  }, [sseUrl, chatId, setupSSE, clearResponseTimeout]);
+
+  // Reset states when chatId changes
+  useEffect(() => {
+    setIsLoading(false);
+    setIsAssistantStreaming(false);
+    setSseConnected(false);
+    setInput('');
+  }, [chatId]);
 
   const handleInputChange = (e: ChangeEvent<HTMLTextAreaElement>) => {
     setInput(e.target.value);
