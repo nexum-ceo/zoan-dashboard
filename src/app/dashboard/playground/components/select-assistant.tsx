@@ -59,17 +59,15 @@ export const SelectAssistant: FC<SelectAssistantProps> = ({ activeChatId }) => {
     <div className="space-y-3 text-paragraph">
       {/* History */}
       {chats.length === 0 && !chatLoading && !chatError ? (
-        <div className="rounded-xl border border-dashed text-[#272727]/50">
-          <div className="flex items-center gap-2">
+        <div className="rounded-xl b text-paragraph order border-dashed text-[#272727]/50">
+          <div className="flex items-center gap-1">
             <Clock className="w-3 h-3" />
             History
           </div>
-          <div className="px-3 pb-3 text-xs">
-            You haven&apos;t created any chats yet.
-          </div>
+          <div className="text-xs">You haven&apos;t created any chats yet.</div>
         </div>
       ) : (
-        <div className="rounded-xl border bg-background p-2 pb-4">
+        <div className="rounded-xl border border-[#272727]/50 bg-background p-2 pb-4">
           <button
             type="button"
             className="w-full flex items-center justify-between px-2 py-1.5 text-xs"

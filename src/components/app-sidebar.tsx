@@ -23,6 +23,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import AddPlusSquare from '../../public/icon/add-plus-square';
+import Clock from '../../public/icon/clock';
 import FileBlank from '../../public/icon/file-blank';
 import Globe from '../../public/icon/globe';
 import Search from '../../public/icon/search';
@@ -138,6 +139,7 @@ export function AppSidebar() {
   const pathname = usePathname();
   const user = session?.user;
   const { state } = useSidebar();
+  const isPlayground = pathname.startsWith('/dashboard/playground');
 
   return (
     <TooltipProvider>
@@ -145,8 +147,8 @@ export function AppSidebar() {
         <SidebarContent>
           <div className="h-full bg-background flex flex-col w-full">
             {/* Header */}
-            <div className="p-3 dark:border-sidebar-border w-full">
-              <div className="flex items-center justify-between w-full">
+            {state === 'collapsed' ? (
+              <div className="p-3 w-full flex flex-col items-center gap-3">
                 <Link
                   href="/"
                   className="w-8 h-8 rounded-lg flex items-center justify-center"
@@ -159,9 +161,27 @@ export function AppSidebar() {
                     className="rounded-lg"
                   />
                 </Link>
-                <SidebarTrigger className="w-4 h-4 text-[#272727]" />
+                <SidebarTrigger className="w-7 h-7 text-[#272727]" />
               </div>
-            </div>
+            ) : (
+              <div className="p-3 dark:border-sidebar-border w-full">
+                <div className="flex items-center justify-between w-full">
+                  <Link
+                    href="/"
+                    className="w-8 h-8 rounded-lg flex items-center justify-center"
+                  >
+                    <Image
+                      src="/zoan-logo.png"
+                      alt="Logo"
+                      width={28}
+                      height={28}
+                      className="rounded-lg"
+                    />
+                  </Link>
+                  <SidebarTrigger className="w-4 h-4 text-[#272727]" />
+                </div>
+              </div>
+            )}
 
             {/* Navigation */}
             <div className="px-3 py-2">
@@ -178,13 +198,7 @@ export function AppSidebar() {
                       </Button>
                     </TooltipTrigger>
                     <TooltipContent side="right">
-                      <div className="relative">
-                        <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-[#272727]" />
-                        <Input
-                          placeholder="Search"
-                          className="pl-10 w-48 bg-gray-100 border-0 rounded-lg"
-                        />
-                      </div>
+                      <div className="relative">Search</div>
                     </TooltipContent>
                   </Tooltip>
                 ) : (
@@ -203,7 +217,7 @@ export function AppSidebar() {
                     <TooltipTrigger asChild>
                       <Button
                         onClick={() => router.push('/dashboard/playground')}
-                        className="w-full h-10 bg-gray-100 dark:bg-sidebar-accent hover:bg-gray-200 dark:hover:bg-sidebar-accent/80 text-gray-700 dark:text-sidebar-accent-foreground border-0 font-medium justify-center px-0"
+                        className="p-3 h-10 items-center justify-center bg-[#E8F9EE] hover:bg-[#DDF3E7]"
                       >
                         <AddPlusSquare className="w-4 h-4" />
                       </Button>
@@ -224,6 +238,8 @@ export function AppSidebar() {
               </div>
             </div>
             <SidebarSeparator className="my-3 w-full mx-0" />
+
+            {/* Navigation Items */}
             <div className="px-3">
               <div className="space-y-1">
                 {navigationItems
@@ -274,10 +290,29 @@ export function AppSidebar() {
             </div>
 
             <SidebarSeparator className="my-3 w-full mx-0" />
-            {/* Dynamic Content Based on Active Tab */}
-            {state !== 'collapsed' && (
+
+            {/* Subcontext (shared position) */}
+            {state === 'collapsed' ? (
+              isPlayground ? (
+                <div className="px-3 pb-2">
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Button className="w-full h-10 justify-center bg-transparent hover:bg-transparent shadow-none">
+                        <Clock className="w-4 h-4 stroke-[#272727]" />
+                      </Button>
+                    </TooltipTrigger>
+                    <TooltipContent side="right">
+                      <p>History</p>
+                    </TooltipContent>
+                  </Tooltip>
+                </div>
+              ) : null
+            ) : (
               <div className="">{renderSidebarContent(pathname)}</div>
             )}
+
+            {/* Dynamic Content Based on Active Tab */}
+            {/* (kept empty since subcontext is rendered just above) */}
 
             {/* Spacer for user and trigger */}
             <div className="flex-1" />
@@ -285,31 +320,15 @@ export function AppSidebar() {
             {/* User Info and Sidebar Trigger */}
             <div className="border-t border-sidebar-border">
               {state === 'collapsed' ? (
-                // When collapsed: Avatar on top, Trigger below
-                <div className="p-4 space-y-3">
-                  {/* Avatar */}
+                <div className="p-4">
                   <NavUser
                     user={{
                       email: user?.email || '',
                       avatar: '/avatar-placeholder.png',
                     }}
                   />
-                  {/* Sidebar Trigger */}
-                  <div className="flex justify-center">
-                    <TooltipProvider>
-                      <Tooltip>
-                        <TooltipTrigger asChild>
-                          <SidebarTrigger className="h-8 w-8" />
-                        </TooltipTrigger>
-                        <TooltipContent side="right">
-                          <p>Toggle Sidebar (Ctrl + B)</p>
-                        </TooltipContent>
-                      </Tooltip>
-                    </TooltipProvider>
-                  </div>
                 </div>
               ) : (
-                // When not collapsed: NavUser and Trigger below
                 <div className="space-y-3 flex items-center">
                   <NavUser
                     user={{
@@ -317,8 +336,6 @@ export function AppSidebar() {
                       avatar: '/avatar-placeholder.png',
                     }}
                   />
-                  {/* Sidebar Trigger at the bottom */}
-                  <SidebarTrigger size={'lg'} />
                 </div>
               )}
             </div>
