@@ -429,6 +429,7 @@ export function PlaygroundChatClient({ chatId }: PlaygroundChatClientProps) {
         {/* Input Area */}
         <div className="bg-sidebar">
           <ChatInput
+            disabled={isProcessing}
             value={input}
             onChange={handleInputChange}
             onSubmit={handleSubmit}
