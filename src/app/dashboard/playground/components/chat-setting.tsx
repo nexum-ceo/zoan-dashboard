@@ -12,6 +12,7 @@ import {
 } from '@/components/ui/select';
 import {
   Sheet,
+  SheetClose,
   SheetContent,
   SheetHeader,
   SheetTitle,
@@ -37,7 +38,7 @@ import {
 } from '@/types/agent';
 import { GetChatAgentSettingByChatIdResType } from '@/types/chat';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { Bot, Settings, Sparkles, Users, Zap } from 'lucide-react';
+import { Bot, Settings, Sparkles, Users, X, Zap } from 'lucide-react';
 import { useParams } from 'next/navigation';
 import { FC, useEffect, useMemo } from 'react';
 import { Controller, useForm } from 'react-hook-form';
@@ -226,14 +227,21 @@ export const ChatSettings: FC<ChatSettingsProps> = ({ isOpen, onClose }) => {
 
   return (
     <Sheet open={isOpen} onOpenChange={onClose}>
-      <SheetContent side="right" className="w-70 p-0 gap-0">
+      <SheetContent
+        side="right"
+        className="w-70 p-0 gap-0 [&>button.absolute]:hidden"
+      >
         <Tabs defaultValue="agent" className="w-full">
           <SheetHeader className="px-4 py-0 pt-4 border-b border-border">
-            <div className="flex items-center gap-2">
-              <Settings className="w-5 h-5" />
-              <SheetTitle className="text-lg font-semibold text-foreground">
-                Chat Settings
+            <div className="flex items-center justify-between">
+              <SheetTitle className="text-[#272727] text-[16px] font-medium">
+                Setting
               </SheetTitle>
+              <Button variant={'secondary'}>View project</Button>
+              <SheetClose className="p-0 m-0 text-[#272727]">
+                <X className="w-4 h-4" />
+                <span className="sr-only">Close</span>
+              </SheetClose>
             </div>
             <TabsList className="w-full flex mt-3 bg-transparent p-0 items-end gap-6 h-auto rounded-none mb-0 ">
               <TabsTrigger
