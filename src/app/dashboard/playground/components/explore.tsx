@@ -10,9 +10,18 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-// Removed Sheet usage to support embedding in a resizable panel
 import { useGetChatGameVersionList } from '@/queries/useChat';
-import { Download, Eye, Play } from 'lucide-react';
+import {
+  Code2,
+  Download,
+  Expand,
+  Eye,
+  FileText,
+  MessageSquare,
+  Play,
+  Settings,
+  Share2,
+} from 'lucide-react';
 import { FC, useEffect, useState } from 'react';
 
 type ExplorePanelProps = {
@@ -92,8 +101,52 @@ export const ExplorePanel: FC<ExplorePanelProps> = ({
   return (
     <div className={'flex flex-col h-full ' + (className || '')}>
       {/* Header */}
-      <div className="px-6 py-4 border-b border-border">
-        <h2 className="text-lg font-semibold text-foreground">Explore</h2>
+      <div className="px-4 py-3 border-b border-border bg-background">
+        <div className="flex items-center justify-between gap-3">
+          {/* Left segmented controls */}
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              className="flex items-center gap-2 rounded-full px-3 py-1.5 text-sm bg-muted text-foreground hover:bg-muted/80"
+            >
+              <span className="inline-flex items-center justify-center w-5 h-5 rounded-full bg-background">
+                <MessageSquare className="w-3.5 h-3.5" />
+              </span>
+              Chat
+            </button>
+            <button
+              type="button"
+              className="flex items-center gap-2 rounded-full px-3 py-1.5 text-sm bg-muted text-foreground hover:bg-muted/80"
+            >
+              <span className="inline-flex items-center justify-center w-5 h-5 rounded-full bg-background">
+                <Code2 className="w-3.5 h-3.5" />
+              </span>
+            </button>
+            <button
+              type="button"
+              className="flex items-center gap-2 rounded-full px-3 py-1.5 text-sm bg-emerald-100 text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-400"
+            >
+              <span className="inline-flex items-center justify-center w-5 h-5 rounded-full bg-emerald-500 text-white dark:bg-emerald-500">
+                <Eye className="w-3.5 h-3.5" />
+              </span>
+            </button>
+          </div>
+          {/* Right icon buttons */}
+          <div className="flex items-center gap-2 text-foreground/80">
+            <button type="button" className="p-2 rounded hover:bg-muted">
+              <Settings className="w-4 h-4" />
+            </button>
+            <button type="button" className="p-2 rounded hover:bg-muted">
+              <Share2 className="w-4 h-4" />
+            </button>
+            <button type="button" className="p-2 rounded hover:bg-muted">
+              <FileText className="w-4 h-4" />
+            </button>
+            <button type="button" className="p-2 rounded hover:bg-muted">
+              <Expand className="w-4 h-4" />
+            </button>
+          </div>
+        </div>
       </div>
 
       {/* Content */}
