@@ -318,7 +318,7 @@ export function AppSidebar() {
             <div className="flex-1" />
 
             {/* User Info and Sidebar Trigger */}
-            <div className="border-t border-sidebar-border">
+            <div className="">
               {state === 'collapsed' ? (
                 <div className="p-4">
                   <NavUser

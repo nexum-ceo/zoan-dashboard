@@ -64,12 +64,18 @@ export const NavUser: FC<NavUserProps> = ({ user }) => {
           <DropdownMenuTrigger asChild>
             <SidebarMenuButton
               size="lg"
-              className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground w-fit"
+              className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground w-fit flex items-center"
             >
               <Avatar className="h-8 w-8 rounded-lg grayscale">
                 <AvatarImage src={user.avatar} alt={user.email} />
                 <AvatarFallback className="rounded-lg">CN</AvatarFallback>
               </Avatar>
+              <div className="flex flex-col">
+                <div className="text-paragraph">{user.email}</div>
+                <div className="text-tag-label text-[#272727]/50">
+                  Free plan
+                </div>{' '}
+              </div>
             </SidebarMenuButton>
           </DropdownMenuTrigger>
           <DropdownMenuContent
