@@ -56,7 +56,7 @@ export const ExplorePanel: FC<ExplorePanelProps> = ({
     }
   }, [chatGameVersionList, onGameSignalReceived]);
 
-  // Auto-open explore when latest assistant message has non-empty metadata
+  // Auto-open explore when latest assistant message has game signals
   useEffect(() => {
     if (!Array.isArray(messages) || messages.length === 0) return;
     const latestWithMetadata = [...(messages as Array<Record<string, unknown>>)]
@@ -64,13 +64,24 @@ export const ExplorePanel: FC<ExplorePanelProps> = ({
       .find((m) => {
         const role = m?.role as string | undefined;
         const isAssistant = role === 'assistant' || role === 'ASSISTANT';
-        const metadata = (m as Record<string, string>)?.metadata;
-        return (
-          isAssistant &&
-          metadata &&
+        const metadata = (m as Record<string, unknown>)?.metadata as
+          | Record<string, unknown>
+          | undefined;
+        const parts = (m as Record<string, unknown>)?.parts as
+          | Array<{ type?: string; text?: string }>
+          | undefined;
+        const hasGameGeneratorMeta =
+          !!metadata &&
           typeof metadata === 'object' &&
-          Object.keys(metadata).length > 0
-        );
+          ((metadata as Record<string, unknown>)['game_generator'] !==
+            undefined ||
+            (metadata as Record<string, unknown>)['game-signal'] !== undefined);
+        const hasGameGeneratorPart = Array.isArray(parts)
+          ? parts.some(
+              (p) => p?.type === 'game_generator' || p?.type === 'game-signal',
+            )
+          : false;
+        return isAssistant && (hasGameGeneratorMeta || hasGameGeneratorPart);
       });
     if (latestWithMetadata) {
       onRequestOpen?.();

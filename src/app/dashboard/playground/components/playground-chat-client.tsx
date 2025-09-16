@@ -99,6 +99,7 @@ export function PlaygroundChatClient({ chatId }: PlaygroundChatClientProps) {
     chatId: chatId,
     user_id: chatInfo?.user_id || '',
   });
+  // console.log('messages chat', messages);
 
   // useEffect(() => {
   //   fetchAuthToken().then(setToken);
@@ -166,7 +167,35 @@ export function PlaygroundChatClient({ chatId }: PlaygroundChatClientProps) {
     return () => clearTimeout(timeoutId);
   }, [isFetchingNextPage, previousScrollHeight]);
 
-  // Auto-open moved into ExplorePanel based on assistant metadata
+  // Auto-open Explore panel when assistant emits game signals in metadata or parts
+  useEffect(() => {
+    if (!Array.isArray(messages) || messages.length === 0) return;
+    const latestWithSignals = [...(messages as Array<Record<string, unknown>>)]
+      .reverse()
+      .find((m) => {
+        const role = (m?.role as string) || '';
+        const isAssistant = role === 'assistant' || role === 'ASSISTANT';
+        const metadata =
+          (m?.metadata as Record<string, unknown> | undefined) || undefined;
+        const parts =
+          (m?.parts as Array<{ type?: string; text?: string }> | undefined) ||
+          undefined;
+        const hasGameMeta =
+          !!metadata &&
+          (metadata['game_generator'] !== undefined ||
+            metadata['game-signal'] !== undefined);
+        const hasGamePart = Array.isArray(parts)
+          ? parts.some(
+              (p) => p?.type === 'game_generator' || p?.type === 'game-signal',
+            )
+          : false;
+        return isAssistant && (hasGameMeta || hasGamePart);
+      });
+    if (latestWithSignals) {
+      setExploreOpen(true);
+      setSettingsOpen(false);
+    }
+  }, [messages]);
 
   // Navigation items with dynamic active state
   const navigationItems = getNavigationItems();
