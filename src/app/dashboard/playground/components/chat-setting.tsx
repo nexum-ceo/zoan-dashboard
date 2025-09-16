@@ -38,7 +38,7 @@ import {
 } from '@/types/agent';
 import { GetChatAgentSettingByChatIdResType } from '@/types/chat';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { Bot, Settings, Sparkles, Users, X, Zap } from 'lucide-react';
+import { Bot, Sparkles, Users, X, Zap } from 'lucide-react';
 import { useParams } from 'next/navigation';
 import { FC, useEffect, useMemo } from 'react';
 import { Controller, useForm } from 'react-hook-form';
@@ -645,20 +645,23 @@ export const ChatSettings: FC<ChatSettingsProps> = ({ isOpen, onClose }) => {
 
             {/* Plugin Tab */}
             <TabsContent value="plugin" className="space-y-6">
-              <div className="text-center py-8">
-                <div className="h-12 w-12 mx-auto mb-3 p-3 rounded-lg bg-muted text-muted-foreground flex items-center justify-center">
-                  <Settings className="w-6 h-6" />
+              <div className="space-y-2 rounded-lg border border-border bg-card p-4 text-card-foreground">
+                <div className="flex items-center gap-2">
+                  <Sparkles className="w-4 h-4 stroke-[1.5px] stroke-[#272727]" />{' '}
+                  <h3 className="text-paragraph !text-sm">Primary Prompt</h3>
                 </div>
-                <h4 className="font-medium text-foreground mb-2">
-                  Plugin Management
-                </h4>
-                <p className="text-sm text-muted-foreground mb-4">
-                  Plugin functionality will be available soon
+                <p className="text-paragraph !text-[#272727]/50">
+                  The main agent that handles general queries and coordinates
+                  with specialized agents.
                 </p>
-                <Button variant="outline" size="sm" className="gap-2">
-                  <Settings className="w-4 h-4" />
-                  Coming Soon
-                </Button>
+
+                <div className="space-y-1.5">
+                  <Textarea
+                    id="plugin-primary-prompt"
+                    placeholder="You are a helpful assistant that specializes in..."
+                    className="min-h-[240px] resize-none placeholder:text-[#272727]/50 text-[10px]"
+                  />
+                </div>
               </div>
             </TabsContent>
           </div>
