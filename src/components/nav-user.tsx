@@ -5,14 +5,13 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
-  DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import {
-  ThemeToggleButton,
-  useThemeTransition,
-} from '@/components/ui/shadcn-io/theme-toggle-button';
+// import {
+//   ThemeToggleButton,
+//   useThemeTransition,
+// } from '@/components/ui/shadcn-io/theme-toggle-button';
 import {
   SidebarMenu,
   SidebarMenuButton,
@@ -20,17 +19,13 @@ import {
   useSidebar,
 } from '@/components/ui/sidebar';
 import { IconLogout } from '@tabler/icons-react';
-import {
-  BookOpen,
-  DollarSign,
-  MessageSquare,
-  Settings,
-  User,
-  Users,
-} from 'lucide-react';
 import { signOut } from 'next-auth/react';
-import { useTheme } from 'next-themes';
+// import { useTheme } from 'next-themes';
 import { FC, useEffect } from 'react';
+import Diamond from '../../public/icon/diamond';
+import Headphone from '../../public/icon/headphone';
+import MesssageCircle from '../../public/icon/messsage-circle';
+import User from '../../public/icon/user';
 
 export type NavUserProps = {
   user: {
@@ -41,8 +36,8 @@ export type NavUserProps = {
 
 export const NavUser: FC<NavUserProps> = ({ user }) => {
   const { isMobile } = useSidebar();
-  const { theme, setTheme } = useTheme();
-  const { startTransition } = useThemeTransition();
+  // const { theme, setTheme } = useTheme();
+  // const { startTransition } = useThemeTransition();
 
   // BroadcastChannel allow logout across tabs
   useEffect(() => {
@@ -79,57 +74,31 @@ export const NavUser: FC<NavUserProps> = ({ user }) => {
           </DropdownMenuTrigger>
           <DropdownMenuContent
             className="w-(--radix-dropdown-menu-trigger-width) min-w-56 rounded-lg"
-            side={isMobile ? 'bottom' : 'right'}
+            side={isMobile ? 'bottom' : 'top'}
             align="end"
             sideOffset={4}
           >
-            <DropdownMenuLabel className="p-0 font-normal">
-              <div className="flex items-center gap-2 px-1 py-1.5 text-left text-sm">
-                <Avatar className="h-8 w-8 rounded-lg">
-                  <AvatarImage src={user.avatar} alt={user.email} />
-                  <AvatarFallback className="rounded-lg">CN</AvatarFallback>
-                </Avatar>
-                <div className="grid flex-1 text-left text-sm leading-tight">
-                  <span className="truncate font-medium">{user.email}</span>
-                  <span className="text-muted-foreground truncate text-xs">
-                    {user.email}
-                  </span>
-                </div>
-              </div>
-            </DropdownMenuLabel>
-            <DropdownMenuSeparator />
             <DropdownMenuItem>
-              <User className="mr-2 h-4 w-4" />
+              <User className="h-4 w-4" />
               <span>Profile</span>
             </DropdownMenuItem>
 
             <DropdownMenuItem>
-              <Settings className="mr-2 h-4 w-4" />
-              <span>Settings</span>
+              <Diamond className="h-4 w-4" />
+              <span>Upgrade</span>
             </DropdownMenuItem>
-
             <DropdownMenuItem>
-              <DollarSign className="mr-2 h-4 w-4" />
-              <span>Pricing</span>
-            </DropdownMenuItem>
-
-            <DropdownMenuItem>
-              <BookOpen className="mr-2 h-4 w-4" />
-              <span>Documentation</span>
-            </DropdownMenuItem>
-
-            <DropdownMenuItem>
-              <Users className="mr-2 h-4 w-4" />
-              <span>Community Forum</span>
-            </DropdownMenuItem>
-
-            <DropdownMenuItem>
-              <MessageSquare className="mr-2 h-4 w-4" />
+              <Headphone className="h-4 w-4" />
               <span>Feedback</span>
             </DropdownMenuItem>
 
+            <DropdownMenuItem>
+              <MesssageCircle className="h-4 w-4" />
+              <span>FAQ</span>
+            </DropdownMenuItem>
+
             <DropdownMenuSeparator />
-            <div className="px-2 py-2">
+            {/* <div className="px-2 py-2">
               <div className="text-xs font-medium text-muted-foreground">
                 Preferences
               </div>
@@ -167,7 +136,7 @@ export const NavUser: FC<NavUserProps> = ({ user }) => {
                 </div>
               </div>
             </div>
-            <DropdownMenuSeparator />
+            <DropdownMenuSeparator /> */}
             <DropdownMenuItem onClick={handleLogout}>
               <IconLogout />
               Log out

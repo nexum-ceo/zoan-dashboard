@@ -145,7 +145,7 @@ export function AppSidebar() {
     <TooltipProvider>
       <Sidebar collapsible="icon" variant="floating" className="rounded-none">
         <SidebarContent>
-          <div className="h-full bg-background flex flex-col w-full">
+          <div className="h-full flex flex-col w-full">
             {/* Header */}
             {state === 'collapsed' ? (
               <div className="p-3 w-full flex flex-col items-center gap-3">
