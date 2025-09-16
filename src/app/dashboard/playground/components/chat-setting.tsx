@@ -37,7 +37,6 @@ import {
 } from '@/types/agent';
 import { GetChatAgentSettingByChatIdResType } from '@/types/chat';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { IconRobot } from '@tabler/icons-react';
 import { Bot, Settings, Sparkles, Users, Zap } from 'lucide-react';
 import { useParams } from 'next/navigation';
 import { FC, useEffect, useMemo } from 'react';
@@ -227,37 +226,39 @@ export const ChatSettings: FC<ChatSettingsProps> = ({ isOpen, onClose }) => {
 
   return (
     <Sheet open={isOpen} onOpenChange={onClose}>
-      <SheetContent side="right" className="w-70 p-0">
-        <SheetHeader className="p-4 border-b border-border">
-          <div className="flex items-center gap-2">
-            <Settings className="w-5 h-5" />
-            <SheetTitle className="text-lg font-semibold text-foreground">
-              Chat Settings
-            </SheetTitle>
-          </div>
-        </SheetHeader>
-
-        {/* Content */}
-        <div className="flex-1 overflow-y-auto p-4">
-          <Tabs defaultValue="agent" className="w-full">
-            <TabsList className="grid w-full grid-cols-3 mb-6">
-              <TabsTrigger value="agent" className="flex items-center gap-2">
-                <IconRobot className="w-4 h-4" />
+      <SheetContent side="right" className="w-70 p-0 gap-0">
+        <Tabs defaultValue="agent" className="w-full">
+          <SheetHeader className="px-4 py-0 pt-4 border-b border-border">
+            <div className="flex items-center gap-2">
+              <Settings className="w-5 h-5" />
+              <SheetTitle className="text-lg font-semibold text-foreground">
+                Chat Settings
+              </SheetTitle>
+            </div>
+            <TabsList className="w-full flex mt-3 bg-transparent p-0 items-end gap-6 h-auto rounded-none mb-0 ">
+              <TabsTrigger
+                value="agent"
+                className="relative h-auto px-0 pb-0.5 bg-transparent text-[#272727]/20 data-[state=active]:text-[#272727] data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:border-transparent font-medium after:content-[''] after:absolute after:left-0 after:-bottom-[1px] after:h-[2px] after:w-0 after:bg-foreground data-[state=active]:after:w-full"
+              >
                 Agent
               </TabsTrigger>
               <TabsTrigger
                 value="primary-prompt"
-                className="flex items-center gap-2"
+                className="relative h-auto px-0 pb-0.5 bg-transparent text-[#272727]/20 data-[state=active]:text-[#272727] data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:border-transparent font-medium after:content-[''] after:absolute after:left-0 after:-bottom-[1px] after:h-[2px] after:w-0 after:bg-foreground data-[state=active]:after:w-full"
               >
-                <Sparkles className="w-4 h-4" />
                 Primary Prompt
               </TabsTrigger>
-              <TabsTrigger value="plugin" className="flex items-center gap-2">
-                <Settings className="w-4 h-4" />
+              <TabsTrigger
+                value="plugin"
+                className="relative h-auto px-0 pb-0.5 bg-transparent text-[#272727]/20 data-[state=active]:text-[#272727] data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:border-transparent font-medium after:content-[''] after:absolute after:left-0 after:-bottom-[1px] after:h-[2px] after:w-0 after:bg-foreground data-[state=active]:after:w-full"
+              >
                 Plugin
               </TabsTrigger>
             </TabsList>
+          </SheetHeader>
 
+          {/* Content */}
+          <div className="flex-1 overflow-y-auto p-4">
             {/* Agent Tab */}
             <TabsContent value="agent" className="space-y-2">
               {/* Primary Agent Section */}
@@ -652,10 +653,10 @@ export const ChatSettings: FC<ChatSettingsProps> = ({ isOpen, onClose }) => {
                 </Button>
               </div>
             </TabsContent>
-          </Tabs>
+          </div>
 
           {/* Action Buttons */}
-          <div className="flex gap-3 pt-6 border-t border-border mt-6">
+          <div className="flex gap-3 pt-6 border-t border-border mt-6 p-4">
             <Button variant="outline" onClick={onClose} className="flex-1">
               Cancel
             </Button>
@@ -669,7 +670,7 @@ export const ChatSettings: FC<ChatSettingsProps> = ({ isOpen, onClose }) => {
               {updateAgentMutation.isPending ? 'Saving...' : 'Save Settings'}
             </Button>
           </div>
-        </div>
+        </Tabs>
       </SheetContent>
     </Sheet>
   );
