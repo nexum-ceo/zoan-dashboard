@@ -11,18 +11,12 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { useGetChatGameVersionList } from '@/queries/useChat';
-import {
-  CodeXml,
-  Download,
-  Expand,
-  Eye,
-  FileText,
-  MessageSquare,
-  Play,
-  Settings,
-  Share2,
-} from 'lucide-react';
+import { CodeXml, Download, Eye, MessageSquare, Play } from 'lucide-react';
 import { FC, useEffect, useState } from 'react';
+import FileTerminal from '../../../../../public/icon/file-terminal';
+import FullScreen from '../../../../../public/icon/full-screen';
+import SettingIcon from '../../../../../public/icon/setting';
+import ShareIcon from '../../../../../public/icon/share';
 
 type ExplorePanelProps = {
   chatId: string;
@@ -132,18 +126,18 @@ export const ExplorePanel: FC<ExplorePanelProps> = ({
             </div>
           </div>
           {/* Right icon buttons */}
-          <div className="flex items-center gap-2 text-foreground/80">
+          <div className="flex items-center gap-4 text-foreground/80">
             <button type="button" className="p-2 rounded hover:bg-muted">
-              <Settings className="w-4 h-4" />
+              <SettingIcon className="w-5 h-5" />
             </button>
             <button type="button" className="p-2 rounded hover:bg-muted">
-              <Share2 className="w-4 h-4" />
+              <ShareIcon className="w-5 h-5" />
             </button>
             <button type="button" className="p-2 rounded hover:bg-muted">
-              <FileText className="w-4 h-4" />
+              <FileTerminal className="w-5 h-5" />
             </button>
             <button type="button" className="p-2 rounded hover:bg-muted">
-              <Expand className="w-4 h-4" />
+              <FullScreen className="w-5 h-5" />
             </button>
           </div>
         </div>
