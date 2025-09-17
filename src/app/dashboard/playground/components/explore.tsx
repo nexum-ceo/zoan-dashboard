@@ -12,7 +12,7 @@ import {
 } from '@/components/ui/select';
 import { useGetChatGameVersionList } from '@/queries/useChat';
 import {
-  Code2,
+  CodeXml,
   Download,
   Expand,
   Eye,
@@ -101,35 +101,35 @@ export const ExplorePanel: FC<ExplorePanelProps> = ({
   return (
     <div className={'flex flex-col h-full ' + (className || '')}>
       {/* Header */}
-      <div className="px-4 py-3 border-b border-border bg-background">
+      <div className="px-4 py-2 border-b border-border bg-background">
         <div className="flex items-center justify-between gap-3">
           {/* Left segmented controls */}
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-3">
             <button
               type="button"
-              className="flex items-center gap-2 rounded-full px-3 py-1.5 text-sm bg-muted text-foreground hover:bg-muted/80"
+              className="bg-[#272727]/5 flex items-center gap-1.5 rounded-lg p-2 text-paragraph cursor-pointer"
             >
-              <span className="inline-flex items-center justify-center w-5 h-5 rounded-full bg-background">
-                <MessageSquare className="w-3.5 h-3.5" />
+              <span className="inline-flex items-center justify-center w-4 h-4 rounded-full">
+                <MessageSquare className="w-4 h-4" />
               </span>
               Chat
             </button>
-            <button
-              type="button"
-              className="flex items-center gap-2 rounded-full px-3 py-1.5 text-sm bg-muted text-foreground hover:bg-muted/80"
-            >
-              <span className="inline-flex items-center justify-center w-5 h-5 rounded-full bg-background">
-                <Code2 className="w-3.5 h-3.5" />
-              </span>
-            </button>
-            <button
-              type="button"
-              className="flex items-center gap-2 rounded-full px-3 py-1.5 text-sm bg-emerald-100 text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-400"
-            >
-              <span className="inline-flex items-center justify-center w-5 h-5 rounded-full bg-emerald-500 text-white dark:bg-emerald-500">
-                <Eye className="w-3.5 h-3.5" />
-              </span>
-            </button>
+
+            {/** Code and View toggle buttons */}
+            <div className="flex items-center gap-1 bg-[#272727]/5 rounded-full p-0.5">
+              <button
+                type="button"
+                className="flex items-center gap-2 rounded-full p-1 bg-primary-brand-green"
+              >
+                <CodeXml className="w-4 h-4 stroke-[#608234]" />
+              </button>
+              <button
+                type="button"
+                className="flex items-center gap-2 rounded-full p-1"
+              >
+                <Eye className="w-4 h-4" />
+              </button>
+            </div>
           </div>
           {/* Right icon buttons */}
           <div className="flex items-center gap-2 text-foreground/80">
