@@ -1,7 +1,7 @@
 'use client';
 import { Button } from '@/components/ui/button';
 import { motion } from 'framer-motion';
-import { Gamepad2, MessageSquare, Settings } from 'lucide-react';
+import { Gamepad2, Settings } from 'lucide-react';
 
 interface PlaygroundHeaderProps {
   selectedAgent?: {
@@ -13,25 +13,25 @@ interface PlaygroundHeaderProps {
 }
 
 export function PlaygroundHeader({
-  selectedAgent,
+  // selectedAgent,
   activePanel,
   onTogglePanel,
 }: PlaygroundHeaderProps) {
   return (
-    <div className="w-full px-6 py-4 border-b border-border bg-background">
+    <div className="w-full px-6 py-4">
       <div className="flex items-center justify-between w-full">
-        <div className="flex items-center gap-3">
-          <div className="w-8 h-8 rounded-lg bg-blue-100 flex items-center justify-center dark:bg-blue-500/10">
+        <div className="flex items-center gap-3 h-10">
+          {/* <div className="w-8 h-8 rounded-lg bg-blue-100 flex items-center justify-center dark:bg-blue-500/10">
             <MessageSquare className="w-4 h-4 text-blue-600 dark:text-blue-400" />
-          </div>
-          <div>
+          </div> */}
+          {/* <div>
             <h2 className="text-sm font-medium text-foreground">
               {selectedAgent?.name || 'No Agent Selected'}
             </h2>
             <p className="text-xs text-muted-foreground">
               {selectedAgent?.description || 'Please select an agent'}
             </p>
-          </div>
+          </div> */}
         </div>
         <div className="flex gap-1">
           {onTogglePanel && (

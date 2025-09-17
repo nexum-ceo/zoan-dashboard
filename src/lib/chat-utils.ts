@@ -10,6 +10,7 @@ export type ChatMessage = {
   content: string;
   sender_id: string | null;
   parts?: Array<{ type: string; text?: string }>;
+  metadata?: Record<string, unknown>;
 };
 
 /**
@@ -31,13 +32,18 @@ export const transformChatMessages = (
     chatMessages as Array<ChatMessageType | null | undefined>
   ).filter((m): m is ChatMessageType => m != null);
 
-  const safeMessages = validMessages.map((msg) => ({
-    ...msg,
-    id: msg.id ?? `${Date.now()}-${Math.random()}`,
-    content: msg.content ?? '',
-    role: Object.values(ChatRole).includes(msg.role) ? msg.role : ChatRole.USER,
-    sender_id: userId || '',
-  }));
+  const safeMessages = validMessages.map(
+    (msg: ChatMessageType & { metadata?: Record<string, unknown> }) => ({
+      ...msg,
+      id: msg.id ?? `${Date.now()}-${Math.random()}`,
+      content: msg.content ?? '',
+      role: Object.values(ChatRole).includes(msg.role)
+        ? msg.role
+        : ChatRole.USER,
+      sender_id: userId || '',
+      metadata: msg.metadata ?? undefined,
+    }),
+  );
 
   return [...safeMessages].reverse();
 };

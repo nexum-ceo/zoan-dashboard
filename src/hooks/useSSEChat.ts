@@ -184,6 +184,14 @@ export function useSSEChat({
       console.error('[SSE] Connection error:', err);
       if (!manualCloseRef.current) scheduleReconnectRef.current('onerror');
     };
+
+    // Listen to server keepalive events to refresh idle timer
+    try {
+      esRef.current.addEventListener('keepalive', () => {
+        lastMessageAtRef.current = Date.now();
+        clearResponseTimeout();
+      });
+    } catch {}
     esRef.current.onmessage = (event) => {
       lastMessageAtRef.current = Date.now();
       clearResponseTimeout();
@@ -356,6 +364,21 @@ export function useSSEChat({
     if (!sseUrl || sseUrl.trim() === '') return;
     manualCloseRef.current = false;
     setupSSE();
+    // Reconnect when tab becomes visible or network returns
+    const handleVisibility = () => {
+      if (document.visibilityState === 'visible' && !sseConnected) {
+        scheduleReconnectRef.current('tab-visible');
+      }
+    };
+    const handleOnline = () => {
+      if (!sseConnected) scheduleReconnectRef.current('online');
+    };
+    const handleOffline = () => {
+      setSseConnected(false);
+    };
+    document.addEventListener('visibilitychange', handleVisibility);
+    window.addEventListener('online', handleOnline);
+    window.addEventListener('offline', handleOffline);
     return () => {
       manualCloseRef.current = true;
       if (reconnectTimeoutRef.current) {
@@ -371,8 +394,11 @@ export function useSSEChat({
         esRef.current = null;
       }
       clearResponseTimeout();
+      document.removeEventListener('visibilitychange', handleVisibility);
+      window.removeEventListener('online', handleOnline);
+      window.removeEventListener('offline', handleOffline);
     };
-  }, [sseUrl, chatId, setupSSE, clearResponseTimeout]);
+  }, [sseUrl, chatId, setupSSE, clearResponseTimeout, sseConnected]);
 
   // Reset states when chatId changes
   useEffect(() => {

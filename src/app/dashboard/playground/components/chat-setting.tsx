@@ -2,7 +2,6 @@
 
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import {
   Select,
@@ -11,6 +10,13 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import {
+  Sheet,
+  SheetClose,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+} from '@/components/ui/sheet';
 import { Slider } from '@/components/ui/slider';
 import { Switch } from '@/components/ui/switch';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -30,40 +36,25 @@ import {
   UpdateAgentBodySchema,
   UpdateAgentBodyType,
 } from '@/types/agent';
-import {
-  GetChatAgentSettingByChatIdResType,
-  GetSpecificChatResType,
-} from '@/types/chat';
+import { GetChatAgentSettingByChatIdResType } from '@/types/chat';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { IconRobot } from '@tabler/icons-react';
-import { AnimatePresence, motion } from 'framer-motion';
-import {
-  Bot,
-  MessageSquare,
-  Settings,
-  Sparkles,
-  Users,
-  X,
-  Zap,
-} from 'lucide-react';
+import { Bot, Sparkles, Users, X, Zap } from 'lucide-react';
 import { useParams } from 'next/navigation';
 import { FC, useEffect, useMemo } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import { z } from 'zod';
+import AgentAvatar from '../../../../../public/icon/agent-avatar';
+import BotMessageSquare from '../../../../../public/icon/bot-message-square';
+import Download from '../../../../../public/icon/download';
 
 type ChatSettingsFormData = z.infer<typeof UpdateAgentBodySchema>;
 
 type ChatSettingsProps = {
   isOpen: boolean;
-  chatInfo: GetSpecificChatResType['data'];
   onClose: () => void;
 };
 
-export const ChatSettings: FC<ChatSettingsProps> = ({
-  isOpen,
-  onClose,
-  chatInfo,
-}) => {
+export const ChatSettings: FC<ChatSettingsProps> = ({ isOpen, onClose }) => {
   const { id: chatId } = useParams();
   const { data: primaryAgentData } = useGetPrimaryAgentByChatId(
     chatId as string,
@@ -234,562 +225,464 @@ export const ChatSettings: FC<ChatSettingsProps> = ({
     }
   };
 
-  const modelOptions = [
-    'gpt-4.1',
-    'gpt-4.1-mini',
-    'gpt-4.1-nano',
-    'gpt-4o',
-    'gpt-4o-mini',
-  ];
-
   return (
-    <AnimatePresence initial={false} mode="wait">
-      {isOpen && (
-        <>
-          {/* Drawer */}
-          <motion.div
-            key={String(chatId)}
-            initial={{ x: '100%', opacity: 1 }}
-            animate={{ x: 0, opacity: 1 }}
-            exit={{ x: '100%', opacity: 1 }}
-            transition={{ type: 'tween', ease: 'easeOut', duration: 0.28 }}
-            className="fixed inset-y-0 right-0 w-96 border-l border-border bg-background backdrop-blur-sm shadow-2xl flex flex-col"
-            style={{
-              boxShadow: '0 20px 40px -12px rgba(0, 0, 0, 0.15)',
-              willChange: 'transform',
-            }}
-          >
-            {/* Header */}
-            <div className="px-6 py-4 border-b border-border">
-              <div className="flex items-center justify-between">
+    <Sheet open={isOpen} onOpenChange={onClose}>
+      <SheetContent
+        side="right"
+        className="w-70 p-0 gap-0 [&>button.absolute]:hidden"
+      >
+        <Tabs defaultValue="agent" className="w-full">
+          <SheetHeader className="px-4 py-0 pt-4 border-b border-border">
+            <div className="flex items-center justify-between">
+              <SheetTitle className="text-[#272727] text-[16px] font-medium">
+                Setting
+              </SheetTitle>
+              <Button variant={'secondary'}>View project</Button>
+              <SheetClose className="p-0 m-0 text-[#272727]">
+                <X className="w-4 h-4" />
+                <span className="sr-only">Close</span>
+              </SheetClose>
+            </div>
+            <TabsList className="w-full flex mt-3 bg-transparent p-0 items-end gap-6 h-auto rounded-none mb-0 ">
+              <TabsTrigger
+                value="agent"
+                className="relative h-auto px-0 pb-0.5 bg-transparent text-[#272727]/20 data-[state=active]:text-[#272727] data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:border-transparent font-medium after:content-[''] after:absolute after:left-0 after:-bottom-[1px] after:h-[2px] after:w-0 after:bg-foreground data-[state=active]:after:w-full"
+              >
+                Agent
+              </TabsTrigger>
+              <TabsTrigger
+                value="primary-prompt"
+                className="relative h-auto px-0 pb-0.5 bg-transparent text-[#272727]/20 data-[state=active]:text-[#272727] data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:border-transparent font-medium after:content-[''] after:absolute after:left-0 after:-bottom-[1px] after:h-[2px] after:w-0 after:bg-foreground data-[state=active]:after:w-full"
+              >
+                Primary Prompt
+              </TabsTrigger>
+              <TabsTrigger
+                value="plugin"
+                className="relative h-auto px-0 pb-0.5 bg-transparent text-[#272727]/20 data-[state=active]:text-[#272727] data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:border-transparent font-medium after:content-[''] after:absolute after:left-0 after:-bottom-[1px] after:h-[2px] after:w-0 after:bg-foreground data-[state=active]:after:w-full"
+              >
+                Plugin
+              </TabsTrigger>
+            </TabsList>
+          </SheetHeader>
+
+          {/* Content */}
+          <div className="flex-1 overflow-y-auto p-4">
+            {/* Agent Tab */}
+            <TabsContent value="agent" className="space-y-2">
+              {/* Primary Agent Section */}
+              <div className="space-y-2">
                 <div className="flex items-center gap-2">
-                  <Settings className="w-5 h-5" />
-                  <h2 className="text-lg font-semibold text-foreground">
-                    Chat Settings
-                  </h2>
+                  <BotMessageSquare className="w-4 h-4" />
+                  <h3 className="font-medium text-paragraph !text-sm">
+                    Primary Agent
+                  </h3>{' '}
                 </div>
-                <Button variant="ghost" size="icon" onClick={onClose}>
-                  <X className="w-4 h-4 text-muted-foreground" />
-                </Button>
+                <div className="text-xs text-muted-foreground">
+                  {' '}
+                  The main agent that handles general queries and coordinates
+                  with specialized agents.
+                </div>
+
+                <div className="space-y-2">
+                  <Select defaultValue="general-assistant">
+                    <SelectTrigger className="w-full">
+                      <SelectValue placeholder="Select primary agent" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="general-assistant">
+                        General Assistant
+                      </SelectItem>
+                      <SelectItem value="game-developer">
+                        Game Developer
+                      </SelectItem>
+                      <SelectItem value="code-assistant">
+                        Code Assistant
+                      </SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <p className="text-xs text-muted-foreground">
+                    Active Agents:{' '}
+                    <span className="text-tag-label !text-[#272727]">
+                      {chatAgentSetting?.length} of {agents?.length}
+                    </span>
+                  </p>
+                </div>
               </div>
-            </div>
 
-            {/* Content */}
-            <div className="flex-1 overflow-y-auto p-6">
-              <Tabs defaultValue="preferences" className="w-full">
-                <TabsList className="grid w-full grid-cols-2 mb-6">
-                  <TabsTrigger
-                    value="preferences"
-                    className="flex items-center gap-2"
-                  >
-                    <Settings className="w-4 h-4" />
-                    Preferences
-                  </TabsTrigger>
-                  <TabsTrigger
-                    value="agents"
-                    className="flex items-center gap-2"
-                  >
-                    <IconRobot className="w-4 h-4" />
-                    Agents
-                  </TabsTrigger>
-                </TabsList>
+              {/* Available Agents Section */}
+              <div className="space-y-2">
+                <div className="flex items-center gap-2">
+                  <Download className="w-4 h-4" />
+                  <h3 className="text-paragraph !text-sm">Available Agents</h3>
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  The main agent that handles general queries and coordinates
+                  with specialized agents.
+                </p>
 
-                {/* Preferences Tab */}
-                <TabsContent value="preferences" className="space-y-6">
-                  {/* Chat Title Section */}
-                  <div className="space-y-3 rounded-lg border border-border bg-card p-4 text-card-foreground">
-                    <div className="flex items-center gap-2">
-                      <div className="h-8 w-8 p-1.5 rounded-lg bg-blue-50 dark:bg-blue-400/10 text-blue-600 dark:text-blue-300 ring-1 ring-blue-200 dark:ring-blue-400/20 flex items-center justify-center">
-                        <MessageSquare className="w-4 h-4" />
-                      </div>
-                      <div>
-                        <h3 className="font-medium text-foreground text-base">
-                          Chat Title
-                        </h3>
-                      </div>
-                    </div>
-
-                    <div className="space-y-1.5">
-                      <Input
-                        id="chat-title"
-                        type="text"
-                        placeholder="Enter chat title..."
-                        className="w-full"
-                        disabled={true}
-                        value={chatInfo.title}
-                      />
-                      <p className="text-xs text-muted-foreground">
-                        Give your conversation a memorable name
-                      </p>
-                    </div>
-                  </div>
-
-                  {/* Primary Prompt Section */}
-                  <div className="space-y-3 rounded-lg border border-border bg-card p-4 text-card-foreground">
-                    <div className="flex items-center gap-2">
-                      <div className="h-8 w-8 p-1.5 rounded-lg bg-purple-50 dark:bg-purple-400/10 text-purple-600 dark:text-purple-300 ring-1 ring-purple-200 dark:ring-purple-400/20 flex items-center justify-center">
-                        <Sparkles className="w-4 h-4" />
-                      </div>
-                      <div>
-                        <h3 className="font-medium text-foreground text-base">
-                          Prompt
-                        </h3>
-                      </div>
-                    </div>
-
-                    <div className="space-y-1.5">
-                      {primaryAgent ? (
-                        <Controller
-                          name="prompt"
-                          control={control}
-                          render={({ field }) => (
-                            <Textarea
-                              {...field}
-                              id="chat-prompt"
-                              placeholder="Enter system prompt..."
-                              className="min-h-[80px] resize-none"
-                            />
-                          )}
-                        />
-                      ) : (
-                        <div className="min-h-[80px] rounded-md border border-dashed border-muted-foreground/20 flex items-center justify-center bg-muted/30">
-                          <div className="text-center text-muted-foreground">
-                            <Sparkles className="w-6 h-6 mx-auto mb-1 opacity-50" />
-                            <p className="text-xs">
-                              Select an agent to configure prompts
-                            </p>
-                          </div>
-                        </div>
-                      )}
-                      {errors.prompt && (
-                        <p className="text-xs text-red-500">
-                          {errors.prompt.message}
-                        </p>
-                      )}
-                      <p className="text-xs text-muted-foreground">
-                        This prompt defines how the AI assistant should behave
-                        and respond
-                      </p>
-                    </div>
-                  </div>
-
-                  {/* Primary Agent Section */}
-                  <div className="space-y-4 rounded-xl border border-border bg-card p-6 text-card-foreground">
-                    {primaryAgent ? (
-                      <>
-                        <div className="flex items-center justify-between">
-                          <div className="flex items-center gap-3">
-                            <div className="h-9 w-9 p-2 rounded-lg bg-primary/10 text-primary ring-1 ring-primary/20 flex items-center justify-center shadow-sm">
-                              <Bot className="w-4 h-4" />
+                {sortedAgents && sortedAgents.length > 0 ? (
+                  sortedAgents.map((agent) => (
+                    <div
+                      key={agent.id}
+                      className="border border-[#272727]/20 rounded-lg p-3 space-y-4 bg-card/50"
+                    >
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center justify-between gap-2 w-full">
+                          <AgentAvatar className="w-6 h-6" />
+                          <div className="flex flex-col gap-0 flex-1">
+                            <div className="text-paragraph !text-sm line-clamp-1">
+                              {agent.name}
                             </div>
-                            <div className="min-w-0">
-                              <h3 className="font-semibold text-foreground leading-tight line-clamp-1">
-                                {primaryAgent.name}
-                              </h3>
-                              <p className="text-xs text-muted-foreground mt-0.5">
-                                Primary Agent
-                              </p>
+                            <div>
+                              <Badge className="rounded-[2px] text-tag-label p-1 bg-primary-brand-green !text-[#20a357]">
+                                Game Development
+                              </Badge>
                             </div>
                           </div>
-                          <Badge
-                            variant="secondary"
-                            className="gap-1.5 rounded-full bg-emerald-600/10 text-emerald-700 ring-1 ring-emerald-600/20 hover:bg-emerald-600/15 transition-colors dark:bg-emerald-400/10 dark:text-emerald-300 dark:ring-emerald-400/20"
-                          >
-                            <span className="inline-block w-1.5 h-1.5 rounded-full bg-emerald-500 dark:bg-emerald-400" />
-                            Active
-                          </Badge>
-                        </div>
-
-                        <p className="text-sm text-muted-foreground line-clamp-2">
-                          {primaryAgent.description}
-                        </p>
-                      </>
-                    ) : (
-                      <div className="text-center py-6">
-                        <div className="h-12 w-12 mx-auto mb-3 p-3 rounded-lg bg-muted text-muted-foreground flex items-center justify-center">
-                          <Bot className="w-6 h-6" />
-                        </div>
-                        <h3 className="font-medium text-foreground mb-2">
-                          No Agent Selected
-                        </h3>
-                        <p className="text-sm text-muted-foreground mb-4">
-                          Start a conversation to see your primary agent here
-                        </p>
-                        <Button variant="outline" size="sm" className="gap-2">
-                          <Users className="w-4 h-4" />
-                          Select Agent
-                        </Button>
-                      </div>
-                    )}
-
-                    <div className="space-y-2">
-                      {/* Model Selection - Always show */}
-                      <Label htmlFor="model" className="text-sm font-medium">
-                        AI Model
-                      </Label>
-                      <Controller
-                        name="model"
-                        control={control}
-                        render={({ field }) => (
-                          <Select
-                            value={field.value}
-                            onValueChange={field.onChange}
-                          >
-                            <SelectTrigger>
-                              <SelectValue placeholder="Select a model" />
-                            </SelectTrigger>
-                            <SelectContent>
-                              {modelOptions.map((model) => (
-                                <SelectItem key={model} value={model}>
-                                  {model}
-                                </SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
-                        )}
-                      />
-                      {errors.model && (
-                        <p className="text-xs text-red-500">
-                          {errors.model.message}
-                        </p>
-                      )}
-                      <p className="text-xs text-muted-foreground">
-                        Choose the AI model for this conversation
-                      </p>
-                    </div>
-                  </div>
-
-                  {/* Chat Parameters Section */}
-                  <div className="space-y-3 rounded-lg border border-border bg-card p-4 text-card-foreground">
-                    <div className="flex items-center gap-2">
-                      <div className="h-8 w-8 p-1.5 rounded-lg bg-orange-50 dark:bg-orange-400/10 text-orange-600 dark:text-orange-300 ring-1 ring-orange-200 dark:ring-orange-400/20 flex items-center justify-center">
-                        <Zap className="w-4 h-4" />
-                      </div>
-                      <div>
-                        <h3 className="font-medium text-foreground text-base">
-                          Chat Parameters
-                        </h3>
-                        <p className="text-xs text-muted-foreground">
-                          {primaryAgent
-                            ? 'Configure AI response behavior and settings (values from primary agent)'
-                            : 'Configure AI response behavior and settings'}
-                        </p>
-                      </div>
-                    </div>
-
-                    {/* Temperature Slider */}
-                    <div className="space-y-2">
-                      <div className="flex items-center justify-between">
-                        <Label
-                          htmlFor="temperature"
-                          className="text-sm font-medium"
-                        >
-                          Temperature
-                        </Label>
-                        <div className="flex items-center gap-2">
-                          <span className="text-sm text-muted-foreground">
-                            {watchedValues.temperature}
-                          </span>
-                          {primaryAgent?.model_kwargs?.temperature ===
-                            watchedValues.temperature && (
-                            <Badge
-                              variant="outline"
-                              className="text-xs px-2 py-0.5"
-                            >
-                              From Agent
-                            </Badge>
-                          )}
-                        </div>
-                      </div>
-                      <Controller
-                        name="temperature"
-                        control={control}
-                        render={({ field }) => (
-                          <Slider
-                            id="temperature"
-                            min={0}
-                            max={2}
-                            step={0.1}
-                            value={[field.value]}
-                            onValueChange={(value) => field.onChange(value[0])}
-                            className="w-full"
+                          <Switch
+                            checked={agent.active}
+                            onCheckedChange={() => handleAgentToggle(agent.id)}
+                            disabled={
+                              createChatAgentSettingMutation.isPending ||
+                              agent.isPrimary
+                            }
+                            className="data-[state=unchecked]:bg-[#272727]/10 data-[state=checked]:bg-primary-brand-darker-green disabled:bg-primary-brand-green"
+                            thumbClassName="data-[state=unchecked]:bg-[#272727]/50 data-[state=checked]:bg-white"
                           />
-                        )}
-                      />
-                      {errors.temperature && (
-                        <p className="text-xs text-red-500">
-                          {errors.temperature.message}
-                        </p>
-                      )}
-                      <p className="text-xs text-muted-foreground">
-                        Controls creativity and randomness
-                      </p>
-                    </div>
-
-                    {/* Max Tokens Slider */}
-                    <div className="space-y-2">
-                      <div className="flex items-center justify-between">
-                        <Label
-                          htmlFor="maxTokens"
-                          className="text-sm font-medium"
-                        >
-                          Max Tokens
-                        </Label>
-                        <div className="flex items-center gap-2">
-                          <span className="text-sm text-muted-foreground">
-                            {watchedValues.max_tokens}
-                          </span>
-                          {primaryAgent?.model_kwargs?.max_tokens ===
-                            watchedValues.max_tokens && (
-                            <Badge
-                              variant="outline"
-                              className="text-xs px-2 py-0.5"
-                            >
-                              From Agent
-                            </Badge>
-                          )}
                         </div>
                       </div>
-                      <Controller
-                        name="max_tokens"
-                        control={control}
-                        render={({ field }) => (
-                          <Slider
-                            id="max_tokens"
-                            min={100}
-                            max={4096}
-                            step={100}
-                            value={[field.value]}
-                            onValueChange={(value) => field.onChange(value[0])}
-                            className="w-full"
-                          />
-                        )}
-                      />
-                      {errors.max_tokens && (
-                        <p className="text-xs text-red-500">
-                          {errors.max_tokens.message}
-                        </p>
-                      )}
-                      <p className="text-xs text-muted-foreground">
-                        Maximum length of AI responses
+
+                      <p className="text-sm text-muted-foreground leading-relaxed">
+                        {agent.description}
                       </p>
-                    </div>
 
-                    {/* Top-p Slider */}
-                    <div className="space-y-2">
-                      <div className="flex items-center justify-between">
-                        <Label htmlFor="topP" className="text-sm font-medium">
-                          Top-p
-                        </Label>
-                        <div className="flex items-center gap-2">
-                          <span className="text-sm text-muted-foreground">
-                            {watchedValues.top_p.toFixed(2)}
-                          </span>
-                          {primaryAgent?.model_kwargs?.top_p ===
-                            watchedValues.top_p && (
-                            <Badge
-                              variant="outline"
-                              className="text-xs px-2 py-0.5"
-                            >
-                              From Agent
-                            </Badge>
-                          )}
-                        </div>
-                      </div>
-                      <Controller
-                        name="top_p"
-                        control={control}
-                        render={({ field }) => (
-                          <Slider
-                            id="topP"
-                            min={0}
-                            max={1}
-                            step={0.01}
-                            value={[field.value]}
-                            onValueChange={(value) => field.onChange(value[0])}
-                            className="w-full"
-                          />
-                        )}
-                      />
-                      {errors.top_p && (
-                        <p className="text-xs text-red-500">
-                          {errors.top_p.message}
-                        </p>
-                      )}
-                      <p className="text-xs text-muted-foreground">
-                        Controls diversity of word choices (0.0 = focused, 1.0 =
-                        diverse)
-                      </p>
-                    </div>
-                  </div>
-                </TabsContent>
-
-                {/* Agents Tab */}
-                <TabsContent value="agents" className="space-y-6">
-                  {/* Available Agents Section */}
-                  <div className="space-y-3">
-                    <div className="flex items-center gap-2">
-                      <div className="h-8 w-8 p-1.5 rounded-lg bg-green-50 dark:bg-green-400/10 text-green-600 dark:text-green-300 ring-1 ring-green-200 dark:ring-green-400/20 flex items-center justify-center">
-                        <Users className="w-4 h-4" />
-                      </div>
-                      <div>
-                        <h3 className="font-medium text-foreground text-base">
-                          Available Agents
-                        </h3>
-                        <p className="text-xs text-muted-foreground">
-                          Enable agents that can respond to specific intents in
-                          your conversation
-                        </p>
-                      </div>
-                    </div>
-
-                    {sortedAgents && sortedAgents.length > 0 ? (
-                      sortedAgents.map((agent) => (
-                        /* Agent Item */
-                        <div
-                          key={agent.id}
-                          className="border border-border rounded-lg p-4 space-y-3 bg-card/50"
-                        >
-                          <div className="flex items-center justify-between">
-                            <div className="flex items-center gap-3">
-                              <div className="h-8 w-8 p-1.5 rounded-lg bg-purple-50 dark:bg-purple-400/10 text-purple-600 dark:text-purple-300 flex items-center justify-center">
-                                <Bot className="w-4 h-4" />
-                              </div>
-                              <div className="flex flex-col gap-1">
-                                <div className="font-medium text-foreground line-clamp-1">
-                                  {agent.name}
-                                </div>
-                                <div className="flex gap-1">
-                                  {agent.isPrimary ? (
-                                    <Badge className="text-xs px-2 py-0.5 bg-blue-600 text-white">
-                                      Primary
-                                    </Badge>
-                                  ) : (
-                                    <Badge
-                                      variant="outline"
-                                      className="text-xs px-2 py-0.5"
-                                    >
-                                      Secondary
-                                    </Badge>
-                                  )}
-                                </div>
-                              </div>
-                            </div>
-                            <Switch
-                              checked={agent.active}
-                              onCheckedChange={() =>
-                                handleAgentToggle(agent.id)
-                              }
-                              disabled={
-                                createChatAgentSettingMutation.isPending
-                              }
-                            />
-                          </div>
-
-                          <p className="text-sm text-muted-foreground leading-relaxed">
-                            {agent.description}
+                      <div className="space-y-2">
+                        <div>
+                          <p className="font-medium text-xs text-foreground mb-1.5">
+                            Trigger Keywords:
                           </p>
-
-                          <div className="space-y-2">
-                            <div>
-                              <p className="font-medium text-xs text-foreground mb-1.5">
-                                Trigger Keywords:
-                              </p>
-                              <div className="flex flex-wrap gap-1">
-                                <Badge
-                                  variant="outline"
-                                  className="text-xs px-2 py-0.5 bg-gray-50 dark:bg-gray-800 text-gray-700 dark:text-gray-300 border-gray-200 dark:border-gray-600"
-                                >
-                                  general
-                                </Badge>
-                                <Badge
-                                  variant="outline"
-                                  className="text-xs px-2 py-0.5 bg-gray-50 dark:bg-gray-800 text-gray-700 dark:text-gray-300 border-gray-200 dark:border-gray-600"
-                                >
-                                  help
-                                </Badge>
-                                <Badge
-                                  variant="outline"
-                                  className="text-xs px-2 py-0.5 bg-gray-50 dark:bg-gray-800 text-gray-700 dark:text-gray-300 border-gray-200 dark:border-gray-600"
-                                >
-                                  explain
-                                </Badge>
-                                <Badge
-                                  variant="outline"
-                                  className="text-xs px-2 py-0.5 bg-gray-50 dark:bg-gray-800 text-gray-700 dark:text-gray-300 border-gray-200 dark:border-gray-600"
-                                >
-                                  what
-                                </Badge>
-                                <Badge
-                                  variant="outline"
-                                  className="text-xs px-2 py-0.5 bg-gray-50 dark:bg-gray-800 text-gray-700 dark:text-gray-300 border-gray-200 dark:border-gray-600"
-                                >
-                                  +2 more
-                                </Badge>
-                              </div>
-                            </div>
-
-                            <div>
-                              <div className="flex flex-wrap gap-1">
-                                <Badge className="text-xs px-2 py-0.5 bg-blue-50 dark:bg-blue-400/10 text-blue-700 dark:text-blue-300 border-blue-200 dark:border-blue-400/20">
-                                  General Knowledge
-                                </Badge>
-                                <Badge className="text-xs px-2 py-0.5 bg-blue-50 dark:bg-blue-400/10 text-blue-700 dark:text-blue-300 border-blue-200 dark:border-blue-400/20">
-                                  Task Coordination
-                                </Badge>
-                                <Badge
-                                  variant="outline"
-                                  className="text-xs px-2 py-0.5"
-                                >
-                                  +1 more
-                                </Badge>
-                              </div>
-                            </div>
+                          <div className="flex flex-wrap gap-1">
+                            <Badge
+                              variant="outline"
+                              className="rounded-[2px] !text-[10px] text-tag-label p-1 bg-[#272727]/5 dark:bg-gray-800 text-gray-700 dark:text-gray-300 border-gray-200 dark:border-gray-600"
+                            >
+                              General
+                            </Badge>
+                            <Badge
+                              variant="outline"
+                              className="rounded-[2px] text-tag-label !text-[10px] p-1 bg-[#272727]/5 dark:bg-gray-800 text-gray-700 dark:text-gray-300 border-gray-200 dark:border-gray-600"
+                            >
+                              Help
+                            </Badge>
+                            <Badge
+                              variant="outline"
+                              className="rounded-[2px] text-tag-label !text-[10px] p-1 bg-[#272727]/5 dark:bg-gray-800 text-gray-700 dark:text-gray-300 border-gray-200 dark:border-gray-600"
+                            >
+                              Explain
+                            </Badge>
+                            <Badge
+                              variant="outline"
+                              className="rounded-[2px] text-tag-label !text-[10px] p-1 bg-[#272727]/5 dark:bg-gray-800 text-gray-700 dark:text-gray-300 border-gray-200 dark:border-gray-600"
+                            >
+                              What
+                            </Badge>
+                            <Badge
+                              variant="outline"
+                              className="rounded-[2px] text-tag-label !text-[10px] p-1 bg-[#272727]/5 dark:bg-gray-800 text-gray-700 dark:text-gray-300 border-gray-200 dark:border-gray-600"
+                            >
+                              General Knowledge
+                            </Badge>
+                            <Badge
+                              variant="outline"
+                              className="rounded-[2px] text-tag-label !text-[10px] p-1 bg-[#272727]/5 dark:bg-gray-800 text-gray-700 dark:text-gray-300 border-gray-200 dark:border-gray-600"
+                            >
+                              Task Coordination
+                            </Badge>
+                            <Badge
+                              variant="outline"
+                              className="rounded-[2px] text-tag-label !text-[10px] p-1 bg-[#272727]/5 dark:bg-gray-800 text-gray-700 dark:text-gray-300 border-gray-200 dark:border-gray-600"
+                            >
+                              + 2 more
+                            </Badge>
                           </div>
                         </div>
-                      ))
-                    ) : (
-                      <div className="text-center py-8">
-                        <div className="h-12 w-12 mx-auto mb-3 p-3 rounded-lg bg-muted text-muted-foreground flex items-center justify-center">
-                          <Users className="w-6 h-6" />
-                        </div>
-                        <h4 className="font-medium text-foreground mb-2">
-                          No Agents Available
-                        </h4>
-                        <p className="text-sm text-muted-foreground mb-4">
-                          Agents will appear here once you start a conversation
-                        </p>
-                        <Button variant="outline" size="sm" className="gap-2">
-                          <Bot className="w-4 h-4" />
-                          Browse Agents
-                        </Button>
                       </div>
-                    )}
+                    </div>
+                  ))
+                ) : (
+                  <div className="text-center py-8">
+                    <div className="h-12 w-12 mx-auto mb-3 p-3 rounded-lg bg-muted text-muted-foreground flex items-center justify-center">
+                      <Users className="w-6 h-6" />
+                    </div>
+                    <h4 className="font-medium text-foreground mb-2">
+                      No Agents Available
+                    </h4>
+                    <p className="text-sm text-muted-foreground mb-4">
+                      Agents will appear here once you start a conversation
+                    </p>
+                    <Button variant="outline" size="sm" className="gap-2">
+                      <Bot className="w-4 h-4" />
+                      Browse Agents
+                    </Button>
                   </div>
-                </TabsContent>
-              </Tabs>
-
-              {/* Action Buttons */}
-              <div className="flex gap-3 pt-6 border-t border-border mt-6">
-                <Button variant="outline" onClick={onClose} className="flex-1">
-                  Cancel
-                </Button>
-                <Button
-                  onClick={handleSubmit(onSubmit)}
-                  disabled={
-                    !isDirty || updateAgentMutation.isPending || !primaryAgent
-                  }
-                  className="flex-1"
-                >
-                  {updateAgentMutation.isPending
-                    ? 'Saving...'
-                    : 'Save Settings'}
-                </Button>
+                )}
               </div>
-            </div>
-          </motion.div>
-        </>
-      )}
-    </AnimatePresence>
+            </TabsContent>
+
+            {/* Primary Prompt Tab */}
+            <TabsContent value="primary-prompt" className="space-y-6">
+              {/* Primary Prompt Section */}
+              <div className="space-y-3 rounded-lg border border-border bg-card p-4 text-card-foreground">
+                <div className="flex items-center gap-2">
+                  <div className="h-8 w-8 p-1.5 rounded-lg bg-purple-50 dark:bg-purple-400/10 text-purple-600 dark:text-purple-300 ring-1 ring-purple-200 dark:ring-purple-400/20 flex items-center justify-center">
+                    <Sparkles className="w-4 h-4" />
+                  </div>
+                  <div>
+                    <h3 className="font-medium text-foreground text-base">
+                      Primary Prompt
+                    </h3>
+                    <p className="text-xs text-muted-foreground">
+                      Configure the main system prompt for your primary agent
+                    </p>
+                  </div>
+                </div>
+
+                <div className="space-y-1.5">
+                  {primaryAgent ? (
+                    <Controller
+                      name="prompt"
+                      control={control}
+                      render={({ field }) => (
+                        <Textarea
+                          {...field}
+                          id="chat-prompt"
+                          placeholder="Enter system prompt..."
+                          className="min-h-[120px] resize-none"
+                        />
+                      )}
+                    />
+                  ) : (
+                    <div className="min-h-[120px] rounded-md border border-dashed border-muted-foreground/20 flex items-center justify-center bg-muted/30">
+                      <div className="text-center text-muted-foreground">
+                        <Sparkles className="w-6 h-6 mx-auto mb-1 opacity-50" />
+                        <p className="text-xs">
+                          Select an agent to configure prompts
+                        </p>
+                      </div>
+                    </div>
+                  )}
+                  {errors.prompt && (
+                    <p className="text-xs text-red-500">
+                      {errors.prompt.message}
+                    </p>
+                  )}
+                  <p className="text-xs text-muted-foreground">
+                    This prompt defines how the AI assistant should behave and
+                    respond
+                  </p>
+                </div>
+              </div>
+
+              {/* Chat Parameters Section */}
+              <div className="space-y-3 rounded-lg border border-border bg-card p-4 text-card-foreground">
+                <div className="flex items-center gap-2">
+                  <div className="h-8 w-8 p-1.5 rounded-lg bg-orange-50 dark:bg-orange-400/10 text-orange-600 dark:text-orange-300 ring-1 ring-orange-200 dark:ring-orange-400/20 flex items-center justify-center">
+                    <Zap className="w-4 h-4" />
+                  </div>
+                  <div>
+                    <h3 className="font-medium text-foreground text-base">
+                      Chat Parameters
+                    </h3>
+                    <p className="text-xs text-muted-foreground">
+                      Configure AI response behavior and settings
+                    </p>
+                  </div>
+                </div>
+
+                {/* Temperature Slider */}
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between">
+                    <Label
+                      htmlFor="temperature"
+                      className="text-sm font-medium"
+                    >
+                      Temperature
+                    </Label>
+                    <div className="flex items-center gap-2">
+                      <span className="text-sm text-muted-foreground">
+                        {watchedValues.temperature}
+                      </span>
+                      {primaryAgent?.model_kwargs?.temperature ===
+                        watchedValues.temperature && (
+                        <Badge
+                          variant="outline"
+                          className="text-xs px-2 py-0.5"
+                        >
+                          From Agent
+                        </Badge>
+                      )}
+                    </div>
+                  </div>
+                  <Controller
+                    name="temperature"
+                    control={control}
+                    render={({ field }) => (
+                      <Slider
+                        id="temperature"
+                        min={0}
+                        max={2}
+                        step={0.1}
+                        value={[field.value]}
+                        onValueChange={(value) => field.onChange(value[0])}
+                        className="w-full"
+                      />
+                    )}
+                  />
+                  {errors.temperature && (
+                    <p className="text-xs text-red-500">
+                      {errors.temperature.message}
+                    </p>
+                  )}
+                  <p className="text-xs text-muted-foreground">
+                    Controls creativity and randomness
+                  </p>
+                </div>
+
+                {/* Max Tokens Slider */}
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between">
+                    <Label htmlFor="maxTokens" className="text-sm font-medium">
+                      Max Tokens
+                    </Label>
+                    <div className="flex items-center gap-2">
+                      <span className="text-sm text-muted-foreground">
+                        {watchedValues.max_tokens}
+                      </span>
+                      {primaryAgent?.model_kwargs?.max_tokens ===
+                        watchedValues.max_tokens && (
+                        <Badge
+                          variant="outline"
+                          className="text-xs px-2 py-0.5"
+                        >
+                          From Agent
+                        </Badge>
+                      )}
+                    </div>
+                  </div>
+                  <Controller
+                    name="max_tokens"
+                    control={control}
+                    render={({ field }) => (
+                      <Slider
+                        id="max_tokens"
+                        min={100}
+                        max={4096}
+                        step={100}
+                        value={[field.value]}
+                        onValueChange={(value) => field.onChange(value[0])}
+                        className="w-full"
+                      />
+                    )}
+                  />
+                  {errors.max_tokens && (
+                    <p className="text-xs text-red-500">
+                      {errors.max_tokens.message}
+                    </p>
+                  )}
+                  <p className="text-xs text-muted-foreground">
+                    Maximum length of AI responses
+                  </p>
+                </div>
+
+                {/* Top-p Slider */}
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between">
+                    <Label htmlFor="topP" className="text-sm font-medium">
+                      Top-p
+                    </Label>
+                    <div className="flex items-center gap-2">
+                      <span className="text-sm text-muted-foreground">
+                        {watchedValues.top_p.toFixed(2)}
+                      </span>
+                      {primaryAgent?.model_kwargs?.top_p ===
+                        watchedValues.top_p && (
+                        <Badge
+                          variant="outline"
+                          className="text-xs px-2 py-0.5"
+                        >
+                          From Agent
+                        </Badge>
+                      )}
+                    </div>
+                  </div>
+                  <Controller
+                    name="top_p"
+                    control={control}
+                    render={({ field }) => (
+                      <Slider
+                        id="topP"
+                        min={0}
+                        max={1}
+                        step={0.01}
+                        value={[field.value]}
+                        onValueChange={(value) => field.onChange(value[0])}
+                        className="w-full"
+                      />
+                    )}
+                  />
+                  {errors.top_p && (
+                    <p className="text-xs text-red-500">
+                      {errors.top_p.message}
+                    </p>
+                  )}
+                  <p className="text-xs text-muted-foreground">
+                    Controls diversity of word choices (0.0 = focused, 1.0 =
+                    diverse)
+                  </p>
+                </div>
+              </div>
+            </TabsContent>
+
+            {/* Plugin Tab */}
+            <TabsContent value="plugin" className="space-y-6">
+              <div className="space-y-2 rounded-lg border border-border bg-card p-4 text-card-foreground">
+                <div className="flex items-center gap-2">
+                  <Sparkles className="w-4 h-4 stroke-[1.5px] stroke-[#272727]" />{' '}
+                  <h3 className="text-paragraph !text-sm">Primary Prompt</h3>
+                </div>
+                <p className="text-paragraph !text-[#272727]/50">
+                  The main agent that handles general queries and coordinates
+                  with specialized agents.
+                </p>
+
+                <div className="space-y-1.5">
+                  <Textarea
+                    id="plugin-primary-prompt"
+                    placeholder="You are a helpful assistant that specializes in..."
+                    className="min-h-[240px] resize-none placeholder:text-[#272727]/50 text-[10px]"
+                  />
+                </div>
+              </div>
+            </TabsContent>
+          </div>
+
+          {/* Action Buttons */}
+          <div className="flex gap-3 pt-6 border-t border-border mt-6 p-4">
+            <Button variant="outline" onClick={onClose} className="flex-1">
+              Cancel
+            </Button>
+            <Button
+              onClick={handleSubmit(onSubmit)}
+              disabled={
+                !isDirty || updateAgentMutation.isPending || !primaryAgent
+              }
+              className="flex-1"
+            >
+              {updateAgentMutation.isPending ? 'Saving...' : 'Save Settings'}
+            </Button>
+          </div>
+        </Tabs>
+      </SheetContent>
+    </Sheet>
   );
 };

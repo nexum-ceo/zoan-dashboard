@@ -4,10 +4,15 @@ import { SelectAssistant } from '@/app/dashboard/playground/components';
 import { ChatInput } from '@/app/dashboard/playground/components/chat-input';
 import { ChatMessage } from '@/app/dashboard/playground/components/chat-message';
 import { ChatSettings } from '@/app/dashboard/playground/components/chat-setting';
-import { Explore } from '@/app/dashboard/playground/components/explore';
+import { ExplorePanel } from '@/app/dashboard/playground/components/explore';
 
 import { NavUser } from '@/components/nav-user';
 import { Button } from '@/components/ui/button';
+import {
+  ResizableHandle,
+  ResizablePanel,
+  ResizablePanelGroup,
+} from '@/components/ui/resizable';
 import {
   Conversation,
   ConversationContent,
@@ -17,7 +22,6 @@ import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import { SidebarProvider } from '@/components/ui/sidebar';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { useInfiniteScroll } from '@/hooks/useInfiniteScroll';
-import type { ChatMessage as HookChatMessage } from '@/hooks/useSSEChat';
 import { useSSEChat } from '@/hooks/useSSEChat';
 import {
   clearPendingMessage,
@@ -27,15 +31,7 @@ import {
 import { getNavigationItems } from '@/lib/navigation-utils';
 import { useGetChat, useGetChatMessagesInfinite } from '@/queries/useChat';
 import { ChatRole } from '@/types/chat';
-import { motion } from 'framer-motion';
-import {
-  Gamepad2,
-  Menu,
-  MessageSquare,
-  Plus,
-  Settings,
-  Sparkles,
-} from 'lucide-react';
+import { Menu, MessageSquare, Plus, Sparkles } from 'lucide-react';
 import { usePathname, useRouter } from 'next/navigation';
 import { useEffect, useMemo, useRef, useState } from 'react';
 
@@ -52,7 +48,6 @@ export function PlaygroundChatClient({ chatId }: PlaygroundChatClientProps) {
   const messagesContainerRef = useRef<HTMLDivElement>(null);
   const [settingsOpen, setSettingsOpen] = useState<boolean>(true);
   const [exploreOpen, setExploreOpen] = useState<boolean>(false);
-  const isSidePanelOpen = (settingsOpen || exploreOpen) && !isMobile;
 
   // Get the first message from localStorage if it exists
   const [pendingMsg, setPendingMsg] = useState<string>(() =>
@@ -104,6 +99,7 @@ export function PlaygroundChatClient({ chatId }: PlaygroundChatClientProps) {
     chatId: chatId,
     user_id: chatInfo?.user_id || '',
   });
+  // console.log('messages chat', messages);
 
   // useEffect(() => {
   //   fetchAuthToken().then(setToken);
@@ -171,34 +167,33 @@ export function PlaygroundChatClient({ chatId }: PlaygroundChatClientProps) {
     return () => clearTimeout(timeoutId);
   }, [isFetchingNextPage, previousScrollHeight]);
 
-  // Auto-open Explore panel when assistant emits a game-signal
-  const lastGameSignalMessageIdRef = useRef<string | null>(null);
+  // Auto-open Explore panel when assistant emits game signals in metadata or parts
   useEffect(() => {
     if (!Array.isArray(messages) || messages.length === 0) return;
-
-    // Find the latest assistant message that contains a part with type 'game-signal'
-    const latestWithSignal = [...messages]
+    const latestWithSignals = [...(messages as Array<Record<string, unknown>>)]
       .reverse()
-      .find((m: HookChatMessage) => {
-        if (m.role !== ChatRole.ASSISTANT) return false;
-        const parts = m.parts as Array<{ type?: string }> | undefined;
-        return (
-          Array.isArray(parts) && parts.some((p) => p?.type === 'game-signal')
-        );
+      .find((m) => {
+        const role = (m?.role as string) || '';
+        const isAssistant = role === 'assistant' || role === 'ASSISTANT';
+        const metadata =
+          (m?.metadata as Record<string, unknown> | undefined) || undefined;
+        const parts =
+          (m?.parts as Array<{ type?: string; text?: string }> | undefined) ||
+          undefined;
+        const hasGameMeta =
+          !!metadata &&
+          (metadata['game_generator'] !== undefined ||
+            metadata['game-signal'] !== undefined);
+        const hasGamePart = Array.isArray(parts)
+          ? parts.some(
+              (p) => p?.type === 'game_generator' || p?.type === 'game-signal',
+            )
+          : false;
+        return isAssistant && (hasGameMeta || hasGamePart);
       });
-
-    if (!latestWithSignal) return;
-
-    if (
-      latestWithSignal.id &&
-      lastGameSignalMessageIdRef.current !== latestWithSignal.id
-    ) {
-      lastGameSignalMessageIdRef.current = latestWithSignal.id;
+    if (latestWithSignals) {
       setExploreOpen(true);
       setSettingsOpen(false);
-      if (exploreRefetchRef.current) {
-        exploreRefetchRef.current();
-      }
     }
   }, [messages]);
 
@@ -281,12 +276,14 @@ export function PlaygroundChatClient({ chatId }: PlaygroundChatClientProps) {
   );
 
   return (
-    <div className="w-full h-screen bg-sidebar flex">
-      {/* Main Chat Area */}
-      <div
-        className={`flex-1 flex flex-col bg-sidebar relative transition-[margin] duration-300 ease-out ${
-          isSidePanelOpen ? 'md:mr-96' : 'md:mr-0'
-        }`}
+    <ResizablePanelGroup
+      direction="horizontal"
+      className="w-full h-screen bg-sidebar"
+    >
+      <ResizablePanel
+        defaultSize={exploreOpen ? 72 : 100}
+        minSize={40}
+        className="flex flex-col bg-sidebar relative"
       >
         {/* Mobile Header with Menu Button */}
         {isMobile && (
@@ -323,56 +320,7 @@ export function PlaygroundChatClient({ chatId }: PlaygroundChatClientProps) {
                 </p>
               </div>
             </div>
-            <div className="flex gap-1">
-              <motion.div
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-              >
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  onClick={() => {
-                    if (exploreOpen) {
-                      setExploreOpen(false);
-                    } else {
-                      setExploreOpen(true);
-                      setSettingsOpen(false);
-                    }
-                  }}
-                  className={
-                    exploreOpen
-                      ? 'bg-accent text-accent-foreground shadow-lg ring-2 ring-ring/30'
-                      : 'hover:bg-muted'
-                  }
-                >
-                  <Gamepad2 className="w-4 h-4" />
-                </Button>
-              </motion.div>
-              <motion.div
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-              >
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  onClick={() => {
-                    if (settingsOpen) {
-                      setSettingsOpen(false);
-                    } else {
-                      setSettingsOpen(true);
-                      setExploreOpen(false);
-                    }
-                  }}
-                  className={
-                    settingsOpen
-                      ? 'bg-accent text-accent-foreground shadow-lg ring-2 ring-ring/30'
-                      : 'hover:bg-muted'
-                  }
-                >
-                  <Settings className="w-4 h-4 " />
-                </Button>
-              </motion.div>
-            </div>
+            <div className="flex gap-1"></div>
           </div>
         </div>
 
@@ -436,30 +384,40 @@ export function PlaygroundChatClient({ chatId }: PlaygroundChatClientProps) {
             submitDisabled={isProcessing}
           />
         </div>
-      </div>
+      </ResizablePanel>
+
+      {/* Right Explore Panel */}
+      {exploreOpen && (
+        <>
+          <ResizableHandle withHandle className="bg-border" />
+          <ResizablePanel
+            defaultSize={28}
+            minSize={20}
+            maxSize={50}
+            className="bg-background border-l border-border"
+          >
+            <ExplorePanel
+              chatId={chatId}
+              messages={messages as unknown[]}
+              onRequestOpen={() => {
+                setExploreOpen(true);
+                setSettingsOpen(false);
+              }}
+              onGameSignalReceived={() => {
+                if (exploreRefetchRef.current) {
+                  exploreRefetchRef.current();
+                }
+              }}
+            />
+          </ResizablePanel>
+        </>
+      )}
 
       {/* Chat Settings Panel */}
-      {chatInfo && (
-        <ChatSettings
-          isOpen={settingsOpen}
-          chatInfo={chatInfo}
-          onClose={() => setSettingsOpen(false)}
-        />
-      )}
-
-      {/* Explore Panel */}
-      {exploreOpen && (
-        <Explore
-          chatId={chatId}
-          isOpen={exploreOpen}
-          onClose={() => setExploreOpen(false)}
-          onGameSignalReceived={() => {
-            if (exploreRefetchRef.current) {
-              exploreRefetchRef.current();
-            }
-          }}
-        />
-      )}
-    </div>
+      <ChatSettings
+        isOpen={settingsOpen}
+        onClose={() => setSettingsOpen(false)}
+      />
+    </ResizablePanelGroup>
   );
 }
