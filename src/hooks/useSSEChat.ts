@@ -50,6 +50,9 @@ export function useSSEChat({
   const reconnectTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(
     null,
   );
+  // Broadcast to other tabs if needed
+  const bcRef = useRef<BroadcastChannel | null>(null);
+  const isOwnerRef = useRef<boolean>(false);
   const isReconnectingRef = useRef<boolean>(false);
   const reconnectAttemptsRef = useRef<number>(0);
   const manualCloseRef = useRef<boolean>(false);
@@ -69,6 +72,7 @@ export function useSSEChat({
       responseTimeoutRef.current = null;
     }
   }, []);
+  console.log('message in hook: ', messages);
 
   const armResponseTimeout = useCallback(
     (timeoutMs: number) => {
@@ -135,7 +139,7 @@ export function useSSEChat({
       isReconnectingRef.current = false;
       try {
         // Defer to latest setupSSE via ref to avoid circular deps
-        setupSSERef.current();
+        if (sseUrl) setupSSERef.current(sseUrl);
       } catch (e) {
         console.error('[SSE] reconnect setup failed', e);
       }
@@ -148,51 +152,85 @@ export function useSSEChat({
     scheduleReconnectRef.current = scheduleReconnect;
   }, [scheduleReconnect]);
 
-  const setupSSERef = useRef<() => void>(() => {});
-  const setupSSE = useCallback(() => {
-    if (!sseUrl || sseUrl.trim() === '') {
-      return;
-    }
-    if (esRef.current) {
+  const setupSSERef = useRef<(url: string) => void>(() => {});
+  const handleSSEDataRef = useRef<(raw: string) => void>(() => {});
+  const setupSSE = useCallback(
+    (url: string) => {
+      if (!url || url.trim() === '') {
+        return;
+      }
+      if (esRef.current) {
+        try {
+          esRef.current.close();
+        } catch (error) {
+          console.error('[SSE] Error closing existing connection:', error);
+        }
+        esRef.current = null;
+      }
       try {
-        esRef.current.close();
+        esRef.current = new EventSource(url);
       } catch (error) {
-        console.error('[SSE] Error closing existing connection:', error);
+        console.error('[SSE] Failed to create EventSource:', error);
+        setSseConnected(false);
+        scheduleReconnectRef.current('create failed');
+        return;
       }
-      esRef.current = null;
-    }
-    try {
-      esRef.current = new EventSource(sseUrl);
-    } catch (error) {
-      console.error('[SSE] Failed to create EventSource:', error);
-      setSseConnected(false);
-      scheduleReconnectRef.current('create failed');
-      return;
-    }
-    (esRef.current as unknown as { onopen: (() => void) | null }).onopen =
-      () => {
-        setSseConnected(true);
-        reconnectAttemptsRef.current = 0;
-        lastMessageAtRef.current = Date.now();
+      (esRef.current as unknown as { onopen: (() => void) | null }).onopen =
+        () => {
+          setSseConnected(true);
+          reconnectAttemptsRef.current = 0;
+          lastMessageAtRef.current = Date.now();
+        };
+      (
+        esRef.current as unknown as {
+          onerror: ((err: MessageEvent) => void) | null;
+        }
+      ).onerror = (err: MessageEvent) => {
+        setSseConnected(false);
+        console.error('[SSE] Connection error:', err);
+        if (!manualCloseRef.current) scheduleReconnectRef.current('onerror');
       };
-    (
-      esRef.current as unknown as {
-        onerror: ((err: MessageEvent) => void) | null;
-      }
-    ).onerror = (err: MessageEvent) => {
-      setSseConnected(false);
-      console.error('[SSE] Connection error:', err);
-      if (!manualCloseRef.current) scheduleReconnectRef.current('onerror');
-    };
 
-    // Listen to server keepalive events to refresh idle timer
-    try {
-      esRef.current.addEventListener('keepalive', () => {
-        lastMessageAtRef.current = Date.now();
-        clearResponseTimeout();
-      });
-    } catch {}
-    esRef.current.onmessage = (event) => {
+      // Listen to server keepalive events to refresh idle timer
+      try {
+        esRef.current.addEventListener('keepalive', () => {
+          lastMessageAtRef.current = Date.now();
+          clearResponseTimeout();
+        });
+        // Auto-close on completion
+        esRef.current.addEventListener('completion', () => {
+          try {
+            esRef.current?.close();
+          } catch {}
+          esRef.current = null;
+          setSseConnected(false);
+          setIsAssistantStreaming(false);
+        });
+      } catch {}
+      esRef.current.onmessage = (event) => {
+        // Route data through unified handler and broadcast to other tabs if owner
+        try {
+          handleSSEDataRef.current(String(event.data));
+          if (isOwnerRef.current && bcRef.current) {
+            bcRef.current.postMessage({
+              type: 'sse',
+              data: String(event.data),
+            });
+          }
+        } catch {}
+      };
+    },
+    [clearResponseTimeout],
+  );
+
+  // Keep a ref to latest setupSSE to avoid dependency cycles
+  useEffect(() => {
+    setupSSERef.current = setupSSE;
+  }, [setupSSE]);
+
+  // Unified SSE data handler (used by EventSource or BroadcastChannel)
+  useEffect(() => {
+    handleSSEDataRef.current = (raw: string) => {
       lastMessageAtRef.current = Date.now();
       clearResponseTimeout();
       setIsAssistantStreaming(true);
@@ -204,7 +242,7 @@ export function useSSEChat({
         setIsAssistantStreaming(false);
       }, 900);
       const chunk = (() => {
-        const rawData = String(event.data);
+        const rawData = String(raw);
         if (rawData.trim().startsWith('{') && rawData.trim().endsWith('}')) {
           try {
             const data = JSON.parse(rawData);
@@ -353,52 +391,24 @@ export function useSSEChat({
         console.error('[SSE] Error updating messages:', error);
       }
     };
-  }, [sseUrl, clearResponseTimeout, coerceToString]);
+  }, [clearResponseTimeout, coerceToString]);
 
-  // Keep a ref to latest setupSSE to avoid dependency cycles
+  // Do not auto-connect on mount; connections are opened per message send.
   useEffect(() => {
-    setupSSERef.current = setupSSE;
-  }, [setupSSE]);
-
-  useEffect(() => {
-    if (!sseUrl || sseUrl.trim() === '') return;
     manualCloseRef.current = false;
-    setupSSE();
-    // Reconnect when tab becomes visible or network returns
-    const handleVisibility = () => {
-      if (document.visibilityState === 'visible' && !sseConnected) {
-        scheduleReconnectRef.current('tab-visible');
-      }
-    };
-    const handleOnline = () => {
-      if (!sseConnected) scheduleReconnectRef.current('online');
-    };
-    const handleOffline = () => {
-      setSseConnected(false);
-    };
-    document.addEventListener('visibilitychange', handleVisibility);
-    window.addEventListener('online', handleOnline);
-    window.addEventListener('offline', handleOffline);
     return () => {
       manualCloseRef.current = true;
       if (reconnectTimeoutRef.current) {
         clearTimeout(reconnectTimeoutRef.current);
         reconnectTimeoutRef.current = null;
       }
-      if (esRef.current) {
-        try {
-          esRef.current.close();
-        } catch (error) {
-          console.error('[SSE] Error closing EventSource:', error);
-        }
-        esRef.current = null;
-      }
+      try {
+        esRef.current?.close();
+      } catch {}
+      esRef.current = null;
       clearResponseTimeout();
-      document.removeEventListener('visibilitychange', handleVisibility);
-      window.removeEventListener('online', handleOnline);
-      window.removeEventListener('offline', handleOffline);
     };
-  }, [sseUrl, chatId, setupSSE, clearResponseTimeout, sseConnected]);
+  }, [clearResponseTimeout]);
 
   // Reset states when chatId changes
   useEffect(() => {
@@ -443,6 +453,7 @@ export function useSSEChat({
     setMessages((prev) => [...prev, userMsg]);
     setIsLoading(true);
     postMessage(input);
+    if (sseUrl) setupSSERef.current(sseUrl);
     setInput('');
     setIsLoading(false);
   };
@@ -458,6 +469,7 @@ export function useSSEChat({
     setMessages((prev) => [...prev, userMsg]);
     setIsLoading(true);
     postMessage(msg);
+    if (sseUrl) setupSSERef.current(sseUrl);
     setIsLoading(false);
   };
 
