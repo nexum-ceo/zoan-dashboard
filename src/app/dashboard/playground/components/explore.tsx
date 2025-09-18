@@ -1,8 +1,21 @@
 'use client';
 
 // import { useGetChatGameVersionList } from '@/queries/useChat';
+import {
+  SandboxCodeEditor,
+  SandboxFileExplorer,
+  SandboxLayout,
+  SandboxProvider,
+} from '@/components/ui/shadcn-io/sandbox';
 import { useGetChatGameVersionList } from '@/queries/useChat';
-import { ArrowDownToLine, CodeXml, Eye, MessageSquare } from 'lucide-react';
+import { useSandpack } from '@codesandbox/sandpack-react';
+import {
+  ArrowDownToLine,
+  ChevronRight,
+  CodeXml,
+  Eye,
+  MessageSquare,
+} from 'lucide-react';
 import Image from 'next/image';
 import { FC, useEffect, useState } from 'react';
 import Copy from '../../../../../public/icon/copy';
@@ -47,6 +60,59 @@ export const ExplorePanel: FC<ExplorePanelProps> = ({
       onGameSignalReceived?.();
     }
   }, [chatGameVersionList, onGameSignalReceived]);
+
+  // Static code content for preview UI
+  const codeLines = [
+    '// Imports',
+    "import mongoose, { Schema } from 'mongoose'",
+    '',
+    '// Collection name',
+    "export const collection = 'Product'",
+    '',
+    '// Schema',
+    'const schema = new Schema({',
+    '  name: {',
+    '    type: String,',
+    '    required: true',
+    '  },',
+    '',
+    '  description: {',
+    '    type: String',
+    '  }',
+    '}, { timestamps: true })',
+    '',
+    '// Model',
+    'export default mongoose.model(collection, schema, collection)',
+  ];
+
+  // Files for Sandbox File Explorer UI
+  const sandboxFiles = {
+    '/App/page.tsx': {
+      code: codeLines.join('\n'),
+    },
+    '/Components/Background.tsx': {
+      code: 'export const Background = () => <div />;\n',
+    },
+    '/Components/Collision.tsx': {
+      code: 'export const Collision = () => null;\n',
+    },
+  } as const;
+
+  const SandpackBreadcrumb: FC = () => {
+    const { sandpack } = useSandpack();
+    const activePath = sandpack?.activeFile || '/App/page.tsx';
+    const parts = activePath.replace(/^\//, '').split('/');
+    const root = parts[0] || 'App';
+    const file = parts.slice(1).join('/') || 'page.tsx';
+    return (
+      <div className="pt-2 bg-white text-paragraph flex items-center gap-1">
+        <span className="font-medium !text-[#272727]/50">{root}</span>
+        {/* <span className="px-1 !text-[#272727]/50">›</span> */}
+        <ChevronRight className="w-4 h-4 stroke-[#272727]/50" />
+        <span className="font-medium">{file}</span>
+      </div>
+    );
+  };
 
   // Auto-open explore when latest assistant message has game signals
   useEffect(() => {
@@ -156,7 +222,33 @@ export const ExplorePanel: FC<ExplorePanelProps> = ({
           />
         </div>
       ) : (
-        <div>hehhe</div>
+        <div className="flex-1 h-full">
+          <SandboxProvider
+            template="react"
+            files={sandboxFiles}
+            theme="light"
+            className="h-full border-none"
+          >
+            <div className="flex gap-1 h-full">
+              {/* File explorer using Sandbox */}
+              <div className=" bg-white overflow-hidden h-full">
+                <div className="h-full">
+                  <SandboxLayout className="!h-full">
+                    <SandboxFileExplorer className="!border-none !h-full" />
+                  </SandboxLayout>
+                </div>
+              </div>
+
+              {/* Editor using SandboxCodeEditor */}
+              <div className="flex-1 overflow-hidden bg-white flex flex-col h-full">
+                <SandpackBreadcrumb />
+                <SandboxLayout className="!h-full">
+                  <SandboxCodeEditor showTabs={false} showLineNumbers={true} />
+                </SandboxLayout>
+              </div>
+            </div>
+          </SandboxProvider>
+        </div>
       )}
       {/* <div className="flex-1 overflow-y-auto px-10"> */}
       {/* <Image
