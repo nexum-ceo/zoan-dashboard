@@ -147,32 +147,25 @@ export const ExplorePanel: FC<ExplorePanelProps> = ({
       </div>
 
       {/* Content */}
-      <div className="flex-1 overflow-y-auto px-10">
-        {activeView === 'view' ? (
+      {activeView === 'view' ? (
+        <div className="flex-1 overflow-y-auto px-10">
           <Image
             src={GamePreview}
             alt="Game Preview Image"
             className="w-full h-full object-cover"
           />
-        ) : (
-          <div className="w-full h-full py-6">
-            <div className="rounded-xl border border-border bg-[#0b1020] text-[#cbd5e1]">
-              <div className="flex items-center justify-between px-4 py-2 border-b border-white/5">
-                <span className="text-xs tracking-wide uppercase text-[#94a3b8]">
-                  Code Preview
-                </span>
-                <span className="text-[10px] text-[#94a3b8]">default</span>
-              </div>
-              <div className="p-4">
-                <pre className="text-xs leading-5 whitespace-pre-wrap font-mono">
-                  {`// Your generated code will appear here\n// Switch to View to preview the UI\n\nfunction Game() {\n  return (<div>Welcome to your new game!</div>);\n}`}{' '}
-                </pre>
-              </div>
-            </div>
-          </div>
-        )}
-        {/* Game Title */}
-        {/* <div>
+        </div>
+      ) : (
+        <div>hehhe</div>
+      )}
+      {/* <div className="flex-1 overflow-y-auto px-10"> */}
+      {/* <Image
+          src={GamePreview}
+          alt="Game Preview Image"
+          className="w-full h-full object-cover"
+        /> */}
+      {/* Game Title */}
+      {/* <div>
           <h3 className="text-xl font-semibold text-foreground mb-2">
             Flappy Bird Game
           </h3>
@@ -181,8 +174,8 @@ export const ExplorePanel: FC<ExplorePanelProps> = ({
           </p>
         </div> */}
 
-        {/* Game Version Selector */}
-        {/* <div className="space-y-2">
+      {/* Game Version Selector */}
+      {/* <div className="space-y-2">
           <label className="text-sm font-medium text-foreground">
             Game Version
           </label>
@@ -220,17 +213,8 @@ export const ExplorePanel: FC<ExplorePanelProps> = ({
           </Select>
         </div> */}
 
-        {/* Game Preview Card */}
-        {/* <div className="bg-gradient-to-br from-blue-100 to-purple-200 rounded-xl p-6 text-center space-y-4 dark:from-blue-500/10 dark:to-purple-500/10"> */}
-        {/* Game Icon */}
-        {/* <div className="w-16 h-16 mx-auto bg-gradient-to-r from-blue-500 to-purple-600 rounded-full flex items-center justify-center shadow-lg">
-            <div className="w-8 h-8 bg-white rounded-full flex items-center justify-center">
-              <div className="w-3 h-3 bg-gray-800 rounded-full"></div>
-            </div>
-          </div> */}
-
-        {/* Game Info */}
-        {/* <div>
+      {/* Game Info */}
+      {/* <div>
             <h4 className="text-lg font-semibold text-foreground mb-1">
               {gameVersion?.version}
             </h4>
@@ -239,8 +223,8 @@ export const ExplorePanel: FC<ExplorePanelProps> = ({
             </p>
           </div> */}
 
-        {/* Action Buttons */}
-        {/* <div className="space-y-3">
+      {/* Action Buttons */}
+      {/* <div className="space-y-3">
             {gameVersion && (
               <Dialog open={isGameModalOpen} onOpenChange={setIsGameModalOpen}>
                 <DialogTrigger asChild>
@@ -277,8 +261,8 @@ export const ExplorePanel: FC<ExplorePanelProps> = ({
           </div>
         </div> */}
 
-        {/* Version Details */}
-        {/* <div className="space-y-3">
+      {/* Version Details */}
+      {/* <div className="space-y-3">
           <h4 className="font-medium text-foreground">Version Details</h4>
           <div className="space-y-2">
             <p className="text-sm text-foreground/80">
@@ -290,8 +274,8 @@ export const ExplorePanel: FC<ExplorePanelProps> = ({
           </div>
         </div> */}
 
-        {/* Additional Games Section */}
-      </div>
+      {/* Additional Games Section */}
+      {/* </div> */}
     </div>
   );
 };
