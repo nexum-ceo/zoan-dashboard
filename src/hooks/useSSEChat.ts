@@ -51,9 +51,9 @@ UseSSEChatProps) {
   const reconnectTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(
     null,
   );
-  // Broadcast to other tabs if needed
-  const bcRef = useRef<BroadcastChannel | null>(null);
-  const isOwnerRef = useRef<boolean>(false);
+  // Broadcast to other tabs if needed (currently unused)
+  // const bcRef = useRef<BroadcastChannel | null>(null);
+  // const isOwnerRef = useRef<boolean>(false);
   const isReconnectingRef = useRef<boolean>(false);
   const reconnectAttemptsRef = useRef<number>(0);
   const manualCloseRef = useRef<boolean>(false);
@@ -161,95 +161,20 @@ UseSSEChatProps) {
 
   const setupSSERef = useRef<(url: string) => void>(() => {});
   const handleSSEDataRef = useRef<(raw: string) => void>(() => {});
-  const setupSSE = useCallback(
-    (url: string) => {
-      if (!url || url.trim() === '') {
-        return;
-      }
-      if (esRef.current) {
-        try {
-          esRef.current.close();
-        } catch (error) {
-          console.error('[SSE] Error closing existing connection:', error);
-        }
-        esRef.current = null;
-      }
-      try {
-        esRef.current = new EventSource(url);
-      } catch (error) {
-        console.error('[SSE] Failed to create EventSource:', error);
-        setSseConnected(false);
-        scheduleReconnectRef.current('create failed');
-        return;
-      }
-      (esRef.current as unknown as { onopen: (() => void) | null }).onopen =
-        () => {
-          console.log('[SSE] Connection opened successfully');
-          setSseConnected(true);
-          reconnectAttemptsRef.current = 0;
-          lastMessageAtRef.current = Date.now();
-        };
-      (
-        esRef.current as unknown as {
-          onerror: ((err: MessageEvent) => void) | null;
-        }
-      ).onerror = (err: MessageEvent) => {
-        setSseConnected(false);
-        console.error('[SSE] Connection error:', err);
-        if (!manualCloseRef.current && autoReconnectEnabledRef.current)
-          scheduleReconnectRef.current('onerror');
-      };
+  const setupSSE = useCallback((url: string) => {
+    if (!url || url.trim() === '') {
+      return;
+    }
 
-      // Listen to server keepalive events to refresh idle timer
-      try {
-        esRef.current.addEventListener('keepalive', () => {
-          console.log('[SSE] Keepalive event received');
-          lastMessageAtRef.current = Date.now();
-          clearResponseTimeout();
-        });
-        // Auto-close on completion
-        esRef.current.addEventListener('completion', () => {
-          console.log('[SSE] Completion event received, closing connection');
-          try {
-            esRef.current?.close();
-          } catch {}
-          esRef.current = null;
-          setSseConnected(false);
-          setIsAssistantStreaming(false);
-          // Disable further reconnects once a completion ends
-          isReconnectingRef.current = false;
-        });
-        // Listen to 'open' event
-        esRef.current.addEventListener('open', () => {
-          console.log('[SSE] Open event received');
-        });
-      } catch (error) {
-        console.error('[SSE] Error setting up event listeners:', error);
-      }
-      esRef.current.onmessage = (event) => {
-        // Route data through unified handler and broadcast to other tabs if owner
-        try {
-          console.log('[SSE] Raw event data received:', {
-            data: event.data,
-            type: event.type,
-            origin: event.origin,
-            lastEventId: event.lastEventId,
-            timestamp: new Date().toISOString(),
-          });
-          handleSSEDataRef.current(String(event.data));
-          if (isOwnerRef.current && bcRef.current) {
-            bcRef.current.postMessage({
-              type: 'sse',
-              data: String(event.data),
-            });
-          }
-        } catch (error) {
-          console.error('[SSE] Error handling message:', error);
-        }
-      };
-    },
-    [clearResponseTimeout],
-  );
+    console.log('[SSE] Setting up SSE connection to:', url);
+    setSseConnected(true);
+    reconnectAttemptsRef.current = 0;
+    lastMessageAtRef.current = Date.now();
+
+    // Since we're using POST requests, we don't need EventSource
+    // The streaming is handled by the fetch in postMessage
+    console.log('[SSE] SSE connection established (fetch-based)');
+  }, []);
 
   // Keep a ref to latest setupSSE to avoid dependency cycles
   useEffect(() => {
@@ -605,7 +530,7 @@ UseSSEChatProps) {
         body: requestBody,
       });
 
-      // Use fetch for SSE streaming instead of axios
+      // Use fetch for SSE streaming
       fetch(`/api/chat/${encodeURIComponent(chatId)}/completion`, {
         method: 'POST',
         headers: {
@@ -630,14 +555,72 @@ UseSSEChatProps) {
               response.status,
               response.statusText,
             );
+            return;
           }
+
+          // Handle streaming response
+          if (!response.body) {
+            console.error('No response body for streaming');
+            return;
+          }
+
+          const reader = response.body.getReader();
+          const decoder = new TextDecoder();
+          let buffer = '';
+
+          const pump = () => {
+            reader
+              .read()
+              .then(({ done, value }) => {
+                if (done) {
+                  console.log('[SSE] Stream completed');
+                  setSseConnected(false);
+                  setIsAssistantStreaming(false);
+                  return;
+                }
+
+                // Decode chunk and process
+                const chunk = decoder.decode(value, { stream: true });
+                console.log('[SSE] Received chunk:', chunk);
+                buffer += chunk;
+
+                // Process complete lines
+                const lines = buffer.split('\n');
+                buffer = lines.pop() || '';
+
+                for (const line of lines) {
+                  const trimmedLine = line.trim();
+                  if (trimmedLine) {
+                    console.log('[SSE] Processing line:', trimmedLine);
+                    // Remove 'data: ' prefix if present
+                    const data = trimmedLine.startsWith('data: ')
+                      ? trimmedLine.substring(6)
+                      : trimmedLine;
+
+                    if (data) {
+                      handleSSEDataRef.current(data);
+                    }
+                  }
+                }
+
+                pump();
+              })
+              .catch((error) => {
+                console.error('[SSE] Stream read error:', error);
+                setSseConnected(false);
+                setIsAssistantStreaming(false);
+              });
+          };
+
+          pump();
         })
         .catch((error) => {
           console.error('Fetch error:', error);
+          setSseConnected(false);
+          setIsAssistantStreaming(false);
         });
 
       lastMessageAtRef.current = Date.now();
-      // armResponseTimeout(Number(expectedResponseTimeoutMs || 0));
     },
     [chatId, user_id],
   );
@@ -654,7 +637,6 @@ UseSSEChatProps) {
     setMessages((prev) => [...prev, userMsg]);
     setIsLoading(true);
     postMessage(input);
-    if (sseUrl) setupSSERef.current(sseUrl);
     setInput('');
     setIsLoading(false);
   };
@@ -670,7 +652,6 @@ UseSSEChatProps) {
     setMessages((prev) => [...prev, userMsg]);
     setIsLoading(true);
     postMessage(msg);
-    if (sseUrl) setupSSERef.current(sseUrl);
     setIsLoading(false);
   };
 

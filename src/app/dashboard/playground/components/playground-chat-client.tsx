@@ -94,7 +94,6 @@ export function PlaygroundChatClient({ chatId }: PlaygroundChatClientProps) {
     isProcessing,
     setMessages,
   } = useSSEChat({
-    sseUrl: chatInfo?.user_id ? `/api/chat/${chatId}/completion` : '',
     initialMessages,
     chatId: chatId,
     user_id: chatInfo?.user_id || '',
