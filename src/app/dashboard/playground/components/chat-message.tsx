@@ -105,7 +105,13 @@ export const ChatMessage: FC<ChatMessageProps> = ({
   const content = useMemo(() => {
     if (Array.isArray(message.parts)) {
       return message.parts
-        .map((part) => (part.type === 'text' ? part.text : ''))
+        .map((part) => {
+          // Include both 'text' and 'answer' types for content display
+          if (part.type === 'text' || part.type === 'answer') {
+            return part.text || '';
+          }
+          return '';
+        })
         .join('');
     }
     return message.content || '';

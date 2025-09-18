@@ -47,6 +47,7 @@ export async function POST(
     'up stream headers:',
     Object.fromEntries(upstream.headers.entries()),
   );
+  console.log('up stream content-type:', upstream.headers.get('content-type'));
 
   if (!upstream.ok || !upstream.body) {
     console.error('Upstream error:', upstream.status, upstream.statusText);
@@ -97,6 +98,8 @@ export async function POST(
             // Decode the chunk and add to buffer
             const chunk = decoder.decode(value, { stream: true });
             console.log('Received chunk from upstream:', chunk);
+            console.log('Chunk length:', chunk.length);
+            console.log('Chunk contains answer:', chunk.includes('answer'));
             buffer += chunk;
 
             // Process complete lines
@@ -107,6 +110,15 @@ export async function POST(
               const trimmedLine = line.trim();
               if (trimmedLine) {
                 console.log('Processing line:', trimmedLine);
+
+                // Check if this line contains answer type
+                if (
+                  trimmedLine.includes('"type":"answer"') ||
+                  trimmedLine.includes("'type':'answer'")
+                ) {
+                  console.log('*** FOUND ANSWER TYPE IN LINE:', trimmedLine);
+                }
+
                 // If it's already in SSE format, forward as-is
                 if (
                   trimmedLine.startsWith('data: ') ||
@@ -117,8 +129,12 @@ export async function POST(
                 } else {
                   // If it's raw JSON, wrap in SSE format
                   try {
-                    JSON.parse(trimmedLine);
+                    const parsed = JSON.parse(trimmedLine);
                     console.log('Wrapping JSON in SSE format:', trimmedLine);
+                    console.log('Parsed JSON type:', parsed?.type);
+                    if (parsed?.type === 'answer') {
+                      console.log('*** ANSWER TYPE DETECTED IN ROUTE:', parsed);
+                    }
                     controller.enqueue(
                       new TextEncoder().encode(`data: ${trimmedLine}\n\n`),
                     );
