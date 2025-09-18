@@ -3,6 +3,7 @@ import {
   CreateChatAgentSettingBodyType,
   CreateChatAgentSettingResType,
   CreateChatBodyType,
+  CreateChatMessageBodyType,
   CreateChatResType,
   GetChatAgentSettingByChatIdResType,
   GetChatGameVersionListResSchema,
@@ -106,6 +107,13 @@ const chatApiRequest = {
 
   sGetChatGameVersionList: (id: string) =>
     axiosInstance.get<GetChatGameVersionListResSchema>(`/game-version/${id}`, {
+      baseURL: '',
+    }),
+
+  createChatMessage: (id: string, body: CreateChatMessageBodyType) =>
+    axiosInstance.post(`/chat/${id}/completion`, body),
+  sCreateChatMessage: (id: string, body: CreateChatMessageBodyType) =>
+    axiosInstance.post(`/chat/${id}/completion`, body, {
       baseURL: '',
     }),
 };

@@ -57,6 +57,10 @@ export const ChatMessageSchema = z.object({
   updated_at: z.string(),
 });
 
+// sender_id: z.string(),
+// role: z.enum(ChatRole),
+// content: z.string().optional(),
+
 export type ChatMessageType = z.infer<typeof ChatMessageSchema>;
 
 export const GetChatMessagesResSchema = z.object({
@@ -173,3 +177,12 @@ export const GetChatGameVersionListResSchema = z.object({
 export type GetChatGameVersionListResSchema = z.infer<
   typeof GetChatGameVersionListResSchema
 >;
+
+export const CreateChatMessageSchema = z.object({
+  sender_id: z.string(),
+  role: z.enum(ChatRole),
+  content: z.string(),
+  metadata: z.record(z.string(), z.string()).optional(),
+});
+
+export type CreateChatMessageBodyType = z.infer<typeof CreateChatMessageSchema>;
