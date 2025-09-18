@@ -84,7 +84,7 @@ export const ExplorePanel: FC<ExplorePanelProps> = ({
   return (
     <div className={'flex flex-col h-full ' + (className || '')}>
       {/* Header */}
-      <div className="px-2 pt-1 pb-1.5 border-b border-border bg-background">
+      <div className="px-2 pt-1 pb-1.5 border-b border-border bg-white">
         <div className="flex items-center justify-between gap-3">
           {/* Left segmented controls */}
           <div className="flex items-center gap-3">
@@ -148,11 +148,29 @@ export const ExplorePanel: FC<ExplorePanelProps> = ({
 
       {/* Content */}
       <div className="flex-1 overflow-y-auto px-10">
-        <Image
-          src={GamePreview}
-          alt="Game Preview Image"
-          className="w-full h-full object-cover"
-        />
+        {activeView === 'view' ? (
+          <Image
+            src={GamePreview}
+            alt="Game Preview Image"
+            className="w-full h-full object-cover"
+          />
+        ) : (
+          <div className="w-full h-full py-6">
+            <div className="rounded-xl border border-border bg-[#0b1020] text-[#cbd5e1]">
+              <div className="flex items-center justify-between px-4 py-2 border-b border-white/5">
+                <span className="text-xs tracking-wide uppercase text-[#94a3b8]">
+                  Code Preview
+                </span>
+                <span className="text-[10px] text-[#94a3b8]">default</span>
+              </div>
+              <div className="p-4">
+                <pre className="text-xs leading-5 whitespace-pre-wrap font-mono">
+                  {`// Your generated code will appear here\n// Switch to View to preview the UI\n\nfunction Game() {\n  return (<div>Welcome to your new game!</div>);\n}`}{' '}
+                </pre>
+              </div>
+            </div>
+          </div>
+        )}
         {/* Game Title */}
         {/* <div>
           <h3 className="text-xl font-semibold text-foreground mb-2">
