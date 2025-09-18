@@ -1,9 +1,10 @@
 'use client';
 
 // import { useGetChatGameVersionList } from '@/queries/useChat';
+import { useGetChatGameVersionList } from '@/queries/useChat';
 import { ArrowDownToLine, CodeXml, Eye, MessageSquare } from 'lucide-react';
 import Image from 'next/image';
-import { FC, useEffect } from 'react';
+import { FC, useEffect, useState } from 'react';
 import Copy from '../../../../../public/icon/copy';
 import FileTerminal from '../../../../../public/icon/file-terminal';
 import FullScreen from '../../../../../public/icon/full-screen';
@@ -26,29 +27,26 @@ type ExplorePanelProps = {
 // };
 
 export const ExplorePanel: FC<ExplorePanelProps> = ({
-  // chatId,
+  chatId,
   onGameSignalReceived,
   className,
   messages,
   onRequestOpen,
 }) => {
   // --- Logic fetch game version list ---
-  // const [isGameModalOpen, setIsGameModalOpen] = useState<boolean>(false);
-  // const [gameVersion, setGameVersion] = useState<GameVersion | null>(null);
-  // const { data: chatGameVersionList } = useGetChatGameVersionList(chatId);
+  const { data: chatGameVersionList } = useGetChatGameVersionList(chatId);
+  const [activeView, setActiveView] = useState<'code' | 'view'>('code');
 
-  // useEffect(() => {
-  //   if (
-  //     chatGameVersionList?.data?.data &&
-  //     Array.isArray(chatGameVersionList?.data?.data) &&
-  //     chatGameVersionList?.data?.data.length > 0
-  //   ) {
-  //     setGameVersion(chatGameVersionList?.data?.data[0] || null);
-  //     onGameSignalReceived?.();
-  //   } else {
-  //     setGameVersion(null);
-  //   }
-  // }, [chatGameVersionList, onGameSignalReceived]);
+  console.log('data game version', chatGameVersionList);
+  useEffect(() => {
+    if (
+      chatGameVersionList?.data?.data &&
+      Array.isArray(chatGameVersionList?.data?.data) &&
+      chatGameVersionList?.data?.data.length > 0
+    ) {
+      onGameSignalReceived?.();
+    }
+  }, [chatGameVersionList, onGameSignalReceived]);
 
   // Auto-open explore when latest assistant message has game signals
   useEffect(() => {
@@ -104,15 +102,29 @@ export const ExplorePanel: FC<ExplorePanelProps> = ({
             <div className="flex items-center gap-1 bg-[#272727]/5 rounded-full p-0.5">
               <button
                 type="button"
-                className="flex items-center gap-2 rounded-full p-1 bg-primary-brand-green"
+                onClick={() => setActiveView('code')}
+                className={`flex items-center gap-2 rounded-full p-1 transition-colors duration-200 ease-in-out ${
+                  activeView === 'code' ? 'bg-primary-brand-green' : ''
+                }`}
               >
-                <CodeXml className="w-4 h-4 stroke-[#608234]" />
+                <CodeXml
+                  className={`w-4 h-4 transition-colors duration-200 ease-in-out ${
+                    activeView === 'code' ? 'stroke-[#608234]' : ''
+                  }`}
+                />
               </button>
               <button
                 type="button"
-                className="flex items-center gap-2 rounded-full p-1"
+                onClick={() => setActiveView('view')}
+                className={`flex items-center gap-2 rounded-full p-1 transition-colors duration-200 ease-in-out ${
+                  activeView === 'view' ? 'bg-primary-brand-green' : ''
+                }`}
               >
-                <Eye className="w-4 h-4" />
+                <Eye
+                  className={`w-4 h-4 transition-colors duration-200 ease-in-out ${
+                    activeView === 'view' ? 'stroke-[#608234]' : ''
+                  }`}
+                />
               </button>
             </div>
           </div>
@@ -128,7 +140,7 @@ export const ExplorePanel: FC<ExplorePanelProps> = ({
               <FileTerminal className="w-3 h-3 stroke-[1px]" />
             </button>
             <button type="button">
-              <FullScreen className="w-3 h-3 stroke-[1px" />
+              <FullScreen className="w-3 h-3 stroke-[1px]" />
             </button>
           </div>
         </div>
