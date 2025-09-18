@@ -53,6 +53,17 @@ const libraryApiRequest = {
     return parseXmlResponse(response.data);
   },
 
+  getListFileInGameFolder: async (gameUrl: string) => {
+    const response = await axiosInstance.get(
+      `/builds/?prefix=${gameUrl}/&delimiter=/`,
+      {
+        baseURL: process.env.NEXT_PUBLIC_MINIO_URL,
+        responseType: 'text',
+      },
+    );
+    return { data: response.data };
+  },
+
   getListFileInFolder: async (userId: string, folderPath: string) => {
     const response = await axiosInstance.get(
       `/library/?prefix=${userId}/${folderPath}&delimiter=/`,
@@ -72,6 +83,14 @@ const libraryApiRequest = {
     }),
 
   //Call through Next.js server
+  sGetListFileInGameFolder: async (gameUrl: string) => {
+    const response = await axiosInstance.get(`${gameUrl}`, {
+      baseURL: '',
+    });
+
+    return parseXmlResponse(response.data);
+  },
+
   sGetPresignedUrls: (body: PresignedUrlBodyType) =>
     axiosInstance.post<PresignedUrlResponseType>(
       '/library/presigned-url',

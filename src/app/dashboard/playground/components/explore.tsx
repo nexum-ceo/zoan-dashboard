@@ -1,27 +1,13 @@
 'use client';
 
 // import { useGetChatGameVersionList } from '@/queries/useChat';
-import {
-  SandboxCodeEditor,
-  SandboxFileExplorer,
-  SandboxLayout,
-  SandboxProvider,
-} from '@/components/ui/shadcn-io/sandbox';
 import { useGetChatGameVersionList } from '@/queries/useChat';
-import { useSandpack } from '@codesandbox/sandpack-react';
-import {
-  ArrowDownToLine,
-  ChevronRight,
-  CodeXml,
-  Eye,
-  MessageSquare,
-} from 'lucide-react';
-import Image from 'next/image';
+import { ArrowDownToLine, CodeXml, Eye, MessageSquare } from 'lucide-react';
 import { FC, useEffect, useState } from 'react';
 import Copy from '../../../../../public/icon/copy';
 import FileTerminal from '../../../../../public/icon/file-terminal';
 import FullScreen from '../../../../../public/icon/full-screen';
-import GamePreview from '../../../../../public/image/game-image-preview.png';
+import { SandboxCodePanel } from './sandbox-code-panel';
 
 type ExplorePanelProps = {
   chatId: string;
@@ -98,22 +84,6 @@ export const ExplorePanel: FC<ExplorePanelProps> = ({
     },
   } as const;
 
-  const SandpackBreadcrumb: FC = () => {
-    const { sandpack } = useSandpack();
-    const activePath = sandpack?.activeFile || '/App/page.tsx';
-    const parts = activePath.replace(/^\//, '').split('/');
-    const root = parts[0] || 'App';
-    const file = parts.slice(1).join('/') || 'page.tsx';
-    return (
-      <div className="pt-2 bg-white text-paragraph flex items-center gap-1">
-        <span className="font-medium !text-[#272727]/50">{root}</span>
-        {/* <span className="px-1 !text-[#272727]/50">›</span> */}
-        <ChevronRight className="w-4 h-4 stroke-[#272727]/50" />
-        <span className="font-medium">{file}</span>
-      </div>
-    );
-  };
-
   // Auto-open explore when latest assistant message has game signals
   useEffect(() => {
     if (!Array.isArray(messages) || messages.length === 0) return;
@@ -156,7 +126,7 @@ export const ExplorePanel: FC<ExplorePanelProps> = ({
           <div className="flex items-center gap-3">
             <button
               type="button"
-              className="bg-[#272727]/5 flex items-center gap-1.5 rounded-lg p-2 text-paragraph cursor-pointer"
+              className="bg-[#272727]/5 flex items-center gap-1 rounded-lg px-2 py-1 text-paragraph cursor-pointer"
             >
               <span className="inline-flex items-center justify-center w-4 h-4 rounded-full">
                 <MessageSquare className="w-4 h-4" />
@@ -213,43 +183,12 @@ export const ExplorePanel: FC<ExplorePanelProps> = ({
       </div>
 
       {/* Content */}
-      {activeView === 'view' ? (
-        <div className="flex-1 overflow-y-auto px-10">
-          <Image
-            src={GamePreview}
-            alt="Game Preview Image"
-            className="w-full h-full object-cover"
-          />
-        </div>
-      ) : (
-        <div className="flex-1 h-full">
-          <SandboxProvider
-            template="react"
-            files={sandboxFiles}
-            theme="light"
-            className="h-full border-none"
-          >
-            <div className="flex gap-1 h-full">
-              {/* File explorer using Sandbox */}
-              <div className=" bg-white overflow-hidden h-full">
-                <div className="h-full">
-                  <SandboxLayout className="!h-full">
-                    <SandboxFileExplorer className="!border-none !h-full" />
-                  </SandboxLayout>
-                </div>
-              </div>
-
-              {/* Editor using SandboxCodeEditor */}
-              <div className="flex-1 overflow-hidden bg-white flex flex-col h-full">
-                <SandpackBreadcrumb />
-                <SandboxLayout className="!h-full">
-                  <SandboxCodeEditor showTabs={false} showLineNumbers={true} />
-                </SandboxLayout>
-              </div>
-            </div>
-          </SandboxProvider>
-        </div>
-      )}
+      <SandboxCodePanel
+        files={sandboxFiles}
+        template="react"
+        theme="light"
+        activeView={activeView}
+      />
       {/* <div className="flex-1 overflow-y-auto px-10"> */}
       {/* <Image
           src={GamePreview}
