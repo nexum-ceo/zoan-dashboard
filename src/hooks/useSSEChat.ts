@@ -23,14 +23,19 @@ export type UseSSEChatProps = {
   initialMessages?: ChatMessage[];
   user_id: string;
   expectedResponseTimeoutMs?: number;
+  enableAutoReconnect?: boolean;
 };
 
 const FILTERED_MESSAGE_TYPES = new Set([
-  'completion',
   'system',
   'metadata',
   'status',
   'error',
+  'event',
+  'id',
+  'retry',
+  'ping',
+  'heartbeat',
 ]);
 
 export function useSSEChat({
@@ -38,7 +43,7 @@ export function useSSEChat({
   chatId,
   user_id,
   initialMessages = [],
-  expectedResponseTimeoutMs = 25000,
+  enableAutoReconnect = false,
 }: UseSSEChatProps) {
   const [messages, setMessages] = useState<ChatMessage[]>(initialMessages);
   const [input, setInput] = useState<string>('');
@@ -50,9 +55,13 @@ export function useSSEChat({
   const reconnectTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(
     null,
   );
+  // Broadcast to other tabs if needed (currently unused)
+  // const bcRef = useRef<BroadcastChannel | null>(null);
+  // const isOwnerRef = useRef<boolean>(false);
   const isReconnectingRef = useRef<boolean>(false);
   const reconnectAttemptsRef = useRef<number>(0);
   const manualCloseRef = useRef<boolean>(false);
+  const autoReconnectEnabledRef = useRef<boolean>(enableAutoReconnect);
   const assistantStreamEndTimeoutRef = useRef<ReturnType<
     typeof setTimeout
   > | null>(null);
@@ -63,25 +72,17 @@ export function useSSEChat({
   const RECONNECT_BASE_DELAY = 1000;
   const RECONNECT_MAX_DELAY = 15000;
 
+  // Keep auto-reconnect flag in sync with prop
+  useEffect(() => {
+    autoReconnectEnabledRef.current = !!enableAutoReconnect;
+  }, [enableAutoReconnect]);
+
   const clearResponseTimeout = useCallback(() => {
     if (responseTimeoutRef.current) {
       clearTimeout(responseTimeoutRef.current);
       responseTimeoutRef.current = null;
     }
   }, []);
-
-  const armResponseTimeout = useCallback(
-    (timeoutMs: number) => {
-      clearResponseTimeout();
-      if (!timeoutMs || timeoutMs <= 0) return;
-      responseTimeoutRef.current = setTimeout(() => {
-        try {
-          esRef.current?.close();
-        } catch {}
-      }, timeoutMs);
-    },
-    [clearResponseTimeout],
-  );
 
   const coerceToString = useCallback((value: unknown): string => {
     if (typeof value === 'string') return value;
@@ -118,6 +119,7 @@ export function useSSEChat({
 
   const scheduleReconnect = useCallback(() => {
     if (manualCloseRef.current) return;
+    if (!autoReconnectEnabledRef.current) return;
     if (!sseUrl || sseUrl.trim() === '') return;
     if (isReconnectingRef.current) return;
     const attempt = reconnectAttemptsRef.current;
@@ -135,7 +137,7 @@ export function useSSEChat({
       isReconnectingRef.current = false;
       try {
         // Defer to latest setupSSE via ref to avoid circular deps
-        setupSSERef.current();
+        if (sseUrl) setupSSERef.current(sseUrl);
       } catch (e) {
         console.error('[SSE] reconnect setup failed', e);
       }
@@ -148,51 +150,34 @@ export function useSSEChat({
     scheduleReconnectRef.current = scheduleReconnect;
   }, [scheduleReconnect]);
 
-  const setupSSERef = useRef<() => void>(() => {});
-  const setupSSE = useCallback(() => {
-    if (!sseUrl || sseUrl.trim() === '') {
+  const setupSSERef = useRef<(url: string) => void>(() => {});
+  const handleSSEDataRef = useRef<(raw: string) => void>(() => {});
+  const setupSSE = useCallback((url: string) => {
+    if (!url || url.trim() === '') {
       return;
     }
-    if (esRef.current) {
-      try {
-        esRef.current.close();
-      } catch (error) {
-        console.error('[SSE] Error closing existing connection:', error);
-      }
-      esRef.current = null;
-    }
-    try {
-      esRef.current = new EventSource(sseUrl);
-    } catch (error) {
-      console.error('[SSE] Failed to create EventSource:', error);
-      setSseConnected(false);
-      scheduleReconnectRef.current('create failed');
-      return;
-    }
-    (esRef.current as unknown as { onopen: (() => void) | null }).onopen =
-      () => {
-        setSseConnected(true);
-        reconnectAttemptsRef.current = 0;
-        lastMessageAtRef.current = Date.now();
-      };
-    (
-      esRef.current as unknown as {
-        onerror: ((err: MessageEvent) => void) | null;
-      }
-    ).onerror = (err: MessageEvent) => {
-      setSseConnected(false);
-      console.error('[SSE] Connection error:', err);
-      if (!manualCloseRef.current) scheduleReconnectRef.current('onerror');
-    };
 
-    // Listen to server keepalive events to refresh idle timer
-    try {
-      esRef.current.addEventListener('keepalive', () => {
-        lastMessageAtRef.current = Date.now();
-        clearResponseTimeout();
-      });
-    } catch {}
-    esRef.current.onmessage = (event) => {
+    console.log('[SSE] Setting up SSE connection to:', url);
+    setSseConnected(true);
+    reconnectAttemptsRef.current = 0;
+    lastMessageAtRef.current = Date.now();
+
+    // Since we're using POST requests, we don't need EventSource
+    // The streaming is handled by the fetch in postMessage
+    console.log('[SSE] SSE connection established (fetch-based)');
+  }, []);
+
+  // Keep a ref to latest setupSSE to avoid dependency cycles
+  useEffect(() => {
+    setupSSERef.current = setupSSE;
+  }, [setupSSE]);
+
+  // Unified SSE data handler (used by EventSource or BroadcastChannel)
+  useEffect(() => {
+    handleSSEDataRef.current = (raw: string) => {
+      // console.log('[SSE] Received data:', raw);
+      // console.log('[SSE] Data length:', raw.length);
+      // console.log('[SSE] Data type:', typeof raw);
       lastMessageAtRef.current = Date.now();
       clearResponseTimeout();
       setIsAssistantStreaming(true);
@@ -204,32 +189,97 @@ export function useSSEChat({
         setIsAssistantStreaming(false);
       }, 900);
       const chunk = (() => {
-        const rawData = String(event.data);
-        if (rawData.trim().startsWith('{') && rawData.trim().endsWith('}')) {
+        const rawData = String(raw);
+        // console.log('[SSE] Processing chunk:', rawData);
+
+        // Handle [DONE] signal
+        if (rawData.trim() === '[DONE]') {
           try {
-            const data = JSON.parse(rawData);
-            if (data?.type && FILTERED_MESSAGE_TYPES.has(data.type))
-              return null;
-            return rawData;
-          } catch {
-            return rawData;
-          }
+            esRef.current?.close();
+          } catch {}
+          esRef.current = null;
+          setSseConnected(false);
+          setIsAssistantStreaming(false);
+          return null;
         }
-        return rawData;
+
+        // Handle completion message
+        if (rawData.includes('"message": "Response completed"')) {
+          console.log('[SSE] Completion message received, closing connection');
+          try {
+            esRef.current?.close();
+          } catch {}
+          esRef.current = null;
+          setSseConnected(false);
+          setIsAssistantStreaming(false);
+          return null;
+        }
+
+        // Try to parse as JSON first
+        try {
+          const data = JSON.parse(rawData);
+
+          // Filter out unwanted message types
+          if (data?.type && FILTERED_MESSAGE_TYPES.has(data.type)) {
+            return null;
+          }
+
+          // Only return data that has actual content
+          const content = coerceToString(data);
+          if (!content || content.trim() === '') {
+            return null;
+          }
+
+          return rawData;
+        } catch {
+          // If it's not JSON, check if it looks like JSON but failed to parse
+          if (rawData.trim().startsWith('{') && rawData.trim().endsWith('}')) {
+            return null;
+          }
+
+          // Only return non-empty raw text
+          if (!rawData || rawData.trim() === '') {
+            return null;
+          }
+
+          return rawData;
+        }
       })();
-      if (!chunk) return;
+      if (!chunk) {
+        return;
+      }
+      const isDone = chunk.trim() === '[DONE]';
+
+      // Handle completion event to close connection
+      if (isDone) {
+        try {
+          esRef.current?.close();
+        } catch {}
+        esRef.current = null;
+        setSseConnected(false);
+        setIsAssistantStreaming(false);
+        return;
+      }
+
       try {
+        // Force a re-render to show streaming state
+        setIsAssistantStreaming(true);
+
         setMessages((prev) => {
           let parsed: unknown = null;
           try {
             parsed = JSON.parse(chunk);
-          } catch {}
+          } catch {
+            // Ignore parse errors
+          }
           const parsedRecord: Record<string, unknown> | null =
             parsed && typeof parsed === 'object'
               ? (parsed as Record<string, unknown>)
               : null;
+
           const isThinking =
             !!parsedRecord && parsedRecord['type'] === 'thinking';
+          const isAnswer = !!parsedRecord && parsedRecord['type'] === 'answer';
           const isGameGenerator =
             !!parsedRecord && parsedRecord['type'] === 'game_generator';
           const isGameSignal =
@@ -261,6 +311,16 @@ export function useSSEChat({
               : contentStr;
             textContent =
               contentStr && title ? `${header}\n${contentStr}` : header;
+          } else if (isAnswer) {
+            // For answer type, directly get content field
+            textContent =
+              typeof parsedRecord!['content'] === 'string'
+                ? parsedRecord!['content']
+                : coerceToString(parsedRecord!['content'] ?? parsedRecord);
+            // For answer type, we should process even empty chunks to maintain message structure
+            if (!textContent || textContent.trim() === '') {
+              textContent = ''; // Set to empty string instead of returning
+            }
           } else if (isGameGenerator) {
             textContent = coerceToString(
               parsedRecord!['content'] ??
@@ -268,6 +328,10 @@ export function useSSEChat({
                 parsedRecord!['data'] ??
                 parsedRecord,
             );
+            // Only process if there's actual content to show
+            if (!textContent || textContent.trim() === '') {
+              return prev;
+            }
           } else if (isGameSignal) {
             textContent = coerceToString(
               parsedRecord!['content'] ??
@@ -275,6 +339,10 @@ export function useSSEChat({
                 parsedRecord!['data'] ??
                 parsedRecord,
             );
+            // Only process if there's actual content to show
+            if (!textContent || textContent.trim() === '') {
+              return prev;
+            }
           } else {
             const primary =
               parsedRecord && typeof parsedRecord['content'] === 'string'
@@ -288,7 +356,12 @@ export function useSSEChat({
             } else {
               textContent = typeof chunk === 'string' ? chunk : String(chunk);
             }
+            // Only process if there's actual content to show
+            if (!textContent || textContent.trim() === '') {
+              return prev;
+            }
           }
+
           if (
             prev.length > 0 &&
             prev[prev.length - 1].role === ChatRole.ASSISTANT
@@ -301,45 +374,70 @@ export function useSSEChat({
                 : [];
               existingParts.push({ type: 'thinking', text: textContent });
               last.parts = existingParts;
+            } else if (isAnswer) {
+              last.content = String(last.content || '') + textContent;
+              const existingParts = Array.isArray(last.parts)
+                ? last.parts.slice()
+                : [];
+              // For answer type, always add to parts to maintain structure
+              // Even if textContent is empty, we need to maintain the answer part
+              existingParts.push({ type: 'answer', text: textContent });
+              last.parts = existingParts;
             } else if (isGameGenerator) {
               const existingParts = Array.isArray(last.parts)
                 ? last.parts.slice()
                 : [];
-              if ((textContent || '').trim() !== '')
+              // Only add parts with actual content
+              if (textContent && textContent.trim() !== '') {
                 existingParts.push({
                   type: 'game_generator',
                   text: textContent,
                 });
-              last.parts = existingParts;
+                last.parts = existingParts;
+              }
             } else if (isGameSignal) {
               const existingParts = Array.isArray(last.parts)
                 ? last.parts.slice()
                 : [];
-              if ((textContent || '').trim() !== '')
+              // Only add parts with actual content
+              if (textContent && textContent.trim() !== '') {
                 existingParts.push({ type: 'game-signal', text: textContent });
-              last.parts = existingParts;
+                last.parts = existingParts;
+              }
             } else {
               last.content = String(last.content || '') + textContent;
               const existingParts = Array.isArray(last.parts)
                 ? last.parts.slice()
                 : [];
-              existingParts.push({ type: 'text', text: textContent });
-              last.parts = existingParts;
+              // Only add parts with actual content
+              if (textContent && textContent.trim() !== '') {
+                existingParts.push({ type: 'text', text: textContent });
+                last.parts = existingParts;
+              }
             }
             last.sender_id = null;
             updated[updated.length - 1] = last;
             return updated;
           } else {
+            // For answer type, create message even if first chunk is empty
+            // For other types, only create if there's actual content
+            if (!isAnswer && (!textContent || textContent.trim() === '')) {
+              return prev;
+            }
             const newMsg: ChatMessage = {
               id: Date.now().toString() + '-sse',
               role: ChatRole.ASSISTANT,
               content:
-                isThinking || isGameGenerator || isGameSignal
-                  ? ''
+                isThinking || isAnswer || isGameGenerator || isGameSignal
+                  ? isAnswer
+                    ? textContent
+                    : ''
                   : textContent,
               sender_id: null,
               parts: isThinking
                 ? [{ type: 'thinking', text: textContent }]
+                : isAnswer
+                ? [{ type: 'answer', text: textContent }]
                 : isGameGenerator
                 ? [{ type: 'game_generator', text: textContent }]
                 : isGameSignal
@@ -353,52 +451,24 @@ export function useSSEChat({
         console.error('[SSE] Error updating messages:', error);
       }
     };
-  }, [sseUrl, clearResponseTimeout, coerceToString]);
+  }, [clearResponseTimeout, coerceToString]);
 
-  // Keep a ref to latest setupSSE to avoid dependency cycles
+  // Do not auto-connect on mount; connections are opened per message send.
   useEffect(() => {
-    setupSSERef.current = setupSSE;
-  }, [setupSSE]);
-
-  useEffect(() => {
-    if (!sseUrl || sseUrl.trim() === '') return;
     manualCloseRef.current = false;
-    setupSSE();
-    // Reconnect when tab becomes visible or network returns
-    const handleVisibility = () => {
-      if (document.visibilityState === 'visible' && !sseConnected) {
-        scheduleReconnectRef.current('tab-visible');
-      }
-    };
-    const handleOnline = () => {
-      if (!sseConnected) scheduleReconnectRef.current('online');
-    };
-    const handleOffline = () => {
-      setSseConnected(false);
-    };
-    document.addEventListener('visibilitychange', handleVisibility);
-    window.addEventListener('online', handleOnline);
-    window.addEventListener('offline', handleOffline);
     return () => {
       manualCloseRef.current = true;
       if (reconnectTimeoutRef.current) {
         clearTimeout(reconnectTimeoutRef.current);
         reconnectTimeoutRef.current = null;
       }
-      if (esRef.current) {
-        try {
-          esRef.current.close();
-        } catch (error) {
-          console.error('[SSE] Error closing EventSource:', error);
-        }
-        esRef.current = null;
-      }
+      try {
+        esRef.current?.close();
+      } catch {}
+      esRef.current = null;
       clearResponseTimeout();
-      document.removeEventListener('visibilitychange', handleVisibility);
-      window.removeEventListener('online', handleOnline);
-      window.removeEventListener('offline', handleOffline);
     };
-  }, [sseUrl, chatId, setupSSE, clearResponseTimeout, sseConnected]);
+  }, [clearResponseTimeout]);
 
   // Reset states when chatId changes
   useEffect(() => {
@@ -414,21 +484,115 @@ export function useSSEChat({
 
   const postMessage = useCallback(
     (text: string) => {
-      fetch(`/api/chat/${encodeURIComponent(chatId)}/messages`, {
+      const requestBody = {
+        sender_id: user_id,
+        role: ChatRole.USER,
+        content: text,
+        metadata: {},
+      };
+
+      // Use fetch for SSE streaming
+      fetch(`/api/chat/${encodeURIComponent(chatId)}/completion`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          role: 'user',
-          chat_id: chatId,
-          content: text,
-          sender_id: user_id,
-          metadata: {},
-        }),
-      }).catch(() => {});
+        headers: {
+          'Content-Type': 'application/json',
+          Accept: 'text/event-stream',
+          'Cache-Control': 'no-cache',
+        },
+        body: JSON.stringify(requestBody),
+        cache: 'no-store',
+      })
+        .then((response) => {
+          if (!response.ok) {
+            console.error(
+              'Response not ok:',
+              response.status,
+              response.statusText,
+            );
+            return;
+          }
+
+          // Handle streaming response
+          if (!response.body) {
+            console.error('No response body for streaming');
+            return;
+          }
+
+          const reader = response.body.getReader();
+          const decoder = new TextDecoder();
+          let buffer = '';
+
+          const pump = () => {
+            reader
+              .read()
+              .then(({ done, value }) => {
+                if (done) {
+                  setSseConnected(false);
+                  setIsAssistantStreaming(false);
+                  // Clear the timeout to ensure streaming state is reset
+                  if (assistantStreamEndTimeoutRef.current) {
+                    clearTimeout(assistantStreamEndTimeoutRef.current);
+                    assistantStreamEndTimeoutRef.current = null;
+                  }
+                  return;
+                }
+
+                // Decode chunk and process
+                const chunk = decoder.decode(value, { stream: true });
+                // console.log('[SSE] Received chunk:', chunk);
+                buffer += chunk;
+
+                // Process complete lines
+                const lines = buffer.split('\n');
+                buffer = lines.pop() || '';
+
+                for (const line of lines) {
+                  const trimmedLine = line.trim();
+                  if (trimmedLine) {
+                    // Skip event types and only process data lines
+                    if (
+                      trimmedLine.startsWith('event:') ||
+                      trimmedLine.startsWith('id:') ||
+                      trimmedLine.startsWith('retry:')
+                    ) {
+                      continue;
+                    }
+
+                    // Only process data lines
+                    if (trimmedLine.startsWith('data: ')) {
+                      const data = trimmedLine.substring(6);
+                      if (data && data.trim() !== '') {
+                        handleSSEDataRef.current(data);
+                      }
+                    }
+                  }
+                }
+
+                pump();
+              })
+              .catch((error) => {
+                console.error('[SSE] Stream read error:', error);
+                setSseConnected(false);
+                setIsAssistantStreaming(false);
+                // Clear the timeout to ensure streaming state is reset
+                if (assistantStreamEndTimeoutRef.current) {
+                  clearTimeout(assistantStreamEndTimeoutRef.current);
+                  assistantStreamEndTimeoutRef.current = null;
+                }
+              });
+          };
+
+          pump();
+        })
+        .catch((error) => {
+          console.error('Fetch error:', error);
+          setSseConnected(false);
+          setIsAssistantStreaming(false);
+        });
+
       lastMessageAtRef.current = Date.now();
-      armResponseTimeout(Number(expectedResponseTimeoutMs || 0));
     },
-    [chatId, user_id, expectedResponseTimeoutMs, armResponseTimeout],
+    [chatId, user_id],
   );
 
   const handleSubmit = (e: FormEvent<HTMLFormElement>) => {

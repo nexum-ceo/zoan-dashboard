@@ -94,12 +94,10 @@ export function PlaygroundChatClient({ chatId }: PlaygroundChatClientProps) {
     isProcessing,
     setMessages,
   } = useSSEChat({
-    sseUrl: chatInfo?.user_id ? `/api/chat/${chatId}/stream` : '',
     initialMessages,
     chatId: chatId,
     user_id: chatInfo?.user_id || '',
   });
-  // console.log('messages chat', messages);
 
   // useEffect(() => {
   //   fetchAuthToken().then(setToken);
