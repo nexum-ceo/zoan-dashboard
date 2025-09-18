@@ -175,9 +175,9 @@ export function useSSEChat({
   // Unified SSE data handler (used by EventSource or BroadcastChannel)
   useEffect(() => {
     handleSSEDataRef.current = (raw: string) => {
-      console.log('[SSE] Received data:', raw);
-      console.log('[SSE] Data length:', raw.length);
-      console.log('[SSE] Data type:', typeof raw);
+      // console.log('[SSE] Received data:', raw);
+      // console.log('[SSE] Data length:', raw.length);
+      // console.log('[SSE] Data type:', typeof raw);
       lastMessageAtRef.current = Date.now();
       clearResponseTimeout();
       setIsAssistantStreaming(true);
@@ -190,11 +190,10 @@ export function useSSEChat({
       }, 900);
       const chunk = (() => {
         const rawData = String(raw);
-        console.log('[SSE] Processing chunk:', rawData);
+        // console.log('[SSE] Processing chunk:', rawData);
 
         // Handle [DONE] signal
         if (rawData.trim() === '[DONE]') {
-          console.log('[SSE] [DONE] received, closing connection');
           try {
             esRef.current?.close();
           } catch {}
@@ -218,43 +217,28 @@ export function useSSEChat({
 
         // Try to parse as JSON first
         try {
-          console.log('[SSE] Raw data before parsing:', rawData);
           const data = JSON.parse(rawData);
-          console.log('[SSE] Parsed JSON data:', data);
-          console.log('[SSE] Data type:', data?.type);
-          console.log(
-            '[SSE] Is filtered type:',
-            data?.type && FILTERED_MESSAGE_TYPES.has(data.type),
-          );
 
           // Filter out unwanted message types
           if (data?.type && FILTERED_MESSAGE_TYPES.has(data.type)) {
-            console.log('[SSE] Filtering out message type:', data.type);
             return null;
           }
 
           // Only return data that has actual content
           const content = coerceToString(data);
           if (!content || content.trim() === '') {
-            console.log('[SSE] No content found in data, skipping');
             return null;
           }
 
           return rawData;
-        } catch (parseError) {
-          console.log(
-            '[SSE] JSON parse failed, treating as raw text:',
-            parseError,
-          );
+        } catch {
           // If it's not JSON, check if it looks like JSON but failed to parse
           if (rawData.trim().startsWith('{') && rawData.trim().endsWith('}')) {
-            console.log('[SSE] Looks like JSON but failed to parse, skipping');
             return null;
           }
 
           // Only return non-empty raw text
           if (!rawData || rawData.trim() === '') {
-            console.log('[SSE] Empty raw data, skipping');
             return null;
           }
 
@@ -262,14 +246,12 @@ export function useSSEChat({
         }
       })();
       if (!chunk) {
-        console.log('[SSE] Chunk filtered out, skipping');
         return;
       }
       const isDone = chunk.trim() === '[DONE]';
 
       // Handle completion event to close connection
       if (isDone) {
-        console.log('[SSE] Completion received, closing connection');
         try {
           esRef.current?.close();
         } catch {}
@@ -280,8 +262,6 @@ export function useSSEChat({
       }
 
       try {
-        console.log('[SSE] Processing chunk for message update:', chunk);
-
         // Force a re-render to show streaming state
         setIsAssistantStreaming(true);
 
@@ -289,41 +269,23 @@ export function useSSEChat({
           let parsed: unknown = null;
           try {
             parsed = JSON.parse(chunk);
-            console.log('[SSE] Successfully parsed JSON:', parsed);
-          } catch (parseError) {
-            console.log('[SSE] Failed to parse as JSON:', parseError);
+          } catch {
+            // Ignore parse errors
           }
           const parsedRecord: Record<string, unknown> | null =
             parsed && typeof parsed === 'object'
               ? (parsed as Record<string, unknown>)
               : null;
-          console.log('[SSE] Parsed record:', parsedRecord);
 
           const isThinking =
             !!parsedRecord && parsedRecord['type'] === 'thinking';
           const isAnswer = !!parsedRecord && parsedRecord['type'] === 'answer';
-          const isCompletion =
-            !!parsedRecord && parsedRecord['type'] === 'completion';
           const isGameGenerator =
             !!parsedRecord && parsedRecord['type'] === 'game_generator';
           const isGameSignal =
             !!parsedRecord && parsedRecord['type'] === 'game-signal';
-
-          console.log('[SSE] Message type flags:', {
-            isThinking,
-            isAnswer,
-            isCompletion,
-            isGameGenerator,
-            isGameSignal,
-          });
-          console.log('[SSE] Parsed record type:', parsedRecord?.['type']);
-          console.log(
-            '[SSE] Parsed record keys:',
-            parsedRecord ? Object.keys(parsedRecord) : 'null',
-          );
           let textContent: string;
           if (isThinking) {
-            console.log('[SSE] Processing thinking message');
             const title =
               typeof parsedRecord!['title'] === 'string'
                 ? (parsedRecord!['title'] as string)
@@ -349,106 +311,71 @@ export function useSSEChat({
               : contentStr;
             textContent =
               contentStr && title ? `${header}\n${contentStr}` : header;
-            console.log('[SSE] Thinking text content:', textContent);
           } else if (isAnswer) {
-            console.log('[SSE] Processing answer message');
-            console.log('[SSE] Answer parsedRecord:', parsedRecord);
             // For answer type, directly get content field
             textContent =
               typeof parsedRecord!['content'] === 'string'
                 ? parsedRecord!['content']
                 : coerceToString(parsedRecord!['content'] ?? parsedRecord);
-            console.log('[SSE] Answer text content:', textContent);
-            console.log(
-              '[SSE] Answer text content length:',
-              textContent?.length,
-            );
             // For answer type, we should process even empty chunks to maintain message structure
             if (!textContent || textContent.trim() === '') {
-              console.log(
-                '[SSE] Empty answer chunk, but continuing to maintain message structure',
-              );
               textContent = ''; // Set to empty string instead of returning
             }
           } else if (isGameGenerator) {
-            console.log('[SSE] Processing game generator message');
             textContent = coerceToString(
               parsedRecord!['content'] ??
                 parsedRecord!['text'] ??
                 parsedRecord!['data'] ??
                 parsedRecord,
             );
-            console.log('[SSE] Game generator text content:', textContent);
             // Only process if there's actual content to show
             if (!textContent || textContent.trim() === '') {
-              console.log('[SSE] Skipping empty game generator chunk');
               return prev;
             }
           } else if (isGameSignal) {
-            console.log('[SSE] Processing game signal message');
             textContent = coerceToString(
               parsedRecord!['content'] ??
                 parsedRecord!['text'] ??
                 parsedRecord!['data'] ??
                 parsedRecord,
             );
-            console.log('[SSE] Game signal text content:', textContent);
             // Only process if there's actual content to show
             if (!textContent || textContent.trim() === '') {
-              console.log('[SSE] Skipping empty game signal chunk');
               return prev;
             }
           } else {
-            console.log('[SSE] Processing generic message');
             const primary =
               parsedRecord && typeof parsedRecord['content'] === 'string'
                 ? (parsedRecord['content'] as string)
                 : null;
             if (primary !== null) {
               textContent = primary;
-              console.log('[SSE] Using primary content:', textContent);
             } else if (parsedRecord) {
               const alt = coerceToString(parsedRecord);
               textContent = alt.trim() !== '' ? alt : String(chunk);
-              console.log('[SSE] Using alternative content:', textContent);
             } else {
               textContent = typeof chunk === 'string' ? chunk : String(chunk);
-              console.log('[SSE] Using raw chunk:', textContent);
             }
             // Only process if there's actual content to show
             if (!textContent || textContent.trim() === '') {
-              console.log('[SSE] Skipping empty generic chunk');
               return prev;
             }
           }
-          console.log('[SSE] Final text content:', textContent);
-          console.log('[SSE] Previous messages count:', prev.length);
-          console.log(
-            '[SSE] Last message role:',
-            prev.length > 0 ? prev[prev.length - 1].role : 'none',
-          );
 
           if (
             prev.length > 0 &&
             prev[prev.length - 1].role === ChatRole.ASSISTANT
           ) {
-            console.log('[SSE] Updating existing assistant message');
             const updated = [...prev];
             const last = { ...updated[updated.length - 1] } as ChatMessage;
-            console.log('[SSE] Current last message:', last);
             if (isThinking) {
-              console.log('[SSE] Adding thinking part to existing message');
               const existingParts = Array.isArray(last.parts)
                 ? last.parts.slice()
                 : [];
               existingParts.push({ type: 'thinking', text: textContent });
               last.parts = existingParts;
             } else if (isAnswer) {
-              console.log('[SSE] Adding answer part to existing message');
-              console.log('[SSE] Before update - last.content:', last.content);
-              console.log('[SSE] Adding textContent:', textContent);
               last.content = String(last.content || '') + textContent;
-              console.log('[SSE] After update - last.content:', last.content);
               const existingParts = Array.isArray(last.parts)
                 ? last.parts.slice()
                 : [];
@@ -456,11 +383,7 @@ export function useSSEChat({
               // Even if textContent is empty, we need to maintain the answer part
               existingParts.push({ type: 'answer', text: textContent });
               last.parts = existingParts;
-              console.log('[SSE] Updated parts:', last.parts);
             } else if (isGameGenerator) {
-              console.log(
-                '[SSE] Adding game generator part to existing message',
-              );
               const existingParts = Array.isArray(last.parts)
                 ? last.parts.slice()
                 : [];
@@ -473,7 +396,6 @@ export function useSSEChat({
                 last.parts = existingParts;
               }
             } else if (isGameSignal) {
-              console.log('[SSE] Adding game signal part to existing message');
               const existingParts = Array.isArray(last.parts)
                 ? last.parts.slice()
                 : [];
@@ -483,7 +405,6 @@ export function useSSEChat({
                 last.parts = existingParts;
               }
             } else {
-              console.log('[SSE] Adding text part to existing message');
               last.content = String(last.content || '') + textContent;
               const existingParts = Array.isArray(last.parts)
                 ? last.parts.slice()
@@ -496,17 +417,13 @@ export function useSSEChat({
             }
             last.sender_id = null;
             updated[updated.length - 1] = last;
-            console.log('[SSE] Final updated message:', last);
-            console.log('[SSE] Final updated message content:', last.content);
             return updated;
           } else {
             // For answer type, create message even if first chunk is empty
             // For other types, only create if there's actual content
             if (!isAnswer && (!textContent || textContent.trim() === '')) {
-              console.log('[SSE] Skipping empty content for new message');
               return prev;
             }
-            console.log('[SSE] Creating new assistant message');
             const newMsg: ChatMessage = {
               id: Date.now().toString() + '-sse',
               role: ChatRole.ASSISTANT,
@@ -527,7 +444,6 @@ export function useSSEChat({
                 ? [{ type: 'game-signal', text: textContent }]
                 : [{ type: 'text', text: textContent }],
             };
-            console.log('[SSE] New message created:', newMsg);
             return [...prev, newMsg];
           }
         });
@@ -575,12 +491,6 @@ export function useSSEChat({
         metadata: {},
       };
 
-      console.log('Sending POST request to completion endpoint:', {
-        url: `/api/chat/${encodeURIComponent(chatId)}/completion`,
-        method: 'POST',
-        body: requestBody,
-      });
-
       // Use fetch for SSE streaming
       fetch(`/api/chat/${encodeURIComponent(chatId)}/completion`, {
         method: 'POST',
@@ -593,13 +503,6 @@ export function useSSEChat({
         cache: 'no-store',
       })
         .then((response) => {
-          console.log(
-            'Response received:',
-            response.status,
-            response.statusText,
-            'Headers:',
-            Object.fromEntries(response.headers.entries()),
-          );
           if (!response.ok) {
             console.error(
               'Response not ok:',
@@ -624,7 +527,6 @@ export function useSSEChat({
               .read()
               .then(({ done, value }) => {
                 if (done) {
-                  console.log('[SSE] Stream completed');
                   setSseConnected(false);
                   setIsAssistantStreaming(false);
                   // Clear the timeout to ensure streaming state is reset
@@ -637,7 +539,7 @@ export function useSSEChat({
 
                 // Decode chunk and process
                 const chunk = decoder.decode(value, { stream: true });
-                console.log('[SSE] Received chunk:', chunk);
+                // console.log('[SSE] Received chunk:', chunk);
                 buffer += chunk;
 
                 // Process complete lines
@@ -647,15 +549,12 @@ export function useSSEChat({
                 for (const line of lines) {
                   const trimmedLine = line.trim();
                   if (trimmedLine) {
-                    console.log('[SSE] Processing line:', trimmedLine);
-
                     // Skip event types and only process data lines
                     if (
                       trimmedLine.startsWith('event:') ||
                       trimmedLine.startsWith('id:') ||
                       trimmedLine.startsWith('retry:')
                     ) {
-                      console.log('[SSE] Skipping event line:', trimmedLine);
                       continue;
                     }
 
@@ -663,7 +562,6 @@ export function useSSEChat({
                     if (trimmedLine.startsWith('data: ')) {
                       const data = trimmedLine.substring(6);
                       if (data && data.trim() !== '') {
-                        console.log('[SSE] Processing data:', data);
                         handleSSEDataRef.current(data);
                       }
                     }

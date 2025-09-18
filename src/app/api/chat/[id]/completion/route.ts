@@ -20,9 +20,6 @@ export async function POST(
     forwardedBody = undefined;
   }
 
-  console.log('body from client', forwardedBody);
-  console.log('method', req.method);
-
   const upstreamUrl = `${
     process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080/api/v1'
   }/chat/${id}/completion`;
@@ -42,13 +39,6 @@ export async function POST(
     cache: 'no-store',
   });
 
-  console.log('up stream status:', upstream.status);
-  console.log(
-    'up stream headers:',
-    Object.fromEntries(upstream.headers.entries()),
-  );
-  console.log('up stream content-type:', upstream.headers.get('content-type'));
-
   if (!upstream.ok || !upstream.body) {
     console.error('Upstream error:', upstream.status, upstream.statusText);
     return new Response('Upstream stream error', { status: 502 });
@@ -56,7 +46,6 @@ export async function POST(
 
   // Try to use the upstream response directly first
   if (upstream.headers.get('content-type')?.includes('text/event-stream')) {
-    console.log('Upstream is already SSE, forwarding directly');
     return new Response(upstream.body, {
       headers: {
         'Content-Type': 'text/event-stream; charset=utf-8',
@@ -76,17 +65,13 @@ export async function POST(
       const decoder = new TextDecoder();
       let buffer = '';
 
-      console.log('Starting stream transformation...');
-
       const pump = () => {
         reader
           .read()
           .then(({ done, value }) => {
             if (done) {
-              console.log('Stream done, closing controller');
               // Send any remaining buffer
               if (buffer.trim()) {
-                console.log('Sending remaining buffer:', buffer.trim());
                 controller.enqueue(
                   new TextEncoder().encode(`data: ${buffer.trim()}\n\n`),
                 );
@@ -97,9 +82,6 @@ export async function POST(
 
             // Decode the chunk and add to buffer
             const chunk = decoder.decode(value, { stream: true });
-            console.log('Received chunk from upstream:', chunk);
-            console.log('Chunk length:', chunk.length);
-            console.log('Chunk contains answer:', chunk.includes('answer'));
             buffer += chunk;
 
             // Process complete lines
@@ -109,38 +91,21 @@ export async function POST(
             for (const line of lines) {
               const trimmedLine = line.trim();
               if (trimmedLine) {
-                console.log('Processing line:', trimmedLine);
-
-                // Check if this line contains answer type
-                if (
-                  trimmedLine.includes('"type":"answer"') ||
-                  trimmedLine.includes("'type':'answer'")
-                ) {
-                  console.log('*** FOUND ANSWER TYPE IN LINE:', trimmedLine);
-                }
-
                 // If it's already in SSE format, forward as-is
                 if (
                   trimmedLine.startsWith('data: ') ||
                   trimmedLine.startsWith('event: ')
                 ) {
-                  console.log('Forwarding SSE line:', line);
                   controller.enqueue(new TextEncoder().encode(line + '\n'));
                 } else {
                   // If it's raw JSON, wrap in SSE format
                   try {
-                    const parsed = JSON.parse(trimmedLine);
-                    console.log('Wrapping JSON in SSE format:', trimmedLine);
-                    console.log('Parsed JSON type:', parsed?.type);
-                    if (parsed?.type === 'answer') {
-                      console.log('*** ANSWER TYPE DETECTED IN ROUTE:', parsed);
-                    }
+                    JSON.parse(trimmedLine);
                     controller.enqueue(
                       new TextEncoder().encode(`data: ${trimmedLine}\n\n`),
                     );
                   } catch {
                     // If not JSON, treat as plain text
-                    console.log('Treating as plain text:', trimmedLine);
                     controller.enqueue(
                       new TextEncoder().encode(`data: ${trimmedLine}\n\n`),
                     );
@@ -160,14 +125,12 @@ export async function POST(
       };
       pump();
       req.signal.addEventListener('abort', () => {
-        console.log('Request aborted, closing stream');
         try {
           controller.close();
         } catch {}
       });
     },
   });
-  console.log('transformStream', transformStream);
 
   return new Response(transformStream, {
     headers: {
