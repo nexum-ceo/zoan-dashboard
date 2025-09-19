@@ -10,6 +10,7 @@ import { useGetListFileInGameFolder } from '@/queries/useLibrary';
 import type { S3ListBucketResultType } from '@/types/library';
 import { ArrowDownToLine, CodeXml, Eye, MessageSquare } from 'lucide-react';
 import { FC, useEffect, useMemo, useState } from 'react';
+import Close from '../../../../../public/icon/close';
 import Copy from '../../../../../public/icon/copy';
 import FileTerminal from '../../../../../public/icon/file-terminal';
 import FullScreen from '../../../../../public/icon/full-screen';
@@ -24,14 +25,6 @@ type ExplorePanelProps = {
   onChatExpand?: (expanded: boolean) => void;
   isChatExpanded?: boolean;
 };
-
-// type GameVersion = {
-//   id: string;
-//   chat_id: string;
-//   version: string;
-//   description: string;
-//   game_url: string;
-// };
 
 export const ExplorePanel: FC<ExplorePanelProps> = ({
   chatId,
@@ -162,8 +155,33 @@ export const ExplorePanel: FC<ExplorePanelProps> = ({
   // Auto-open explore when latest assistant message has game signals
   useGameSignalDetection(messages, onRequestOpen, onGameSignalReceived);
 
+  // Fullscreen preview state
+  const [isFullscreenOpen, setIsFullscreenOpen] = useState(false);
+
+  // Build iframe URL for fullscreen preview
+  const iframeUrl = useMemo(() => {
+    const base = process.env.NEXT_PUBLIC_MINIO_URL;
+    return base && gameUrl ? `${base}${gameUrl}/index.html` : '';
+  }, [gameUrl]);
+
+  // Close on ESC when fullscreen is open
+  useEffect(() => {
+    if (!isFullscreenOpen) return;
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        setIsFullscreenOpen(false);
+      }
+    };
+    window.addEventListener('keydown', onKeyDown);
+    return () => window.removeEventListener('keydown', onKeyDown);
+  }, [isFullscreenOpen]);
+
   return (
-    <div className={'flex flex-col h-full ' + (className || '')}>
+    <div
+      className={`rounded-xl flex flex-col h-full transition-all duration-300 ease-in-out ${
+        className || ''
+      }`}
+    >
       {/* Header */}
       <div className="px-2 pt-1 pb-1.5 border-b border-border bg-white">
         <div className="flex items-center justify-between gap-3">
@@ -221,7 +239,15 @@ export const ExplorePanel: FC<ExplorePanelProps> = ({
             <button type="button" className="cursor-pointer">
               <FileTerminal className="w-3 h-3 stroke-[1px]" />
             </button>
-            <button type="button" className="cursor-pointer">
+            <button
+              type="button"
+              onClick={() => {
+                if (activeView === 'view') {
+                  setIsFullscreenOpen(true);
+                }
+              }}
+              className="cursor-pointer"
+            >
               <FullScreen className="w-3 h-3 stroke-[1px]" />
             </button>
           </div>
@@ -229,7 +255,7 @@ export const ExplorePanel: FC<ExplorePanelProps> = ({
       </div>
 
       {/* Content */}
-      <div className="flex-1">
+      <div className="flex-1 transition-all duration-300 ease-in-out">
         <SandboxCodePanel
           files={sandboxFiles}
           template="react"
@@ -240,124 +266,36 @@ export const ExplorePanel: FC<ExplorePanelProps> = ({
           gameUrl={gameUrl}
         />
       </div>
-      {/* <div className="flex-1 overflow-y-auto px-10"> */}
-      {/* <Image
-          src={GamePreview}
-          alt="Game Preview Image"
-          className="w-full h-full object-cover"
-        /> */}
-      {/* Game Title */}
-      {/* <div>
-          <h3 className="text-xl font-semibold text-foreground mb-2">
-            Flappy Bird Game
-          </h3>
-          <p className="text-sm text-muted-foreground">
-            Your generated game is ready to play!
-          </p>
-        </div> */}
 
-      {/* Game Version Selector */}
-      {/* <div className="space-y-2">
-          <label className="text-sm font-medium text-foreground">
-            Game Version
-          </label>
-          <Select
-            defaultValue="version-1.0"
-            onValueChange={(value: string) => {
-              setGameVersion(
-                chatGameVersionList?.data?.data.find(
-                  (gameVersion) => gameVersion.version === value,
-                ) || null,
-              );
-            }}
-          >
-            <SelectTrigger className="w-full">
-              <SelectValue placeholder="Select Version" />
-            </SelectTrigger>
-            <SelectContent>
-              {chatGameVersionList?.data?.data?.map(
-                (gameVersion: GameVersion, index: number) => (
-                  <SelectItem value={gameVersion.version} key={gameVersion.id}>
-                    <div className="flex flex-col items-start">
-                      <span className="text-xs text-muted-foreground">
-                        <div className="flex flex-col items-start">
-                          <div className="font-medium text-black">
-                            Version {index + 1}
-                          </div>
-                          {gameVersion.version}
-                        </div>
-                      </span>
-                    </div>
-                  </SelectItem>
-                ),
-              )}
-            </SelectContent>
-          </Select>
-        </div> */}
-
-      {/* Game Info */}
-      {/* <div>
-            <h4 className="text-lg font-semibold text-foreground mb-1">
-              {gameVersion?.version}
-            </h4>
-            <p className="text-sm text-muted-foreground mb-3">
-              {gameVersion?.description}
-            </p>
-          </div> */}
-
-      {/* Action Buttons */}
-      {/* <div className="space-y-3">
-            {gameVersion && (
-              <Dialog open={isGameModalOpen} onOpenChange={setIsGameModalOpen}>
-                <DialogTrigger asChild>
-                  <Button className="w-full">
-                    <Play className="w-4 h-4 mr-2" />
-                    Play Game
-                  </Button>
-                </DialogTrigger>
-                <DialogContent className="min-w-full h-[95vh] p-0">
-                  <div className="w-full h-full px-4 py-6">
-                    <div className="h-3"></div>
-                    <iframe
-                      src={`https://minio.buymed.site/${gameVersion?.game_url}`}
-                      className="w-full h-full border-0 rounded"
-                      title={gameVersion?.version}
-                      allowFullScreen
-                    />
-                    <div className="h-4"></div>
-                  </div>
-                </DialogContent>
-              </Dialog>
+      {/* Fullscreen preview overlay */}
+      {isFullscreenOpen && (
+        <div className="fixed inset-0 z-50 bg-white flex flex-col">
+          <div className="flex items-center justify-end px-4 py-2 border-b border-border">
+            <button
+              type="button"
+              aria-label="Exit fullscreen"
+              onClick={() => setIsFullscreenOpen(false)}
+              className="cursor-pointer"
+            >
+              <Close />
+            </button>
+          </div>
+          <div className="flex-1">
+            {iframeUrl ? (
+              <iframe
+                src={iframeUrl}
+                className="w-full h-full border-0"
+                title="Game Preview Fullscreen"
+                allowFullScreen
+              />
+            ) : (
+              <div className="w-full h-full flex items-center justify-center text-gray-500">
+                No preview available
+              </div>
             )}
-
-            <div className="flex gap-2">
-              <Button variant="outline" className="flex-1 bg-background">
-                <Eye className="w-4 h-4 mr-2" />
-                View Code
-              </Button>
-              <Button variant="outline" className="flex-1 bg-background">
-                <Download className="w-4 h-4 mr-2" />
-                Download
-              </Button>
-            </div>
           </div>
-        </div> */}
-
-      {/* Version Details */}
-      {/* <div className="space-y-3">
-          <h4 className="font-medium text-foreground">Version Details</h4>
-          <div className="space-y-2">
-            <p className="text-sm text-foreground/80">
-              Initial Flappy Bird game
-            </p>
-            <p className="text-sm text-muted-foreground">
-              Generated 5 minutes ago
-            </p>
-          </div>
-        </div> */}
-
-      {/* Additional Games Section */}
-      {/* </div> */}
+        </div>
+      )}
     </div>
   );
 };

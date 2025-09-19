@@ -51,7 +51,11 @@ export const SandboxCodePanel: FC<SandboxCodePanelProps> = ({
     minioUrl && gameUrl ? `${minioUrl}${gameUrl}/index.html` : '';
 
   return (
-    <div className={'flex-1 h-full ' + (className || '')}>
+    <div
+      className={`flex-1 h-full transition-all duration-200 ease-in-out ${
+        className || ''
+      }`}
+    >
       {activeView === 'code' ? (
         <SandboxProvider
           template={template}
