@@ -161,6 +161,23 @@ const libraryApiRequest = {
     );
     return parseXmlResponse(response.data);
   },
+
+  // Server-side API for fetching file content
+  sGetFileContent: async (fileKey: string) => {
+    const response = await axiosInstance.get(`/builds/${fileKey}`, {
+      baseURL: '',
+      responseType: 'text',
+    });
+    return response.data;
+  },
+
+  // New API for fetching complete folder structure with content
+  sGetGameFolderWithContent: async (gameUrl: string) => {
+    const response = await axiosInstance.get(`/builds/${gameUrl}/content`, {
+      baseURL: '',
+    });
+    return response.data;
+  },
 };
 
 export default libraryApiRequest;

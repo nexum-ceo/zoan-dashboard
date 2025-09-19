@@ -1,9 +1,12 @@
 'use client';
 
 // import { useGetChatGameVersionList } from '@/queries/useChat';
+import { extractS3Contents } from '@/lib/s3';
 import { useGetChatGameVersionList } from '@/queries/useChat';
+import { useGetListFileInGameFolder } from '@/queries/useLibrary';
+import type { S3ListBucketResultType } from '@/types/library';
 import { ArrowDownToLine, CodeXml, Eye, MessageSquare } from 'lucide-react';
-import { FC, useEffect, useState } from 'react';
+import { FC, useEffect, useMemo, useState } from 'react';
 import Copy from '../../../../../public/icon/copy';
 import FileTerminal from '../../../../../public/icon/file-terminal';
 import FullScreen from '../../../../../public/icon/full-screen';
@@ -36,7 +39,15 @@ export const ExplorePanel: FC<ExplorePanelProps> = ({
   const { data: chatGameVersionList } = useGetChatGameVersionList(chatId);
   const [activeView, setActiveView] = useState<'code' | 'view'>('code');
 
-  console.log('data game version', chatGameVersionList);
+  // TEMP: hardcoded game url for build files
+  const hardcodedChatId = '577ebde2-a069-4e07-b3ec-ed2d3c62de15';
+  const hardcodedVersion = '7778660e-8d7c-4197-8f5d-f0e59b376561';
+  const gameUrl =
+    hardcodedChatId && hardcodedVersion
+      ? `/builds/${hardcodedChatId}/${hardcodedVersion}`
+      : '';
+  const { data: gameBuildFiles } = useGetListFileInGameFolder(gameUrl);
+  console.log('game build files', gameBuildFiles);
   useEffect(() => {
     if (
       chatGameVersionList?.data?.data &&
@@ -48,41 +59,193 @@ export const ExplorePanel: FC<ExplorePanelProps> = ({
   }, [chatGameVersionList, onGameSignalReceived]);
 
   // Static code content for preview UI
-  const codeLines = [
-    '// Imports',
-    "import mongoose, { Schema } from 'mongoose'",
-    '',
-    '// Collection name',
-    "export const collection = 'Product'",
-    '',
-    '// Schema',
-    'const schema = new Schema({',
-    '  name: {',
-    '    type: String,',
-    '    required: true',
-    '  },',
-    '',
-    '  description: {',
-    '    type: String',
-    '  }',
-    '}, { timestamps: true })',
-    '',
-    '// Model',
-    'export default mongoose.model(collection, schema, collection)',
-  ];
+  const codeLines = useMemo(
+    () => [
+      '// Imports',
+      "import mongoose, { Schema } from 'mongoose'",
+      '',
+      '// Collection name',
+      "export const collection = 'Product'",
+      '',
+      '// Schema',
+      'const schema = new Schema({',
+      '  name: {',
+      '    type: String,',
+      '    required: true',
+      '  },',
+      '',
+      '  description: {',
+      '    type: String',
+      '  }',
+      '}, { timestamps: true })',
+      '',
+      '// Model',
+      'export default mongoose.model(collection, schema, collection)',
+    ],
+    [],
+  );
 
-  // Files for Sandbox File Explorer UI
-  const sandboxFiles = {
-    '/App/page.tsx': {
-      code: codeLines.join('\n'),
-    },
-    '/Components/Background.tsx': {
-      code: 'export const Background = () => <div />;\n',
-    },
-    '/Components/Collision.tsx': {
-      code: 'export const Collision = () => null;\n',
-    },
-  } as const;
+  // Build Sandpack files map from S3 listing + default sample files
+  const sandboxFiles = useMemo(() => {
+    const defaults: Record<string, { code: string }> = {
+      '/App/page.tsx': {
+        code: codeLines.join('\n'),
+      },
+      '/Components/Background.tsx': {
+        code: 'export const Background = () => <div />;\n',
+      },
+      '/Components/Collision.tsx': {
+        code: 'export const Collision = () => null;\n',
+      },
+    };
+
+    const s3 = gameBuildFiles as S3ListBucketResultType | undefined;
+    if (!s3) return defaults;
+
+    const contents = extractS3Contents(s3);
+    if (!contents.length) return defaults;
+
+    // strip `${chatId}/${version}/` prefix
+    const prefix = `${hardcodedChatId}/${hardcodedVersion}/`;
+    const filesFromS3: Record<string, { code: string }> = {};
+    const textExtensions = [
+      'js',
+      'ts',
+      'tsx',
+      'jsx',
+      'json',
+      'css',
+      'html',
+      'md',
+    ];
+
+    contents
+      .filter((item) => typeof item.key === 'string' && !item.key.endsWith('/'))
+      .forEach((item) => {
+        const rel = item.key.startsWith(prefix)
+          ? item.key.slice(prefix.length)
+          : item.key;
+        const path = `/${rel}`;
+        const ext = (rel.split('.').pop() || '').toLowerCase();
+        if (!textExtensions.includes(ext)) {
+          return; // skip non-text files at initial map
+        }
+        if (rel.toLowerCase() === 'package.json') {
+          filesFromS3[path] = {
+            code: JSON.stringify(
+              {
+                name: 'sandbox-app',
+                version: '0.1.0',
+                private: true,
+                dependencies: {},
+              },
+              null,
+              2,
+            ),
+          };
+          return;
+        }
+        // Build raw MinIO URL to fetch content for placeholder comment
+        const baseUrl = process.env.NEXT_PUBLIC_MINIO_URL || '';
+        const rawUrl = `${baseUrl}/builds/${item.key}`;
+        filesFromS3[path] = { code: `// ${rel}\n// ${rawUrl}\n` };
+      });
+
+    return { ...defaults, ...filesFromS3 };
+  }, [gameBuildFiles, codeLines, hardcodedChatId, hardcodedVersion]);
+
+  // Build a folder tree from S3 contents for display/other uses
+  type TreeNode = {
+    name: string;
+    path: string;
+    type: 'folder' | 'file';
+    children?: TreeNode[];
+  };
+
+  const folderTree = useMemo<TreeNode | null>(() => {
+    const s3 = gameBuildFiles as S3ListBucketResultType | undefined;
+    if (!s3) return null;
+    const contents = extractS3Contents(s3);
+    if (!contents.length)
+      return { name: '/', path: '/', type: 'folder', children: [] };
+
+    const prefix = `${hardcodedChatId}/${hardcodedVersion}/`;
+    const root: TreeNode = {
+      name: '/',
+      path: '/',
+      type: 'folder',
+      children: [],
+    };
+
+    const ensureFolder = (parent: TreeNode, folderName: string): TreeNode => {
+      parent.children = parent.children || [];
+      const existing = parent.children.find(
+        (c) => c.type === 'folder' && c.name === folderName,
+      );
+      if (existing) return existing;
+      const node: TreeNode = {
+        name: folderName,
+        path:
+          parent.path === '/'
+            ? `/${folderName}`
+            : `${parent.path}/${folderName}`,
+        type: 'folder',
+        children: [],
+      };
+      parent.children.push(node);
+      return node;
+    };
+
+    const addFile = (parent: TreeNode, fileName: string, fullPath: string) => {
+      parent.children = parent.children || [];
+      parent.children.push({ name: fileName, path: fullPath, type: 'file' });
+    };
+
+    contents
+      .filter((item) => typeof item.key === 'string' && !item.key.endsWith('/'))
+      .forEach((item) => {
+        const rel = item.key.startsWith(prefix)
+          ? item.key.slice(prefix.length)
+          : item.key;
+        const parts = rel.split('/').filter(Boolean);
+        let cursor = root;
+        for (let i = 0; i < parts.length; i++) {
+          const part = parts[i];
+          const isLast = i === parts.length - 1;
+          if (isLast) {
+            const fullPath = `/${rel}`;
+            addFile(cursor, part, fullPath);
+          } else {
+            cursor = ensureFolder(cursor, part);
+          }
+        }
+      });
+
+    return root;
+  }, [gameBuildFiles, hardcodedChatId, hardcodedVersion]);
+
+  useEffect(() => {
+    if (folderTree) {
+      console.log('folder tree', folderTree);
+    }
+  }, [folderTree]);
+
+  // pick a sensible active file
+  const activeFile = useMemo(() => {
+    const candidates = [
+      '/index.html',
+      '/src/main.tsx',
+      '/src/main.jsx',
+      '/src/index.tsx',
+      '/src/index.jsx',
+      '/App/page.tsx',
+    ];
+    for (const c of candidates) {
+      if (sandboxFiles[c]) return c;
+    }
+    // fallback to first key
+    return Object.keys(sandboxFiles)[0] || '/App/page.tsx';
+  }, [sandboxFiles]);
 
   // Auto-open explore when latest assistant message has game signals
   useEffect(() => {
@@ -188,6 +351,7 @@ export const ExplorePanel: FC<ExplorePanelProps> = ({
         template="react"
         theme="light"
         activeView={activeView}
+        activeFile={activeFile}
       />
       {/* <div className="flex-1 overflow-y-auto px-10"> */}
       {/* <Image

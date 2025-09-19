@@ -17,6 +17,7 @@ export type SandboxCodePanelProps = {
   theme?: Parameters<typeof SandboxProvider>[0]['theme'];
   className?: string;
   activeView?: 'code' | 'view';
+  activeFile?: string;
 };
 
 const SandpackBreadcrumb: FC = () => {
@@ -40,6 +41,7 @@ export const SandboxCodePanel: FC<SandboxCodePanelProps> = ({
   theme = 'light',
   className,
   activeView = 'code',
+  activeFile,
 }) => {
   return (
     <div className={'flex-1 h-full ' + (className || '')}>
@@ -48,6 +50,7 @@ export const SandboxCodePanel: FC<SandboxCodePanelProps> = ({
         files={files}
         theme={theme}
         className="h-full border-none"
+        options={{ activeFile }}
       >
         <div className="flex gap-1 h-full">
           <div className=" bg-white overflow-hidden h-full">
