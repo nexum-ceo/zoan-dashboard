@@ -4,7 +4,6 @@ import {
   SandboxCodeEditor,
   SandboxFileExplorer,
   SandboxLayout,
-  SandboxPreview,
   SandboxProvider,
 } from '@/components/ui/shadcn-io/sandbox';
 import { useSandpack } from '@codesandbox/sandpack-react';
@@ -18,6 +17,8 @@ export type SandboxCodePanelProps = {
   className?: string;
   activeView?: 'code' | 'view';
   activeFile?: string;
+  minioUrl?: string;
+  gameUrl?: string;
 };
 
 const SandpackBreadcrumb: FC = () => {
@@ -42,41 +43,56 @@ export const SandboxCodePanel: FC<SandboxCodePanelProps> = ({
   className,
   activeView = 'code',
   activeFile,
+  minioUrl,
+  gameUrl,
 }) => {
+  // Construct the iframe URL for preview mode
+  const iframeUrl =
+    minioUrl && gameUrl ? `${minioUrl}${gameUrl}/index.html` : '';
+
   return (
     <div className={'flex-1 h-full ' + (className || '')}>
-      <SandboxProvider
-        template={template}
-        files={files}
-        theme={theme}
-        className="h-full border-none"
-        options={{ activeFile }}
-      >
-        <div className="flex gap-1 h-full">
-          <div className=" bg-white overflow-hidden h-full">
-            <div className="h-full">
+      {activeView === 'code' ? (
+        <SandboxProvider
+          template={template}
+          files={files}
+          theme={theme}
+          className="h-full border-none"
+          options={{ activeFile }}
+        >
+          <div className="flex gap-1 h-full">
+            <div className=" bg-white overflow-hidden h-full">
+              <div className="h-full">
+                <SandboxLayout className="!h-full">
+                  <SandboxFileExplorer className="!border-none !h-full" />
+                </SandboxLayout>
+              </div>
+            </div>
+
+            <div className="flex-1 overflow-hidden bg-white flex flex-col h-full">
+              <SandpackBreadcrumb />
               <SandboxLayout className="!h-full">
-                <SandboxFileExplorer className="!border-none !h-full" />
+                <SandboxCodeEditor showTabs={false} showLineNumbers={true} />
               </SandboxLayout>
             </div>
           </div>
-
-          <div className="flex-1 overflow-hidden bg-white flex flex-col h-full">
-            {activeView === 'code' ? (
-              <>
-                <SandpackBreadcrumb />
-                <SandboxLayout className="!h-full">
-                  <SandboxCodeEditor showTabs={false} showLineNumbers={true} />
-                </SandboxLayout>
-              </>
-            ) : (
-              <SandboxLayout className="!h-full">
-                <SandboxPreview />
-              </SandboxLayout>
-            )}
-          </div>
+        </SandboxProvider>
+      ) : (
+        <div className="h-full w-full px-10 bg-white">
+          {iframeUrl ? (
+            <iframe
+              src={iframeUrl}
+              className="w-full h-full border-0"
+              title="Game Preview"
+              allowFullScreen
+            />
+          ) : (
+            <div className="flex items-center justify-center h-full text-gray-500">
+              No preview available
+            </div>
+          )}
         </div>
-      </SandboxProvider>
+      )}
     </div>
   );
 };

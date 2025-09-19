@@ -51,7 +51,7 @@ export const ExplorePanel: FC<ExplorePanelProps> = ({
       : '';
   const { data: gameBuildFiles } = useGetListFileInGameFolder(gameUrl);
 
-  // Use custom hooks for file and folder content management
+  // File and folder content management
   const { fileContents, loadFileContent } = useFileContent();
   const { folderContents, fetchFolderContent } = useFolderContent(
     hardcodedChatId,
@@ -77,7 +77,7 @@ export const ExplorePanel: FC<ExplorePanelProps> = ({
     }
   }, [gameBuildFiles, folderContents, fetchFolderContent]);
 
-  // Effect to fetch file contents when files are detected
+  // Fetch file contents when files are detected
   useEffect(() => {
     if (gameBuildFiles) {
       const contents = extractS3Contents(
@@ -114,6 +114,7 @@ export const ExplorePanel: FC<ExplorePanelProps> = ({
       });
     }
   }, [gameBuildFiles, folderContents, fileContents, loadFileContent]);
+
   useEffect(() => {
     if (
       chatGameVersionList?.data?.data &&
@@ -124,7 +125,7 @@ export const ExplorePanel: FC<ExplorePanelProps> = ({
     }
   }, [chatGameVersionList, onGameSignalReceived]);
 
-  // Build Sandpack files map from S3 listing using utility function
+  // Build Sandpack files map from S3 listing
   const sandboxFiles = useMemo(() => {
     return processS3FilesToSandbox(
       gameBuildFiles as S3ListBucketResultType | undefined,
@@ -141,12 +142,12 @@ export const ExplorePanel: FC<ExplorePanelProps> = ({
     folderContents,
   ]);
 
-  // Pick a sensible active file using utility function
+  // Pick a sensible active file
   const activeFile = useMemo(() => {
     return selectActiveFile(sandboxFiles);
   }, [sandboxFiles]);
 
-  // Auto-open explore when latest assistant message has game signals using custom hook
+  // Auto-open explore when latest assistant message has game signals
   useGameSignalDetection(messages, onRequestOpen, onGameSignalReceived);
 
   return (
@@ -221,6 +222,8 @@ export const ExplorePanel: FC<ExplorePanelProps> = ({
         theme="light"
         activeView={activeView}
         activeFile={activeFile}
+        minioUrl={process.env.NEXT_PUBLIC_MINIO_URL}
+        gameUrl={gameUrl}
       />
       {/* <div className="flex-1 overflow-y-auto px-10"> */}
       {/* <Image
