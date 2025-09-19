@@ -162,6 +162,19 @@ const libraryApiRequest = {
     return parseXmlResponse(response.data);
   },
 
+  // New API for fetching content from subfolders
+  sGetGameFolderContent: async (gameUrl: string, folderPath: string = '') => {
+    const fullPath = folderPath ? `${gameUrl}/${folderPath}` : gameUrl;
+    const response = await axiosInstance.get(
+      `/builds/?prefix=${fullPath}/&delimiter=/`,
+      {
+        baseURL: process.env.NEXT_PUBLIC_MINIO_URL,
+        responseType: 'text',
+      },
+    );
+    return parseXmlResponse(response.data);
+  },
+
   // Server-side API for fetching file content
   sGetFileContent: async (fileKey: string) => {
     const response = await axiosInstance.get(`/builds/${fileKey}`, {

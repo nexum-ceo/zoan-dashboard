@@ -1,12 +1,12 @@
 'use client';
 
 // import { useGetChatGameVersionList } from '@/queries/useChat';
-import { extractS3Contents } from '@/lib/s3';
+import { extractS3CommonPrefixes, extractS3Contents } from '@/lib/s3';
 import { useGetChatGameVersionList } from '@/queries/useChat';
 import { useGetListFileInGameFolder } from '@/queries/useLibrary';
 import type { S3ListBucketResultType } from '@/types/library';
 import { ArrowDownToLine, CodeXml, Eye, MessageSquare } from 'lucide-react';
-import { FC, useEffect, useMemo, useState } from 'react';
+import { FC, useCallback, useEffect, useMemo, useState } from 'react';
 import Copy from '../../../../../public/icon/copy';
 import FileTerminal from '../../../../../public/icon/file-terminal';
 import FullScreen from '../../../../../public/icon/full-screen';
@@ -47,7 +47,133 @@ export const ExplorePanel: FC<ExplorePanelProps> = ({
       ? `/builds/${hardcodedChatId}/${hardcodedVersion}`
       : '';
   const { data: gameBuildFiles } = useGetListFileInGameFolder(gameUrl);
+  const [folderContents, setFolderContents] = useState<
+    Record<string, S3ListBucketResultType>
+  >({});
+  const [fileContents, setFileContents] = useState<Record<string, string>>({});
   console.log('game build files', gameBuildFiles);
+
+  // Function to fetch actual file content from MinIO
+  const fetchFileContent = useCallback(
+    async (fileKey: string): Promise<string> => {
+      try {
+        const baseUrl = process.env.NEXT_PUBLIC_MINIO_URL || '';
+        const fileUrl = `${baseUrl}/builds/${fileKey}`;
+        const response = await fetch(fileUrl);
+
+        if (response.ok) {
+          const content = await response.text();
+          console.log(
+            `Fetched content for file ${fileKey}:`,
+            content.substring(0, 100) + '...',
+          );
+          return content;
+        } else {
+          console.warn(
+            `Failed to fetch content for file ${fileKey}:`,
+            response.status,
+          );
+          return `// Error: Could not fetch content for ${fileKey}\n// Status: ${response.status}`;
+        }
+      } catch (error) {
+        console.error(`Error fetching content for file ${fileKey}:`, error);
+        return `// Error: Could not fetch content for ${fileKey}\n// Error: ${
+          error instanceof Error ? error.message : 'Unknown error'
+        }`;
+      }
+    },
+    [],
+  );
+
+  // Function to fetch content from a specific folder
+  const fetchFolderContent = useCallback(
+    async (folderName: string) => {
+      if (folderContents[folderName]) return; // Already fetched
+
+      try {
+        const response = await fetch(
+          `/api/builds/${hardcodedChatId}/${hardcodedVersion}/${folderName}`,
+        );
+        if (response.ok) {
+          const data = await response.json();
+          setFolderContents((prev) => ({
+            ...prev,
+            [folderName]: data,
+          }));
+          console.log(`Fetched content for folder ${folderName}:`, data);
+        }
+      } catch (error) {
+        console.error(
+          `Error fetching content for folder ${folderName}:`,
+          error,
+        );
+      }
+    },
+    [folderContents, hardcodedChatId, hardcodedVersion],
+  );
+
+  // Debug: Log extracted contents and folders
+  useEffect(() => {
+    if (gameBuildFiles) {
+      const folders = extractS3CommonPrefixes(
+        gameBuildFiles as S3ListBucketResultType,
+      );
+
+      // Fetch content from each folder
+      folders.forEach((folder) => {
+        const folderName = folder.folderName;
+        if (!folderContents[folderName]) {
+          fetchFolderContent(folderName);
+        }
+      });
+    }
+  }, [gameBuildFiles, folderContents, fetchFolderContent]);
+
+  // Effect to fetch file contents when files are detected
+  useEffect(() => {
+    if (gameBuildFiles) {
+      const contents = extractS3Contents(
+        gameBuildFiles as S3ListBucketResultType,
+      );
+
+      // Fetch content for files in current directory
+      contents
+        .filter(
+          (item) => typeof item.key === 'string' && !item.key.endsWith('/'),
+        )
+        .forEach(async (item) => {
+          const fileKey = item.key;
+          if (!fileContents[fileKey]) {
+            const content = await fetchFileContent(fileKey);
+            setFileContents((prev) => ({
+              ...prev,
+              [fileKey]: content,
+            }));
+          }
+        });
+
+      // Fetch content for files in subfolders
+      Object.entries(folderContents).forEach(([, folderData]) => {
+        if (folderData) {
+          const folderFiles = extractS3Contents(folderData);
+          folderFiles
+            .filter(
+              (item) => typeof item.key === 'string' && !item.key.endsWith('/'),
+            )
+            .forEach(async (item) => {
+              const fileKey = item.key;
+              if (!fileContents[fileKey]) {
+                const content = await fetchFileContent(fileKey);
+                setFileContents((prev) => ({
+                  ...prev,
+                  [fileKey]: content,
+                }));
+              }
+            });
+        }
+      });
+    }
+  }, [gameBuildFiles, folderContents, fileContents, fetchFileContent]);
   useEffect(() => {
     if (
       chatGameVersionList?.data?.data &&
@@ -103,7 +229,10 @@ export const ExplorePanel: FC<ExplorePanelProps> = ({
     if (!s3) return defaults;
 
     const contents = extractS3Contents(s3);
-    if (!contents.length) return defaults;
+    const folders = extractS3CommonPrefixes(s3);
+
+    console.log('Processing files:', contents.length);
+    console.log('Processing folders:', folders.length);
 
     // strip `${chatId}/${version}/` prefix
     const prefix = `${hardcodedChatId}/${hardcodedVersion}/`;
@@ -119,6 +248,7 @@ export const ExplorePanel: FC<ExplorePanelProps> = ({
       'md',
     ];
 
+    // Process files in current directory
     contents
       .filter((item) => typeof item.key === 'string' && !item.key.endsWith('/'))
       .forEach((item) => {
@@ -145,14 +275,77 @@ export const ExplorePanel: FC<ExplorePanelProps> = ({
           };
           return;
         }
-        // Build raw MinIO URL to fetch content for placeholder comment
-        const baseUrl = process.env.NEXT_PUBLIC_MINIO_URL || '';
-        const rawUrl = `${baseUrl}/builds/${item.key}`;
-        filesFromS3[path] = { code: `// ${rel}\n// ${rawUrl}\n` };
+        // Use cached content or placeholder
+        const fileKey = item.key;
+        const content =
+          fileContents[fileKey] ||
+          `// Loading content for ${rel}...\n// File: ${rel}\n// Key: ${fileKey}\n// Size: ${item.size} bytes\n// Last Modified: ${item.lastModified}\n\n// This content will be loaded from MinIO\nconsole.log('Loading ${rel}...');`;
+
+        filesFromS3[path] = { code: content };
       });
 
-    return { ...defaults, ...filesFromS3 };
-  }, [gameBuildFiles, codeLines, hardcodedChatId, hardcodedVersion]);
+    // Process folders - create placeholder files for each folder
+    folders.forEach((folder) => {
+      const folderName = folder.folderName;
+      const folderPath = `/${folderName}`;
+
+      // Check if we have content for this folder
+      const folderContent = folderContents[folderName];
+
+      if (folderContent) {
+        // Use actual content from folder
+        const folderFiles = extractS3Contents(folderContent);
+
+        folderFiles
+          .filter(
+            (item) => typeof item.key === 'string' && !item.key.endsWith('/'),
+          )
+          .forEach((item) => {
+            const rel = item.key.startsWith(folder.prefix)
+              ? item.key.slice(folder.prefix.length)
+              : item.key;
+            const path = `/${folderName}/${rel}`;
+            const ext = (rel.split('.').pop() || '').toLowerCase();
+
+            if (textExtensions.includes(ext)) {
+              const fileKey = item.key;
+              const content =
+                fileContents[fileKey] ||
+                `// Loading content for ${rel}...\n// File: ${rel} (from ${folderName} folder)\n// Key: ${fileKey}\n// Size: ${item.size} bytes\n// Last Modified: ${item.lastModified}\n\n// This content will be loaded from MinIO\nconsole.log('Loading ${folderName}/${rel}...');`;
+
+              filesFromS3[path] = { code: content };
+            }
+          });
+      } else {
+        // Create a placeholder index file for each folder
+        filesFromS3[`${folderPath}/index.js`] = {
+          code: `// Folder: ${folderName}
+// This folder contains files from the game build
+// Folder prefix: ${folder.prefix}
+
+console.log('Welcome to ${folderName} folder');
+
+// TODO: Load actual files from this folder
+export default {
+  folderName: '${folderName}',
+  prefix: '${folder.prefix}',
+  note: 'This is a placeholder for folder content'
+};`,
+        };
+      }
+    });
+
+    const result = { ...defaults, ...filesFromS3 };
+    console.log('sandboxFiles created:', result);
+    return result;
+  }, [
+    gameBuildFiles,
+    codeLines,
+    hardcodedChatId,
+    hardcodedVersion,
+    folderContents,
+    fileContents,
+  ]);
 
   // Build a folder tree from S3 contents for display/other uses
   type TreeNode = {
@@ -165,9 +358,13 @@ export const ExplorePanel: FC<ExplorePanelProps> = ({
   const folderTree = useMemo<TreeNode | null>(() => {
     const s3 = gameBuildFiles as S3ListBucketResultType | undefined;
     if (!s3) return null;
+
     const contents = extractS3Contents(s3);
-    if (!contents.length)
+    const folders = extractS3CommonPrefixes(s3);
+
+    if (!contents.length && !folders.length) {
       return { name: '/', path: '/', type: 'folder', children: [] };
+    }
 
     const prefix = `${hardcodedChatId}/${hardcodedVersion}/`;
     const root: TreeNode = {
@@ -201,6 +398,13 @@ export const ExplorePanel: FC<ExplorePanelProps> = ({
       parent.children.push({ name: fileName, path: fullPath, type: 'file' });
     };
 
+    // Add folders first
+    folders.forEach((folder) => {
+      const folderName = folder.folderName;
+      ensureFolder(root, folderName);
+    });
+
+    // Add files in current directory
     contents
       .filter((item) => typeof item.key === 'string' && !item.key.endsWith('/'))
       .forEach((item) => {
@@ -221,8 +425,32 @@ export const ExplorePanel: FC<ExplorePanelProps> = ({
         }
       });
 
+    // Add files from subfolders if we have their content
+    Object.entries(folderContents).forEach(([folderName, folderData]) => {
+      if (folderData) {
+        const folderFiles = extractS3Contents(folderData);
+        const folderNode = root.children?.find(
+          (child) => child.type === 'folder' && child.name === folderName,
+        );
+
+        if (folderNode) {
+          folderFiles
+            .filter(
+              (item) => typeof item.key === 'string' && !item.key.endsWith('/'),
+            )
+            .forEach((item) => {
+              const rel = item.key.startsWith(`${prefix}${folderName}/`)
+                ? item.key.slice(`${prefix}${folderName}/`.length)
+                : item.key;
+              const fullPath = `/${folderName}/${rel}`;
+              addFile(folderNode, rel, fullPath);
+            });
+        }
+      }
+    });
+
     return root;
-  }, [gameBuildFiles, hardcodedChatId, hardcodedVersion]);
+  }, [gameBuildFiles, hardcodedChatId, hardcodedVersion, folderContents]);
 
   useEffect(() => {
     if (folderTree) {
@@ -232,6 +460,27 @@ export const ExplorePanel: FC<ExplorePanelProps> = ({
 
   // pick a sensible active file
   const activeFile = useMemo(() => {
+    // First try to find files from game build
+    const gameFiles = Object.keys(sandboxFiles).filter(
+      (key) =>
+        key !== '/App/page.tsx' &&
+        key !== '/Components/Background.tsx' &&
+        key !== '/Components/Collision.tsx',
+    );
+
+    if (gameFiles.length > 0) {
+      // Prefer index files
+      const indexFiles = gameFiles.filter(
+        (key) => key.includes('index') || key.includes('main'),
+      );
+      if (indexFiles.length > 0) {
+        return indexFiles[0];
+      }
+      // Otherwise return first game file
+      return gameFiles[0];
+    }
+
+    // Fallback to default candidates
     const candidates = [
       '/index.html',
       '/src/main.tsx',
@@ -244,7 +493,9 @@ export const ExplorePanel: FC<ExplorePanelProps> = ({
       if (sandboxFiles[c]) return c;
     }
     // fallback to first key
-    return Object.keys(sandboxFiles)[0] || '/App/page.tsx';
+    const fallback = Object.keys(sandboxFiles)[0] || '/App/page.tsx';
+    console.log('Selected activeFile:', fallback);
+    return fallback;
   }, [sandboxFiles]);
 
   // Auto-open explore when latest assistant message has game signals
