@@ -21,6 +21,8 @@ type ExplorePanelProps = {
   className?: string;
   messages?: Array<unknown>;
   onRequestOpen?: () => void;
+  onChatExpand?: (expanded: boolean) => void;
+  isChatExpanded?: boolean;
 };
 
 // type GameVersion = {
@@ -37,10 +39,20 @@ export const ExplorePanel: FC<ExplorePanelProps> = ({
   className,
   messages,
   onRequestOpen,
+  onChatExpand,
+  isChatExpanded: externalIsChatExpanded,
 }) => {
   // --- Logic fetch game version list ---
   const { data: chatGameVersionList } = useGetChatGameVersionList(chatId);
   const [activeView, setActiveView] = useState<'code' | 'view'>('code');
+
+  // Use external state if provided, otherwise use internal state
+  const isChatExpanded = externalIsChatExpanded ?? false;
+  const handleChatExpand = (expanded: boolean) => {
+    if (onChatExpand) {
+      onChatExpand(expanded);
+    }
+  };
 
   // TEMP: hardcoded game url for build files
   const hardcodedChatId = '577ebde2-a069-4e07-b3ec-ed2d3c62de15';
@@ -159,6 +171,7 @@ export const ExplorePanel: FC<ExplorePanelProps> = ({
           <div className="flex items-center gap-3">
             <button
               type="button"
+              onClick={() => handleChatExpand(!isChatExpanded)}
               className="bg-[#272727]/5 flex items-center gap-1 rounded-lg px-2 py-1 text-paragraph cursor-pointer"
             >
               <span className="inline-flex items-center justify-center w-4 h-4 rounded-full">
@@ -172,7 +185,7 @@ export const ExplorePanel: FC<ExplorePanelProps> = ({
               <button
                 type="button"
                 onClick={() => setActiveView('code')}
-                className={`flex items-center gap-2 rounded-full p-1 transition-colors duration-200 ease-in-out ${
+                className={`cursor-pointer flex items-center gap-2 rounded-full p-1 transition-colors duration-200 ease-in-out ${
                   activeView === 'code' ? 'bg-primary-brand-green' : ''
                 }`}
               >
@@ -185,7 +198,7 @@ export const ExplorePanel: FC<ExplorePanelProps> = ({
               <button
                 type="button"
                 onClick={() => setActiveView('view')}
-                className={`flex items-center gap-2 rounded-full p-1 transition-colors duration-200 ease-in-out ${
+                className={`cursor-pointer flex items-center gap-2 rounded-full p-1 transition-colors duration-200 ease-in-out ${
                   activeView === 'view' ? 'bg-primary-brand-green' : ''
                 }`}
               >
@@ -199,16 +212,16 @@ export const ExplorePanel: FC<ExplorePanelProps> = ({
           </div>
           {/* Right icon buttons */}
           <div className="flex items-center gap-2 text-[#272727]">
-            <button type="button">
+            <button type="button" className="cursor-pointer">
               <Copy className="w-3 h-3 stroke-[1px] stroke-[#272727]" />
             </button>
-            <button type="button">
+            <button type="button" className="cursor-pointer">
               <ArrowDownToLine className="w-3 h-3 stroke-[1px]" />
             </button>
-            <button type="button">
+            <button type="button" className="cursor-pointer">
               <FileTerminal className="w-3 h-3 stroke-[1px]" />
             </button>
-            <button type="button">
+            <button type="button" className="cursor-pointer">
               <FullScreen className="w-3 h-3 stroke-[1px]" />
             </button>
           </div>
@@ -216,15 +229,17 @@ export const ExplorePanel: FC<ExplorePanelProps> = ({
       </div>
 
       {/* Content */}
-      <SandboxCodePanel
-        files={sandboxFiles}
-        template="react"
-        theme="light"
-        activeView={activeView}
-        activeFile={activeFile}
-        minioUrl={process.env.NEXT_PUBLIC_MINIO_URL}
-        gameUrl={gameUrl}
-      />
+      <div className="flex-1">
+        <SandboxCodePanel
+          files={sandboxFiles}
+          template="react"
+          theme="light"
+          activeView={activeView}
+          activeFile={activeFile}
+          minioUrl={process.env.NEXT_PUBLIC_MINIO_URL}
+          gameUrl={gameUrl}
+        />
+      </div>
       {/* <div className="flex-1 overflow-y-auto px-10"> */}
       {/* <Image
           src={GamePreview}

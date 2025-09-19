@@ -48,6 +48,7 @@ export function PlaygroundChatClient({ chatId }: PlaygroundChatClientProps) {
   const messagesContainerRef = useRef<HTMLDivElement>(null);
   const [settingsOpen, setSettingsOpen] = useState<boolean>(true);
   const [exploreOpen, setExploreOpen] = useState<boolean>(false);
+  const [isExploreExpanded, setIsExploreExpanded] = useState<boolean>(false);
 
   // Get the first message from localStorage if it exists
   const [pendingMsg, setPendingMsg] = useState<string>(() =>
@@ -279,8 +280,8 @@ export function PlaygroundChatClient({ chatId }: PlaygroundChatClientProps) {
       className="w-full h-screen bg-sidebar"
     >
       <ResizablePanel
-        defaultSize={exploreOpen ? 72 : 100}
-        minSize={40}
+        defaultSize={isExploreExpanded ? 0 : exploreOpen ? 72 : 100}
+        minSize={isExploreExpanded ? 0 : 40}
         className="flex flex-col bg-sidebar relative"
       >
         {/* Mobile Header with Menu Button */}
@@ -389,9 +390,9 @@ export function PlaygroundChatClient({ chatId }: PlaygroundChatClientProps) {
         <>
           <ResizableHandle withHandle className="bg-border" />
           <ResizablePanel
-            defaultSize={28}
-            minSize={20}
-            maxSize={50}
+            defaultSize={isExploreExpanded ? 100 : 28}
+            minSize={isExploreExpanded ? 100 : 20}
+            maxSize={isExploreExpanded ? 100 : 50}
             className="bg-background border-l border-border"
           >
             <ExplorePanel
@@ -406,6 +407,8 @@ export function PlaygroundChatClient({ chatId }: PlaygroundChatClientProps) {
                   exploreRefetchRef.current();
                 }
               }}
+              onChatExpand={setIsExploreExpanded}
+              isChatExpanded={isExploreExpanded}
             />
           </ResizablePanel>
         </>
