@@ -184,46 +184,12 @@ export const ExplorePanel: FC<ExplorePanelProps> = ({
     }
   }, [chatGameVersionList, onGameSignalReceived]);
 
-  // Static code content for preview UI
-  const codeLines = useMemo(
-    () => [
-      '// Imports',
-      "import mongoose, { Schema } from 'mongoose'",
-      '',
-      '// Collection name',
-      "export const collection = 'Product'",
-      '',
-      '// Schema',
-      'const schema = new Schema({',
-      '  name: {',
-      '    type: String,',
-      '    required: true',
-      '  },',
-      '',
-      '  description: {',
-      '    type: String',
-      '  }',
-      '}, { timestamps: true })',
-      '',
-      '// Model',
-      'export default mongoose.model(collection, schema, collection)',
-    ],
-    [],
-  );
+  // Removed static code content - now using real files from MinIO
 
-  // Build Sandpack files map from S3 listing + default sample files
+  // Build Sandpack files map from S3 listing
   const sandboxFiles = useMemo(() => {
-    const defaults: Record<string, { code: string }> = {
-      '/App/page.tsx': {
-        code: codeLines.join('\n'),
-      },
-      '/Components/Background.tsx': {
-        code: 'export const Background = () => <div />;\n',
-      },
-      '/Components/Collision.tsx': {
-        code: 'export const Collision = () => null;\n',
-      },
-    };
+    // Remove default folders, use only real files from MinIO
+    const defaults: Record<string, { code: string }> = {};
 
     const s3 = gameBuildFiles as S3ListBucketResultType | undefined;
     if (!s3) return defaults;
@@ -285,10 +251,9 @@ export const ExplorePanel: FC<ExplorePanelProps> = ({
         filesFromS3[path] = { code: content };
       });
 
-    // Process folders - create placeholder files for each folder
+    // Process folders - add files from subfolders
     folders.forEach((folder) => {
       const folderName = folder.folderName;
-      const folderPath = `/${folderName}`;
 
       // Check if we have content for this folder
       const folderContent = folderContents[folderName];
@@ -317,23 +282,8 @@ export const ExplorePanel: FC<ExplorePanelProps> = ({
               filesFromS3[path] = { code: content };
             }
           });
-      } else {
-        // Create a placeholder index file for each folder
-        filesFromS3[`${folderPath}/index.js`] = {
-          code: `// Folder: ${folderName}
-// This folder contains files from the game build
-// Folder prefix: ${folder.prefix}
-
-console.log('Welcome to ${folderName} folder');
-
-// TODO: Load  files from this folder
-export default {
-  folderName: '${folderName}',
-  prefix: '${folder.prefix}',
-  note: 'This is a placeholder for folder content'
-};`,
-        };
       }
+      // Don't create placeholder files for empty folders - let Sandpack handle empty folders
     });
 
     const result = { ...defaults, ...filesFromS3 };
@@ -341,7 +291,6 @@ export default {
     return result;
   }, [
     gameBuildFiles,
-    codeLines,
     hardcodedChatId,
     hardcodedVersion,
     folderContents,
@@ -461,40 +410,40 @@ export default {
 
   // pick a sensible active file
   const activeFile = useMemo(() => {
-    // First try to find files from game build
-    const gameFiles = Object.keys(sandboxFiles).filter(
-      (key) =>
-        key !== '/App/page.tsx' &&
-        key !== '/Components/Background.tsx' &&
-        key !== '/Components/Collision.tsx',
+    const allFiles = Object.keys(sandboxFiles);
+
+    if (allFiles.length === 0) {
+      return '/index.html'; // Default fallback
+    }
+
+    // Prefer index files
+    const indexFiles = allFiles.filter(
+      (key) => key.includes('index') || key.includes('main'),
     );
-
-    if (gameFiles.length > 0) {
-      // Prefer index files
-      const indexFiles = gameFiles.filter(
-        (key) => key.includes('index') || key.includes('main'),
-      );
-      if (indexFiles.length > 0) {
-        return indexFiles[0];
-      }
-      // Otherwise return first game file
-      return gameFiles[0];
+    if (indexFiles.length > 0) {
+      return indexFiles[0];
     }
 
-    // Fallback to default candidates
-    const candidates = [
-      '/index.html',
-      '/src/main.tsx',
-      '/src/main.jsx',
-      '/src/index.tsx',
-      '/src/index.jsx',
-      '/App/page.tsx',
-    ];
-    for (const c of candidates) {
-      if (sandboxFiles[c]) return c;
+    // Prefer HTML files
+    const htmlFiles = allFiles.filter((key) => key.endsWith('.html'));
+    if (htmlFiles.length > 0) {
+      return htmlFiles[0];
     }
-    // fallback to first key
-    const fallback = Object.keys(sandboxFiles)[0] || '/App/page.tsx';
+
+    // Prefer JS/TS files
+    const jsFiles = allFiles.filter(
+      (key) =>
+        key.endsWith('.js') ||
+        key.endsWith('.ts') ||
+        key.endsWith('.jsx') ||
+        key.endsWith('.tsx'),
+    );
+    if (jsFiles.length > 0) {
+      return jsFiles[0];
+    }
+
+    // Return first available file
+    const fallback = allFiles[0];
     console.log('Selected activeFile:', fallback);
     return fallback;
   }, [sandboxFiles]);
