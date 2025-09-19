@@ -260,9 +260,14 @@ export const ExplorePanel: FC<ExplorePanelProps> = ({
         if (!textExtensions.includes(ext)) {
           return; // skip non-text files at initial map
         }
-        if (rel.toLowerCase() === 'package.json') {
-          filesFromS3[path] = {
-            code: JSON.stringify(
+        // Check if we already have content for this file
+        const fileKey = item.key;
+        let content = fileContents[fileKey];
+
+        if (!content) {
+          // For package.json, create a default if not found, but still try to fetch real content
+          if (rel.toLowerCase() === 'package.json') {
+            content = JSON.stringify(
               {
                 name: 'sandbox-app',
                 version: '0.1.0',
@@ -271,15 +276,11 @@ export const ExplorePanel: FC<ExplorePanelProps> = ({
               },
               null,
               2,
-            ),
-          };
-          return;
+            );
+          } else {
+            content = `// Loading content for ${rel}...\n// File: ${rel}\n// Key: ${fileKey}\n// Size: ${item.size} bytes\n// Last Modified: ${item.lastModified}\n\n// This content will be loaded from MinIO\nconsole.log('Loading ${rel}...');`;
+          }
         }
-        // Use cached content or placeholder
-        const fileKey = item.key;
-        const content =
-          fileContents[fileKey] ||
-          `// Loading content for ${rel}...\n// File: ${rel}\n// Key: ${fileKey}\n// Size: ${item.size} bytes\n// Last Modified: ${item.lastModified}\n\n// This content will be loaded from MinIO\nconsole.log('Loading ${rel}...');`;
 
         filesFromS3[path] = { code: content };
       });
@@ -325,7 +326,7 @@ export const ExplorePanel: FC<ExplorePanelProps> = ({
 
 console.log('Welcome to ${folderName} folder');
 
-// TODO: Load actual files from this folder
+// TODO: Load  files from this folder
 export default {
   folderName: '${folderName}',
   prefix: '${folder.prefix}',
