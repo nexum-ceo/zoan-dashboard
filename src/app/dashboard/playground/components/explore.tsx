@@ -1,7 +1,7 @@
 'use client';
 
 // import { useGetChatGameVersionList } from '@/queries/useChat';
-import { extractS3CommonPrefixes, extractS3Contents } from '@/lib/s3';
+import { extractS3Contents } from '@/lib/s3';
 import { useGetChatGameVersionList } from '@/queries/useChat';
 import { useGetListFileInGameFolder } from '@/queries/useLibrary';
 import type { S3ListBucketResultType } from '@/types/library';
@@ -47,10 +47,8 @@ export const ExplorePanel: FC<ExplorePanelProps> = ({
       ? `/builds/${hardcodedChatId}/${hardcodedVersion}`
       : '';
   const { data: gameBuildFiles } = useGetListFileInGameFolder(gameUrl);
-  const [folderContents, setFolderContents] = useState<
-    Record<string, S3ListBucketResultType>
-  >({});
   const [fileContents, setFileContents] = useState<Record<string, string>>({});
+  const [isLoading, setIsLoading] = useState(true);
   console.log('game build files', gameBuildFiles);
 
   // Function to fetch actual file content from MinIO
@@ -85,95 +83,100 @@ export const ExplorePanel: FC<ExplorePanelProps> = ({
     [],
   );
 
-  // Function to fetch content from a specific folder
-  const fetchFolderContent = useCallback(
-    async (folderName: string) => {
-      if (folderContents[folderName]) return; // Already fetched
+  // Function to collect all files from S3 data recursively
+  const collectAllFiles = useCallback((s3Data: S3ListBucketResultType) => {
+    const allFiles: Array<{
+      key: string;
+      size?: number;
+      lastModified?: string;
+    }> = [];
 
-      try {
-        const response = await fetch(
-          `/api/builds/${hardcodedChatId}/${hardcodedVersion}/${folderName}`,
-        );
-        if (response.ok) {
-          const data = await response.json();
-          setFolderContents((prev) => ({
-            ...prev,
-            [folderName]: data,
-          }));
-          console.log(`Fetched content for folder ${folderName}:`, data);
-        }
-      } catch (error) {
-        console.error(
-          `Error fetching content for folder ${folderName}:`,
-          error,
-        );
-      }
-    },
-    [folderContents, hardcodedChatId, hardcodedVersion],
-  );
+    // Get all contents from S3 data
+    const contents = extractS3Contents(s3Data);
+    allFiles.push(...contents);
 
-  // Debug: Log extracted contents and folders
-  useEffect(() => {
-    if (gameBuildFiles) {
-      const folders = extractS3CommonPrefixes(
-        gameBuildFiles as S3ListBucketResultType,
-      );
+    console.log('Collected files from S3:', allFiles.length);
+    return allFiles;
+  }, []);
 
-      // Fetch content from each folder
-      folders.forEach((folder) => {
-        const folderName = folder.folderName;
-        if (!folderContents[folderName]) {
-          fetchFolderContent(folderName);
-        }
+  // Function to fetch all file contents
+  const fetchAllFileContents = useCallback(
+    async (
+      files: Array<{ key: string; size?: number; lastModified?: string }>,
+    ) => {
+      const textExtensions = [
+        'js',
+        'ts',
+        'tsx',
+        'jsx',
+        'json',
+        'css',
+        'html',
+        'md',
+      ];
+
+      // Filter only text files
+      const textFiles = files.filter((file) => {
+        const ext = file.key.split('.').pop()?.toLowerCase() || '';
+        return textExtensions.includes(ext) && !file.key.endsWith('/');
       });
-    }
-  }, [gameBuildFiles, folderContents, fetchFolderContent]);
 
-  // Effect to fetch file contents when files are detected
-  useEffect(() => {
-    if (gameBuildFiles) {
-      const contents = extractS3Contents(
-        gameBuildFiles as S3ListBucketResultType,
-      );
+      console.log('Fetching content for text files:', textFiles.length);
 
-      // Fetch content for files in current directory
-      contents
-        .filter(
-          (item) => typeof item.key === 'string' && !item.key.endsWith('/'),
-        )
-        .forEach(async (item) => {
-          const fileKey = item.key;
-          if (!fileContents[fileKey]) {
-            const content = await fetchFileContent(fileKey);
-            setFileContents((prev) => ({
-              ...prev,
-              [fileKey]: content,
-            }));
+      // Fetch files in batches
+      const batchSize = 5;
+      for (let i = 0; i < textFiles.length; i += batchSize) {
+        const batch = textFiles.slice(i, i + batchSize);
+
+        const promises = batch.map(async (file) => {
+          try {
+            const content = await fetchFileContent(file.key);
+            return { key: file.key, content };
+          } catch (error) {
+            console.error(`Error fetching content for ${file.key}:`, error);
+            return { key: file.key, content: `// Error loading ${file.key}` };
           }
         });
 
-      // Fetch content for files in subfolders
-      Object.entries(folderContents).forEach(([, folderData]) => {
-        if (folderData) {
-          const folderFiles = extractS3Contents(folderData);
-          folderFiles
-            .filter(
-              (item) => typeof item.key === 'string' && !item.key.endsWith('/'),
-            )
-            .forEach(async (item) => {
-              const fileKey = item.key;
-              if (!fileContents[fileKey]) {
-                const content = await fetchFileContent(fileKey);
-                setFileContents((prev) => ({
-                  ...prev,
-                  [fileKey]: content,
-                }));
-              }
-            });
+        const results = await Promise.all(promises);
+
+        // Update file contents
+        setFileContents((prev) => ({
+          ...prev,
+          ...results.reduce(
+            (acc, { key, content }) => ({ ...acc, [key]: content }),
+            {},
+          ),
+        }));
+
+        // Small delay between batches
+        if (i + batchSize < textFiles.length) {
+          await new Promise((resolve) => setTimeout(resolve, 100));
         }
+      }
+    },
+    [fetchFileContent],
+  );
+
+  // Main effect to fetch all file contents
+  useEffect(() => {
+    if (gameBuildFiles) {
+      const s3Data = gameBuildFiles as S3ListBucketResultType;
+
+      // Reset loading state
+      setIsLoading(true);
+      setFileContents({});
+
+      // Collect all files from S3 data
+      const allFiles = collectAllFiles(s3Data);
+
+      // Fetch all file contents
+      fetchAllFileContents(allFiles).finally(() => {
+        setIsLoading(false);
+        console.log('All file contents fetched');
       });
     }
-  }, [gameBuildFiles, folderContents, fileContents, fetchFileContent]);
+  }, [gameBuildFiles, collectAllFiles, fetchAllFileContents]);
   useEffect(() => {
     if (
       chatGameVersionList?.data?.data &&
@@ -188,19 +191,13 @@ export const ExplorePanel: FC<ExplorePanelProps> = ({
 
   // Build Sandpack files map from S3 listing
   const sandboxFiles = useMemo(() => {
-    // Remove default folders, use only real files from MinIO
-    const defaults: Record<string, { code: string }> = {};
-
     const s3 = gameBuildFiles as S3ListBucketResultType | undefined;
-    if (!s3) return defaults;
+    if (!s3) return {};
 
     const contents = extractS3Contents(s3);
-    const folders = extractS3CommonPrefixes(s3);
+    console.log('Processing files for Sandpack:', contents.length);
 
-    console.log('Processing files:', contents.length);
-    console.log('Processing folders:', folders.length);
-
-    // strip `${chatId}/${version}/` prefix
+    // Strip `${chatId}/${version}/` prefix
     const prefix = `${hardcodedChatId}/${hardcodedVersion}/`;
     const filesFromS3: Record<string, { code: string }> = {};
     const textExtensions = [
@@ -214,24 +211,32 @@ export const ExplorePanel: FC<ExplorePanelProps> = ({
       'md',
     ];
 
-    // Process files in current directory
+    // Process all files from S3 data
     contents
       .filter((item) => typeof item.key === 'string' && !item.key.endsWith('/'))
       .forEach((item) => {
+        // Get relative path by removing prefix
         const rel = item.key.startsWith(prefix)
           ? item.key.slice(prefix.length)
           : item.key;
+
+        // Skip if no relative path (shouldn't happen)
+        if (!rel) return;
+
         const path = `/${rel}`;
         const ext = (rel.split('.').pop() || '').toLowerCase();
+
+        // Only include text files
         if (!textExtensions.includes(ext)) {
-          return; // skip non-text files at initial map
+          return;
         }
-        // Check if we already have content for this file
+
+        // Get content for this file
         const fileKey = item.key;
         let content = fileContents[fileKey];
 
         if (!content) {
-          // For package.json, create a default if not found, but still try to fetch real content
+          // Create default content for package.json
           if (rel.toLowerCase() === 'package.json') {
             content = JSON.stringify(
               {
@@ -244,6 +249,7 @@ export const ExplorePanel: FC<ExplorePanelProps> = ({
               2,
             );
           } else {
+            // Show loading placeholder
             content = `// Loading content for ${rel}...\n// File: ${rel}\n// Key: ${fileKey}\n// Size: ${item.size} bytes\n// Last Modified: ${item.lastModified}\n\n// This content will be loaded from MinIO\nconsole.log('Loading ${rel}...');`;
           }
         }
@@ -251,51 +257,16 @@ export const ExplorePanel: FC<ExplorePanelProps> = ({
         filesFromS3[path] = { code: content };
       });
 
-    // Process folders - add files from subfolders
-    folders.forEach((folder) => {
-      const folderName = folder.folderName;
+    console.log('Sandpack files created:', Object.keys(filesFromS3));
+    console.log(
+      'Files with actual content:',
+      Object.entries(filesFromS3).filter(
+        ([, file]) => file.code && !file.code.includes('Loading content'),
+      ).length,
+    );
 
-      // Check if we have content for this folder
-      const folderContent = folderContents[folderName];
-
-      if (folderContent) {
-        // Use actual content from folder
-        const folderFiles = extractS3Contents(folderContent);
-
-        folderFiles
-          .filter(
-            (item) => typeof item.key === 'string' && !item.key.endsWith('/'),
-          )
-          .forEach((item) => {
-            const rel = item.key.startsWith(folder.prefix)
-              ? item.key.slice(folder.prefix.length)
-              : item.key;
-            const path = `/${folderName}/${rel}`;
-            const ext = (rel.split('.').pop() || '').toLowerCase();
-
-            if (textExtensions.includes(ext)) {
-              const fileKey = item.key;
-              const content =
-                fileContents[fileKey] ||
-                `// Loading content for ${rel}...\n// File: ${rel} (from ${folderName} folder)\n// Key: ${fileKey}\n// Size: ${item.size} bytes\n// Last Modified: ${item.lastModified}\n\n// This content will be loaded from MinIO\nconsole.log('Loading ${folderName}/${rel}...');`;
-
-              filesFromS3[path] = { code: content };
-            }
-          });
-      }
-      // Don't create placeholder files for empty folders - let Sandpack handle empty folders
-    });
-
-    const result = { ...defaults, ...filesFromS3 };
-    console.log('sandboxFiles created:', result);
-    return result;
-  }, [
-    gameBuildFiles,
-    hardcodedChatId,
-    hardcodedVersion,
-    folderContents,
-    fileContents,
-  ]);
+    return filesFromS3;
+  }, [gameBuildFiles, hardcodedChatId, hardcodedVersion, fileContents]);
 
   // Build a folder tree from S3 contents for display/other uses
   type TreeNode = {
@@ -310,9 +281,9 @@ export const ExplorePanel: FC<ExplorePanelProps> = ({
     if (!s3) return null;
 
     const contents = extractS3Contents(s3);
-    const folders = extractS3CommonPrefixes(s3);
+    console.log('Building folder tree from', contents.length, 'files');
 
-    if (!contents.length && !folders.length) {
+    if (!contents.length) {
       return { name: '/', path: '/', type: 'folder', children: [] };
     }
 
@@ -348,59 +319,38 @@ export const ExplorePanel: FC<ExplorePanelProps> = ({
       parent.children.push({ name: fileName, path: fullPath, type: 'file' });
     };
 
-    // Add folders first
-    folders.forEach((folder) => {
-      const folderName = folder.folderName;
-      ensureFolder(root, folderName);
-    });
-
-    // Add files in current directory
+    // Process all files and build tree structure
     contents
       .filter((item) => typeof item.key === 'string' && !item.key.endsWith('/'))
       .forEach((item) => {
         const rel = item.key.startsWith(prefix)
           ? item.key.slice(prefix.length)
           : item.key;
+
+        if (!rel) return;
+
         const parts = rel.split('/').filter(Boolean);
         let cursor = root;
+
+        // Navigate/create folder structure
         for (let i = 0; i < parts.length; i++) {
           const part = parts[i];
           const isLast = i === parts.length - 1;
+
           if (isLast) {
+            // Add file
             const fullPath = `/${rel}`;
             addFile(cursor, part, fullPath);
           } else {
+            // Ensure folder exists
             cursor = ensureFolder(cursor, part);
           }
         }
       });
 
-    // Add files from subfolders if we have their content
-    Object.entries(folderContents).forEach(([folderName, folderData]) => {
-      if (folderData) {
-        const folderFiles = extractS3Contents(folderData);
-        const folderNode = root.children?.find(
-          (child) => child.type === 'folder' && child.name === folderName,
-        );
-
-        if (folderNode) {
-          folderFiles
-            .filter(
-              (item) => typeof item.key === 'string' && !item.key.endsWith('/'),
-            )
-            .forEach((item) => {
-              const rel = item.key.startsWith(`${prefix}${folderName}/`)
-                ? item.key.slice(`${prefix}${folderName}/`.length)
-                : item.key;
-              const fullPath = `/${folderName}/${rel}`;
-              addFile(folderNode, rel, fullPath);
-            });
-        }
-      }
-    });
-
+    console.log('Folder tree built:', root);
     return root;
-  }, [gameBuildFiles, hardcodedChatId, hardcodedVersion, folderContents]);
+  }, [gameBuildFiles, hardcodedChatId, hardcodedVersion]);
 
   useEffect(() => {
     if (folderTree) {
@@ -547,13 +497,28 @@ export const ExplorePanel: FC<ExplorePanelProps> = ({
       </div>
 
       {/* Content */}
-      <SandboxCodePanel
-        files={sandboxFiles}
-        template="react"
-        theme="light"
-        activeView={activeView}
-        activeFile={activeFile}
-      />
+      {isLoading ? (
+        <div className="flex-1 flex items-center justify-center">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-brand-green mx-auto mb-2"></div>
+            <p className="text-sm text-muted-foreground">
+              Loading files and content...
+            </p>
+            <div className="mt-2 text-xs text-muted-foreground">
+              <div>Files loaded: {Object.keys(fileContents).length}</div>
+              <div>Sandpack files: {Object.keys(sandboxFiles).length}</div>
+            </div>
+          </div>
+        </div>
+      ) : (
+        <SandboxCodePanel
+          files={sandboxFiles}
+          template="react"
+          theme="light"
+          activeView={activeView}
+          activeFile={activeFile}
+        />
+      )}
       {/* <div className="flex-1 overflow-y-auto px-10"> */}
       {/* <Image
           src={GamePreview}

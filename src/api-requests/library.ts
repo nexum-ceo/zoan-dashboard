@@ -54,13 +54,10 @@ const libraryApiRequest = {
   },
 
   getListFileInGameFolder: async (gameUrl: string) => {
-    const response = await axiosInstance.get(
-      `/builds/?prefix=${gameUrl}/&delimiter=/`,
-      {
-        baseURL: process.env.NEXT_PUBLIC_MINIO_URL,
-        responseType: 'text',
-      },
-    );
+    const response = await axiosInstance.get(`/builds/?prefix=${gameUrl}/`, {
+      baseURL: process.env.NEXT_PUBLIC_MINIO_URL,
+      responseType: 'text',
+    });
     return { data: response.data };
   },
 
