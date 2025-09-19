@@ -226,7 +226,12 @@ export const ChatSettings: FC<ChatSettingsProps> = ({ isOpen, onClose }) => {
   };
 
   return (
-    <Sheet open={isOpen} onOpenChange={onClose}>
+    <Sheet
+      open={isOpen}
+      onOpenChange={(open) => {
+        if (!open) onClose();
+      }}
+    >
       <SheetContent
         side="right"
         className="w-70 p-0 gap-0 [&>button.absolute]:hidden"

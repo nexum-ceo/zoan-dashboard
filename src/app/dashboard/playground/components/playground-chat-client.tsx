@@ -48,7 +48,7 @@ export function PlaygroundChatClient({ chatId }: PlaygroundChatClientProps) {
   const pathname = usePathname();
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const messagesContainerRef = useRef<HTMLDivElement>(null);
-  const [settingsOpen, setSettingsOpen] = useState<boolean>(true);
+  const [settingsOpen, setSettingsOpen] = useState<boolean>(false);
   const [exploreOpen, setExploreOpen] = useState<boolean>(false);
   const [isExploreExpanded, setIsExploreExpanded] = useState<boolean>(false);
 
@@ -280,7 +280,12 @@ export function PlaygroundChatClient({ chatId }: PlaygroundChatClientProps) {
             {chatInfo?.title || 'No Chat Selected'}
           </div>
           <div className="flex items-center gap-2">
-            <Button variant="ghost" size="sm" className="p-0 !px-1">
+            <Button
+              variant="ghost"
+              size="sm"
+              className="p-0 !px-1"
+              onClick={() => setSettingsOpen(true)}
+            >
               <SettingIcon />
               Setting
             </Button>
@@ -394,7 +399,6 @@ export function PlaygroundChatClient({ chatId }: PlaygroundChatClientProps) {
                 messages={messages as unknown[]}
                 onRequestOpen={() => {
                   setExploreOpen(true);
-                  setSettingsOpen(false);
                 }}
                 onGameSignalReceived={() => {
                   if (exploreRefetchRef.current) {
