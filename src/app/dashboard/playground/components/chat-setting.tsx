@@ -154,9 +154,8 @@ export const ChatSettings: FC<ChatSettingsProps> = ({ isOpen, onClose }) => {
   }, [primaryAgent, setValue]);
 
   const onSubmit = async (data: ChatSettingsFormData) => {
-    console.log('data submit', data);
     try {
-      // Đảm bảo primaryAgent phải có dữ liệu trước khi thực hiện update
+      // Ensure primaryAgent has data before performing update
       if (!primaryAgent) {
         handleErrorApi({
           error: new HttpError({
@@ -226,10 +225,15 @@ export const ChatSettings: FC<ChatSettingsProps> = ({ isOpen, onClose }) => {
   };
 
   return (
-    <Sheet open={isOpen} onOpenChange={onClose}>
+    <Sheet
+      open={isOpen}
+      onOpenChange={(open) => {
+        if (!open) onClose();
+      }}
+    >
       <SheetContent
         side="right"
-        className="w-70 p-0 gap-0 [&>button.absolute]:hidden"
+        className="w-92 p-0 gap-0 [&>button.absolute]:hidden"
       >
         <Tabs defaultValue="agent" className="w-full">
           <SheetHeader className="px-4 py-0 pt-4 border-b border-border">

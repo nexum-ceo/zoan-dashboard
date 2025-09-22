@@ -1,5 +1,6 @@
 'use client';
 
+import { Action, Actions } from '@/components/ui/shadcn-io/ai/actions';
 import {
   MessageAvatar,
   MessageContent,
@@ -16,7 +17,20 @@ import {
   TaskItemFile,
   TaskTrigger,
 } from '@/components/ui/shadcn-io/ai/task';
-import React, { FC, useMemo } from 'react';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from '@/components/ui/tooltip';
+import {
+  CopyIcon,
+  EditIcon,
+  RefreshCcwIcon,
+  ThumbsDownIcon,
+  ThumbsUpIcon,
+} from 'lucide-react';
+import React, { FC, useMemo, useState } from 'react';
 import ReactMarkdown from 'react-markdown';
 
 // Component to render Game Generator content with TaskItemFile
@@ -93,6 +107,46 @@ export const ChatMessage: FC<ChatMessageProps> = ({
   isLoading,
 }) => {
   const isUser = message.role === 'user';
+
+  // State for actions
+  const [liked, setLiked] = useState(false);
+  const [disliked, setDisliked] = useState(false);
+
+  // Action handlers
+  const handleRetry = () => {
+    console.log('Retry message:', message.id);
+    // TODO: Implement retry logic
+  };
+
+  const handleCopy = async () => {
+    try {
+      await navigator.clipboard.writeText(content);
+      console.log('Message copied to clipboard');
+    } catch (err) {
+      console.error('Failed to copy message:', err);
+    }
+  };
+
+  // User action handlers
+  const handleEditUserMessage = () => {
+    console.log('Edit user message:', message.id);
+    // TODO: Implement edit logic
+  };
+
+  const handleLike = () => {
+    setLiked(!liked);
+    if (liked) {
+      setDisliked(false); // Remove dislike if liked
+    }
+  };
+
+  const handleDislike = () => {
+    setDisliked(!disliked);
+    if (disliked) {
+      setLiked(false); // Remove like if disliked
+    }
+  };
+
   const thinkingText = useMemo(() => {
     if (!Array.isArray(message.parts)) return '';
     return message.parts
@@ -176,6 +230,99 @@ export const ChatMessage: FC<ChatMessageProps> = ({
         <MessageContent>
           <ReactMarkdown>{content}</ReactMarkdown>
         </MessageContent>
+
+        {/* Actions for user messages */}
+        {isUser && (
+          <TooltipProvider>
+            <Actions className="mt-2">
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Action label="Edit" onClick={handleEditUserMessage}>
+                    <EditIcon className="size-4" />
+                  </Action>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>Edit message</p>
+                </TooltipContent>
+              </Tooltip>
+
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Action label="Copy" onClick={handleCopy}>
+                    <CopyIcon className="size-4" />
+                  </Action>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>Copy</p>
+                </TooltipContent>
+              </Tooltip>
+            </Actions>
+          </TooltipProvider>
+        )}
+
+        {/* Actions for assistant messages */}
+        {!isUser && (
+          <TooltipProvider>
+            <Actions className="mt-2">
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Action label="Copy" onClick={handleCopy}>
+                    <CopyIcon className="size-4" />
+                  </Action>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>Copy</p>
+                </TooltipContent>
+              </Tooltip>
+
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Action
+                    label="Like"
+                    onClick={handleLike}
+                    className={liked ? 'text-green-600' : ''}
+                  >
+                    <ThumbsUpIcon className="size-4" />
+                  </Action>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>{liked ? 'Remove like' : 'Like'}</p>
+                </TooltipContent>
+              </Tooltip>
+
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Action
+                    label="Dislike"
+                    onClick={handleDislike}
+                    className={disliked ? 'text-red-600' : ''}
+                  >
+                    <ThumbsDownIcon className="size-4" />
+                  </Action>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>{disliked ? 'Remove dislike' : 'Dislike'}</p>
+                </TooltipContent>
+              </Tooltip>
+
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Action
+                    label="Retry"
+                    onClick={handleRetry}
+                    className={isLoading ? 'opacity-50 cursor-not-allowed' : ''}
+                    disabled={isLoading}
+                  >
+                    <RefreshCcwIcon className="size-4" />
+                  </Action>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>{isLoading ? 'Please wait...' : 'Regenerate response'}</p>
+                </TooltipContent>
+              </Tooltip>
+            </Actions>
+          </TooltipProvider>
+        )}
       </div>
     </UIMessage>
   );

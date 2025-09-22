@@ -37,6 +37,26 @@ export const useGetListFileInFolder = (userId: string, folderPath: string) => {
   });
 };
 
+export const useGetListFileInGameFolder = (gameUrl: string) => {
+  return useQuery({
+    queryKey: ['list-file-in-game-folder', gameUrl],
+    queryFn: () => libraryApiRequest.sGetListFileInGameFolder(gameUrl),
+    enabled: !!gameUrl,
+  });
+};
+
+// Hook for fetching content from subfolders
+export const useGetGameFolderContent = (
+  gameUrl: string,
+  folderPath: string = '',
+) => {
+  return useQuery({
+    queryKey: ['game-folder-content', gameUrl, folderPath],
+    queryFn: () => libraryApiRequest.sGetGameFolderContent(gameUrl, folderPath),
+    enabled: !!gameUrl,
+  });
+};
+
 export const useDelete = () => {
   return useMutation({
     mutationFn: libraryApiRequest.sDeleteFile,

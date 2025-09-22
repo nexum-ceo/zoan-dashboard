@@ -53,6 +53,14 @@ const libraryApiRequest = {
     return parseXmlResponse(response.data);
   },
 
+  getListFileInGameFolder: async (gameUrl: string) => {
+    const response = await axiosInstance.get(`/builds/?prefix=${gameUrl}/`, {
+      baseURL: process.env.NEXT_PUBLIC_MINIO_URL,
+      responseType: 'text',
+    });
+    return { data: response.data };
+  },
+
   getListFileInFolder: async (userId: string, folderPath: string) => {
     const response = await axiosInstance.get(
       `/library/?prefix=${userId}/${folderPath}&delimiter=/`,
@@ -72,6 +80,14 @@ const libraryApiRequest = {
     }),
 
   //Call through Next.js server
+  sGetListFileInGameFolder: async (gameUrl: string) => {
+    const response = await axiosInstance.get(`${gameUrl}`, {
+      baseURL: '',
+    });
+
+    return parseXmlResponse(response.data);
+  },
+
   sGetPresignedUrls: (body: PresignedUrlBodyType) =>
     axiosInstance.post<PresignedUrlResponseType>(
       '/library/presigned-url',
@@ -141,6 +157,36 @@ const libraryApiRequest = {
       },
     );
     return parseXmlResponse(response.data);
+  },
+
+  // New API for fetching content from subfolders
+  sGetGameFolderContent: async (gameUrl: string, folderPath: string = '') => {
+    const fullPath = folderPath ? `${gameUrl}/${folderPath}` : gameUrl;
+    const response = await axiosInstance.get(
+      `/builds/?prefix=${fullPath}/&delimiter=/`,
+      {
+        baseURL: process.env.NEXT_PUBLIC_MINIO_URL,
+        responseType: 'text',
+      },
+    );
+    return parseXmlResponse(response.data);
+  },
+
+  // Server-side API for fetching file content
+  sGetFileContent: async (fileKey: string) => {
+    const response = await axiosInstance.get(`/builds/${fileKey}`, {
+      baseURL: '',
+      responseType: 'text',
+    });
+    return response.data;
+  },
+
+  // New API for fetching complete folder structure with content
+  sGetGameFolderWithContent: async (gameUrl: string) => {
+    const response = await axiosInstance.get(`/builds/${gameUrl}/content`, {
+      baseURL: '',
+    });
+    return response.data;
   },
 };
 

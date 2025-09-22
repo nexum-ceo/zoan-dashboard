@@ -162,8 +162,6 @@ export function useSSEChat({
     reconnectAttemptsRef.current = 0;
     lastMessageAtRef.current = Date.now();
 
-    // Since we're using POST requests, we don't need EventSource
-    // The streaming is handled by the fetch in postMessage
     console.log('[SSE] SSE connection established (fetch-based)');
   }, []);
 
@@ -175,9 +173,6 @@ export function useSSEChat({
   // Unified SSE data handler (used by EventSource or BroadcastChannel)
   useEffect(() => {
     handleSSEDataRef.current = (raw: string) => {
-      // console.log('[SSE] Received data:', raw);
-      // console.log('[SSE] Data length:', raw.length);
-      // console.log('[SSE] Data type:', typeof raw);
       lastMessageAtRef.current = Date.now();
       clearResponseTimeout();
       setIsAssistantStreaming(true);
@@ -194,16 +189,22 @@ export function useSSEChat({
 
         // Handle [DONE] signal
         if (rawData.trim() === '[DONE]') {
+          console.log('[SSE] [DONE] signal received, stopping streaming');
           try {
             esRef.current?.close();
           } catch {}
           esRef.current = null;
           setSseConnected(false);
           setIsAssistantStreaming(false);
+          // Clear any pending timeouts
+          if (assistantStreamEndTimeoutRef.current) {
+            clearTimeout(assistantStreamEndTimeoutRef.current);
+            assistantStreamEndTimeoutRef.current = null;
+          }
           return null;
         }
 
-        // Handle completion message
+        // Handle completion message - filter it out from UI
         if (rawData.includes('"message": "Response completed"')) {
           console.log('[SSE] Completion message received, closing connection');
           try {
@@ -212,6 +213,11 @@ export function useSSEChat({
           esRef.current = null;
           setSseConnected(false);
           setIsAssistantStreaming(false);
+          // Clear any pending timeouts
+          if (assistantStreamEndTimeoutRef.current) {
+            clearTimeout(assistantStreamEndTimeoutRef.current);
+            assistantStreamEndTimeoutRef.current = null;
+          }
           return null;
         }
 
@@ -221,6 +227,12 @@ export function useSSEChat({
 
           // Filter out unwanted message types
           if (data?.type && FILTERED_MESSAGE_TYPES.has(data.type)) {
+            return null;
+          }
+
+          // Filter out completion messages
+          if (data?.message === 'Response completed') {
+            console.log('[SSE] Filtering out completion message from UI');
             return null;
           }
 
@@ -234,6 +246,12 @@ export function useSSEChat({
         } catch {
           // If it's not JSON, check if it looks like JSON but failed to parse
           if (rawData.trim().startsWith('{') && rawData.trim().endsWith('}')) {
+            return null;
+          }
+
+          // Filter out raw completion messages
+          if (rawData.includes('"Response completed"')) {
+            console.log('[SSE] Filtering out raw completion message from UI');
             return null;
           }
 
@@ -252,12 +270,20 @@ export function useSSEChat({
 
       // Handle completion event to close connection
       if (isDone) {
+        console.log(
+          '[SSE] [DONE] signal received in chunk processing, stopping streaming',
+        );
         try {
           esRef.current?.close();
         } catch {}
         esRef.current = null;
         setSseConnected(false);
         setIsAssistantStreaming(false);
+        // Clear any pending timeouts
+        if (assistantStreamEndTimeoutRef.current) {
+          clearTimeout(assistantStreamEndTimeoutRef.current);
+          assistantStreamEndTimeoutRef.current = null;
+        }
         return;
       }
 
@@ -483,7 +509,7 @@ export function useSSEChat({
   };
 
   const postMessage = useCallback(
-    (text: string) => {
+    (text: string): Promise<void> => {
       const requestBody = {
         sender_id: user_id,
         role: ChatRole.USER,
@@ -491,8 +517,12 @@ export function useSSEChat({
         metadata: {},
       };
 
+      // Set SSE as connected when starting the request
+      setSseConnected(true);
+      lastMessageAtRef.current = Date.now();
+
       // Use fetch for SSE streaming
-      fetch(`/api/chat/${encodeURIComponent(chatId)}/completion`, {
+      return fetch(`/api/chat/${encodeURIComponent(chatId)}/completion`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -509,13 +539,15 @@ export function useSSEChat({
               response.status,
               response.statusText,
             );
-            return;
+            setSseConnected(false);
+            throw new Error(`HTTP ${response.status}: ${response.statusText}`);
           }
 
           // Handle streaming response
           if (!response.body) {
             console.error('No response body for streaming');
-            return;
+            setSseConnected(false);
+            throw new Error('No response body for streaming');
           }
 
           const reader = response.body.getReader();
@@ -527,6 +559,7 @@ export function useSSEChat({
               .read()
               .then(({ done, value }) => {
                 if (done) {
+                  console.log('[SSE] Stream ended, stopping streaming');
                   setSseConnected(false);
                   setIsAssistantStreaming(false);
                   // Clear the timeout to ensure streaming state is reset
@@ -572,6 +605,7 @@ export function useSSEChat({
               })
               .catch((error) => {
                 console.error('[SSE] Stream read error:', error);
+                console.log('[SSE] Stream error occurred, stopping streaming');
                 setSseConnected(false);
                 setIsAssistantStreaming(false);
                 // Clear the timeout to ensure streaming state is reset
@@ -579,6 +613,7 @@ export function useSSEChat({
                   clearTimeout(assistantStreamEndTimeoutRef.current);
                   assistantStreamEndTimeoutRef.current = null;
                 }
+                throw error;
               });
           };
 
@@ -586,16 +621,21 @@ export function useSSEChat({
         })
         .catch((error) => {
           console.error('Fetch error:', error);
+          console.log('[SSE] Fetch error occurred, stopping streaming');
           setSseConnected(false);
           setIsAssistantStreaming(false);
+          // Clear the timeout to ensure streaming state is reset
+          if (assistantStreamEndTimeoutRef.current) {
+            clearTimeout(assistantStreamEndTimeoutRef.current);
+            assistantStreamEndTimeoutRef.current = null;
+          }
+          throw error;
         });
-
-      lastMessageAtRef.current = Date.now();
     },
     [chatId, user_id],
   );
 
-  const handleSubmit = (e: FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (!input.trim()) return;
     const userMsg: ChatMessage = {
@@ -606,12 +646,15 @@ export function useSSEChat({
     };
     setMessages((prev) => [...prev, userMsg]);
     setIsLoading(true);
-    postMessage(input);
-    setInput('');
-    setIsLoading(false);
+    try {
+      await postMessage(input);
+    } finally {
+      setInput('');
+      setIsLoading(false);
+    }
   };
 
-  const sendMessageDirect = (msg: string) => {
+  const sendMessageDirect = async (msg: string): Promise<void> => {
     if (!msg.trim()) return;
     const userMsg: ChatMessage = {
       id: Date.now().toString(),
@@ -621,8 +664,11 @@ export function useSSEChat({
     };
     setMessages((prev) => [...prev, userMsg]);
     setIsLoading(true);
-    postMessage(msg);
-    setIsLoading(false);
+    try {
+      await postMessage(msg);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return {
@@ -636,6 +682,7 @@ export function useSSEChat({
     setInput,
     sseConnected,
     sendMessageDirect,
+    postMessage,
     isProcessing: isLoading || isAssistantStreaming,
   };
 }

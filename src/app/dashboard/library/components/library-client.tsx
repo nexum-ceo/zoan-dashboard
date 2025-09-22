@@ -167,6 +167,7 @@ export const LibraryClient: FC<LibraryClientProps> = ({
       .includes(searchQuery.toLowerCase());
     return matchesSearch;
   });
+  console.log('filteredFiles', filteredFiles);
 
   // Filter folders based on search
   const filteredFolders = displayFolders.filter((folder) => {

@@ -1,6 +1,7 @@
 'use client';
 
 import { Skeleton } from '@/components/ui/skeleton';
+import { formatRelativeTime } from '@/lib/date-time-utils';
 import { useInfiniteChatList } from '@/queries/useChat';
 import { Clock } from 'lucide-react';
 import { usePathname, useRouter } from 'next/navigation';
@@ -38,30 +39,16 @@ export const SelectAssistant: FC<SelectAssistantProps> = ({ activeChatId }) => {
 
   const [isOpen, setIsOpen] = useState<boolean>(true);
 
-  const displayedChats = useMemo(() => chats.slice(0, 5), [chats]);
-
-  const formatRelativeTime = (dateStr?: string) => {
-    if (!dateStr) return '';
-    const then = new Date(dateStr).getTime();
-    if (isNaN(then)) return '';
-    const diffMs = Date.now() - then;
-    const sec = Math.floor(diffMs / 1000);
-    if (sec < 60) return 'Just now';
-    const min = Math.floor(sec / 60);
-    if (min < 60) return `${min} minute${min > 1 ? 's' : ''} ago`;
-    const hr = Math.floor(min / 60);
-    if (hr < 24) return `${hr} hour${hr > 1 ? 's' : ''} ago`;
-    const day = Math.floor(hr / 24);
-    return `${day} day${day > 1 ? 's' : ''} ago`;
-  };
+  // Show all chats that have been loaded so far. "See more" will fetch the next page.
+  const displayedChats = useMemo(() => chats, [chats]);
 
   return (
     <div className="space-y-3 text-paragraph">
       {/* History */}
       {chats.length === 0 && !chatLoading && !chatError ? (
-        <div className="rounded-xl b text-paragraph order border-dashed text-[#272727]/50">
+        <div className="rounded-xl text-paragraph border-1 border-dashed !text-[#272727]/50 p-2">
           <div className="flex items-center gap-1">
-            <Clock className="w-3 h-3" />
+            <Clock className="w-3 h-3 text-[#272727]" />
             History
           </div>
           <div className="text-xs">You haven&apos;t created any chats yet.</div>
@@ -85,7 +72,7 @@ export const SelectAssistant: FC<SelectAssistantProps> = ({ activeChatId }) => {
           </button>
 
           {isOpen && (
-            <div className="text-xs">
+            <div className="text-xs overflow-y-auto h-48 lg:h-52 2xl:h-104">
               {chatLoading &&
                 Array.from({ length: 5 }).map((_, idx) => (
                   <div key={idx} className="px-2 py-1.5">

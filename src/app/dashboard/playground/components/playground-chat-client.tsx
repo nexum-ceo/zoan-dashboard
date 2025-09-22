@@ -34,6 +34,8 @@ import { ChatRole } from '@/types/chat';
 import { Menu, MessageSquare, Plus, Sparkles } from 'lucide-react';
 import { usePathname, useRouter } from 'next/navigation';
 import { useEffect, useMemo, useRef, useState } from 'react';
+import SettingIcon from '../../../../../public/icon/setting';
+import ShareIcon from '../../../../../public/icon/share';
 
 type PlaygroundChatClientProps = {
   chatId: string;
@@ -46,15 +48,15 @@ export function PlaygroundChatClient({ chatId }: PlaygroundChatClientProps) {
   const pathname = usePathname();
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const messagesContainerRef = useRef<HTMLDivElement>(null);
-  const [settingsOpen, setSettingsOpen] = useState<boolean>(true);
+  const [settingsOpen, setSettingsOpen] = useState<boolean>(false);
   const [exploreOpen, setExploreOpen] = useState<boolean>(false);
+  const [isExploreExpanded, setIsExploreExpanded] = useState<boolean>(false);
 
   // Get the first message from localStorage if it exists
   const [pendingMsg, setPendingMsg] = useState<string>(() =>
     getPendingMessage(),
   );
   const [firstMsgSent, setFirstMsgSent] = useState<boolean>(false);
-  // const [token, setToken] = useState<string>('');
   const [previousScrollHeight, setPreviousScrollHeight] = useState<number>(0);
   const [isLoadingMore, setIsLoadingMore] = useState<boolean>(false);
   const { data: chatData } = useGetChat(chatId);
@@ -89,8 +91,7 @@ export function PlaygroundChatClient({ chatId }: PlaygroundChatClientProps) {
     handleSubmit,
     isLoading,
     isAssistantStreaming,
-    sseConnected,
-    sendMessageDirect,
+    postMessage,
     isProcessing,
     setMessages,
   } = useSSEChat({
@@ -99,19 +100,51 @@ export function PlaygroundChatClient({ chatId }: PlaygroundChatClientProps) {
     user_id: chatInfo?.user_id || '',
   });
 
-  // useEffect(() => {
-  //   fetchAuthToken().then(setToken);
-  // }, []);
+  // Use ref to store functions to avoid dependency issues
+  const postMessageRef = useRef(postMessage);
+  const setMessagesRef = useRef(setMessages);
+  const isFirstMessageSendingRef = useRef(false);
+  postMessageRef.current = postMessage;
+  setMessagesRef.current = setMessages;
 
-  // Only send the first message when SSE is connected, otherwise keep it to send later
+  // Send the first message with delay for new chats
   useEffect(() => {
-    if (pendingMsg && !firstMsgSent && sseConnected) {
-      sendMessageDirect(pendingMsg);
+    if (pendingMsg && !firstMsgSent && !isFirstMessageSendingRef.current) {
+      // Set flags immediately to prevent multiple executions
       setFirstMsgSent(true);
-      setPendingMsg('');
-      clearPendingMessage();
+      isFirstMessageSendingRef.current = true;
+
+      // Add user message to UI first
+      const userMsg = {
+        id: Date.now().toString(),
+        role: 'user' as const,
+        content: pendingMsg,
+        sender_id: chatInfo?.user_id || '',
+      };
+      setMessagesRef.current((prev) => [...prev, userMsg]);
+
+      // Wait a bit for chat to be fully initialized, then send message
+      const sendFirstMessage = async () => {
+        try {
+          // Wait 1-2 seconds for chat initialization
+          await new Promise((resolve) => setTimeout(resolve, 1500));
+
+          await postMessageRef.current(pendingMsg);
+          setPendingMsg('');
+          clearPendingMessage();
+        } catch (error) {
+          console.error('First message failed:', error);
+          // Still clear the pending message even if it fails
+          setPendingMsg('');
+          clearPendingMessage();
+        } finally {
+          isFirstMessageSendingRef.current = false;
+        }
+      };
+
+      sendFirstMessage();
     }
-  }, [pendingMsg, firstMsgSent, sseConnected, sendMessageDirect]);
+  }, [pendingMsg, firstMsgSent, chatInfo?.user_id]);
 
   // Sync fetched initial messages into UI state on first load
   useEffect(() => {
@@ -274,148 +307,152 @@ export function PlaygroundChatClient({ chatId }: PlaygroundChatClientProps) {
   );
 
   return (
-    <ResizablePanelGroup
-      direction="horizontal"
-      className="w-full h-screen bg-sidebar"
-    >
-      <ResizablePanel
-        defaultSize={exploreOpen ? 72 : 100}
-        minSize={40}
-        className="flex flex-col bg-sidebar relative"
-      >
-        {/* Mobile Header with Menu Button */}
-        {isMobile && (
-          <div className="flex items-center p-4 border-b border-gray-200 bg-white">
-            <Sheet open={sidebarOpen} onOpenChange={setSidebarOpen}>
-              <SheetTrigger asChild>
-                <Button variant="ghost" size="sm" className="mr-3">
-                  <Menu className="w-5 h-5" />
-                </Button>
-              </SheetTrigger>
-              <SheetContent side="left" className="w-80 p-0">
-                <MobileSidebarContent />
-              </SheetContent>
-            </Sheet>
-            <h1 className="text-lg font-semibold text-gray-900">
-              AI Playground
-            </h1>
+    <div className="w-full h-screen p-3 flex flex-col gap-3">
+      {/* Header */}
+      <div className="w-full px-3 py-2 bg-white rounded-xl">
+        <div className="flex items-center justify-between w-full">
+          <div className="text-xs font-medium text-[#272727] leading-4">
+            {chatInfo?.title || 'No Chat Selected'}
           </div>
+          <div className="flex items-center gap-2">
+            <Button
+              variant="ghost"
+              size="sm"
+              className="p-0 !px-1"
+              onClick={() => setSettingsOpen(true)}
+            >
+              <SettingIcon />
+              Setting
+            </Button>
+            <Button variant="ghost" size="sm" className="p-0 !px-1">
+              <ShareIcon />
+              Share
+            </Button>
+          </div>
+        </div>
+      </div>
+
+      <ResizablePanelGroup direction="horizontal" className="w-full h-full">
+        <ResizablePanel
+          defaultSize={isExploreExpanded ? 0 : exploreOpen ? 72 : 100}
+          minSize={isExploreExpanded ? 0 : 40}
+          className="flex flex-col bg-sidebar relative transition-all duration-300 ease-in-out"
+        >
+          {/* Mobile Header with Menu Button */}
+          {isMobile && (
+            <div className="flex items-center p-4 border-b border-gray-200 bg-white">
+              <Sheet open={sidebarOpen} onOpenChange={setSidebarOpen}>
+                <SheetTrigger asChild>
+                  <Button variant="ghost" size="sm" className="mr-3">
+                    <Menu className="w-5 h-5" />
+                  </Button>
+                </SheetTrigger>
+                <SheetContent side="left" className="w-80 p-0">
+                  <MobileSidebarContent />
+                </SheetContent>
+              </Sheet>
+              <h1 className="text-lg font-semibold text-gray-900">
+                AI Playground
+              </h1>
+            </div>
+          )}
+
+          {/* Messages */}
+          <div className="flex-1 w-full overflow-hidden h-full">
+            <div
+              ref={messagesContainerRef}
+              className="relative size-full overflow-y-auto"
+            >
+              <Conversation className="relative size-full">
+                <ConversationContent className="px-4 py-2">
+                  {/* Loading indicator for fetching more messages */}
+                  {isFetchingNextPage && (
+                    <div className="flex justify-center py-4">
+                      <div className="text-sm text-muted-foreground">
+                        Loading more messages...
+                      </div>
+                    </div>
+                  )}
+                  {messages.length === 0 ? (
+                    <div className="flex flex-col items-center justify-center h-full text-center">
+                      <div className="w-16 h-16  rounded-2xl flex items-center justify-center mb-4">
+                        <MessageSquare className="w-8 h-8 text-black" />
+                      </div>
+                      <h3 className="text-xl font-semibold text-gray-900 mb-2">
+                        What should we build today?
+                      </h3>
+                      <p className="text-gray-500 max-w-md">
+                        Ask me anything! I&#39;m here to help with your
+                        questions and tasks.
+                      </p>
+                    </div>
+                  ) : (
+                    messages.map((message, index) => (
+                      <ChatMessage
+                        key={message.id}
+                        message={message}
+                        isLast={index === messages.length - 1}
+                        isLoading={
+                          (isAssistantStreaming || isLoading) &&
+                          index === messages.length - 1 &&
+                          message.role === ChatRole.ASSISTANT
+                        }
+                      />
+                    ))
+                  )}
+                  <div ref={messagesEndRef} />
+                </ConversationContent>
+                <ConversationScrollButton />
+              </Conversation>
+            </div>
+          </div>
+
+          {/* Input Area */}
+          <div className="bg-sidebar">
+            <ChatInput
+              disabled={isProcessing}
+              value={input}
+              onChange={handleInputChange}
+              onSubmit={handleSubmit}
+              submitDisabled={isProcessing}
+            />
+          </div>
+        </ResizablePanel>
+
+        {/* Right Explore Panel */}
+        {exploreOpen && (
+          <>
+            <ResizableHandle className="bg-white" />
+            <ResizablePanel
+              defaultSize={isExploreExpanded ? 100 : 28}
+              minSize={isExploreExpanded ? 100 : 20}
+              maxSize={isExploreExpanded ? 100 : 50}
+              className="rounded-xl"
+            >
+              <ExplorePanel
+                chatId={chatId}
+                messages={messages as unknown[]}
+                onRequestOpen={() => {
+                  setExploreOpen(true);
+                }}
+                onGameSignalReceived={() => {
+                  if (exploreRefetchRef.current) {
+                    exploreRefetchRef.current();
+                  }
+                }}
+                onChatExpand={setIsExploreExpanded}
+                isChatExpanded={isExploreExpanded}
+              />
+            </ResizablePanel>
+          </>
         )}
 
-        {/* Header */}
-        <div className="w-full px-6 py-4 border-b border-border bg-background">
-          <div className="flex items-center justify-between w-full">
-            <div className="flex items-center gap-3">
-              <div className="w-8 h-8 rounded-lg bg-blue-100 flex items-center justify-center dark:bg-blue-500/10">
-                <MessageSquare className="w-4 h-4 text-blue-600 dark:text-blue-400" />
-              </div>
-              <div>
-                <h2 className="text-sm font-medium text-foreground">
-                  {chatInfo?.title || 'No Agent Selected'}
-                </h2>
-                <p className="text-xs text-muted-foreground">
-                  {'Please select an agent'}
-                </p>
-              </div>
-            </div>
-            <div className="flex gap-1"></div>
-          </div>
-        </div>
-
-        {/* Messages */}
-        <div className="flex-1 w-full overflow-hidden h-full">
-          <div
-            ref={messagesContainerRef}
-            className="relative size-full overflow-y-auto"
-          >
-            <Conversation className="relative size-full">
-              <ConversationContent className="px-4 py-2">
-                {/* Loading indicator for fetching more messages */}
-                {isFetchingNextPage && (
-                  <div className="flex justify-center py-4">
-                    <div className="text-sm text-muted-foreground">
-                      Loading more messages...
-                    </div>
-                  </div>
-                )}
-                {messages.length === 0 ? (
-                  <div className="flex flex-col items-center justify-center h-full text-center">
-                    <div className="w-16 h-16  rounded-2xl flex items-center justify-center mb-4">
-                      <MessageSquare className="w-8 h-8 text-black" />
-                    </div>
-                    <h3 className="text-xl font-semibold text-gray-900 mb-2">
-                      What should we build today?
-                    </h3>
-                    <p className="text-gray-500 max-w-md">
-                      Ask me anything! I&#39;m here to help with your questions
-                      and tasks.
-                    </p>
-                  </div>
-                ) : (
-                  messages.map((message, index) => (
-                    <ChatMessage
-                      key={message.id}
-                      message={message}
-                      isLast={index === messages.length - 1}
-                      isLoading={
-                        (isAssistantStreaming || isLoading) &&
-                        index === messages.length - 1 &&
-                        message.role === ChatRole.ASSISTANT
-                      }
-                    />
-                  ))
-                )}
-                <div ref={messagesEndRef} />
-              </ConversationContent>
-              <ConversationScrollButton />
-            </Conversation>
-          </div>
-        </div>
-
-        {/* Input Area */}
-        <div className="bg-sidebar">
-          <ChatInput
-            disabled={isProcessing}
-            value={input}
-            onChange={handleInputChange}
-            onSubmit={handleSubmit}
-            submitDisabled={isProcessing}
-          />
-        </div>
-      </ResizablePanel>
-
-      {/* Right Explore Panel */}
-      {exploreOpen && (
-        <>
-          <ResizableHandle withHandle className="bg-border" />
-          <ResizablePanel
-            defaultSize={28}
-            minSize={20}
-            maxSize={50}
-            className="bg-background border-l border-border"
-          >
-            <ExplorePanel
-              chatId={chatId}
-              messages={messages as unknown[]}
-              onRequestOpen={() => {
-                setExploreOpen(true);
-                setSettingsOpen(false);
-              }}
-              onGameSignalReceived={() => {
-                if (exploreRefetchRef.current) {
-                  exploreRefetchRef.current();
-                }
-              }}
-            />
-          </ResizablePanel>
-        </>
-      )}
-
-      {/* Chat Settings Panel */}
-      <ChatSettings
-        isOpen={settingsOpen}
-        onClose={() => setSettingsOpen(false)}
-      />
-    </ResizablePanelGroup>
+        {/* Chat Settings Panel */}
+        <ChatSettings
+          isOpen={settingsOpen}
+          onClose={() => setSettingsOpen(false)}
+        />
+      </ResizablePanelGroup>
+    </div>
   );
 }
