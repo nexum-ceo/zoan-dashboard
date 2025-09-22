@@ -41,7 +41,7 @@ export default function TopCreators() {
   ];
 
   return (
-    <div className="px-6 py-5 space-y-6">
+    <div className="py-5 px-4 space-y-6 w-full">
       <div className="flex justify-between">
         <div className="text-body-b1 !text-[20px] leading-6.5">
           Top Creators
@@ -64,7 +64,7 @@ export default function TopCreators() {
               {creators.slice(0, 4).map((creator) => (
                 <div
                   key={creator.id}
-                  className="aspect-square w-50 h-50 2xl:w-70 2xl:h-70 rounded-lg overflow-hidden cursor-pointer transition-transform duration-200"
+                  className="aspect-square w-44 h-44 2xl:w-60 2xl:h-60 rounded-lg overflow-hidden cursor-pointer transition-transform duration-200"
                 >
                   <Image
                     src={creator.image}
@@ -78,11 +78,11 @@ export default function TopCreators() {
 
             <div className="flex gap-0.5">
               {/* White card */}
-              <div className="aspect-square w-50 h-50 2xl:w-70 2xl:h-70 rounded-lg bg-white transition-transform duration-200 flex items-center justify-center"></div>
+              <div className="aspect-square w-44 h-44 2xl:w-60 2xl:h-60 rounded-lg bg-white transition-transform duration-200 flex items-center justify-center"></div>
               {creators.slice(4, 7).map((creator) => (
                 <div
                   key={creator.id}
-                  className="aspect-square w-50 h-50 2xl:w-70 2xl:h-70 rounded-lg overflow-hidden cursor-pointer  transition-transform duration-200"
+                  className="aspect-square w-44 h-44 2xl:w-60 2xl:h-60 rounded-lg overflow-hidden cursor-pointer  transition-transform duration-200"
                 >
                   <Image
                     src={creator.image}
@@ -98,7 +98,7 @@ export default function TopCreators() {
               {creators.slice(7, 11).map((creator) => (
                 <div
                   key={creator.id}
-                  className="aspect-square w-50 h-50 2xl:w-70 2xl:h-70 rounded-lg overflow-hidden cursor-pointer  transition-transform duration-200"
+                  className="aspect-square w-44 h-44 2xl:w-60 2xl:h-60 rounded-lg overflow-hidden cursor-pointer  transition-transform duration-200"
                 >
                   <Image
                     src={creator.image}
@@ -112,11 +112,11 @@ export default function TopCreators() {
 
             <div className="flex gap-0.5">
               {/* White card */}
-              <div className="aspect-square w-50 h-50 2xl:w-70 2xl:h-70 rounded-lg bg-white  transition-transform duration-200 flex items-center justify-center"></div>
+              <div className="aspect-square w-44 h-44 2xl:w-60 2xl:h-60 rounded-lg bg-white  transition-transform duration-200 flex items-center justify-center"></div>
               {creators.slice(11, 14).map((creator) => (
                 <div
                   key={creator.id}
-                  className="aspect-square w-50 h-50 2xl:w-70 2xl:h-70 rounded-lg overflow-hidden cursor-pointer  transition-transform duration-200"
+                  className="aspect-square w-44 h-44 2xl:w-60 2xl:h-60 rounded-lg overflow-hidden cursor-pointer  transition-transform duration-200"
                 >
                   <Image
                     src={creator.image}
@@ -132,7 +132,7 @@ export default function TopCreators() {
               {creators.slice(14, 18).map((creator) => (
                 <div
                   key={creator.id}
-                  className="aspect-square w-50 h-50 2xl:w-70 2xl:h-70 rounded-lg overflow-hidden cursor-pointer  transition-transform duration-200"
+                  className="aspect-square w-44 h-44 2xl:w-60 2xl:h-60 rounded-lg overflow-hidden cursor-pointer  transition-transform duration-200"
                 >
                   <Image
                     src={creator.image}
@@ -146,11 +146,11 @@ export default function TopCreators() {
 
             <div className="flex gap-0.5">
               {/* White card */}
-              <div className="aspect-square w-50 h-50 2xl:w-70 2xl:h-70 rounded-lg bg-white  transition-transform duration-200 flex items-center justify-center"></div>
+              <div className="aspect-square w-44 h-44 2xl:w-60 2xl:h-60 rounded-lg bg-white  transition-transform duration-200 flex items-center justify-center"></div>
               {creators.slice(18, 21).map((creator) => (
                 <div
                   key={creator.id}
-                  className="aspect-square w-50 h-50 2xl:w-70 2xl:h-70 rounded-lg overflow-hidden cursor-pointer  transition-transform duration-200"
+                  className="aspect-square w-44 h-44 2xl:w-60 2xl:h-60 rounded-lg overflow-hidden cursor-pointer  transition-transform duration-200"
                 >
                   <Image
                     src={creator.image}
