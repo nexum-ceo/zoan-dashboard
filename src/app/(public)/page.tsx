@@ -1,4 +1,5 @@
 import CommunitySection from '@/app/(public)/components/community-section';
+import TopCreators from '@/app/(public)/components/top-creators';
 import { PlaygroundInput } from '@/app/dashboard/playground/components';
 import OptionButtons from '@/components/ui/option-buttons';
 
@@ -22,6 +23,9 @@ export default function HomePage() {
 
       {/** --- Community Section ---  */}
       <CommunitySection />
+
+      {/** --- Top Creators Section ---  */}
+      <TopCreators />
     </div>
   );
 }
