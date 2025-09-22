@@ -77,7 +77,7 @@ export function PlaygroundClient() {
           />
 
           {/* AI Suggestion */}
-          <div className="mt-2">
+          <div className="mt-6">
             <OptionButtons />
           </div>
         </div>

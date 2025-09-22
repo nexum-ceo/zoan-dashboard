@@ -8,7 +8,7 @@ export default function HomePage() {
     <div className="my-container flex flex-col gap-9">
       {/** ---  AI Chat Section ---  */}
       <div>
-        <div className="text-body-b1 text-center">
+        <div className="text-body-b1 text-center mb-6">
           What should we build today?
         </div>
 
@@ -16,7 +16,7 @@ export default function HomePage() {
         <PlaygroundInput value={''} disabled={false} />
 
         {/* AI Suggestion */}
-        <div className="mt-2">
+        <div className="mt-6">
           <OptionButtons />
         </div>
       </div>
