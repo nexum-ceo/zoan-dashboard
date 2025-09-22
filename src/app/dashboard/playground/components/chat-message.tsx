@@ -25,7 +25,7 @@ import {
 } from '@/components/ui/tooltip';
 import {
   CopyIcon,
-  EditIcon,
+  Pen,
   RefreshCcwIcon,
   ThumbsDownIcon,
   ThumbsUpIcon,
@@ -227,18 +227,22 @@ export const ChatMessage: FC<ChatMessageProps> = ({
             </TaskContent>
           </Task>
         )}
-        <MessageContent>
+        <MessageContent className="text-xs text-[#272727] shadow-none px-3 py-2 font-medium leading-3.5">
           <ReactMarkdown>{content}</ReactMarkdown>
         </MessageContent>
 
         {/* Actions for user messages */}
         {isUser && (
           <TooltipProvider>
-            <Actions className="mt-2">
+            <Actions className="">
               <Tooltip>
                 <TooltipTrigger asChild>
-                  <Action label="Edit" onClick={handleEditUserMessage}>
-                    <EditIcon className="size-4" />
+                  <Action
+                    label="Edit"
+                    className="p-0"
+                    onClick={handleEditUserMessage}
+                  >
+                    <Pen className="size-4" />
                   </Action>
                 </TooltipTrigger>
                 <TooltipContent>
@@ -248,7 +252,7 @@ export const ChatMessage: FC<ChatMessageProps> = ({
 
               <Tooltip>
                 <TooltipTrigger asChild>
-                  <Action label="Copy" onClick={handleCopy}>
+                  <Action label="Copy" className="p-0" onClick={handleCopy}>
                     <CopyIcon className="size-4" />
                   </Action>
                 </TooltipTrigger>
@@ -263,7 +267,7 @@ export const ChatMessage: FC<ChatMessageProps> = ({
         {/* Actions for assistant messages */}
         {!isUser && (
           <TooltipProvider>
-            <Actions className="mt-2">
+            <Actions className="">
               <Tooltip>
                 <TooltipTrigger asChild>
                   <Action label="Copy" onClick={handleCopy}>

@@ -82,7 +82,7 @@ export function PlaygroundClient() {
           </div>
         </div>
 
-        <div className="py-20 pt-6 2xl:px-30 sm:px-16 w-full">
+        <div className="py-20 pt-6 2xl:px-30 sm:px-12 w-full">
           {/** --- Personal Space Section ---  */}
           <PersonalSpace />
 

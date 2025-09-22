@@ -52,7 +52,7 @@ const PersonalSpaceProjectCard: FC<{ project: PersonalSpaceProject }> = ({
   return (
     <div className="p-3 flex gap-2 bg-white rounded-lg border border-[#272727]/5 shadow-sm hover:shadow-md transition-shadow duration-200 overflow-hidden">
       {/* Project Image */}
-      <div className="relative size-13 rounded-lg overflow-hidden aspect-square">
+      <div className="relative size-13 rounded-lg overflow-hidden aspect-square shrink-0">
         <Image
           src={project.image}
           alt={project.title}
@@ -62,7 +62,7 @@ const PersonalSpaceProjectCard: FC<{ project: PersonalSpaceProject }> = ({
       </div>
 
       {/* Project Content */}
-      <div className="flex-1">
+      <div className="flex-1 min-w-0">
         {/* Title and Category */}
         <div className="flex items-center gap-1">
           <h3 className="text-paragraph">{project.title}</h3>
@@ -73,28 +73,30 @@ const PersonalSpaceProjectCard: FC<{ project: PersonalSpaceProject }> = ({
         </p>
 
         {/* Creator, Group Avatar and Stats */}
-        <div className="flex items-center gap-1 overflow-hidden ">
-          <div className="flex items-center gap-1 overflow-hidden">
+        <div className="flex items-center gap-1 sm:gap-2 overflow-hidden whitespace-nowrap min-w-0">
+          <div className="flex items-center gap-1">
             <IconLabel className="w-3 h-3 text-primary-brand-darker-green" />
             <span className="text-primary-brand-darker-green text-[10px] font-normal">
               {project.category}
             </span>
           </div>
           <Dot className="w-2 h-2" />
-          <GroupAvatar />
+          <div className="shrink-0">
+            <GroupAvatar />
+          </div>
           <Dot className="w-2 h-2" />
-          <span className="text-xs text-[#272727]/50">
+          <span className="text-xs text-[#272727]/50 shrink-0">
             {project.installs} Install
           </span>
           <Dot className="w-2 h-2" />
-          <div className="flex items-center gap-1">
+          <div className="flex items-center gap-1 shrink-0">
             <Star className="w-3 h-3 text-[#272727]/50" />
             <span className="text-xs text-[#272727]/50">{project.rating}</span>
           </div>
           <Dot className="w-2 h-2" />
-          <div className="flex items-center gap-1 overflow-hidden line-clamp-1">
+          <div className="flex items-center gap-1 overflow-hidden min-w-0">
             <Install className="w-3 h-3 text-[#272727]/50" />
-            <span className="text-xs text-[#272727]/50">
+            <span className="text-xs text-[#272727]/50 truncate">
               Installed 2 days ago
             </span>
           </div>
