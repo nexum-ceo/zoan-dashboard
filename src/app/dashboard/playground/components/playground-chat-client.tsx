@@ -91,8 +91,7 @@ export function PlaygroundChatClient({ chatId }: PlaygroundChatClientProps) {
     handleSubmit,
     isLoading,
     isAssistantStreaming,
-    sseConnected,
-    sendMessageDirect,
+    postMessage,
     isProcessing,
     setMessages,
   } = useSSEChat({
@@ -101,15 +100,51 @@ export function PlaygroundChatClient({ chatId }: PlaygroundChatClientProps) {
     user_id: chatInfo?.user_id || '',
   });
 
-  // Only send the first message when SSE is connected, otherwise keep it to send later
+  // Use ref to store functions to avoid dependency issues
+  const postMessageRef = useRef(postMessage);
+  const setMessagesRef = useRef(setMessages);
+  const isFirstMessageSendingRef = useRef(false);
+  postMessageRef.current = postMessage;
+  setMessagesRef.current = setMessages;
+
+  // Send the first message with delay for new chats
   useEffect(() => {
-    if (pendingMsg && !firstMsgSent && sseConnected) {
-      sendMessageDirect(pendingMsg);
+    if (pendingMsg && !firstMsgSent && !isFirstMessageSendingRef.current) {
+      // Set flags immediately to prevent multiple executions
       setFirstMsgSent(true);
-      setPendingMsg('');
-      clearPendingMessage();
+      isFirstMessageSendingRef.current = true;
+
+      // Add user message to UI first
+      const userMsg = {
+        id: Date.now().toString(),
+        role: 'user' as const,
+        content: pendingMsg,
+        sender_id: chatInfo?.user_id || '',
+      };
+      setMessagesRef.current((prev) => [...prev, userMsg]);
+
+      // Wait a bit for chat to be fully initialized, then send message
+      const sendFirstMessage = async () => {
+        try {
+          // Wait 1-2 seconds for chat initialization
+          await new Promise((resolve) => setTimeout(resolve, 1500));
+
+          await postMessageRef.current(pendingMsg);
+          setPendingMsg('');
+          clearPendingMessage();
+        } catch (error) {
+          console.error('First message failed:', error);
+          // Still clear the pending message even if it fails
+          setPendingMsg('');
+          clearPendingMessage();
+        } finally {
+          isFirstMessageSendingRef.current = false;
+        }
+      };
+
+      sendFirstMessage();
     }
-  }, [pendingMsg, firstMsgSent, sseConnected, sendMessageDirect]);
+  }, [pendingMsg, firstMsgSent, chatInfo?.user_id]);
 
   // Sync fetched initial messages into UI state on first load
   useEffect(() => {

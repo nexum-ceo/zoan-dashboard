@@ -483,7 +483,7 @@ export function useSSEChat({
   };
 
   const postMessage = useCallback(
-    (text: string) => {
+    (text: string): Promise<void> => {
       const requestBody = {
         sender_id: user_id,
         role: ChatRole.USER,
@@ -491,8 +491,12 @@ export function useSSEChat({
         metadata: {},
       };
 
+      // Set SSE as connected when starting the request
+      setSseConnected(true);
+      lastMessageAtRef.current = Date.now();
+
       // Use fetch for SSE streaming
-      fetch(`/api/chat/${encodeURIComponent(chatId)}/completion`, {
+      return fetch(`/api/chat/${encodeURIComponent(chatId)}/completion`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -509,13 +513,15 @@ export function useSSEChat({
               response.status,
               response.statusText,
             );
-            return;
+            setSseConnected(false);
+            throw new Error(`HTTP ${response.status}: ${response.statusText}`);
           }
 
           // Handle streaming response
           if (!response.body) {
             console.error('No response body for streaming');
-            return;
+            setSseConnected(false);
+            throw new Error('No response body for streaming');
           }
 
           const reader = response.body.getReader();
@@ -579,6 +585,7 @@ export function useSSEChat({
                   clearTimeout(assistantStreamEndTimeoutRef.current);
                   assistantStreamEndTimeoutRef.current = null;
                 }
+                throw error;
               });
           };
 
@@ -588,14 +595,13 @@ export function useSSEChat({
           console.error('Fetch error:', error);
           setSseConnected(false);
           setIsAssistantStreaming(false);
+          throw error;
         });
-
-      lastMessageAtRef.current = Date.now();
     },
     [chatId, user_id],
   );
 
-  const handleSubmit = (e: FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (!input.trim()) return;
     const userMsg: ChatMessage = {
@@ -606,12 +612,15 @@ export function useSSEChat({
     };
     setMessages((prev) => [...prev, userMsg]);
     setIsLoading(true);
-    postMessage(input);
-    setInput('');
-    setIsLoading(false);
+    try {
+      await postMessage(input);
+    } finally {
+      setInput('');
+      setIsLoading(false);
+    }
   };
 
-  const sendMessageDirect = (msg: string) => {
+  const sendMessageDirect = async (msg: string): Promise<void> => {
     if (!msg.trim()) return;
     const userMsg: ChatMessage = {
       id: Date.now().toString(),
@@ -621,8 +630,11 @@ export function useSSEChat({
     };
     setMessages((prev) => [...prev, userMsg]);
     setIsLoading(true);
-    postMessage(msg);
-    setIsLoading(false);
+    try {
+      await postMessage(msg);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return {
@@ -636,6 +648,7 @@ export function useSSEChat({
     setInput,
     sseConnected,
     sendMessageDirect,
+    postMessage,
     isProcessing: isLoading || isAssistantStreaming,
   };
 }
