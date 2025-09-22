@@ -162,8 +162,6 @@ export function useSSEChat({
     reconnectAttemptsRef.current = 0;
     lastMessageAtRef.current = Date.now();
 
-    // Since we're using POST requests, we don't need EventSource
-    // The streaming is handled by the fetch in postMessage
     console.log('[SSE] SSE connection established (fetch-based)');
   }, []);
 
@@ -175,9 +173,6 @@ export function useSSEChat({
   // Unified SSE data handler (used by EventSource or BroadcastChannel)
   useEffect(() => {
     handleSSEDataRef.current = (raw: string) => {
-      // console.log('[SSE] Received data:', raw);
-      // console.log('[SSE] Data length:', raw.length);
-      // console.log('[SSE] Data type:', typeof raw);
       lastMessageAtRef.current = Date.now();
       clearResponseTimeout();
       setIsAssistantStreaming(true);
