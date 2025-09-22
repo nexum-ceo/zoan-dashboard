@@ -1,5 +1,13 @@
 'use client';
 
+import { Button } from '@/components/ui/button';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
 import {
   PromptInput,
   PromptInputButton,
@@ -32,6 +40,7 @@ export const ChatInput: FC<ChatInputProps> = ({
   status,
 }) => {
   const [showUpgradeBanner, setShowUpgradeBanner] = useState(true);
+  const [showAuthDialog, setShowAuthDialog] = useState(false);
   const { data: session } = useSession();
 
   // Handle input change with disabled state check
@@ -40,12 +49,35 @@ export const ChatInput: FC<ChatInputProps> = ({
     onChange(e);
   };
 
-  // console.log('session in chat input', session);
+  // Handle form submit - check if user is logged in
+  const handleSubmit = (e: FormEvent<HTMLFormElement>) => {
+    if (!session) {
+      e.preventDefault();
+      setShowAuthDialog(true);
+      return;
+    }
+    onSubmit(e);
+  };
+
+  // Handle sign up
+  const handleSignUp = () => {
+    // TODO: Implement sign up logic
+    console.log('Sign up clicked');
+    setShowAuthDialog(false);
+  };
+
+  // Handle sign in
+  const handleSignIn = () => {
+    // TODO: Implement sign in logic
+    console.log('Sign in clicked');
+    setShowAuthDialog(false);
+  };
+
   return (
     <div className="w-full max-w-4xl mx-auto px-4 py-4">
       <PromptInput
         className="z-10 relative rounded-xl border focus-within:border-primary-brand-darker-green bg-card text-card-foreground"
-        onSubmit={onSubmit}
+        onSubmit={handleSubmit}
       >
         <PromptInputTextarea
           placeholder="Ask ZOAN to build something amazing"
@@ -100,6 +132,42 @@ export const ChatInput: FC<ChatInputProps> = ({
           </span>
         </div>
       )}
+
+      {/* Authentication Dialog */}
+      <Dialog open={showAuthDialog} onOpenChange={setShowAuthDialog}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader className="text-center">
+            <div className="flex items-center justify-center gap-3 mb-4">
+              <div className="w-8 h-8 bg-black rounded flex items-center justify-center">
+                <span className="text-white font-bold text-sm">Z</span>
+              </div>
+              <DialogTitle className="text-xl font-semibold">Zoan</DialogTitle>
+            </div>
+            <DialogTitle className="text-lg font-semibold mb-2">
+              Continue with ZOAN
+            </DialogTitle>
+            <DialogDescription className="text-sm text-gray-600">
+              Please sign in or create an account to continue.
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="flex gap-3 mt-6">
+            <Button
+              onClick={handleSignUp}
+              className="flex-1 bg-green-100 hover:bg-green-200 text-black border-0"
+            >
+              Sign Up
+            </Button>
+            <Button
+              onClick={handleSignIn}
+              variant="outline"
+              className="flex-1 bg-white hover:bg-gray-50 text-black border-gray-300"
+            >
+              Sign In
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
