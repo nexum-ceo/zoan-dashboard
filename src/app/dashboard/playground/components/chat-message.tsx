@@ -25,6 +25,7 @@ import {
 } from '@/components/ui/tooltip';
 import {
   CopyIcon,
+  EditIcon,
   RefreshCcwIcon,
   ThumbsDownIcon,
   ThumbsUpIcon,
@@ -126,6 +127,12 @@ export const ChatMessage: FC<ChatMessageProps> = ({
     }
   };
 
+  // User action handlers
+  const handleEditUserMessage = () => {
+    console.log('Edit user message:', message.id);
+    // TODO: Implement edit logic
+  };
+
   const handleLike = () => {
     setLiked(!liked);
     if (liked) {
@@ -223,6 +230,35 @@ export const ChatMessage: FC<ChatMessageProps> = ({
         <MessageContent>
           <ReactMarkdown>{content}</ReactMarkdown>
         </MessageContent>
+
+        {/* Actions for user messages */}
+        {isUser && (
+          <TooltipProvider>
+            <Actions className="mt-2">
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Action label="Edit" onClick={handleEditUserMessage}>
+                    <EditIcon className="size-4" />
+                  </Action>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>Edit message</p>
+                </TooltipContent>
+              </Tooltip>
+
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Action label="Copy" onClick={handleCopy}>
+                    <CopyIcon className="size-4" />
+                  </Action>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>Copy</p>
+                </TooltipContent>
+              </Tooltip>
+            </Actions>
+          </TooltipProvider>
+        )}
 
         {/* Actions for assistant messages */}
         {!isUser && (
