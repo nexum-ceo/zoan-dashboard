@@ -1,22 +1,43 @@
 import Image from 'next/image';
 import VectorIcon from '../../../../public/icon/vector';
+import Creator1 from '../../../../public/image/creators/creator-1.jpg';
+import Creator10 from '../../../../public/image/creators/creator-10.jpg';
+import Creator11 from '../../../../public/image/creators/creator-11.jpg';
+import Creator12 from '../../../../public/image/creators/creator-12.jpg';
+import Creator13 from '../../../../public/image/creators/creator-13.png';
+import Creator2 from '../../../../public/image/creators/creator-2.png';
+import Creator3 from '../../../../public/image/creators/creator-3.jpg';
+import Creator4 from '../../../../public/image/creators/creator-4.png';
+import Creator5 from '../../../../public/image/creators/creator-5.png';
+import Creator6 from '../../../../public/image/creators/creator-6.png';
+import Creator7 from '../../../../public/image/creators/creator-7.jpg';
+import Creator8 from '../../../../public/image/creators/creator-8.jpg';
+import Creator9 from '../../../../public/image/creators/creator-9.jpg';
 
 export default function TopCreators() {
   // Creator images data
   const creators = [
-    { id: 1, image: '/image/creators/creator-1.jpg' },
-    { id: 2, image: '/image/creators/creator-2.png' },
-    { id: 3, image: '/image/creators/creator-3.jpg' },
-    { id: 4, image: '/image/creators/creator-4.png' },
-    { id: 5, image: '/image/creators/creator-5.png' },
-    { id: 6, image: '/image/creators/creator-6.png' },
-    { id: 7, image: '/image/creators/creator-7.jpg' },
-    { id: 8, image: '/image/creators/creator-8.jpg' },
-    { id: 9, image: '/image/creators/creator-9.jpg' },
-    { id: 10, image: '/image/creators/creator-10.jpg' },
-    { id: 11, image: '/image/creators/creator-11.jpg' },
-    { id: 12, image: '/image/creators/creator-12.jpg' },
-    { id: 13, image: '/image/creators/creator-13.png' },
+    { id: 1, image: Creator1 },
+    { id: 2, image: Creator2 },
+    { id: 3, image: Creator3 },
+    { id: 4, image: Creator4 },
+    { id: 5, image: Creator5 },
+    { id: 6, image: Creator6 },
+    { id: 7, image: Creator7 },
+    { id: 8, image: Creator8 },
+    { id: 9, image: Creator9 },
+    { id: 10, image: Creator4 },
+    { id: 11, image: Creator5 },
+    { id: 12, image: Creator5 },
+    { id: 13, image: Creator4 },
+    { id: 14, image: Creator10 },
+    { id: 15, image: Creator11 },
+    { id: 16, image: Creator12 },
+    { id: 17, image: Creator4 },
+    { id: 18, image: Creator13 },
+    { id: 19, image: Creator13 },
+    { id: 20, image: Creator4 },
+    { id: 21, image: Creator7 },
   ];
 
   return (
@@ -37,21 +58,110 @@ export default function TopCreators() {
         </div>
 
         {/** --- Creators Grid ---  */}
-        <div className="grid grid-cols-4 gap-2 w-64">
-          {creators.map((creator) => (
-            <div
-              key={creator.id}
-              className="aspect-square w-32 h-32 rounded-lg overflow-hidden cursor-pointer hover:scale-105 transition-transform duration-200"
-            >
-              <Image
-                src={creator.image}
-                alt={`Creator ${creator.id}`}
-                width={128}
-                height={128}
-                className="w-full h-full object-cover"
-              />
+        <div className="flex-1">
+          <div className="flex flex-col gap-0.5 items-end">
+            <div className="flex gap-0.5">
+              {creators.slice(0, 4).map((creator) => (
+                <div
+                  key={creator.id}
+                  className="aspect-square w-50 h-50 2xl:w-70 2xl:h-70 rounded-lg overflow-hidden cursor-pointer transition-transform duration-200"
+                >
+                  <Image
+                    src={creator.image}
+                    alt={`Creator ${creator.id}`}
+                    quality={100}
+                    className="w-full h-full object-cover"
+                  />
+                </div>
+              ))}
             </div>
-          ))}
+
+            <div className="flex gap-0.5">
+              {/* White card */}
+              <div className="aspect-square w-50 h-50 2xl:w-70 2xl:h-70 rounded-lg bg-white transition-transform duration-200 flex items-center justify-center"></div>
+              {creators.slice(4, 7).map((creator) => (
+                <div
+                  key={creator.id}
+                  className="aspect-square w-50 h-50 2xl:w-70 2xl:h-70 rounded-lg overflow-hidden cursor-pointer  transition-transform duration-200"
+                >
+                  <Image
+                    src={creator.image}
+                    alt={`Creator ${creator.id}`}
+                    quality={100}
+                    className="w-full h-full object-cover"
+                  />
+                </div>
+              ))}
+            </div>
+
+            <div className="flex gap-0.5">
+              {creators.slice(7, 11).map((creator) => (
+                <div
+                  key={creator.id}
+                  className="aspect-square w-50 h-50 2xl:w-70 2xl:h-70 rounded-lg overflow-hidden cursor-pointer  transition-transform duration-200"
+                >
+                  <Image
+                    src={creator.image}
+                    alt={`Creator ${creator.id}`}
+                    quality={100}
+                    className="w-full h-full object-cover"
+                  />
+                </div>
+              ))}
+            </div>
+
+            <div className="flex gap-0.5">
+              {/* White card */}
+              <div className="aspect-square w-50 h-50 2xl:w-70 2xl:h-70 rounded-lg bg-white  transition-transform duration-200 flex items-center justify-center"></div>
+              {creators.slice(11, 14).map((creator) => (
+                <div
+                  key={creator.id}
+                  className="aspect-square w-50 h-50 2xl:w-70 2xl:h-70 rounded-lg overflow-hidden cursor-pointer  transition-transform duration-200"
+                >
+                  <Image
+                    src={creator.image}
+                    alt={`Creator ${creator.id}`}
+                    quality={100}
+                    className="w-full h-full object-cover"
+                  />
+                </div>
+              ))}
+            </div>
+
+            <div className="flex gap-0.5">
+              {creators.slice(14, 18).map((creator) => (
+                <div
+                  key={creator.id}
+                  className="aspect-square w-50 h-50 2xl:w-70 2xl:h-70 rounded-lg overflow-hidden cursor-pointer  transition-transform duration-200"
+                >
+                  <Image
+                    src={creator.image}
+                    alt={`Creator ${creator.id}`}
+                    quality={100}
+                    className="w-full h-full object-cover"
+                  />
+                </div>
+              ))}
+            </div>
+
+            <div className="flex gap-0.5">
+              {/* White card */}
+              <div className="aspect-square w-50 h-50 2xl:w-70 2xl:h-70 rounded-lg bg-white  transition-transform duration-200 flex items-center justify-center"></div>
+              {creators.slice(18, 21).map((creator) => (
+                <div
+                  key={creator.id}
+                  className="aspect-square w-50 h-50 2xl:w-70 2xl:h-70 rounded-lg overflow-hidden cursor-pointer  transition-transform duration-200"
+                >
+                  <Image
+                    src={creator.image}
+                    alt={`Creator ${creator.id}`}
+                    className="w-full h-full object-cover"
+                    quality={100}
+                  />
+                </div>
+              ))}
+            </div>
+          </div>
         </div>
       </div>
     </div>
