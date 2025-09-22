@@ -13,9 +13,9 @@ export default function Install(props: SVGProps<SVGSVGElement>) {
       <path
         d="M2.5 8.75H7.5M5 1.25V7.08333M5 7.08333L7.08333 5M5 7.08333L2.91667 5"
         stroke="#272727"
-        stroke-opacity="0.5"
-        stroke-linecap="round"
-        stroke-linejoin="round"
+        strokeOpacity="0.5"
+        strokeLinecap="round"
+        strokeLinejoin="round"
       />
     </svg>
   );

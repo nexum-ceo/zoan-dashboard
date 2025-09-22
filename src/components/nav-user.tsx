@@ -193,7 +193,7 @@ export const NavUser: FC<NavUserProps> = ({ user }) => {
                 <span className="text-paragraph !text-sm !text-[#272727]/50">
                   Language
                 </span>
-                <Select defaultValue={'enlist'} value={'english'}>
+                <Select defaultValue={'enlish'} value={'english'}>
                   <SelectTrigger>
                     <SelectValue />
                   </SelectTrigger>
