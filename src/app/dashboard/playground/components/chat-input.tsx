@@ -32,6 +32,7 @@ type ChatInputProps = {
   disabled?: boolean;
   submitDisabled?: boolean;
   status?: ChatStatus;
+  bannerPosition?: 'top' | 'bottom';
 };
 
 export const ChatInput: FC<ChatInputProps> = ({
@@ -41,6 +42,7 @@ export const ChatInput: FC<ChatInputProps> = ({
   disabled = false,
   submitDisabled = false,
   status,
+  bannerPosition = 'bottom',
 }) => {
   const [showUpgradeBanner, setShowUpgradeBanner] = useState(true);
   const [showAuthDialog, setShowAuthDialog] = useState(false);
@@ -111,7 +113,30 @@ export const ChatInput: FC<ChatInputProps> = ({
   };
 
   return (
-    <div className="w-full max-w-4xl mx-auto px-4 py-4">
+    <div className="w-full">
+      {showUpgradeBanner && bannerPosition === 'top' && (
+        <div className="rounded-t-xl -mb-3 flex items-center justify-between bg-primary-brand-green px-4 pt-3 pb-8 text-paragraph">
+          <span>
+            {session ? (
+              <>
+                <span>Upgrade now to get more tokens and unlock access to</span>
+                <span className="font-bold"> &nbsp;AI V2</span>
+                <span>!</span>
+              </>
+            ) : (
+              <>
+                <span>Sign up to explore more our features</span>
+              </>
+            )}
+          </span>
+          <span
+            className="cursor-pointer text-[#272727]/50"
+            onClick={() => setShowUpgradeBanner(false)}
+          >
+            <CloseIcon />
+          </span>
+        </div>
+      )}
       <PromptInput
         className="z-10 relative rounded-xl border focus-within:border-primary-brand-darker-green bg-card text-card-foreground"
         onSubmit={handleSubmit}
@@ -146,7 +171,7 @@ export const ChatInput: FC<ChatInputProps> = ({
           </div>
         </PromptInputToolbar>
       </PromptInput>
-      {showUpgradeBanner && (
+      {showUpgradeBanner && bannerPosition === 'bottom' && (
         <div className="rounded-b-xl -mt-3 flex items-center justify-between bg-primary-brand-green px-4 pb-3 pt-7 text-paragraph">
           <span>
             {session ? (

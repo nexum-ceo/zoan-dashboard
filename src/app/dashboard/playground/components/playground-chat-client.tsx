@@ -415,6 +415,7 @@ export function PlaygroundChatClient({ chatId }: PlaygroundChatClientProps) {
               onChange={handleInputChange}
               onSubmit={handleSubmit}
               submitDisabled={isProcessing}
+              bannerPosition="top"
             />
           </div>
         </ResizablePanel>
