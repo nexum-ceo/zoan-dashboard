@@ -194,16 +194,22 @@ export function useSSEChat({
 
         // Handle [DONE] signal
         if (rawData.trim() === '[DONE]') {
+          console.log('[SSE] [DONE] signal received, stopping streaming');
           try {
             esRef.current?.close();
           } catch {}
           esRef.current = null;
           setSseConnected(false);
           setIsAssistantStreaming(false);
+          // Clear any pending timeouts
+          if (assistantStreamEndTimeoutRef.current) {
+            clearTimeout(assistantStreamEndTimeoutRef.current);
+            assistantStreamEndTimeoutRef.current = null;
+          }
           return null;
         }
 
-        // Handle completion message
+        // Handle completion message - filter it out from UI
         if (rawData.includes('"message": "Response completed"')) {
           console.log('[SSE] Completion message received, closing connection');
           try {
@@ -212,6 +218,11 @@ export function useSSEChat({
           esRef.current = null;
           setSseConnected(false);
           setIsAssistantStreaming(false);
+          // Clear any pending timeouts
+          if (assistantStreamEndTimeoutRef.current) {
+            clearTimeout(assistantStreamEndTimeoutRef.current);
+            assistantStreamEndTimeoutRef.current = null;
+          }
           return null;
         }
 
@@ -221,6 +232,12 @@ export function useSSEChat({
 
           // Filter out unwanted message types
           if (data?.type && FILTERED_MESSAGE_TYPES.has(data.type)) {
+            return null;
+          }
+
+          // Filter out completion messages
+          if (data?.message === 'Response completed') {
+            console.log('[SSE] Filtering out completion message from UI');
             return null;
           }
 
@@ -234,6 +251,12 @@ export function useSSEChat({
         } catch {
           // If it's not JSON, check if it looks like JSON but failed to parse
           if (rawData.trim().startsWith('{') && rawData.trim().endsWith('}')) {
+            return null;
+          }
+
+          // Filter out raw completion messages
+          if (rawData.includes('"Response completed"')) {
+            console.log('[SSE] Filtering out raw completion message from UI');
             return null;
           }
 
@@ -252,12 +275,20 @@ export function useSSEChat({
 
       // Handle completion event to close connection
       if (isDone) {
+        console.log(
+          '[SSE] [DONE] signal received in chunk processing, stopping streaming',
+        );
         try {
           esRef.current?.close();
         } catch {}
         esRef.current = null;
         setSseConnected(false);
         setIsAssistantStreaming(false);
+        // Clear any pending timeouts
+        if (assistantStreamEndTimeoutRef.current) {
+          clearTimeout(assistantStreamEndTimeoutRef.current);
+          assistantStreamEndTimeoutRef.current = null;
+        }
         return;
       }
 
@@ -533,6 +564,7 @@ export function useSSEChat({
               .read()
               .then(({ done, value }) => {
                 if (done) {
+                  console.log('[SSE] Stream ended, stopping streaming');
                   setSseConnected(false);
                   setIsAssistantStreaming(false);
                   // Clear the timeout to ensure streaming state is reset
@@ -578,6 +610,7 @@ export function useSSEChat({
               })
               .catch((error) => {
                 console.error('[SSE] Stream read error:', error);
+                console.log('[SSE] Stream error occurred, stopping streaming');
                 setSseConnected(false);
                 setIsAssistantStreaming(false);
                 // Clear the timeout to ensure streaming state is reset
@@ -593,8 +626,14 @@ export function useSSEChat({
         })
         .catch((error) => {
           console.error('Fetch error:', error);
+          console.log('[SSE] Fetch error occurred, stopping streaming');
           setSseConnected(false);
           setIsAssistantStreaming(false);
+          // Clear the timeout to ensure streaming state is reset
+          if (assistantStreamEndTimeoutRef.current) {
+            clearTimeout(assistantStreamEndTimeoutRef.current);
+            assistantStreamEndTimeoutRef.current = null;
+          }
           throw error;
         });
     },
