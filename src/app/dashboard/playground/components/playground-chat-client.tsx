@@ -361,9 +361,9 @@ export function PlaygroundChatClient({ chatId }: PlaygroundChatClientProps) {
           <div className="flex-1 w-full overflow-hidden h-full">
             <div
               ref={messagesContainerRef}
-              className="relative size-full overflow-y-auto"
+              className="relative size-full overflow-y-auto flex-1 scrollbar-none"
             >
-              <Conversation className="relative size-full">
+              <Conversation className="relative size-full scrollbar-none">
                 <ConversationContent className="px-4 py-2">
                   {/* Loading indicator for fetching more messages */}
                   {isFetchingNextPage && (
