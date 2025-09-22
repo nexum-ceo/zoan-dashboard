@@ -19,8 +19,10 @@ import {
 import type { ChatStatus } from 'ai';
 import { Paperclip } from 'lucide-react';
 import { useSession } from 'next-auth/react';
+import Image from 'next/image';
 import { ChangeEvent, FC, FormEvent, useState } from 'react';
 import CloseIcon from '../../../../../public/icon/close';
+import ZoanLogo from '../../../../../public/zoan-logo.png';
 
 type ChatInputProps = {
   value: string;
@@ -135,23 +137,23 @@ export const ChatInput: FC<ChatInputProps> = ({
 
       {/* Authentication Dialog */}
       <Dialog open={showAuthDialog} onOpenChange={setShowAuthDialog}>
-        <DialogContent className="sm:max-w-md">
-          <DialogHeader className="text-center">
-            <div className="flex items-center justify-center gap-3 mb-4">
-              <div className="w-8 h-8 bg-black rounded flex items-center justify-center">
-                <span className="text-white font-bold text-sm">Z</span>
-              </div>
-              <DialogTitle className="text-xl font-semibold">Zoan</DialogTitle>
+        <DialogContent className="sm:max-w-md px-4 py-5">
+          <DialogHeader className="text-center gap-1">
+            <div className="flex items-center justify-center gap-3 mb-6">
+              <Image src={ZoanLogo} alt="Zoan" width={32} height={32} />
+              <DialogTitle className="text-xl font-semibold mb-0">
+                Zoan
+              </DialogTitle>
             </div>
-            <DialogTitle className="text-lg font-semibold mb-2">
+            <DialogTitle className="text-[14px] font-medium leading-4 text-center text-[#272727]">
               Continue with ZOAN
             </DialogTitle>
-            <DialogDescription className="text-sm text-gray-600">
+            <DialogDescription className="text-sm leading-3.5 text-center font-normal text-[#272727]/40">
               Please sign in or create an account to continue.
             </DialogDescription>
           </DialogHeader>
 
-          <div className="flex gap-3 mt-6">
+          <div className="flex gap-1 mt-6">
             <Button
               onClick={handleSignUp}
               className="flex-1 bg-green-100 hover:bg-green-200 text-black border-0"
