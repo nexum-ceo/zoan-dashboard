@@ -233,7 +233,7 @@ export const ChatSettings: FC<ChatSettingsProps> = ({ isOpen, onClose }) => {
     >
       <SheetContent
         side="right"
-        className="w-92 p-0 gap-0 [&>button.absolute]:hidden"
+        className="w-92 overflow-y-auto p-0 gap-0 [&>button.absolute]:hidden"
       >
         <Tabs defaultValue="agent" className="w-full">
           <SheetHeader className="px-4 py-0 pt-4 border-b border-border">
@@ -241,11 +241,15 @@ export const ChatSettings: FC<ChatSettingsProps> = ({ isOpen, onClose }) => {
               <SheetTitle className="text-[#272727] text-[16px] font-medium">
                 Setting
               </SheetTitle>
-              <Button variant={'secondary'}>View project</Button>
-              <SheetClose className="p-0 m-0 text-[#272727]">
-                <X className="w-4 h-4" />
-                <span className="sr-only">Close</span>
-              </SheetClose>
+              <div className="flex items-center gap-4">
+                <Button variant={'secondary'} className="text-sm">
+                  View project
+                </Button>
+                <SheetClose className="p-0 m-0 text-[#272727]">
+                  <X className="w-4 h-4" />
+                  <span className="sr-only">Close</span>
+                </SheetClose>
+              </div>
             </div>
             <TabsList className="w-full flex mt-3 bg-transparent p-0 items-end gap-6 h-auto rounded-none mb-0 ">
               <TabsTrigger
@@ -436,7 +440,7 @@ export const ChatSettings: FC<ChatSettingsProps> = ({ isOpen, onClose }) => {
             {/* Primary Prompt Tab */}
             <TabsContent value="primary-prompt" className="space-y-6">
               {/* Primary Prompt Section */}
-              <div className="space-y-3 rounded-lg border border-border bg-card p-4 text-card-foreground">
+              <div>
                 <div className="flex items-center gap-2">
                   <div className="h-8 w-8 p-1.5 rounded-lg bg-purple-50 dark:bg-purple-400/10 text-purple-600 dark:text-purple-300 ring-1 ring-purple-200 dark:ring-purple-400/20 flex items-center justify-center">
                     <Sparkles className="w-4 h-4" />
@@ -649,7 +653,7 @@ export const ChatSettings: FC<ChatSettingsProps> = ({ isOpen, onClose }) => {
 
             {/* Plugin Tab */}
             <TabsContent value="plugin" className="space-y-6">
-              <div className="space-y-2 rounded-lg border border-border bg-card p-4 text-card-foreground">
+              <div className="space-y-2">
                 <div className="flex items-center gap-2">
                   <Sparkles className="w-4 h-4 stroke-[1.5px] stroke-[#272727]" />{' '}
                   <h3 className="text-paragraph !text-sm">Primary Prompt</h3>

@@ -109,6 +109,8 @@ export function PlaygroundChatClient({ chatId }: PlaygroundChatClientProps) {
 
   // Send the first message with delay for new chats
   useEffect(() => {
+    // Require user_id to be available before attempting first send
+    if (!chatInfo?.user_id) return;
     if (pendingMsg && !firstMsgSent && !isFirstMessageSendingRef.current) {
       // Set flags immediately to prevent multiple executions
       setFirstMsgSent(true);
@@ -119,7 +121,7 @@ export function PlaygroundChatClient({ chatId }: PlaygroundChatClientProps) {
         id: Date.now().toString(),
         role: 'user' as const,
         content: pendingMsg,
-        sender_id: chatInfo?.user_id || '',
+        sender_id: chatInfo.user_id,
       };
       setMessagesRef.current((prev) => [...prev, userMsg]);
 
