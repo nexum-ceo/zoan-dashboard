@@ -18,8 +18,9 @@ import {
 } from '@/components/ui/shadcn-io/ai/prompt-input';
 import type { ChatStatus } from 'ai';
 import { Paperclip } from 'lucide-react';
-import { useSession } from 'next-auth/react';
+import { signIn, useSession } from 'next-auth/react';
 import Image from 'next/image';
+import { useRouter } from 'next/navigation';
 import { ChangeEvent, FC, FormEvent, useState } from 'react';
 import CloseIcon from '../../../../../public/icon/close';
 import ZoanLogo from '../../../../../public/zoan-logo.png';
@@ -44,6 +45,7 @@ export const ChatInput: FC<ChatInputProps> = ({
   const [showUpgradeBanner, setShowUpgradeBanner] = useState(true);
   const [showAuthDialog, setShowAuthDialog] = useState(false);
   const { data: session } = useSession();
+  const router = useRouter();
 
   // Handle input change with disabled state check
   const handleInputChange = (e: ChangeEvent<HTMLTextAreaElement>) => {
@@ -68,11 +70,44 @@ export const ChatInput: FC<ChatInputProps> = ({
     setShowAuthDialog(false);
   };
 
-  // Handle sign in
-  const handleSignIn = () => {
-    // TODO: Implement sign in logic
-    console.log('Sign in clicked');
-    setShowAuthDialog(false);
+  const openLoginPopup = () => {
+    const popup = window.open(
+      `https://passport.buymed.site/?clientId=${process.env.NEXT_PUBLIC_PASSPORT_API_KEY}`,
+      'LoginPopup',
+      'width=850,height=700',
+    );
+
+    const handleMessage = async (event: MessageEvent) => {
+      if (event.origin !== `https://passport.buymed.site`) return;
+
+      if (event.data.type === 'login-success') {
+        const authCode = event.data.user.authCode;
+
+        if (authCode) {
+          const res = await signIn('credentials', {
+            authCode,
+            redirect: false,
+          });
+
+          if (res?.ok) {
+            console.log('✅ Logged in');
+            router.push('/dashboard/playground');
+          } else {
+            console.log('❌ Login failed');
+          }
+        }
+      }
+    };
+    // Add listener
+    window.addEventListener('message', handleMessage, false);
+
+    // Clean up
+    const timer = setInterval(() => {
+      if (popup?.closed) {
+        window.removeEventListener('message', handleMessage);
+        clearInterval(timer);
+      }
+    }, 500);
   };
 
   return (
@@ -161,7 +196,7 @@ export const ChatInput: FC<ChatInputProps> = ({
               Sign Up
             </Button>
             <Button
-              onClick={handleSignIn}
+              onClick={openLoginPopup}
               variant="outline"
               className="flex-1 bg-white hover:bg-gray-50 text-black border-gray-300"
             >
