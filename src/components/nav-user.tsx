@@ -5,6 +5,7 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
@@ -21,10 +22,22 @@ import {
 import { IconLogout } from '@tabler/icons-react';
 import { signOut } from 'next-auth/react';
 // import { useTheme } from 'next-themes';
+import { Button } from '@/components/ui/button';
+import {
+  Select,
+  SelectContent,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import { SelectItem } from '@radix-ui/react-select';
+import {
+  BookOpen,
+  DollarSign,
+  MessageSquare,
+  Settings,
+  Users,
+} from 'lucide-react';
 import { FC, useEffect } from 'react';
-import Diamond from '../../public/icon/diamond';
-import Headphone from '../../public/icon/headphone';
-import MesssageCircle from '../../public/icon/messsage-circle';
 import User from '../../public/icon/user';
 
 export type NavUserProps = {
@@ -84,26 +97,149 @@ export const NavUser: FC<NavUserProps> = ({ user }) => {
             align="end"
             sideOffset={4}
           >
-            <DropdownMenuItem>
-              <User className="h-4 w-4" />
-              <span>Profile</span>
+            <DropdownMenuItem className="px-3 py-2 bg-gray-100 cursor-pointer">
+              <User className="mr-2 h-4 w-4 text-[#272727]" />
+              <span className="text-paragraph !text-sm">Profile</span>
             </DropdownMenuItem>
-
-            <DropdownMenuItem>
-              <Diamond className="h-4 w-4" />
-              <span>Upgrade</span>
+            <DropdownMenuItem className="px-3 py-2 cursor-pointer">
+              <Settings className="mr-2 h-4 w-4 text-[#272727]" />
+              <span className="text-paragraph !text-sm !text-[#272727]/50">
+                Settings
+              </span>
             </DropdownMenuItem>
-            <DropdownMenuItem>
-              <Headphone className="h-4 w-4" />
-              <span>Feedback</span>
+            <DropdownMenuItem className="px-3 py-2 cursor-pointer">
+              <DollarSign className="mr-2 h-4 w-4 text-[#272727]" />
+              <span className="text-paragraph !text-sm !text-[#272727]/50">
+                Pricing
+              </span>
             </DropdownMenuItem>
-
-            <DropdownMenuItem>
-              <MesssageCircle className="h-4 w-4" />
-              <span>FAQ</span>
+            <DropdownMenuItem className="px-3 py-2 cursor-pointer">
+              <BookOpen className="mr-2 h-4 w-4 !text-[#272727]" />
+              <span className="text-paragraph !text-sm !text-[#272727]/50">
+                Documentation
+              </span>
             </DropdownMenuItem>
-
+            <DropdownMenuItem className="px-3 py-2 cursor-pointer">
+              <Users className="mr-2 h-4 w-4 text-[#272727]" />
+              <span className="text-paragraph !text-sm !text-[#272727]/50">
+                Community Forum
+              </span>
+            </DropdownMenuItem>
+            <DropdownMenuItem className="px-3 py-2 cursor-pointer">
+              <MessageSquare className="mr-2 h-4 w-4 text-[#272727]" />
+              <span className="text-paragraph !text-sm !text-[#272727]/50">
+                Feedback
+              </span>
+            </DropdownMenuItem>
             <DropdownMenuSeparator />
+            {/* Credit Balance Section */}
+            <DropdownMenuLabel className="px-3 py-2">
+              <div className="text-paragraph !text-sm">Credit Balance</div>
+            </DropdownMenuLabel>
+            <div className="px-3 py-2">
+              <div className="flex justify-between items-center mb-2">
+                <span className="text-paragraph !text-sm !text-[#272727]/50">
+                  Gifted credits
+                </span>
+                <span className="text-paragraph !text-sm">0.00</span>
+              </div>
+              <div className="flex justify-between items-center mb-3">
+                <span className="text-paragraph !text-sm !text-[#272727]/50">
+                  Monthly credits
+                </span>
+                <span className="text-paragraph !text-sm">4.71</span>
+              </div>
+            </div>
+            {/* Upgrade Banner */}
+            <div className="bg-primary-brand-green rounded-lg px-3 py-2">
+              <span className="text-paragraph !text-sm  !text-primary-brand-darker-green">
+                Upgrade your plan to buy more credits.
+                <span className="underline underline-offset-2">
+                  Upgrade plan
+                </span>
+              </span>
+            </div>
+            <DropdownMenuSeparator />
+            {/* Preferences Section */}
+            <DropdownMenuLabel className="px-3 py-2">
+              <div className="text-paragraph !text-sm">Preferences</div>
+            </DropdownMenuLabel>
+            <div className="px-3 py-2">
+              <div className="flex justify-between items-center mb-3">
+                <span className="text-paragraph !text-sm !text-[#272727]/50">
+                  Theme
+                </span>
+                <Select defaultValue={'system'} value={'system'}>
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent
+                    className="!text-sm !text-[#272727]"
+                    defaultValue={'system'}
+                  >
+                    <SelectItem className="text-[#272727]" value="system">
+                      System
+                    </SelectItem>
+                    <SelectItem className="text-[#272727]" value="dark">
+                      Dark
+                    </SelectItem>
+                    <SelectItem className="text-[#272727]" value="light">
+                      Light
+                    </SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="flex justify-between items-center mb-3">
+                <span className="text-paragraph !text-sm !text-[#272727]/50">
+                  Language
+                </span>
+                <Select defaultValue={'enlist'} value={'english'}>
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent
+                    className="!text-sm !text-[#272727]"
+                    defaultValue={'english'}
+                  >
+                    <SelectItem className="text-[#272727]" value="english">
+                      English
+                    </SelectItem>
+                    <SelectItem className="text-[#272727]" value="vietnamese">
+                      Vietnamese
+                    </SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="flex justify-between items-center">
+                <span className="text-paragraph !text-sm !text-[#272727]/50">
+                  Chat Position
+                </span>
+                <Select defaultValue={'left'} value="left">
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent
+                    className="!text-sm !text-[#272727]"
+                    defaultValue={'left'}
+                  >
+                    <SelectItem className="text-[#272727]" value="left">
+                      Left
+                    </SelectItem>
+                    <SelectItem className="text-[#272727]" value="right">
+                      Right
+                    </SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+            <DropdownMenuSeparator />
+            {/* Sign Out Button */}
+            <DropdownMenuItem onClick={handleLogout}>
+              <Button className="w-full text-[#ef3d40] bg-transparent hover:bg-transparent p-0 border-none shadow-none">
+                <IconLogout className="text-[#ef3d40]" />
+                Sign out
+              </Button>
+            </DropdownMenuItem>
             {/* <div className="px-2 py-2">
               <div className="text-xs font-medium text-muted-foreground">
                 Preferences
@@ -143,10 +279,6 @@ export const NavUser: FC<NavUserProps> = ({ user }) => {
               </div>
             </div>
             <DropdownMenuSeparator /> */}
-            <DropdownMenuItem onClick={handleLogout}>
-              <IconLogout />
-              Log out
-            </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
       </SidebarMenuItem>

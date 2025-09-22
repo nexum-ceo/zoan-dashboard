@@ -81,7 +81,7 @@ export function PlaygroundClient() {
           </div>
         </div>
 
-        <div className="py-20 xl:px-25 sm:px-16 w-full">
+        <div className="py-20 2xl:px-30 sm:px-16 w-full">
           {/** --- Community Section ---  */}
           <CommunitySection />
 
