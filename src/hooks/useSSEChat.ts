@@ -15,6 +15,7 @@ export type ChatMessage = {
   content: string;
   sender_id: string | null;
   parts?: Array<{ type: string; text?: string }>;
+  isComplete?: boolean; // Track if message is fully received
 };
 
 export type UseSSEChatProps = {
@@ -24,6 +25,7 @@ export type UseSSEChatProps = {
   user_id: string;
   expectedResponseTimeoutMs?: number;
   enableAutoReconnect?: boolean;
+  onGameSignal?: () => void;
 };
 
 const FILTERED_MESSAGE_TYPES = new Set([
@@ -44,22 +46,21 @@ export function useSSEChat({
   user_id,
   initialMessages = [],
   enableAutoReconnect = false,
+  onGameSignal,
 }: UseSSEChatProps) {
   const [messages, setMessages] = useState<ChatMessage[]>(initialMessages);
   const [input, setInput] = useState<string>('');
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [isAssistantStreaming, setIsAssistantStreaming] =
     useState<boolean>(false);
-  // Strict gating: block input until SSE emits [DONE] or completion
   const [isAwaitingDone, setIsAwaitingDone] = useState<boolean>(false);
-  const esRef = useRef<EventSource | null>(null);
   const [sseConnected, setSseConnected] = useState<boolean>(false);
+
+  // Refs for connection management
+  const esRef = useRef<EventSource | null>(null);
   const reconnectTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(
     null,
   );
-  // Broadcast to other tabs if needed (currently unused)
-  // const bcRef = useRef<BroadcastChannel | null>(null);
-  // const isOwnerRef = useRef<boolean>(false);
   const isReconnectingRef = useRef<boolean>(false);
   const reconnectAttemptsRef = useRef<number>(0);
   const manualCloseRef = useRef<boolean>(false);
@@ -70,21 +71,85 @@ export function useSSEChat({
   const responseTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const lastMessageAtRef = useRef<number>(Date.now());
   const scheduleReconnectRef = useRef<(reason?: string) => void>(() => {});
+  const onGameSignalRef = useRef<(() => void) | null>(onGameSignal ?? null);
+  onGameSignalRef.current = onGameSignal ?? null;
 
   const RECONNECT_BASE_DELAY = 1000;
   const RECONNECT_MAX_DELAY = 15000;
+
+  // Helper function to clear all timeouts
+  const clearAllTimeouts = useCallback(() => {
+    if (responseTimeoutRef.current) {
+      clearTimeout(responseTimeoutRef.current);
+      responseTimeoutRef.current = null;
+    }
+    if (assistantStreamEndTimeoutRef.current) {
+      clearTimeout(assistantStreamEndTimeoutRef.current);
+      assistantStreamEndTimeoutRef.current = null;
+    }
+  }, []);
+
+  // Helper function to close connection and reset states
+  const closeConnection = useCallback(() => {
+    try {
+      esRef.current?.close();
+    } catch {}
+    esRef.current = null;
+    setSseConnected(false);
+    setIsAssistantStreaming(false);
+    setIsAwaitingDone(false);
+    clearAllTimeouts();
+
+    // Mark the last assistant message as complete when connection closes
+    setMessages((prev) => {
+      if (
+        prev.length > 0 &&
+        prev[prev.length - 1].role === ChatRole.ASSISTANT
+      ) {
+        const updated = [...prev];
+        const last = { ...updated[updated.length - 1] };
+        last.isComplete = true;
+        updated[updated.length - 1] = last;
+        return updated;
+      }
+      return prev;
+    });
+  }, [clearAllTimeouts]);
+
+  // Helper function to check if message should be filtered
+  const shouldFilterMessage = useCallback((data: unknown): boolean => {
+    if (!data) return true;
+
+    // Filter by type
+    if (typeof data === 'object' && data !== null && 'type' in data) {
+      const dataObj = data as Record<string, unknown>;
+      if (
+        typeof dataObj.type === 'string' &&
+        FILTERED_MESSAGE_TYPES.has(dataObj.type)
+      ) {
+        return true;
+      }
+    }
+
+    // Filter completion messages
+    if (typeof data === 'object' && data !== null && 'message' in data) {
+      const dataObj = data as Record<string, unknown>;
+      if (dataObj.message === 'Response completed') {
+        return true;
+      }
+    }
+
+    if (typeof data === 'string' && data.includes('"Response completed"')) {
+      return true;
+    }
+
+    return false;
+  }, []);
 
   // Keep auto-reconnect flag in sync with prop
   useEffect(() => {
     autoReconnectEnabledRef.current = !!enableAutoReconnect;
   }, [enableAutoReconnect]);
-
-  const clearResponseTimeout = useCallback(() => {
-    if (responseTimeoutRef.current) {
-      clearTimeout(responseTimeoutRef.current);
-      responseTimeoutRef.current = null;
-    }
-  }, []);
 
   const coerceToString = useCallback((value: unknown): string => {
     if (typeof value === 'string') return value;
@@ -176,147 +241,69 @@ export function useSSEChat({
   useEffect(() => {
     handleSSEDataRef.current = (raw: string) => {
       lastMessageAtRef.current = Date.now();
-      clearResponseTimeout();
+      clearAllTimeouts();
       setIsAssistantStreaming(true);
-      if (assistantStreamEndTimeoutRef.current) {
-        clearTimeout(assistantStreamEndTimeoutRef.current);
-        assistantStreamEndTimeoutRef.current = null;
-      }
+
+      // Set timeout to reset streaming state
       assistantStreamEndTimeoutRef.current = setTimeout(() => {
         setIsAssistantStreaming(false);
       }, 900);
-      const chunk = (() => {
-        const rawData = String(raw);
-        // console.log('[SSE] Processing chunk:', rawData);
 
-        // Handle [DONE] signal
-        if (rawData.trim() === '[DONE]') {
-          console.log('[SSE] [DONE] signal received, stopping streaming');
-          try {
-            esRef.current?.close();
-          } catch {}
-          esRef.current = null;
-          setSseConnected(false);
-          setIsAssistantStreaming(false);
-          setIsAwaitingDone(false);
-          // Clear any pending timeouts
-          if (assistantStreamEndTimeoutRef.current) {
-            clearTimeout(assistantStreamEndTimeoutRef.current);
-            assistantStreamEndTimeoutRef.current = null;
-          }
-          return null;
-        }
+      const rawData = String(raw);
 
-        // Handle completion message - filter it out from UI
-        if (rawData.includes('"message": "Response completed"')) {
-          console.log('[SSE] Completion message received, closing connection');
-          try {
-            esRef.current?.close();
-          } catch {}
-          esRef.current = null;
-          setSseConnected(false);
-          setIsAssistantStreaming(false);
-          setIsAwaitingDone(false);
-          // Clear any pending timeouts
-          if (assistantStreamEndTimeoutRef.current) {
-            clearTimeout(assistantStreamEndTimeoutRef.current);
-            assistantStreamEndTimeoutRef.current = null;
-          }
-          return null;
-        }
-
-        // Try to parse as JSON first
+      // Early visibility for game-signal even if JSON parsing fails later
+      if (rawData.includes('"game-signal"')) {
         try {
-          const data = JSON.parse(rawData);
-
-          // Filter out unwanted message types
-          if (data?.type && FILTERED_MESSAGE_TYPES.has(data.type)) {
-            return null;
+          console.log('[SSE] raw contains game-signal:', rawData);
+          if (typeof window !== 'undefined' && 'dispatchEvent' in window) {
+            window.dispatchEvent(new CustomEvent('zoan:game-signal'));
           }
-
-          // Filter out completion messages
-          if (data?.message === 'Response completed') {
-            console.log('[SSE] Filtering out completion message from UI');
-            return null;
-          }
-
-          // Only return data that has actual content
-          const content = coerceToString(data);
-          if (!content || content.trim() === '') {
-            return null;
-          }
-
-          return rawData;
-        } catch {
-          // If it's not JSON, check if it looks like JSON but failed to parse
-          if (rawData.trim().startsWith('{') && rawData.trim().endsWith('}')) {
-            return null;
-          }
-
-          // Filter out raw completion messages
-          if (rawData.includes('"Response completed"')) {
-            console.log('[SSE] Filtering out raw completion message from UI');
-            return null;
-          }
-
-          // Only return non-empty raw text
-          if (!rawData || rawData.trim() === '') {
-            return null;
-          }
-
-          return rawData;
-        }
-      })();
-      if (!chunk) {
-        return;
-      }
-      const isDone = chunk.trim() === '[DONE]';
-
-      // Handle completion event to close connection
-      if (isDone) {
-        console.log(
-          '[SSE] [DONE] signal received in chunk processing, stopping streaming',
-        );
-        try {
-          esRef.current?.close();
         } catch {}
-        esRef.current = null;
-        setSseConnected(false);
-        setIsAssistantStreaming(false);
-        setIsAwaitingDone(false);
-        // Clear any pending timeouts
-        if (assistantStreamEndTimeoutRef.current) {
-          clearTimeout(assistantStreamEndTimeoutRef.current);
-          assistantStreamEndTimeoutRef.current = null;
+      }
+
+      // Handle [DONE] signal
+      if (rawData.trim() === '[DONE]') {
+        console.log('[SSE] [DONE] signal received, stopping streaming');
+        closeConnection();
+        return;
+      }
+
+      // Try to parse as JSON first
+      let data: Record<string, unknown> | null = null;
+      try {
+        data = JSON.parse(rawData);
+      } catch {
+        // If it's not JSON, check if it looks like JSON but failed to parse
+        if (rawData.trim().startsWith('{') && rawData.trim().endsWith('}')) {
+          return;
+        }
+      }
+
+      // Filter out unwanted messages
+      if (shouldFilterMessage(data || rawData)) {
+        if (data?.message === 'Response completed') {
+          console.log('[SSE] Completion message received, closing connection');
+          closeConnection();
         }
         return;
       }
+
+      // Only process if there's actual content
+      const content = data ? coerceToString(data) : rawData;
+      if (!content || content.trim() === '') {
+        return;
+      }
+
+      const chunk = data ? rawData : rawData;
 
       try {
-        // Force a re-render to show streaming state
-        setIsAssistantStreaming(true);
-
         setMessages((prev) => {
-          let parsed: unknown = null;
-          try {
-            parsed = JSON.parse(chunk);
-          } catch {
-            // Ignore parse errors
-          }
-          const parsedRecord: Record<string, unknown> | null =
-            parsed && typeof parsed === 'object'
-              ? (parsed as Record<string, unknown>)
-              : null;
+          const parsedRecord: Record<string, unknown> | null = data;
+          const messageType = parsedRecord?.['type'] as string;
 
-          const isThinking =
-            !!parsedRecord && parsedRecord['type'] === 'thinking';
-          const isAnswer = !!parsedRecord && parsedRecord['type'] === 'answer';
-          const isGameGenerator =
-            !!parsedRecord && parsedRecord['type'] === 'game_generator';
-          const isGameSignal =
-            !!parsedRecord && parsedRecord['type'] === 'game-signal';
-          let textContent: string;
-          if (isThinking) {
+          // Extract text content based on message type
+          let textContent = '';
+          if (messageType === 'thinking') {
             const title =
               typeof parsedRecord!['title'] === 'string'
                 ? (parsedRecord!['title'] as string)
@@ -342,138 +329,104 @@ export function useSSEChat({
               : contentStr;
             textContent =
               contentStr && title ? `${header}\n${contentStr}` : header;
-          } else if (isAnswer) {
-            // For answer type, directly get content field
+          } else if (messageType === 'answer') {
             textContent =
               typeof parsedRecord!['content'] === 'string'
-                ? parsedRecord!['content']
+                ? (parsedRecord!['content'] as string)
                 : coerceToString(parsedRecord!['content'] ?? parsedRecord);
-            // For answer type, we should process even empty chunks to maintain message structure
             if (!textContent || textContent.trim() === '') {
-              textContent = ''; // Set to empty string instead of returning
+              textContent = ''; // Maintain message structure even for empty chunks
             }
-          } else if (isGameGenerator) {
+          } else if (
+            messageType === 'game_generator' ||
+            messageType === 'game-signal'
+          ) {
             textContent = coerceToString(
               parsedRecord!['content'] ??
                 parsedRecord!['text'] ??
                 parsedRecord!['data'] ??
                 parsedRecord,
             );
-            // Only process if there's actual content to show
-            if (!textContent || textContent.trim() === '') {
-              return prev;
+            // Proactively notify listeners when a game-signal arrives,
+            // even if there is no textual content in this chunk
+            if (messageType === 'game-signal') {
+              try {
+                console.log('[SSE] game-signal received');
+                if (onGameSignalRef.current) onGameSignalRef.current();
+                try {
+                  // Broadcast a DOM event as a resilient fallback channel
+                  if (
+                    typeof window !== 'undefined' &&
+                    'dispatchEvent' in window
+                  ) {
+                    window.dispatchEvent(new CustomEvent('zoan:game-signal'));
+                  }
+                } catch {}
+              } catch (e) {
+                console.error('[SSE] onGameSignal callback error', e);
+              }
             }
-          } else if (isGameSignal) {
-            textContent = coerceToString(
-              parsedRecord!['content'] ??
-                parsedRecord!['text'] ??
-                parsedRecord!['data'] ??
-                parsedRecord,
-            );
-            // Only process if there's actual content to show
             if (!textContent || textContent.trim() === '') {
-              return prev;
+              return prev; // Skip if no content
             }
           } else {
             const primary =
               parsedRecord && typeof parsedRecord['content'] === 'string'
                 ? (parsedRecord['content'] as string)
                 : null;
-            if (primary !== null) {
-              textContent = primary;
-            } else if (parsedRecord) {
-              const alt = coerceToString(parsedRecord);
-              textContent = alt.trim() !== '' ? alt : String(chunk);
-            } else {
-              textContent = typeof chunk === 'string' ? chunk : String(chunk);
-            }
-            // Only process if there's actual content to show
+            textContent =
+              primary ||
+              (parsedRecord ? coerceToString(parsedRecord) : String(chunk));
             if (!textContent || textContent.trim() === '') {
-              return prev;
+              return prev; // Skip if no content
             }
           }
 
+          // Update existing assistant message or create new one
           if (
             prev.length > 0 &&
             prev[prev.length - 1].role === ChatRole.ASSISTANT
           ) {
             const updated = [...prev];
             const last = { ...updated[updated.length - 1] } as ChatMessage;
-            if (isThinking) {
-              const existingParts = Array.isArray(last.parts)
-                ? last.parts.slice()
-                : [];
-              existingParts.push({ type: 'thinking', text: textContent });
-              last.parts = existingParts;
-            } else if (isAnswer) {
+            const existingParts = Array.isArray(last.parts)
+              ? last.parts.slice()
+              : [];
+
+            // Add content to main content for answer and text types
+            if (messageType === 'answer' || !messageType) {
               last.content = String(last.content || '') + textContent;
-              const existingParts = Array.isArray(last.parts)
-                ? last.parts.slice()
-                : [];
-              // For answer type, always add to parts to maintain structure
-              // Even if textContent is empty, we need to maintain the answer part
-              existingParts.push({ type: 'answer', text: textContent });
-              last.parts = existingParts;
-            } else if (isGameGenerator) {
-              const existingParts = Array.isArray(last.parts)
-                ? last.parts.slice()
-                : [];
-              // Only add parts with actual content
-              if (textContent && textContent.trim() !== '') {
-                existingParts.push({
-                  type: 'game_generator',
-                  text: textContent,
-                });
-                last.parts = existingParts;
-              }
-            } else if (isGameSignal) {
-              const existingParts = Array.isArray(last.parts)
-                ? last.parts.slice()
-                : [];
-              // Only add parts with actual content
-              if (textContent && textContent.trim() !== '') {
-                existingParts.push({ type: 'game-signal', text: textContent });
-                last.parts = existingParts;
-              }
-            } else {
-              last.content = String(last.content || '') + textContent;
-              const existingParts = Array.isArray(last.parts)
-                ? last.parts.slice()
-                : [];
-              // Only add parts with actual content
-              if (textContent && textContent.trim() !== '') {
-                existingParts.push({ type: 'text', text: textContent });
-                last.parts = existingParts;
-              }
             }
+
+            // Add to parts if there's content (or always for answer to maintain structure)
+            if (textContent || messageType === 'answer') {
+              existingParts.push({
+                type: messageType || 'text',
+                text: textContent,
+              });
+              last.parts = existingParts;
+            }
+
             last.sender_id = null;
             updated[updated.length - 1] = last;
             return updated;
           } else {
-            // For answer type, create message even if first chunk is empty
-            // For other types, only create if there's actual content
-            if (!isAnswer && (!textContent || textContent.trim() === '')) {
-              return prev;
+            // Create new assistant message
+            if (!textContent && messageType !== 'answer') {
+              return prev; // Skip if no content (except for answer type)
             }
+
             const newMsg: ChatMessage = {
               id: Date.now().toString() + '-sse',
               role: ChatRole.ASSISTANT,
               content:
-                isThinking || isAnswer || isGameGenerator || isGameSignal
-                  ? isAnswer
-                    ? textContent
-                    : ''
+                messageType === 'answer'
+                  ? textContent
+                  : messageType
+                  ? ''
                   : textContent,
               sender_id: null,
-              parts: isThinking
-                ? [{ type: 'thinking', text: textContent }]
-                : isAnswer
-                ? [{ type: 'answer', text: textContent }]
-                : isGameGenerator
-                ? [{ type: 'game_generator', text: textContent }]
-                : isGameSignal
-                ? [{ type: 'game-signal', text: textContent }]
-                : [{ type: 'text', text: textContent }],
+              parts: [{ type: messageType || 'text', text: textContent }],
             };
             return [...prev, newMsg];
           }
@@ -482,7 +435,7 @@ export function useSSEChat({
         console.error('[SSE] Error updating messages:', error);
       }
     };
-  }, [clearResponseTimeout, coerceToString]);
+  }, [clearAllTimeouts, closeConnection, shouldFilterMessage, coerceToString]);
 
   // Do not auto-connect on mount; connections are opened per message send.
   useEffect(() => {
@@ -493,13 +446,9 @@ export function useSSEChat({
         clearTimeout(reconnectTimeoutRef.current);
         reconnectTimeoutRef.current = null;
       }
-      try {
-        esRef.current?.close();
-      } catch {}
-      esRef.current = null;
-      clearResponseTimeout();
+      closeConnection();
     };
-  }, [clearResponseTimeout]);
+  }, [closeConnection]);
 
   // Reset states when chatId changes
   useEffect(() => {
@@ -566,14 +515,7 @@ export function useSSEChat({
               .then(({ done, value }) => {
                 if (done) {
                   console.log('[SSE] Stream ended, stopping streaming');
-                  setSseConnected(false);
-                  setIsAssistantStreaming(false);
-                  setIsAwaitingDone(false);
-                  // Clear the timeout to ensure streaming state is reset
-                  if (assistantStreamEndTimeoutRef.current) {
-                    clearTimeout(assistantStreamEndTimeoutRef.current);
-                    assistantStreamEndTimeoutRef.current = null;
-                  }
+                  closeConnection();
                   return;
                 }
 
@@ -613,14 +555,7 @@ export function useSSEChat({
               .catch((error) => {
                 console.error('[SSE] Stream read error:', error);
                 console.log('[SSE] Stream error occurred, stopping streaming');
-                setSseConnected(false);
-                setIsAssistantStreaming(false);
-                setIsAwaitingDone(false);
-                // Clear the timeout to ensure streaming state is reset
-                if (assistantStreamEndTimeoutRef.current) {
-                  clearTimeout(assistantStreamEndTimeoutRef.current);
-                  assistantStreamEndTimeoutRef.current = null;
-                }
+                closeConnection();
                 throw error;
               });
           };
@@ -630,18 +565,11 @@ export function useSSEChat({
         .catch((error) => {
           console.error('Fetch error:', error);
           console.log('[SSE] Fetch error occurred, stopping streaming');
-          setSseConnected(false);
-          setIsAssistantStreaming(false);
-          setIsAwaitingDone(false);
-          // Clear the timeout to ensure streaming state is reset
-          if (assistantStreamEndTimeoutRef.current) {
-            clearTimeout(assistantStreamEndTimeoutRef.current);
-            assistantStreamEndTimeoutRef.current = null;
-          }
+          closeConnection();
           throw error;
         });
     },
-    [chatId, user_id],
+    [chatId, user_id, closeConnection],
   );
 
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
@@ -652,6 +580,7 @@ export function useSSEChat({
       role: 'user',
       content: input,
       sender_id: user_id,
+      isComplete: true, // User messages are always complete
     };
     setMessages((prev) => [...prev, userMsg]);
     setIsLoading(true);
@@ -671,6 +600,7 @@ export function useSSEChat({
       role: ChatRole.USER,
       content: msg,
       sender_id: user_id,
+      isComplete: true, // User messages are always complete
     };
     setMessages((prev) => [...prev, userMsg]);
     setIsLoading(true);
@@ -681,6 +611,14 @@ export function useSSEChat({
       setIsLoading(false);
     }
   };
+
+  // Determine status for UI
+  const status: 'submitted' | 'streaming' | undefined =
+    isAwaitingDone || isAssistantStreaming
+      ? 'streaming'
+      : isLoading
+      ? 'submitted'
+      : undefined;
 
   return {
     messages,
@@ -696,5 +634,9 @@ export function useSSEChat({
     postMessage,
     isProcessing: isAwaitingDone || isLoading || isAssistantStreaming,
     isAwaitingDone,
+    status,
+    // Separate flag for input vs submit
+    canType: true, // Always allow typing
+    canSubmit: !isAwaitingDone && !isLoading && !isAssistantStreaming, // Only disable submit
   };
 }
