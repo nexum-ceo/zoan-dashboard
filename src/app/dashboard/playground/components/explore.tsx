@@ -3,6 +3,7 @@
 import { useFileContent } from '@/hooks/useFileContent';
 import { useFolderContent } from '@/hooks/useFolderContent';
 import { useGameSignalDetection } from '@/hooks/useGameSignalDetection';
+import { downloadSandboxZip } from '@/lib/download-utils';
 import { extractS3CommonPrefixes, extractS3Contents } from '@/lib/s3';
 import { processS3FilesToSandbox, selectActiveFile } from '@/lib/sandbox-utils';
 import { useGetChatGameVersionList } from '@/queries/useChat';
@@ -233,7 +234,17 @@ export const ExplorePanel: FC<ExplorePanelProps> = ({
             <button type="button" className="cursor-pointer">
               <Copy className="w-3 h-3 stroke-[1px] stroke-[#272727]" />
             </button>
-            <button type="button" className="cursor-pointer">
+            <button
+              type="button"
+              className="cursor-pointer"
+              onClick={() => {
+                const timestamp = new Date()
+                  .toISOString()
+                  .replace(/[:.]/g, '-');
+                const name = `build-${hardcodedChatId}-${hardcodedVersion}-${timestamp}`;
+                downloadSandboxZip(sandboxFiles, name);
+              }}
+            >
               <ArrowDownToLine className="w-3 h-3 stroke-[1px]" />
             </button>
             <button type="button" className="cursor-pointer">
