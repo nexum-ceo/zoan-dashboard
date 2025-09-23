@@ -234,7 +234,7 @@ export const ChatMessage: FC<ChatMessageProps> = ({
         {/* Actions for user messages */}
         {isUser && (
           <TooltipProvider>
-            <Actions className="">
+            <Actions className="justify-end">
               <Tooltip>
                 <TooltipTrigger asChild>
                   <Action
