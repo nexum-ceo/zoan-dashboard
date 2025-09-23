@@ -89,7 +89,7 @@ export const SandboxCodePanel: FC<SandboxCodePanelProps> = ({
               <SandpackBreadcrumb />
               <SandboxLayout className="!h-full">
                 <SandboxCodeEditor
-                  className="!h-full"
+                  className="!h-full !w-full"
                   showTabs={false}
                   showLineNumbers={true}
                 />

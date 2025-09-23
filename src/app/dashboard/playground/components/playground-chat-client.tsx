@@ -336,8 +336,8 @@ export function PlaygroundChatClient({ chatId }: PlaygroundChatClientProps) {
 
       <ResizablePanelGroup direction="horizontal" className="w-full h-full">
         <ResizablePanel
-          defaultSize={isExploreExpanded ? 0 : exploreOpen ? 72 : 100}
-          minSize={isExploreExpanded ? 0 : 40}
+          defaultSize={isExploreExpanded ? 0 : exploreOpen ? 40 : 100}
+          minSize={isExploreExpanded ? 0 : 30}
           className="flex flex-col bg-sidebar relative transition-all duration-300 ease-in-out"
         >
           {/* Mobile Header with Menu Button */}
@@ -427,9 +427,9 @@ export function PlaygroundChatClient({ chatId }: PlaygroundChatClientProps) {
           <>
             <ResizableHandle className="bg-white" />
             <ResizablePanel
-              defaultSize={isExploreExpanded ? 100 : 28}
-              minSize={isExploreExpanded ? 100 : 20}
-              maxSize={isExploreExpanded ? 100 : 50}
+              defaultSize={isExploreExpanded ? 100 : 60}
+              minSize={isExploreExpanded ? 100 : 30}
+              maxSize={isExploreExpanded ? 100 : 70}
               className="rounded-xl"
             >
               <ExplorePanel
