@@ -1,9 +1,9 @@
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
+import { Button } from '@/components/ui/button';
 import { IconLabel } from '@tabler/icons-react';
-import { Dot, Star } from 'lucide-react';
+import { ArrowUpRight, Dot, Star } from 'lucide-react';
 import Image from 'next/image';
 import { FC } from 'react';
-import Install from '../../../../../public/icon/install';
 import VectorIcon from '../../../../../public/icon/vector';
 type CommunityProject = {
   id: string;
@@ -50,7 +50,7 @@ const CommunityProjectCard: FC<{ project: CommunityProject }> = ({
   project,
 }) => {
   return (
-    <div className="p-3 flex gap-2 bg-white rounded-lg border border-[#272727]/5 shadow-sm hover:shadow-md transition-shadow duration-200 overflow-hidden">
+    <div className="p-3 flex items-center gap-2 bg-white rounded-lg border border-[#272727]/5 shadow-sm hover:shadow-md transition-shadow duration-200 overflow-hidden">
       {/* Project Image */}
       <div className="relative size-13 rounded-lg overflow-hidden aspect-square shrink-0">
         <Image
@@ -73,7 +73,7 @@ const CommunityProjectCard: FC<{ project: CommunityProject }> = ({
         </p>
 
         {/* Creator, Group Avatar and Stats */}
-        <div className="flex items-center gap-1 sm:gap-2 overflow-hidden whitespace-nowrap min-w-0">
+        <div className="flex items-center gap-1 overflow-hidden whitespace-nowrap min-w-0">
           <div className="flex items-center gap-1">
             <IconLabel className="w-3 h-3 text-primary-brand-darker-green" />
             <span className="text-primary-brand-darker-green text-[10px] font-normal">
@@ -84,7 +84,6 @@ const CommunityProjectCard: FC<{ project: CommunityProject }> = ({
           <div className="shrink-0">
             <GroupAvatar />
           </div>
-          <Dot className="w-2 h-2" />
           <span className="text-xs text-[#272727]/50 shrink-0">
             {project.installs} Install
           </span>
@@ -93,15 +92,11 @@ const CommunityProjectCard: FC<{ project: CommunityProject }> = ({
             <Star className="w-3 h-3 text-[#272727]/50" />
             <span className="text-xs text-[#272727]/50">{project.rating}</span>
           </div>
-          <Dot className="w-2 h-2" />
-          <div className="flex items-center gap-1 overflow-hidden min-w-0">
-            <Install className="w-3 h-3 text-[#272727]/50" />
-            <span className="text-xs text-[#272727]/50 truncate">
-              Installed 2 days ago
-            </span>
-          </div>
         </div>
       </div>
+      <Button size={'l'} variant="secondary" className="!p-1">
+        <ArrowUpRight className="text-[#272727]" />
+      </Button>
     </div>
   );
 };
