@@ -202,10 +202,32 @@ export function PlaygroundChatClient({ chatId }: PlaygroundChatClientProps) {
     return () => clearTimeout(timeoutId);
   }, [isFetchingNextPage, previousScrollHeight]);
 
-  // Auto-open Explore panel when assistant emits game signals in metadata or parts
+  // Open Explore on initial load if existing history has game_generator metadata
+  useEffect(() => {
+    if (!Array.isArray(initialMessages) || initialMessages.length === 0) return;
+    const found = [...(initialMessages as Array<Record<string, unknown>>)]
+      .reverse()
+      .find((m) => {
+        const role = (m?.role as string) || '';
+        const isAssistant = role === 'assistant' || role === 'ASSISTANT';
+        const metadata =
+          (m?.metadata as Record<string, unknown> | undefined) || undefined;
+        const hasGameGeneratorMeta =
+          !!metadata && metadata['game_generator'] !== undefined;
+        return isAssistant && hasGameGeneratorMeta;
+      });
+    if (found) {
+      setExploreOpen(true);
+      setSettingsOpen(false);
+    }
+  }, [initialMessages]);
+
+  // Open Explore during live streaming when a game-signal appears
   useEffect(() => {
     if (!Array.isArray(messages) || messages.length === 0) return;
-    const latestWithSignals = [...(messages as Array<Record<string, unknown>>)]
+    const latestWithGameSignal = [
+      ...(messages as Array<Record<string, unknown>>),
+    ]
       .reverse()
       .find((m) => {
         const role = (m?.role as string) || '';
@@ -215,20 +237,15 @@ export function PlaygroundChatClient({ chatId }: PlaygroundChatClientProps) {
         const parts =
           (m?.parts as Array<{ type?: string; text?: string }> | undefined) ||
           undefined;
-        const hasGameMeta =
-          !!metadata &&
-          (metadata['game_generator'] !== undefined ||
-            metadata['game-signal'] !== undefined);
-        const hasGamePart = Array.isArray(parts)
-          ? parts.some(
-              (p) => p?.type === 'game_generator' || p?.type === 'game-signal',
-            )
+        const hasSignalMeta =
+          !!metadata && metadata['game-signal'] !== undefined;
+        const hasSignalPart = Array.isArray(parts)
+          ? parts.some((p) => p?.type === 'game-signal')
           : false;
-        return isAssistant && (hasGameMeta || hasGamePart);
+        return isAssistant && (hasSignalMeta || hasSignalPart);
       });
-    if (latestWithSignals) {
+    if (latestWithGameSignal) {
       setExploreOpen(true);
-      setSettingsOpen(false);
     }
   }, [messages]);
 

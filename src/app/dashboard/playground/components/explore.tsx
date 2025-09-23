@@ -19,7 +19,7 @@ import { SandboxCodePanel } from './sandbox-code-panel';
 
 type ExplorePanelProps = {
   chatId: string;
-  onGameSignalReceived: () => void;
+  onGameSignalReceived?: () => void;
   className?: string;
   messages?: Array<unknown>;
   onRequestOpen?: () => void;
@@ -63,8 +63,6 @@ export const ExplorePanel: FC<ExplorePanelProps> = ({
     hardcodedChatId,
     hardcodedVersion,
   );
-
-  console.log('game build files', gameBuildFiles);
 
   // Debug: Log extracted contents and folders
   useEffect(() => {

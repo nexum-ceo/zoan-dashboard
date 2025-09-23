@@ -51,7 +51,9 @@ const GameGeneratorContent = ({ content }: { content: string }) => {
           .filter((f) => f.trim() !== '');
         result.push(
           <div key={i} className="mb-4">
-            <div className="font-semibold text-sm mb-2">File Manifest:</div>
+            <div className="font-medium text-paragraph mb-2">
+              File Manifest:
+            </div>
             <div className="flex flex-wrap gap-2">
               {files.map((file, index) => (
                 <TaskItemFile key={index}>{file.trim()}</TaskItemFile>
@@ -68,16 +70,17 @@ const GameGeneratorContent = ({ content }: { content: string }) => {
           result.push(
             <div key={i} className="flex items-start gap-2 mb-2">
               <TaskItemFile>{filename}</TaskItemFile>
-              <span className="text-sm text-muted-foreground">
-                {description}
-              </span>
+              <span className="text-xs text-paragraph">{description}</span>
             </div>,
           );
         }
       } else {
         // Regular markdown content
         result.push(
-          <div key={i} className="mb-2 text-sm">
+          <div
+            key={i}
+            className="mb-2 text-xs text-paragraph !text-[#272727]/50"
+          >
             <ReactMarkdown>{line}</ReactMarkdown>
           </div>,
         );
@@ -220,8 +223,10 @@ export const ChatMessage: FC<ChatMessageProps> = ({
             isStreaming={Boolean(isLoading && isLast)}
             defaultOpen={true}
           >
-            <ReasoningTrigger />
-            <ReasoningContent>{thinkingText}</ReasoningContent>
+            <ReasoningTrigger className="!text-xs" />
+            <ReasoningContent className="!text-xs">
+              {thinkingText}
+            </ReasoningContent>
           </Reasoning>
         )}
         {!isUser && gameGeneratorItems.length > 0 && (
@@ -229,7 +234,7 @@ export const ChatMessage: FC<ChatMessageProps> = ({
             defaultOpen={Boolean(isLoading && isLast)}
             className="w-full mb-0"
           >
-            <TaskTrigger title="Game Generator" />
+            <TaskTrigger className="!text-xs" title="Game Generator" />
             <TaskContent>
               <GameGeneratorContent content={gameGeneratorItems.join('')} />
             </TaskContent>
