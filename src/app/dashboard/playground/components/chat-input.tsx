@@ -72,9 +72,12 @@ export const ChatInput: FC<ChatInputProps> = ({
     setShowAuthDialog(false);
   };
 
+  const PASSPORT_BASE_URL =
+    process.env.NEXT_PUBLIC_PASSPORT_BASE_URL || 'https://passport.buymed.site';
+
   const openLoginPopup = () => {
     const popup = window.open(
-      `https://passport.buymed.site/?clientId=${process.env.NEXT_PUBLIC_PASSPORT_API_KEY}`,
+      `${PASSPORT_BASE_URL}/?clientId=${process.env.NEXT_PUBLIC_PASSPORT_API_KEY}`,
       'LoginPopup',
       'width=850,height=700',
     );
