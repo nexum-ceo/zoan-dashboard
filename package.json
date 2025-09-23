@@ -44,6 +44,7 @@
     "fast-xml-parser": "^5.2.5",
     "harden-react-markdown": "^1.0.5",
     "idb-keyval": "^6.2.2",
+    "jszip": "^3.10.1",
     "jwt-decode": "^4.0.0",
     "katex": "^0.16.22",
     "lucide-react": "^0.542.0",

@@ -1,6 +1,6 @@
 'use client';
 
-import { Bot, Building2, Settings } from 'lucide-react';
+import { Bot, Codesandbox, Settings } from 'lucide-react';
 import { FC } from 'react';
 
 type OptionButtonProps = {
@@ -52,7 +52,7 @@ export const OptionButtons: FC<OptionButtonsProps> = ({
     },
     {
       id: 'dapps',
-      icon: <Building2 className="w-4 h-4 text-purple-600" />,
+      icon: <Codesandbox className="w-4 h-4 text-purple-600" />,
       text: 'Building dApps',
     },
     {
