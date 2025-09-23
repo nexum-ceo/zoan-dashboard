@@ -166,9 +166,7 @@ export const ChatInput: FC<ChatInputProps> = ({
             <PromptInputSubmit
               status={status}
               disabled={disabled || submitDisabled || !value.trim()}
-            >
-              <span className="px-1">»»</span>
-            </PromptInputSubmit>
+            />
           </div>
         </PromptInputToolbar>
       </PromptInput>

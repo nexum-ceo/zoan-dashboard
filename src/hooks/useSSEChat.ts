@@ -682,6 +682,14 @@ export function useSSEChat({
     }
   };
 
+  // Determine status for UI
+  const status: 'submitted' | 'streaming' | undefined =
+    isAwaitingDone || isAssistantStreaming
+      ? 'streaming'
+      : isLoading
+      ? 'submitted'
+      : undefined;
+
   return {
     messages,
     input,
@@ -696,6 +704,7 @@ export function useSSEChat({
     postMessage,
     isProcessing: isAwaitingDone || isLoading || isAssistantStreaming,
     isAwaitingDone,
+    status,
     // Separate flag for input vs submit
     canType: true, // Always allow typing
     canSubmit: !isAwaitingDone && !isLoading && !isAssistantStreaming, // Only disable submit

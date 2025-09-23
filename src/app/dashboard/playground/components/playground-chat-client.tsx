@@ -94,6 +94,7 @@ export function PlaygroundChatClient({ chatId }: PlaygroundChatClientProps) {
     postMessage,
     canType,
     canSubmit,
+    status,
     setMessages,
   } = useSSEChat({
     initialMessages,
@@ -418,6 +419,7 @@ export function PlaygroundChatClient({ chatId }: PlaygroundChatClientProps) {
               onChange={handleInputChange}
               onSubmit={handleSubmit}
               submitDisabled={!canSubmit}
+              status={status}
               bannerPosition="top"
             />
           </div>
