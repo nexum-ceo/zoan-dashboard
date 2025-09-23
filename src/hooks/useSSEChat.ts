@@ -25,6 +25,7 @@ export type UseSSEChatProps = {
   user_id: string;
   expectedResponseTimeoutMs?: number;
   enableAutoReconnect?: boolean;
+  onGameSignal?: () => void;
 };
 
 const FILTERED_MESSAGE_TYPES = new Set([
@@ -45,6 +46,7 @@ export function useSSEChat({
   user_id,
   initialMessages = [],
   enableAutoReconnect = false,
+  onGameSignal,
 }: UseSSEChatProps) {
   const [messages, setMessages] = useState<ChatMessage[]>(initialMessages);
   const [input, setInput] = useState<string>('');
@@ -69,6 +71,8 @@ export function useSSEChat({
   const responseTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const lastMessageAtRef = useRef<number>(Date.now());
   const scheduleReconnectRef = useRef<(reason?: string) => void>(() => {});
+  const onGameSignalRef = useRef<(() => void) | null>(onGameSignal ?? null);
+  onGameSignalRef.current = onGameSignal ?? null;
 
   const RECONNECT_BASE_DELAY = 1000;
   const RECONNECT_MAX_DELAY = 15000;
@@ -247,6 +251,16 @@ export function useSSEChat({
 
       const rawData = String(raw);
 
+      // Early visibility for game-signal even if JSON parsing fails later
+      if (rawData.includes('"game-signal"')) {
+        try {
+          console.log('[SSE] raw contains game-signal:', rawData);
+          if (typeof window !== 'undefined' && 'dispatchEvent' in window) {
+            window.dispatchEvent(new CustomEvent('zoan:game-signal'));
+          }
+        } catch {}
+      }
+
       // Handle [DONE] signal
       if (rawData.trim() === '[DONE]') {
         console.log('[SSE] [DONE] signal received, stopping streaming');
@@ -333,6 +347,25 @@ export function useSSEChat({
                 parsedRecord!['data'] ??
                 parsedRecord,
             );
+            // Proactively notify listeners when a game-signal arrives,
+            // even if there is no textual content in this chunk
+            if (messageType === 'game-signal') {
+              try {
+                console.log('[SSE] game-signal received');
+                if (onGameSignalRef.current) onGameSignalRef.current();
+                try {
+                  // Broadcast a DOM event as a resilient fallback channel
+                  if (
+                    typeof window !== 'undefined' &&
+                    'dispatchEvent' in window
+                  ) {
+                    window.dispatchEvent(new CustomEvent('zoan:game-signal'));
+                  }
+                } catch {}
+              } catch (e) {
+                console.error('[SSE] onGameSignal callback error', e);
+              }
+            }
             if (!textContent || textContent.trim() === '') {
               return prev; // Skip if no content
             }

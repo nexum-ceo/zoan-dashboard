@@ -51,6 +51,8 @@ export function PlaygroundChatClient({ chatId }: PlaygroundChatClientProps) {
   const [settingsOpen, setSettingsOpen] = useState<boolean>(false);
   const [exploreOpen, setExploreOpen] = useState<boolean>(false);
   const [isExploreExpanded, setIsExploreExpanded] = useState<boolean>(false);
+  const gameSignalListenerRef =
+    useRef<(e: Event) => void | undefined>(undefined);
 
   // Get the first message from localStorage if it exists
   const [pendingMsg, setPendingMsg] = useState<string>(() =>
@@ -100,7 +102,29 @@ export function PlaygroundChatClient({ chatId }: PlaygroundChatClientProps) {
     initialMessages,
     chatId: chatId,
     user_id: chatInfo?.user_id || '',
+    onGameSignal: () => {
+      setExploreOpen(true);
+    },
   });
+
+  // Fallback listener to ensure Explore opens even if callback path breaks
+  useEffect(() => {
+    const handler = () => {
+      setExploreOpen(true);
+    };
+    gameSignalListenerRef.current = handler;
+    if (typeof window !== 'undefined') {
+      window.addEventListener('zoan:game-signal', handler as EventListener);
+    }
+    return () => {
+      if (typeof window !== 'undefined' && gameSignalListenerRef.current) {
+        window.removeEventListener(
+          'zoan:game-signal',
+          gameSignalListenerRef.current as EventListener,
+        );
+      }
+    };
+  }, []);
 
   // Use ref to store functions to avoid dependency issues
   const postMessageRef = useRef(postMessage);

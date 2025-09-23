@@ -214,7 +214,7 @@ export const ChatMessage: FC<ChatMessageProps> = ({
         {!isUser && (
           <>
             <MessageAvatar name="AI" src="/icon.png" />
-            <div className="text-md font-medium">AI Agent priority</div>
+            <div className="text-sm font-medium">AI Agent priority</div>
           </>
         )}
         {!isUser && thinkingText && (
