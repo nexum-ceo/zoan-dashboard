@@ -24,14 +24,26 @@ export type SandboxCodePanelProps = {
 const SandpackBreadcrumb: FC = () => {
   const { sandpack } = useSandpack();
   const activePath = sandpack?.activeFile || '/App/page.tsx';
-  const parts = activePath.replace(/^\//, '').split('/');
-  const root = parts[0] || 'App';
-  const file = parts.slice(1).join('/') || 'page.tsx';
+  const parts = activePath.replace(/^\//, '').split('/').filter(Boolean);
+
   return (
     <div className="pt-2 bg-white text-paragraph flex items-center gap-1">
-      <span className="font-medium !text-[#272727]/50">{root}</span>
-      <ChevronRight className="w-4 h-4 stroke-[#272727]/50" />
-      <span className="font-medium">{file}</span>
+      {parts.map((part, index) => (
+        <div key={index} className="flex items-center gap-1">
+          {index > 0 && (
+            <ChevronRight className="w-4 h-4 stroke-[#272727]/50" />
+          )}
+          <span
+            className={`font-medium ${
+              index === parts.length - 1
+                ? '!text-[#272727]'
+                : '!text-[#272727]/50'
+            }`}
+          >
+            {part}
+          </span>
+        </div>
+      ))}
     </div>
   );
 };
@@ -64,7 +76,7 @@ export const SandboxCodePanel: FC<SandboxCodePanelProps> = ({
           className="h-full border-none"
           options={{ activeFile }}
         >
-          <div className="flex gap-1 h-full">
+          <div className="flex gap-1 h-full bg-white">
             <div className=" bg-white overflow-hidden h-full">
               <div className="h-full">
                 <SandboxLayout className="!h-full">
@@ -76,7 +88,11 @@ export const SandboxCodePanel: FC<SandboxCodePanelProps> = ({
             <div className="flex-1 overflow-hidden bg-white flex flex-col h-full">
               <SandpackBreadcrumb />
               <SandboxLayout className="!h-full">
-                <SandboxCodeEditor showTabs={false} showLineNumbers={true} />
+                <SandboxCodeEditor
+                  className="!h-full"
+                  showTabs={false}
+                  showLineNumbers={true}
+                />
               </SandboxLayout>
             </div>
           </div>
