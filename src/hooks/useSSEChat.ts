@@ -15,6 +15,7 @@ export type ChatMessage = {
   content: string;
   sender_id: string | null;
   parts?: Array<{ type: string; text?: string }>;
+  isComplete?: boolean; // Track if message is fully received
 };
 
 export type UseSSEChatProps = {
@@ -94,6 +95,21 @@ export function useSSEChat({
     setIsAssistantStreaming(false);
     setIsAwaitingDone(false);
     clearAllTimeouts();
+
+    // Mark the last assistant message as complete when connection closes
+    setMessages((prev) => {
+      if (
+        prev.length > 0 &&
+        prev[prev.length - 1].role === ChatRole.ASSISTANT
+      ) {
+        const updated = [...prev];
+        const last = { ...updated[updated.length - 1] };
+        last.isComplete = true;
+        updated[updated.length - 1] = last;
+        return updated;
+      }
+      return prev;
+    });
   }, [clearAllTimeouts]);
 
   // Helper function to check if message should be filtered
@@ -531,6 +547,7 @@ export function useSSEChat({
       role: 'user',
       content: input,
       sender_id: user_id,
+      isComplete: true, // User messages are always complete
     };
     setMessages((prev) => [...prev, userMsg]);
     setIsLoading(true);
@@ -550,6 +567,7 @@ export function useSSEChat({
       role: ChatRole.USER,
       content: msg,
       sender_id: user_id,
+      isComplete: true, // User messages are always complete
     };
     setMessages((prev) => [...prev, userMsg]);
     setIsLoading(true);

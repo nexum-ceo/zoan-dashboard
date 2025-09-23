@@ -24,6 +24,7 @@ import {
   TooltipTrigger,
 } from '@/components/ui/tooltip';
 import {
+  CheckIcon,
   CopyIcon,
   Pen,
   RefreshCcwIcon,
@@ -96,6 +97,7 @@ type ChatMessageProps = {
     content?: string;
     parts?: Array<{ type: string; text?: string; content?: string }>;
     metadata?: Record<string, string>;
+    isComplete?: boolean;
   };
   isLast: boolean;
   isLoading: boolean;
@@ -111,6 +113,7 @@ export const ChatMessage: FC<ChatMessageProps> = ({
   // State for actions
   const [liked, setLiked] = useState(false);
   const [disliked, setDisliked] = useState(false);
+  const [copied, setCopied] = useState(false);
 
   // Action handlers
   const handleRetry = () => {
@@ -122,6 +125,11 @@ export const ChatMessage: FC<ChatMessageProps> = ({
     try {
       await navigator.clipboard.writeText(content);
       console.log('Message copied to clipboard');
+      setCopied(true);
+      // Reset to copy icon after 2 seconds
+      setTimeout(() => {
+        setCopied(false);
+      }, 2000);
     } catch (err) {
       console.error('Failed to copy message:', err);
     }
@@ -252,30 +260,38 @@ export const ChatMessage: FC<ChatMessageProps> = ({
 
               <Tooltip>
                 <TooltipTrigger asChild>
-                  <Action label="Copy" className="p-0" onClick={handleCopy}>
-                    <CopyIcon className="size-4" />
+                  <Action label="Copy" onClick={handleCopy}>
+                    {copied ? (
+                      <CheckIcon className="size-4" />
+                    ) : (
+                      <CopyIcon className="size-4" />
+                    )}
                   </Action>
                 </TooltipTrigger>
                 <TooltipContent>
-                  <p>Copy</p>
+                  <p>{copied ? 'Copied!' : 'Copy'}</p>
                 </TooltipContent>
               </Tooltip>
             </Actions>
           </TooltipProvider>
         )}
 
-        {/* Actions for assistant messages */}
-        {!isUser && (
+        {/* Actions for assistant messages - only show when message is complete */}
+        {!isUser && message.isComplete && (
           <TooltipProvider>
             <Actions className="">
               <Tooltip>
                 <TooltipTrigger asChild>
                   <Action label="Copy" onClick={handleCopy}>
-                    <CopyIcon className="size-4" />
+                    {copied ? (
+                      <CheckIcon className="size-4" />
+                    ) : (
+                      <CopyIcon className="size-4" />
+                    )}
                   </Action>
                 </TooltipTrigger>
                 <TooltipContent>
-                  <p>Copy</p>
+                  <p>{copied ? 'Copied!' : 'Copy'}</p>
                 </TooltipContent>
               </Tooltip>
 
