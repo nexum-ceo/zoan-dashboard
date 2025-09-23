@@ -34,12 +34,14 @@ export const PromptInput = ({ className, ...props }: PromptInputProps) => (
 export type PromptInputTextareaProps = ComponentProps<typeof Textarea> & {
   minHeight?: number;
   maxHeight?: number;
+  disabled?: boolean;
 };
 
 export const PromptInputTextarea = ({
   onChange,
   className,
   placeholder = 'What would you like to know?',
+  disabled = false,
   // minHeight = 48,
   // maxHeight = 164,
   ...props
@@ -48,6 +50,12 @@ export const PromptInputTextarea = ({
     if (e.key === 'Enter') {
       if (e.shiftKey) {
         // Allow newline
+        return;
+      }
+
+      // Don't submit if disabled
+      if (disabled) {
+        e.preventDefault();
         return;
       }
 

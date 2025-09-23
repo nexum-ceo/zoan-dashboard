@@ -92,7 +92,8 @@ export function PlaygroundChatClient({ chatId }: PlaygroundChatClientProps) {
     isLoading,
     isAssistantStreaming,
     postMessage,
-    isProcessing,
+    canType,
+    canSubmit,
     setMessages,
   } = useSSEChat({
     initialMessages,
@@ -412,11 +413,11 @@ export function PlaygroundChatClient({ chatId }: PlaygroundChatClientProps) {
           {/* Input Area */}
           <div className="bg-sidebar">
             <ChatInput
-              disabled={isProcessing}
+              disabled={!canType}
               value={input}
               onChange={handleInputChange}
               onSubmit={handleSubmit}
-              submitDisabled={isProcessing}
+              submitDisabled={!canSubmit}
               bannerPosition="top"
             />
           </div>

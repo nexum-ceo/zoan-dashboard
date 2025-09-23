@@ -696,5 +696,8 @@ export function useSSEChat({
     postMessage,
     isProcessing: isAwaitingDone || isLoading || isAssistantStreaming,
     isAwaitingDone,
+    // Separate flag for input vs submit
+    canType: true, // Always allow typing
+    canSubmit: !isAwaitingDone && !isLoading && !isAssistantStreaming, // Only disable submit
   };
 }

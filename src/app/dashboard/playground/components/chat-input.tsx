@@ -49,9 +49,8 @@ export const ChatInput: FC<ChatInputProps> = ({
   const { data: session } = useSession();
   const router = useRouter();
 
-  // Handle input change with disabled state check
+  // Handle input change - allow typing even during AI response
   const handleInputChange = (e: ChangeEvent<HTMLTextAreaElement>) => {
-    if (disabled) return; // Prevent input when disabled
     onChange(e);
   };
 
@@ -146,20 +145,19 @@ export const ChatInput: FC<ChatInputProps> = ({
       >
         <PromptInputTextarea
           placeholder="Ask ZOAN to build something amazing"
-          className={`leading-6 min-h-[72px] border-0 focus:border-0 focus:ring-0 focus:outline-none resize-none w-full bg-transparent text-paragraph text-sm placeholder:text-[#272727]/40 ${
-            disabled ? 'opacity-50' : ''
-          }`}
+          className="leading-6 min-h-[72px] border-0 focus:border-0 focus:ring-0 focus:outline-none resize-none w-full bg-transparent text-paragraph text-sm placeholder:text-[#272727]/40"
           style={{ lineHeight: '1.5' }}
           name="message"
           value={value}
           onChange={handleInputChange}
+          disabled={submitDisabled}
         />
         <PromptInputToolbar className="px-3 py-2">
           <PromptInputTools>
             <PromptInputButton
               type="button"
               disabled={disabled}
-              className={`bg-[#2727270D] ${disabled ? 'opacity-50' : ''}`}
+              className="bg-[#2727270D]"
             >
               <Paperclip className="w-4 h-4 text-muted-foreground" />
             </PromptInputButton>
