@@ -212,6 +212,9 @@ export const ChatMessage: FC<ChatMessageProps> = ({
     return items;
   }, [message.parts, message.metadata]);
 
+  const isAssistantStreamingCurrent = Boolean(isLoading && isLast);
+  const showAssistantActions = !isUser && !isAssistantStreamingCurrent;
+
   return (
     <UIMessage from={isUser ? 'user' : 'assistant'}>
       <div className="flex flex-col gap-2 px-2">
@@ -285,8 +288,8 @@ export const ChatMessage: FC<ChatMessageProps> = ({
           </TooltipProvider>
         )}
 
-        {/* Actions for assistant messages - only show when message is complete */}
-        {!isUser && message.isComplete && (
+        {/* Actions for assistant messages - hide only while the last message is streaming */}
+        {showAssistantActions && (
           <TooltipProvider>
             <Actions className="">
               <Tooltip>
