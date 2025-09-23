@@ -1,6 +1,5 @@
-import TopCreators from '@/app/(public)/components/top-creators';
-import CommunitySection from '@/app/dashboard/playground/components/community';
-import PersonalSpace from '@/app/dashboard/playground/components/personal-space';
+import AIDappStudioSection from '@/app/dashboard/community/components/ai-dapp-studio';
+import Community from '@/app/dashboard/community/components/community';
 
 export default function CommunityPage() {
   return (
@@ -20,18 +19,14 @@ export default function CommunityPage() {
           </div>
 
           <div className="py-20 pt-6 2xl:px-30 sm:px-12 w-full">
-            {/** --- Personal Space Section ---  */}
-            <PersonalSpace />
-
             {/** --- Community Section ---  */}
-            <CommunitySection />
+            <Community />
 
-            {/** --- Top Creators Section ---  */}
-            <TopCreators />
+            {/** --- AIDappStudio Section ---  */}
+            <AIDappStudioSection />
           </div>
         </div>
       </>
-      );
     </>
   );
 }

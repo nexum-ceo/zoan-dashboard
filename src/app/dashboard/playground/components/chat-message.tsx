@@ -95,7 +95,7 @@ type ChatMessageProps = {
     role: 'user' | 'assistant' | 'system' | 'data';
     content?: string;
     parts?: Array<{ type: string; text?: string; content?: string }>;
-    metadata?: Record<string, string>;
+    metadata?: Record<string, unknown>;
   };
   isLast: boolean;
   isLoading: boolean;
