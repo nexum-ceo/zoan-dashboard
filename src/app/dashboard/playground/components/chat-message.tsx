@@ -145,17 +145,21 @@ export const ChatMessage: FC<ChatMessageProps> = ({
   };
 
   const handleLike = () => {
-    setLiked(!liked);
     if (liked) {
-      setDisliked(false); // Remove dislike if liked
+      setLiked(false);
+      return;
     }
+    setLiked(true);
+    setDisliked(false); // Ensure dislike is cleared when liking
   };
 
   const handleDislike = () => {
-    setDisliked(!disliked);
     if (disliked) {
-      setLiked(false); // Remove like if disliked
+      setDisliked(false);
+      return;
     }
+    setDisliked(true);
+    setLiked(false); // Ensure like is cleared when disliking
   };
 
   const thinkingText = useMemo(() => {
@@ -300,35 +304,45 @@ export const ChatMessage: FC<ChatMessageProps> = ({
                 </TooltipContent>
               </Tooltip>
 
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Action
-                    label="Like"
-                    onClick={handleLike}
-                    className={liked ? 'text-green-600' : ''}
-                  >
-                    <ThumbsUpIcon className="size-4" />
-                  </Action>
-                </TooltipTrigger>
-                <TooltipContent>
-                  <p>{liked ? 'Remove like' : 'Like'}</p>
-                </TooltipContent>
-              </Tooltip>
+              {!disliked && (
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Action
+                      label="Like"
+                      onClick={handleLike}
+                      className={liked ? 'text-[#272727]/20' : ''}
+                    >
+                      <ThumbsUpIcon
+                        className={`size-4 ${liked ? 'fill-[#272727]/20' : ''}`}
+                      />
+                    </Action>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p>{liked ? 'Remove like' : 'Like'}</p>
+                  </TooltipContent>
+                </Tooltip>
+              )}
 
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Action
-                    label="Dislike"
-                    onClick={handleDislike}
-                    className={disliked ? 'text-red-600' : ''}
-                  >
-                    <ThumbsDownIcon className="size-4" />
-                  </Action>
-                </TooltipTrigger>
-                <TooltipContent>
-                  <p>{disliked ? 'Remove dislike' : 'Dislike'}</p>
-                </TooltipContent>
-              </Tooltip>
+              {!liked && (
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Action
+                      label="Dislike"
+                      onClick={handleDislike}
+                      className={disliked ? 'text-[#272727]/20' : ''}
+                    >
+                      <ThumbsDownIcon
+                        className={`size-4 ${
+                          disliked ? 'fill-[#272727]/20' : ''
+                        }`}
+                      />
+                    </Action>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p>{disliked ? 'Remove dislike' : 'Dislike'}</p>
+                  </TooltipContent>
+                </Tooltip>
+              )}
 
               <Tooltip>
                 <TooltipTrigger asChild>
