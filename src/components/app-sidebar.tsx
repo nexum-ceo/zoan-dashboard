@@ -22,6 +22,8 @@ import { useSession } from 'next-auth/react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
+import { useRef } from 'react';
+import { toast } from 'sonner';
 import AddPlusSquare from '../../public/icon/add-plus-square';
 import Clock from '../../public/icon/clock';
 import FileBlank from '../../public/icon/file-blank';
@@ -140,6 +142,28 @@ export function AppSidebar() {
   const user = session?.user;
   const { state } = useSidebar();
   const isPlayground = pathname.startsWith('/dashboard/playground');
+  const cooldownUntilRef = useRef<Map<string, number>>(new Map());
+
+  const handleNavClick = (href: string, label: string) => {
+    const blockedRoutes = new Set<string>([
+      '/dashboard/projects',
+      '/dashboard/personal-space',
+    ]);
+    if (blockedRoutes.has(href)) {
+      const now = Date.now();
+      const until = cooldownUntilRef.current.get(href) ?? 0;
+      if (now < until) {
+        // still cooling down; ignore clicks
+        return;
+      }
+      toast.info('Coming soon', {
+        description: `${label} will be available soon.`,
+      });
+      cooldownUntilRef.current.set(href, now + 5000); // 5s cooldown
+      return;
+    }
+    router.push(href);
+  };
 
   return (
     <TooltipProvider>
@@ -258,7 +282,9 @@ export function AppSidebar() {
                                   ? 'bg-[#272727]/5 dark:bg-sidebar-accent text-[#272727] dark:text-sidebar-accent-foreground font-medium'
                                   : 'text-[#272727]/50 dark:text-sidebar-foreground/70 hover:bg-gray-50 dark:hover:bg-sidebar-accent/40 hover:text-gray-900 dark:hover:text-sidebar-accent-foreground'
                               }`}
-                              onClick={() => router.push(item.href)}
+                              onClick={() =>
+                                handleNavClick(item.href, item.label)
+                              }
                             >
                               <item.icon className="w-4 h-4 stroke-[#272727]" />
                             </Button>
@@ -279,7 +305,7 @@ export function AppSidebar() {
                             ? 'bg-[#272727]/5 dark:bg-sidebar-accent text-[#272727] dark:text-sidebar-accent-foreground font-medium'
                             : 'text-[#272727]/50 dark:text-sidebar-foreground/70 hover:bg-gray-50 dark:hover:bg-sidebar-accent/40 hover:text-gray-900 dark:hover:text-sidebar-accent-foreground'
                         }`}
-                        onClick={() => router.push(item.href)}
+                        onClick={() => handleNavClick(item.href, item.label)}
                       >
                         <item.icon className="w-4 h-4 stroke-[#272727]" />
                         {item.label}
