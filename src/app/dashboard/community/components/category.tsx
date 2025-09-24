@@ -18,19 +18,19 @@ export default function Category() {
       id: 'gaming',
       title: 'Gaming',
       count: '600',
-      images: [Mario1, Mario2, Adventure, Boat, HollowKnight],
+      images: [Mario1, HollowKnight, Adventure, Mario2, Boat],
     },
     {
       id: 'website',
       title: 'Website',
       count: '600',
-      images: [Adventure, HollowKnight, Mario1, Mario2, Boat],
+      images: [Mario1, HollowKnight, Adventure, Mario2, Boat],
     },
     {
       id: '3d',
       title: '3D Game',
       count: '600',
-      images: [Boat, Adventure, Mario2, HollowKnight, Mario1],
+      images: [Mario1, HollowKnight, Adventure, Mario2, Boat],
     },
   ];
   return (
@@ -66,13 +66,13 @@ export default function Category() {
                             ? 'w-[15%] origin-left delay-0 group-hover:scale-x-110 group-hover:-translate-x-1'
                             : '',
                           idx === 1
-                            ? 'w-[15%] origin-left delay-75 grayscale group-hover:scale-x-105'
+                            ? 'w-[15%] origin-left delay-75 group-hover:scale-x-105'
                             : '',
                           idx === 2
                             ? 'w-[15%] origin-center delay-150 group-hover:scale-x-110'
                             : '',
                           idx === 3
-                            ? 'w-[15%] origin-right delay-200 grayscale group-hover:scale-x-110 group-hover:translate-x-1'
+                            ? 'w-[15%] origin-right delay-200 group-hover:scale-x-110 group-hover:translate-x-1'
                             : '',
                           idx === 4
                             ? 'w-[40%] origin-right delay-300 group-hover:scale-x-110 group-hover:translate-x-2'
