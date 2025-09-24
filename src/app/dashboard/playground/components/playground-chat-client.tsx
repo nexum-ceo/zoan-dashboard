@@ -51,6 +51,8 @@ export function PlaygroundChatClient({ chatId }: PlaygroundChatClientProps) {
   const [settingsOpen, setSettingsOpen] = useState<boolean>(false);
   const [exploreOpen, setExploreOpen] = useState<boolean>(false);
   const [isExploreExpanded, setIsExploreExpanded] = useState<boolean>(false);
+  const gameSignalListenerRef =
+    useRef<(e: Event) => void | undefined>(undefined);
 
   // Get the first message from localStorage if it exists
   const [pendingMsg, setPendingMsg] = useState<string>(() =>
@@ -92,13 +94,37 @@ export function PlaygroundChatClient({ chatId }: PlaygroundChatClientProps) {
     isLoading,
     isAssistantStreaming,
     postMessage,
-    isProcessing,
+    canType,
+    canSubmit,
+    status,
     setMessages,
   } = useSSEChat({
     initialMessages,
     chatId: chatId,
     user_id: chatInfo?.user_id || '',
+    onGameSignal: () => {
+      setExploreOpen(true);
+    },
   });
+
+  // Fallback listener to ensure Explore opens even if callback path breaks
+  useEffect(() => {
+    const handler = () => {
+      setExploreOpen(true);
+    };
+    gameSignalListenerRef.current = handler;
+    if (typeof window !== 'undefined') {
+      window.addEventListener('zoan:game-signal', handler as EventListener);
+    }
+    return () => {
+      if (typeof window !== 'undefined' && gameSignalListenerRef.current) {
+        window.removeEventListener(
+          'zoan:game-signal',
+          gameSignalListenerRef.current as EventListener,
+        );
+      }
+    };
+  }, []);
 
   // Use ref to store functions to avoid dependency issues
   const postMessageRef = useRef(postMessage);
@@ -200,10 +226,32 @@ export function PlaygroundChatClient({ chatId }: PlaygroundChatClientProps) {
     return () => clearTimeout(timeoutId);
   }, [isFetchingNextPage, previousScrollHeight]);
 
-  // Auto-open Explore panel when assistant emits game signals in metadata or parts
+  // Open Explore on initial load if existing history has game_generator metadata
+  useEffect(() => {
+    if (!Array.isArray(initialMessages) || initialMessages.length === 0) return;
+    const found = [...(initialMessages as Array<Record<string, unknown>>)]
+      .reverse()
+      .find((m) => {
+        const role = (m?.role as string) || '';
+        const isAssistant = role === 'assistant' || role === 'ASSISTANT';
+        const metadata =
+          (m?.metadata as Record<string, unknown> | undefined) || undefined;
+        const hasGameGeneratorMeta =
+          !!metadata && metadata['game_generator'] !== undefined;
+        return isAssistant && hasGameGeneratorMeta;
+      });
+    if (found) {
+      setExploreOpen(true);
+      setSettingsOpen(false);
+    }
+  }, [initialMessages]);
+
+  // Open Explore during live streaming when a game-signal appears
   useEffect(() => {
     if (!Array.isArray(messages) || messages.length === 0) return;
-    const latestWithSignals = [...(messages as Array<Record<string, unknown>>)]
+    const latestWithGameSignal = [
+      ...(messages as Array<Record<string, unknown>>),
+    ]
       .reverse()
       .find((m) => {
         const role = (m?.role as string) || '';
@@ -213,20 +261,15 @@ export function PlaygroundChatClient({ chatId }: PlaygroundChatClientProps) {
         const parts =
           (m?.parts as Array<{ type?: string; text?: string }> | undefined) ||
           undefined;
-        const hasGameMeta =
-          !!metadata &&
-          (metadata['game_generator'] !== undefined ||
-            metadata['game-signal'] !== undefined);
-        const hasGamePart = Array.isArray(parts)
-          ? parts.some(
-              (p) => p?.type === 'game_generator' || p?.type === 'game-signal',
-            )
+        const hasSignalMeta =
+          !!metadata && metadata['game-signal'] !== undefined;
+        const hasSignalPart = Array.isArray(parts)
+          ? parts.some((p) => p?.type === 'game-signal')
           : false;
-        return isAssistant && (hasGameMeta || hasGamePart);
+        return isAssistant && (hasSignalMeta || hasSignalPart);
       });
-    if (latestWithSignals) {
+    if (latestWithGameSignal) {
       setExploreOpen(true);
-      setSettingsOpen(false);
     }
   }, [messages]);
 
@@ -336,8 +379,8 @@ export function PlaygroundChatClient({ chatId }: PlaygroundChatClientProps) {
 
       <ResizablePanelGroup direction="horizontal" className="w-full h-full">
         <ResizablePanel
-          defaultSize={isExploreExpanded ? 0 : exploreOpen ? 72 : 100}
-          minSize={isExploreExpanded ? 0 : 40}
+          defaultSize={isExploreExpanded ? 0 : exploreOpen ? 40 : 100}
+          minSize={isExploreExpanded ? 0 : 30}
           className="flex flex-col bg-sidebar relative transition-all duration-300 ease-in-out"
         >
           {/* Mobile Header with Menu Button */}
@@ -412,11 +455,12 @@ export function PlaygroundChatClient({ chatId }: PlaygroundChatClientProps) {
           {/* Input Area */}
           <div className="bg-sidebar">
             <ChatInput
-              disabled={isProcessing}
+              disabled={!canType}
               value={input}
               onChange={handleInputChange}
               onSubmit={handleSubmit}
-              submitDisabled={isProcessing}
+              submitDisabled={!canSubmit}
+              status={status}
               bannerPosition="top"
             />
           </div>
@@ -427,9 +471,9 @@ export function PlaygroundChatClient({ chatId }: PlaygroundChatClientProps) {
           <>
             <ResizableHandle className="bg-white" />
             <ResizablePanel
-              defaultSize={isExploreExpanded ? 100 : 28}
-              minSize={isExploreExpanded ? 100 : 20}
-              maxSize={isExploreExpanded ? 100 : 50}
+              defaultSize={isExploreExpanded ? 100 : 60}
+              minSize={isExploreExpanded ? 100 : 30}
+              maxSize={isExploreExpanded ? 100 : 70}
               className="rounded-xl"
             >
               <ExplorePanel

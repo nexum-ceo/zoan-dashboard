@@ -11,13 +11,14 @@ import {
 import { Textarea } from '@/components/ui/textarea';
 import { cn } from '@/lib/utils';
 import type { ChatStatus } from 'ai';
-import { Loader2Icon, SendIcon, SquareIcon, XIcon } from 'lucide-react';
+import { Loader2Icon, SquareIcon, XIcon } from 'lucide-react';
 import type {
   ComponentProps,
   HTMLAttributes,
   KeyboardEventHandler,
 } from 'react';
 import { Children } from 'react';
+import ChevronRightDuo from '../../../../../public/icon/chevron-right-duo';
 
 export type PromptInputProps = HTMLAttributes<HTMLFormElement>;
 
@@ -34,12 +35,14 @@ export const PromptInput = ({ className, ...props }: PromptInputProps) => (
 export type PromptInputTextareaProps = ComponentProps<typeof Textarea> & {
   minHeight?: number;
   maxHeight?: number;
+  disabled?: boolean;
 };
 
 export const PromptInputTextarea = ({
   onChange,
   className,
   placeholder = 'What would you like to know?',
+  disabled = false,
   // minHeight = 48,
   // maxHeight = 164,
   ...props
@@ -48,6 +51,12 @@ export const PromptInputTextarea = ({
     if (e.key === 'Enter') {
       if (e.shiftKey) {
         // Allow newline
+        return;
+      }
+
+      // Don't submit if disabled
+      if (disabled) {
+        e.preventDefault();
         return;
       }
 
@@ -146,7 +155,7 @@ export const PromptInputSubmit = ({
   children,
   ...props
 }: PromptInputSubmitProps) => {
-  let Icon = <SendIcon className="size-4" />;
+  let Icon = <ChevronRightDuo className="size-2" />;
 
   if (status === 'submitted') {
     Icon = <Loader2Icon className="size-4 animate-spin" />;
