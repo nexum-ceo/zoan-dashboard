@@ -1,5 +1,12 @@
 'use client';
 
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import { useFileContent } from '@/hooks/useFileContent';
 import { useFolderContent } from '@/hooks/useFolderContent';
 import { useGameSignalDetection } from '@/hooks/useGameSignalDetection';
@@ -39,6 +46,53 @@ export const ExplorePanel: FC<ExplorePanelProps> = ({
   // --- Logic fetch game version list ---
   const { data: chatGameVersionList } = useGetChatGameVersionList(chatId);
   const [activeView, setActiveView] = useState<'code' | 'view'>('code');
+  const [selectedVersionId, setSelectedVersionId] = useState<
+    string | undefined
+  >(undefined);
+
+  // Derive version options and presence
+  const versionOptions = useMemo(
+    () => chatGameVersionList?.data?.data ?? [],
+    [chatGameVersionList],
+  );
+  const sortedVersionOptions = useMemo(() => {
+    return [...versionOptions].sort((a, b) => {
+      const aTime = new Date(a.created_at).getTime();
+      const bTime = new Date(b.created_at).getTime();
+      return aTime - bTime; // oldest first => v1 is oldest
+    });
+  }, [versionOptions]);
+  const hasVersions = sortedVersionOptions.length > 0;
+
+  // Auto-pick first version when data arrives if none selected
+  useEffect(() => {
+    if (!selectedVersionId && hasVersions) {
+      setSelectedVersionId(sortedVersionOptions[0].id);
+    }
+  }, [hasVersions, sortedVersionOptions, selectedVersionId]);
+
+  // Selected version object based on current selection (fallback to first)
+  const selectedVersion = useMemo(() => {
+    if (!hasVersions) return undefined;
+    const found = sortedVersionOptions.find((v) => v.id === selectedVersionId);
+    return found ?? sortedVersionOptions[0];
+  }, [sortedVersionOptions, selectedVersionId, hasVersions]);
+
+  // Extract chatId/version from game_url like: games/{chatId}/{version}/...
+  const extractedIds = useMemo(() => {
+    const path = (selectedVersion?.game_url || '').replace(/^\/+/, '');
+    const match = path.match(/^games\/([^/]+)\/([^/]+)/);
+    if (match) {
+      return { chatId: match[1], version: match[2] } as const;
+    }
+    if (selectedVersion?.chat_id && selectedVersion?.id) {
+      return {
+        chatId: selectedVersion.chat_id,
+        version: selectedVersion.id,
+      } as const;
+    }
+    return undefined;
+  }, [selectedVersion]);
 
   // Use external state if provided, otherwise use internal state
   const isChatExpanded = externalIsChatExpanded ?? false;
@@ -48,20 +102,20 @@ export const ExplorePanel: FC<ExplorePanelProps> = ({
     }
   };
 
-  // TEMP: hardcoded game url for build files
-  const hardcodedChatId = '577ebde2-a069-4e07-b3ec-ed2d3c62de15';
-  const hardcodedVersion = '7778660e-8d7c-4197-8f5d-f0e59b376561';
-  const gameUrl =
-    hardcodedChatId && hardcodedVersion
-      ? `/builds/${hardcodedChatId}/${hardcodedVersion}`
-      : '';
-  const { data: gameBuildFiles } = useGetListFileInGameFolder(gameUrl);
+  // Build API path for listing files based on extracted chatId/version
+  const buildsApiPath = useMemo(() => {
+    if (!extractedIds) return '';
+    return `/games/${extractedIds.chatId}/${extractedIds.version}`;
+  }, [extractedIds]);
+
+  const { data: gameBuildFiles } = useGetListFileInGameFolder(buildsApiPath);
+  console.log('gameBuildFiles', gameBuildFiles);
 
   // File and folder content management
   const { fileContents, loadFileContent } = useFileContent();
   const { folderContents, fetchFolderContent } = useFolderContent(
-    hardcodedChatId,
-    hardcodedVersion,
+    extractedIds?.chatId ?? '',
+    extractedIds?.version ?? '',
   );
 
   // Debug: Log extracted contents and folders
@@ -133,15 +187,15 @@ export const ExplorePanel: FC<ExplorePanelProps> = ({
   const sandboxFiles = useMemo(() => {
     return processS3FilesToSandbox(
       gameBuildFiles as S3ListBucketResultType | undefined,
-      hardcodedChatId,
-      hardcodedVersion,
+      extractedIds?.chatId ?? '',
+      extractedIds?.version ?? '',
       fileContents,
       folderContents,
     );
   }, [
     gameBuildFiles,
-    hardcodedChatId,
-    hardcodedVersion,
+    extractedIds?.chatId,
+    extractedIds?.version,
     fileContents,
     folderContents,
   ]);
@@ -159,9 +213,11 @@ export const ExplorePanel: FC<ExplorePanelProps> = ({
 
   // Build iframe URL for fullscreen preview
   const iframeUrl = useMemo(() => {
-    const base = process.env.NEXT_PUBLIC_MINIO_URL;
-    return base && gameUrl ? `${base}${gameUrl}/index.html` : '';
-  }, [gameUrl]);
+    const rawBase = process.env.NEXT_PUBLIC_MINIO_URL || '';
+    const base = rawBase.replace(/\/+$/, '');
+    const previewPath = (selectedVersion?.game_url || '').replace(/^\/+/, '');
+    return base && previewPath ? `${base}/${previewPath}` : '';
+  }, [selectedVersion]);
 
   // Close on ESC when fullscreen is open
   useEffect(() => {
@@ -227,8 +283,32 @@ export const ExplorePanel: FC<ExplorePanelProps> = ({
               </button>
             </div>
           </div>
-          {/* Right icon buttons */}
+          {/* Right controls */}
           <div className="flex items-center gap-2 text-[#272727]">
+            {hasVersions && (
+              <Select
+                value={selectedVersionId}
+                onValueChange={(v) => setSelectedVersionId(v)}
+              >
+                <SelectTrigger
+                  size="sm"
+                  className="!h-6 px-2 py-0.5 text-paragraph"
+                >
+                  <SelectValue placeholder="Select version" />
+                </SelectTrigger>
+                <SelectContent>
+                  {sortedVersionOptions.map((v, idx) => (
+                    <SelectItem
+                      key={v.id}
+                      value={v.id}
+                      className="text-paragraph"
+                    >
+                      {`v${idx + 1}`}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            )}
             <button type="button" className="cursor-pointer">
               <Copy className="w-3 h-3 stroke-[1px] stroke-[#272727]" />
             </button>
@@ -239,7 +319,9 @@ export const ExplorePanel: FC<ExplorePanelProps> = ({
                 const timestamp = new Date()
                   .toISOString()
                   .replace(/[:.]/g, '-');
-                const name = `build-${hardcodedChatId}-${hardcodedVersion}-${timestamp}`;
+                const name = `build-${extractedIds?.chatId ?? 'unknown'}-${
+                  extractedIds?.version ?? 'unknown'
+                }-${timestamp}`;
                 downloadSandboxZip(sandboxFiles, name);
               }}
             >
@@ -248,6 +330,7 @@ export const ExplorePanel: FC<ExplorePanelProps> = ({
             <button type="button" className="cursor-pointer">
               <FileTerminal className="w-3 h-3 stroke-[1px]" />
             </button>
+
             <button
               type="button"
               onClick={() => {
@@ -272,7 +355,11 @@ export const ExplorePanel: FC<ExplorePanelProps> = ({
           activeView={activeView}
           activeFile={activeFile}
           minioUrl={process.env.NEXT_PUBLIC_MINIO_URL}
-          gameUrl={gameUrl}
+          gameUrl={
+            extractedIds
+              ? `/games/${extractedIds.chatId}/${extractedIds.version}`
+              : ''
+          }
         />
       </div>
 
