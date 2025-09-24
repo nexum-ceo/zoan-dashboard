@@ -1,5 +1,12 @@
 'use client';
 
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import { useFileContent } from '@/hooks/useFileContent';
 import { useFolderContent } from '@/hooks/useFolderContent';
 import { useGameSignalDetection } from '@/hooks/useGameSignalDetection';
@@ -39,6 +46,30 @@ export const ExplorePanel: FC<ExplorePanelProps> = ({
   // --- Logic fetch game version list ---
   const { data: chatGameVersionList } = useGetChatGameVersionList(chatId);
   const [activeView, setActiveView] = useState<'code' | 'view'>('code');
+  const [selectedVersionId, setSelectedVersionId] = useState<
+    string | undefined
+  >(undefined);
+
+  // Derive version options and presence
+  const versionOptions = useMemo(
+    () => chatGameVersionList?.data?.data ?? [],
+    [chatGameVersionList],
+  );
+  const sortedVersionOptions = useMemo(() => {
+    return [...versionOptions].sort((a, b) => {
+      const aTime = new Date(a.created_at).getTime();
+      const bTime = new Date(b.created_at).getTime();
+      return aTime - bTime; // oldest first => v1 is oldest
+    });
+  }, [versionOptions]);
+  const hasVersions = sortedVersionOptions.length > 0;
+
+  // Auto-pick first version when data arrives if none selected
+  useEffect(() => {
+    if (!selectedVersionId && hasVersions) {
+      setSelectedVersionId(sortedVersionOptions[0].id);
+    }
+  }, [hasVersions, sortedVersionOptions, selectedVersionId]);
 
   // Use external state if provided, otherwise use internal state
   const isChatExpanded = externalIsChatExpanded ?? false;
@@ -227,8 +258,32 @@ export const ExplorePanel: FC<ExplorePanelProps> = ({
               </button>
             </div>
           </div>
-          {/* Right icon buttons */}
+          {/* Right controls */}
           <div className="flex items-center gap-2 text-[#272727]">
+            {hasVersions && (
+              <Select
+                value={selectedVersionId}
+                onValueChange={(v) => setSelectedVersionId(v)}
+              >
+                <SelectTrigger
+                  size="sm"
+                  className="!h-6 px-2 py-0.5 text-paragraph"
+                >
+                  <SelectValue placeholder="Select version" />
+                </SelectTrigger>
+                <SelectContent>
+                  {sortedVersionOptions.map((v, idx) => (
+                    <SelectItem
+                      key={v.id}
+                      value={v.id}
+                      className="text-paragraph"
+                    >
+                      {`v${idx + 1}`}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            )}
             <button type="button" className="cursor-pointer">
               <Copy className="w-3 h-3 stroke-[1px] stroke-[#272727]" />
             </button>
@@ -248,6 +303,7 @@ export const ExplorePanel: FC<ExplorePanelProps> = ({
             <button type="button" className="cursor-pointer">
               <FileTerminal className="w-3 h-3 stroke-[1px]" />
             </button>
+
             <button
               type="button"
               onClick={() => {
