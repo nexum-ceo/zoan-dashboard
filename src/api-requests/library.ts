@@ -54,7 +54,7 @@ const libraryApiRequest = {
   },
 
   getListFileInGameFolder: async (gameUrl: string) => {
-    const response = await axiosInstance.get(`/builds/?prefix=${gameUrl}/`, {
+    const response = await axiosInstance.get(`/games/?prefix=${gameUrl}/`, {
       baseURL: process.env.NEXT_PUBLIC_MINIO_URL,
       responseType: 'text',
     });
@@ -163,7 +163,7 @@ const libraryApiRequest = {
   sGetGameFolderContent: async (gameUrl: string, folderPath: string = '') => {
     const fullPath = folderPath ? `${gameUrl}/${folderPath}` : gameUrl;
     const response = await axiosInstance.get(
-      `/builds/?prefix=${fullPath}/&delimiter=/`,
+      `/games/?prefix=${fullPath}/&delimiter=/`,
       {
         baseURL: process.env.NEXT_PUBLIC_MINIO_URL,
         responseType: 'text',
@@ -174,7 +174,7 @@ const libraryApiRequest = {
 
   // Server-side API for fetching file content
   sGetFileContent: async (fileKey: string) => {
-    const response = await axiosInstance.get(`/builds/${fileKey}`, {
+    const response = await axiosInstance.get(`/games/${fileKey}`, {
       baseURL: '',
       responseType: 'text',
     });
@@ -183,7 +183,7 @@ const libraryApiRequest = {
 
   // New API for fetching complete folder structure with content
   sGetGameFolderWithContent: async (gameUrl: string) => {
-    const response = await axiosInstance.get(`/builds/${gameUrl}/content`, {
+    const response = await axiosInstance.get(`/games/${gameUrl}/content`, {
       baseURL: '',
     });
     return response.data;
