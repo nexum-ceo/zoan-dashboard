@@ -1,30 +1,36 @@
+import type { StaticImageData } from 'next/image';
 import Image from 'next/image';
 import VectorIcon from '../../../../../public/icon/vector';
+import Adventure from '../../../../../public/image/card/adventure.jpg';
+import Boat from '../../../../../public/image/card/boat.jpg';
+import HollowKnight from '../../../../../public/image/card/source_hollow-knight-boss.jpg';
+import Mario1 from '../../../../../public/image/mario-1.png';
+import Mario2 from '../../../../../public/image/mario-2.png';
 
 export default function Category() {
   const categories: Array<{
     id: string;
     title: string;
     count: string;
-    image: string;
+    images: StaticImageData[];
   }> = [
     {
       id: 'gaming',
       title: 'Gaming',
       count: '600',
-      image: '/image/mario-1.png',
+      images: [Mario1, Mario2, Adventure, Boat, HollowKnight],
     },
     {
       id: 'website',
       title: 'Website',
       count: '600',
-      image: '/image/mario-2.png',
+      images: [Adventure, HollowKnight, Mario1, Mario2, Boat],
     },
     {
       id: '3d',
       title: '3D Game',
       count: '600',
-      image: '/image/mario-3.png',
+      images: [Boat, Adventure, Mario2, HollowKnight, Mario1],
     },
   ];
   return (
@@ -42,47 +48,45 @@ export default function Category() {
             </button>
           </div>
           {/* Categories */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 h-50">
             {categories.map((c) => (
               <button
                 key={c.id}
-                className="w-full bg-white border border-[#272727]/10 rounded-xl overflow-hidden text-left cursor-pointer group"
+                className="w-full h-50 bg-white border border-[#272727]/10 rounded-xl overflow-hidden text-left cursor-pointer group flex flex-col"
               >
                 {/* Image strip */}
-                <div className="relative w-full h-28">
+                <div className="relative w-full flex-1">
                   <div className="absolute inset-0 flex gap-0">
-                    <div className="relative h-full w-[18%] shrink-0 transform-gpu transition-transform duration-300 ease-out delay-0 origin-left group-hover:scale-x-110 group-hover:-translate-x-1 will-change-transform">
-                      <Image
-                        src={c.image}
-                        alt={c.title}
-                        fill
-                        className="object-cover"
-                      />
-                    </div>
-                    <div className="relative h-full w-[22%] shrink-0 grayscale transform-gpu transition-transform duration-300 ease-out delay-75 origin-center group-hover:scale-x-105 will-change-transform">
-                      <Image
-                        src={c.image}
-                        alt={c.title}
-                        fill
-                        className="object-cover"
-                      />
-                    </div>
-                    <div className="relative h-full w-[26%] shrink-0 transform-gpu transition-transform duration-300 ease-out delay-150 origin-right group-hover:scale-x-110 group-hover:translate-x-1 will-change-transform">
-                      <Image
-                        src={c.image}
-                        alt={c.title}
-                        fill
-                        className="object-cover"
-                      />
-                    </div>
-                    <div className="relative h-full w-[34%] shrink-0 grayscale transform-gpu transition-transform duration-300 ease-out delay-200 origin-right group-hover:scale-x-110 group-hover:translate-x-2 will-change-transform">
-                      <Image
-                        src={c.image}
-                        alt={c.title}
-                        fill
-                        className="object-cover"
-                      />
-                    </div>
+                    {c.images.slice(0, 5).map((img, idx) => (
+                      <div
+                        key={idx}
+                        className={[
+                          'relative h-full shrink-0 transform-gpu transition-transform duration-300 ease-out will-change-transform',
+                          idx === 0
+                            ? 'w-[15%] origin-left delay-0 group-hover:scale-x-110 group-hover:-translate-x-1'
+                            : '',
+                          idx === 1
+                            ? 'w-[15%] origin-left delay-75 grayscale group-hover:scale-x-105'
+                            : '',
+                          idx === 2
+                            ? 'w-[15%] origin-center delay-150 group-hover:scale-x-110'
+                            : '',
+                          idx === 3
+                            ? 'w-[15%] origin-right delay-200 grayscale group-hover:scale-x-110 group-hover:translate-x-1'
+                            : '',
+                          idx === 4
+                            ? 'w-[40%] origin-right delay-300 group-hover:scale-x-110 group-hover:translate-x-2'
+                            : '',
+                        ].join(' ')}
+                      >
+                        <Image
+                          src={img}
+                          alt={c.title}
+                          fill
+                          className="object-cover"
+                        />
+                      </div>
+                    ))}
                   </div>
                 </div>
                 {/* Meta row */}
