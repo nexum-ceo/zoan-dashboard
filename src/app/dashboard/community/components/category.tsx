@@ -50,8 +50,8 @@ export default function Category() {
               >
                 {/* Image strip */}
                 <div className="relative w-full h-28">
-                  <div className="absolute inset-0 grid grid-cols-4 gap-0 transition-transform duration-300 ease-out origin-center group-hover:scale-x-105 will-change-transform">
-                    <div className="relative">
+                  <div className="absolute inset-0 flex gap-0">
+                    <div className="relative h-full w-[18%] shrink-0 transform-gpu transition-transform duration-300 ease-out delay-0 origin-left group-hover:scale-x-110 group-hover:-translate-x-1 will-change-transform">
                       <Image
                         src={c.image}
                         alt={c.title}
@@ -59,7 +59,7 @@ export default function Category() {
                         className="object-cover"
                       />
                     </div>
-                    <div className="relative grayscale">
+                    <div className="relative h-full w-[22%] shrink-0 grayscale transform-gpu transition-transform duration-300 ease-out delay-75 origin-center group-hover:scale-x-105 will-change-transform">
                       <Image
                         src={c.image}
                         alt={c.title}
@@ -67,7 +67,7 @@ export default function Category() {
                         className="object-cover"
                       />
                     </div>
-                    <div className="relative">
+                    <div className="relative h-full w-[26%] shrink-0 transform-gpu transition-transform duration-300 ease-out delay-150 origin-right group-hover:scale-x-110 group-hover:translate-x-1 will-change-transform">
                       <Image
                         src={c.image}
                         alt={c.title}
@@ -75,7 +75,7 @@ export default function Category() {
                         className="object-cover"
                       />
                     </div>
-                    <div className="relative grayscale">
+                    <div className="relative h-full w-[34%] shrink-0 grayscale transform-gpu transition-transform duration-300 ease-out delay-200 origin-right group-hover:scale-x-110 group-hover:translate-x-2 will-change-transform">
                       <Image
                         src={c.image}
                         alt={c.title}
