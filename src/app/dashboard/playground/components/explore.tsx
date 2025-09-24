@@ -71,6 +71,29 @@ export const ExplorePanel: FC<ExplorePanelProps> = ({
     }
   }, [hasVersions, sortedVersionOptions, selectedVersionId]);
 
+  // Selected version object based on current selection (fallback to first)
+  const selectedVersion = useMemo(() => {
+    if (!hasVersions) return undefined;
+    const found = sortedVersionOptions.find((v) => v.id === selectedVersionId);
+    return found ?? sortedVersionOptions[0];
+  }, [sortedVersionOptions, selectedVersionId, hasVersions]);
+
+  // Extract chatId/version from game_url like: games/{chatId}/{version}/...
+  const extractedIds = useMemo(() => {
+    const path = (selectedVersion?.game_url || '').replace(/^\/+/, '');
+    const match = path.match(/^games\/([^/]+)\/([^/]+)/);
+    if (match) {
+      return { chatId: match[1], version: match[2] } as const;
+    }
+    if (selectedVersion?.chat_id && selectedVersion?.id) {
+      return {
+        chatId: selectedVersion.chat_id,
+        version: selectedVersion.id,
+      } as const;
+    }
+    return undefined;
+  }, [selectedVersion]);
+
   // Use external state if provided, otherwise use internal state
   const isChatExpanded = externalIsChatExpanded ?? false;
   const handleChatExpand = (expanded: boolean) => {
@@ -79,20 +102,20 @@ export const ExplorePanel: FC<ExplorePanelProps> = ({
     }
   };
 
-  // TEMP: hardcoded game url for build files
-  const hardcodedChatId = '577ebde2-a069-4e07-b3ec-ed2d3c62de15';
-  const hardcodedVersion = '7778660e-8d7c-4197-8f5d-f0e59b376561';
-  const gameUrl =
-    hardcodedChatId && hardcodedVersion
-      ? `/builds/${hardcodedChatId}/${hardcodedVersion}`
-      : '';
-  const { data: gameBuildFiles } = useGetListFileInGameFolder(gameUrl);
+  // Build API path for listing files based on extracted chatId/version
+  const buildsApiPath = useMemo(() => {
+    if (!extractedIds) return '';
+    return `/games/${extractedIds.chatId}/${extractedIds.version}`;
+  }, [extractedIds]);
+
+  const { data: gameBuildFiles } = useGetListFileInGameFolder(buildsApiPath);
+  console.log('gameBuildFiles', gameBuildFiles);
 
   // File and folder content management
   const { fileContents, loadFileContent } = useFileContent();
   const { folderContents, fetchFolderContent } = useFolderContent(
-    hardcodedChatId,
-    hardcodedVersion,
+    extractedIds?.chatId ?? '',
+    extractedIds?.version ?? '',
   );
 
   // Debug: Log extracted contents and folders
@@ -164,15 +187,15 @@ export const ExplorePanel: FC<ExplorePanelProps> = ({
   const sandboxFiles = useMemo(() => {
     return processS3FilesToSandbox(
       gameBuildFiles as S3ListBucketResultType | undefined,
-      hardcodedChatId,
-      hardcodedVersion,
+      extractedIds?.chatId ?? '',
+      extractedIds?.version ?? '',
       fileContents,
       folderContents,
     );
   }, [
     gameBuildFiles,
-    hardcodedChatId,
-    hardcodedVersion,
+    extractedIds?.chatId,
+    extractedIds?.version,
     fileContents,
     folderContents,
   ]);
@@ -190,9 +213,11 @@ export const ExplorePanel: FC<ExplorePanelProps> = ({
 
   // Build iframe URL for fullscreen preview
   const iframeUrl = useMemo(() => {
-    const base = process.env.NEXT_PUBLIC_MINIO_URL;
-    return base && gameUrl ? `${base}${gameUrl}/index.html` : '';
-  }, [gameUrl]);
+    const rawBase = process.env.NEXT_PUBLIC_MINIO_URL || '';
+    const base = rawBase.replace(/\/+$/, '');
+    const previewPath = (selectedVersion?.game_url || '').replace(/^\/+/, '');
+    return base && previewPath ? `${base}/${previewPath}` : '';
+  }, [selectedVersion]);
 
   // Close on ESC when fullscreen is open
   useEffect(() => {
@@ -294,7 +319,9 @@ export const ExplorePanel: FC<ExplorePanelProps> = ({
                 const timestamp = new Date()
                   .toISOString()
                   .replace(/[:.]/g, '-');
-                const name = `build-${hardcodedChatId}-${hardcodedVersion}-${timestamp}`;
+                const name = `build-${extractedIds?.chatId ?? 'unknown'}-${
+                  extractedIds?.version ?? 'unknown'
+                }-${timestamp}`;
                 downloadSandboxZip(sandboxFiles, name);
               }}
             >
@@ -328,7 +355,11 @@ export const ExplorePanel: FC<ExplorePanelProps> = ({
           activeView={activeView}
           activeFile={activeFile}
           minioUrl={process.env.NEXT_PUBLIC_MINIO_URL}
-          gameUrl={gameUrl}
+          gameUrl={
+            extractedIds
+              ? `/games/${extractedIds.chatId}/${extractedIds.version}`
+              : ''
+          }
         />
       </div>
 

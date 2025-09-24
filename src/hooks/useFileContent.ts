@@ -9,7 +9,7 @@ export const useFileContent = () => {
     async (fileKey: string): Promise<string> => {
       try {
         const baseUrl = process.env.NEXT_PUBLIC_MINIO_URL || '';
-        const fileUrl = `${baseUrl}/builds/${fileKey}`;
+        const fileUrl = `${baseUrl}/games/${fileKey}`;
         const response = await fetch(fileUrl);
 
         if (response.ok) {

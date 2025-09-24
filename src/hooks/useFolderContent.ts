@@ -12,7 +12,7 @@ export const useFolderContent = (chatId: string, version: string) => {
 
       try {
         const response = await fetch(
-          `/api/builds/${chatId}/${version}/${folderName}`,
+          `/api/games/${chatId}/${version}/${folderName}`,
         );
         if (response.ok) {
           const data = await response.json();
