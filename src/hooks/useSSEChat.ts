@@ -50,6 +50,8 @@ export function useSSEChat({
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [isAssistantStreaming, setIsAssistantStreaming] =
     useState<boolean>(false);
+  // Strict gating: block input until SSE emits [DONE] or completion
+  const [isAwaitingDone, setIsAwaitingDone] = useState<boolean>(false);
   const esRef = useRef<EventSource | null>(null);
   const [sseConnected, setSseConnected] = useState<boolean>(false);
   const reconnectTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(
@@ -196,6 +198,7 @@ export function useSSEChat({
           esRef.current = null;
           setSseConnected(false);
           setIsAssistantStreaming(false);
+          setIsAwaitingDone(false);
           // Clear any pending timeouts
           if (assistantStreamEndTimeoutRef.current) {
             clearTimeout(assistantStreamEndTimeoutRef.current);
@@ -213,6 +216,7 @@ export function useSSEChat({
           esRef.current = null;
           setSseConnected(false);
           setIsAssistantStreaming(false);
+          setIsAwaitingDone(false);
           // Clear any pending timeouts
           if (assistantStreamEndTimeoutRef.current) {
             clearTimeout(assistantStreamEndTimeoutRef.current);
@@ -279,6 +283,7 @@ export function useSSEChat({
         esRef.current = null;
         setSseConnected(false);
         setIsAssistantStreaming(false);
+        setIsAwaitingDone(false);
         // Clear any pending timeouts
         if (assistantStreamEndTimeoutRef.current) {
           clearTimeout(assistantStreamEndTimeoutRef.current);
@@ -540,6 +545,7 @@ export function useSSEChat({
               response.statusText,
             );
             setSseConnected(false);
+            setIsAwaitingDone(false);
             throw new Error(`HTTP ${response.status}: ${response.statusText}`);
           }
 
@@ -562,6 +568,7 @@ export function useSSEChat({
                   console.log('[SSE] Stream ended, stopping streaming');
                   setSseConnected(false);
                   setIsAssistantStreaming(false);
+                  setIsAwaitingDone(false);
                   // Clear the timeout to ensure streaming state is reset
                   if (assistantStreamEndTimeoutRef.current) {
                     clearTimeout(assistantStreamEndTimeoutRef.current);
@@ -608,6 +615,7 @@ export function useSSEChat({
                 console.log('[SSE] Stream error occurred, stopping streaming');
                 setSseConnected(false);
                 setIsAssistantStreaming(false);
+                setIsAwaitingDone(false);
                 // Clear the timeout to ensure streaming state is reset
                 if (assistantStreamEndTimeoutRef.current) {
                   clearTimeout(assistantStreamEndTimeoutRef.current);
@@ -624,6 +632,7 @@ export function useSSEChat({
           console.log('[SSE] Fetch error occurred, stopping streaming');
           setSseConnected(false);
           setIsAssistantStreaming(false);
+          setIsAwaitingDone(false);
           // Clear the timeout to ensure streaming state is reset
           if (assistantStreamEndTimeoutRef.current) {
             clearTimeout(assistantStreamEndTimeoutRef.current);
@@ -646,6 +655,7 @@ export function useSSEChat({
     };
     setMessages((prev) => [...prev, userMsg]);
     setIsLoading(true);
+    setIsAwaitingDone(true);
     try {
       await postMessage(input);
     } finally {
@@ -664,6 +674,7 @@ export function useSSEChat({
     };
     setMessages((prev) => [...prev, userMsg]);
     setIsLoading(true);
+    setIsAwaitingDone(true);
     try {
       await postMessage(msg);
     } finally {
@@ -683,6 +694,7 @@ export function useSSEChat({
     sseConnected,
     sendMessageDirect,
     postMessage,
-    isProcessing: isLoading || isAssistantStreaming,
+    isProcessing: isAwaitingDone || isLoading || isAssistantStreaming,
+    isAwaitingDone,
   };
 }

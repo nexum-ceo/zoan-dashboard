@@ -28,11 +28,11 @@ export const MessageContent = ({
 }: MessageContentProps) => (
   <div
     className={cn(
-      'flex flex-col gap-2 overflow-hidden rounded-2xl px-4 py-3 text-foreground text-sm',
+      'flex flex-col gap-2 overflow-hidden rounded-lg px-4 py-3 text-foreground text-sm',
       // User bubble: clean white card with subtle border and shadow
-      'group-[.is-user]:bg-background group-[.is-user]:text-foreground group-[.is-user]:border group-[.is-user]:border-border group-[.is-user]:shadow-sm',
+      'group-[.is-user]:bg-transparent group-[.is-user]:text-foreground group-[.is-user]:border group-[.is-user]:border-[#272727]/10 group-[.is-user]:shadow-sm',
       // Assistant bubble: softer muted background, thin border for contrast
-      'group-[.is-assistant]:bg-none group-[.is-assistant]:text-foreground group-[.is-assistant]:border-none group-[.is-assistant]:px-0 group-[.is-assistant]:gap-0',
+      'group-[.is-assistant]:bg-none group-[.is-assistant]:text-foreground group-[.is-assistant]:font-normal group-[.is-assistant]:border-none group-[.is-assistant]:px-0 group-[.is-assistant]:gap-0',
       className,
     )}
     {...props}

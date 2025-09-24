@@ -1,25 +1,20 @@
 'use client';
 
-import { useAgent } from '@/contexts/AgentContext';
+import TopCreators from '@/app/(public)/components/top-creators';
+import CommunitySection from '@/app/dashboard/playground/components/community';
+import PersonalSpace from '@/app/dashboard/playground/components/personal-space';
+import OptionButtons from '@/components/ui/option-buttons';
 import { useChat } from '@/hooks/useChat';
 import { handleErrorApi } from '@/lib/utils';
-import { useGetAgentList } from '@/queries/useAgent';
 import { useCreateChatMutation } from '@/queries/useChat';
 import { useRouter } from 'next/navigation';
-import { FormEvent, useCallback, useEffect, useRef, useState } from 'react';
-import { PlaygroundHeader } from './playground-header';
+import { FormEvent, useRef, useState } from 'react';
 import { PlaygroundInput } from './playground-input';
 import { PlaygroundMessages } from './playground-messages';
 
 export function PlaygroundClient() {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const messagesContainerRef = useRef<HTMLDivElement>(null);
-  const [showScrollButton, setShowScrollButton] = useState<boolean>(false);
-  const { selectedAgentId } = useAgent();
-
-  const { data: agentData } = useGetAgentList();
-  const agents = agentData?.data.data || [];
-  const selectedAgent = agents.find((agent) => agent.id === selectedAgentId);
 
   const { messages, handleSubmit, isLoading, isProcessing } = useChat({
     initialMessages: [],
@@ -31,27 +26,6 @@ export function PlaygroundClient() {
   const [pendingMessage, setPendingMessage] = useState<string>('');
   const createChatMutation = useCreateChatMutation();
   const router = useRouter();
-
-  useEffect(() => {
-    scrollToBottom();
-  }, [messages]);
-
-  const handleScroll = useCallback(() => {
-    if (messagesContainerRef.current) {
-      const { scrollTop, scrollHeight, clientHeight } =
-        messagesContainerRef.current;
-      const isNearBottom = scrollHeight - scrollTop - clientHeight < 100;
-      setShowScrollButton(!isNearBottom && messages.length > 0);
-    }
-  }, [messages.length]);
-
-  useEffect(() => {
-    const container = messagesContainerRef.current;
-    if (container) {
-      container.addEventListener('scroll', handleScroll);
-      return () => container.removeEventListener('scroll', handleScroll);
-    }
-  }, [messages.length, handleScroll]);
 
   const handleFirstSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -81,28 +55,43 @@ export function PlaygroundClient() {
   return (
     <>
       {/* Main Chat Area */}
-      <div className="flex-1 flex flex-col relative">
-        {/* Header */}
-        <PlaygroundHeader selectedAgent={selectedAgent} />
+      <div className="flex-1 flex flex-col relative py-20 bg-white">
+        <div className="px-25 py-20 pb-6">
+          {/* Messages */}
+          <PlaygroundMessages
+            messages={messages}
+            isLoading={isLoading}
+            messagesContainerRef={messagesContainerRef}
+            messagesEndRef={messagesEndRef}
+            showScrollButton={false}
+            onScrollToBottom={scrollToBottom}
+          />
 
-        {/* Messages */}
-        <PlaygroundMessages
-          messages={messages}
-          isLoading={isLoading}
-          messagesContainerRef={messagesContainerRef}
-          messagesEndRef={messagesEndRef}
-          showScrollButton={showScrollButton}
-          onScrollToBottom={scrollToBottom}
-        />
+          {/* Input Area */}
+          <PlaygroundInput
+            value={pendingMessage}
+            onChange={(e) => setPendingMessage(e.target.value)}
+            onSubmit={messages.length === 0 ? handleFirstSubmit : handleSubmit}
+            disabled={false}
+            submitDisabled={isProcessing}
+          />
 
-        {/* Input Area */}
-        <PlaygroundInput
-          value={pendingMessage}
-          onChange={(e) => setPendingMessage(e.target.value)}
-          onSubmit={messages.length === 0 ? handleFirstSubmit : handleSubmit}
-          disabled={false}
-          submitDisabled={isProcessing}
-        />
+          {/* AI Suggestion */}
+          <div className="mt-6">
+            <OptionButtons />
+          </div>
+        </div>
+
+        <div className="py-20 pt-6 2xl:px-30 sm:px-12 w-full">
+          {/** --- Personal Space Section ---  */}
+          <PersonalSpace />
+
+          {/** --- Community Section ---  */}
+          <CommunitySection />
+
+          {/** --- Top Creators Section ---  */}
+          <TopCreators />
+        </div>
       </div>
     </>
   );
