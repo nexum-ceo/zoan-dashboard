@@ -213,6 +213,10 @@ export const ChatMessage: FC<ChatMessageProps> = ({
   }, [message.parts, message.metadata]);
 
   const isAssistantStreamingCurrent = isLoading && isLast;
+  const isLastPartThinking =
+    Array.isArray(message.parts) &&
+    message.parts.length > 0 &&
+    message.parts[message.parts.length - 1]?.type === 'thinking';
   const showAssistantActions = !isUser && !isAssistantStreamingCurrent;
 
   return (
@@ -224,18 +228,21 @@ export const ChatMessage: FC<ChatMessageProps> = ({
             <div className="text-sm font-medium">AI Agent priority</div>
           </>
         )}
-        {!isUser && thinkingText && isAssistantStreamingCurrent && (
-          <Reasoning
-            className="w-full mb-0"
-            isStreaming={Boolean(isLoading && isLast)}
-            defaultOpen={true}
-          >
-            <ReasoningTrigger className="!text-xs" />
-            <ReasoningContent className="!text-xs">
-              {thinkingText}
-            </ReasoningContent>
-          </Reasoning>
-        )}
+        {!isUser &&
+          thinkingText &&
+          isLast &&
+          (isAssistantStreamingCurrent || isLastPartThinking) && (
+            <Reasoning
+              className="w-full mb-0"
+              isStreaming={Boolean(isAssistantStreamingCurrent)}
+              defaultOpen={true}
+            >
+              <ReasoningTrigger className="!text-xs" />
+              <ReasoningContent className="!text-xs">
+                {thinkingText}
+              </ReasoningContent>
+            </Reasoning>
+          )}
         {!isUser && gameGeneratorItems.length > 0 && (
           <Task
             defaultOpen={Boolean(isLoading && isLast)}

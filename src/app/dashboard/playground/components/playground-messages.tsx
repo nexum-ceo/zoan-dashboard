@@ -56,15 +56,15 @@ export function PlaygroundMessages({
               const thinkingText = thinkingParts.map((p) => p.text).join('\n');
               return (
                 <div key={message.id} className="space-y-2">
-                  {isAssistant && thinkingParts.length > 0 && (
-                    <Reasoning
-                      isStreaming={isLoading && isLast}
-                      defaultOpen={false}
-                    >
-                      <ReasoningTrigger />
-                      <ReasoningContent>{thinkingText}</ReasoningContent>
-                    </Reasoning>
-                  )}
+                  {isAssistant &&
+                    thinkingParts.length > 0 &&
+                    isLoading &&
+                    isLast && (
+                      <Reasoning isStreaming={true} defaultOpen={false}>
+                        <ReasoningTrigger />
+                        <ReasoningContent>{thinkingText}</ReasoningContent>
+                      </Reasoning>
+                    )}
                   <ChatMessage
                     message={message}
                     isLast={isLast}
