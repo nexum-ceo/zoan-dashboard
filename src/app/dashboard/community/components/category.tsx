@@ -46,11 +46,11 @@ export default function Category() {
             {categories.map((c) => (
               <button
                 key={c.id}
-                className="w-full bg-white border border-[#272727]/10 rounded-xl overflow-hidden text-left cursor-pointer"
+                className="w-full bg-white border border-[#272727]/10 rounded-xl overflow-hidden text-left cursor-pointer group"
               >
                 {/* Image strip */}
                 <div className="relative w-full h-28">
-                  <div className="absolute inset-0 grid grid-cols-3 gap-0">
+                  <div className="absolute inset-0 grid grid-cols-4 gap-0 transition-transform duration-300 ease-out origin-center group-hover:scale-x-105 will-change-transform">
                     <div className="relative">
                       <Image
                         src={c.image}
@@ -68,6 +68,14 @@ export default function Category() {
                       />
                     </div>
                     <div className="relative">
+                      <Image
+                        src={c.image}
+                        alt={c.title}
+                        fill
+                        className="object-cover"
+                      />
+                    </div>
+                    <div className="relative grayscale">
                       <Image
                         src={c.image}
                         alt={c.title}
