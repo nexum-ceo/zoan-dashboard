@@ -3,6 +3,15 @@ import { NextResponse } from 'next/server';
 
 export default withAuth(
   function middleware(req) {
+    // Force 404 for /dashboard/project, /dashboard/personal-space routes
+    const { pathname } = req.nextUrl;
+    if (
+      pathname.startsWith('/dashboard/projects') ||
+      pathname.startsWith('/dashboard/personal-space')
+    ) {
+      return NextResponse.rewrite(new URL('/404', req.url));
+    }
+
     // When setting cookie with expires, there will be a deviation of about 0 - 1000ms, so to be safe, we subtract 1s.
     const now = new Date().getTime() / 1000 - 1;
 
