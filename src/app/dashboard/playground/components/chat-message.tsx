@@ -212,7 +212,7 @@ export const ChatMessage: FC<ChatMessageProps> = ({
     return items;
   }, [message.parts, message.metadata]);
 
-  const isAssistantStreamingCurrent = Boolean(isLoading && isLast);
+  const isAssistantStreamingCurrent = isLoading && isLast;
   const showAssistantActions = !isUser && !isAssistantStreamingCurrent;
 
   return (
