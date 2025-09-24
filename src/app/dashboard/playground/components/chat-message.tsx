@@ -220,11 +220,11 @@ export const ChatMessage: FC<ChatMessageProps> = ({
       <div className="flex flex-col gap-2 px-2">
         {!isUser && (
           <>
-            <MessageAvatar name="AI" src="/icon.png" />
+            <MessageAvatar name="AI" src="/zoan-logo.png" />
             <div className="text-sm font-medium">AI Agent priority</div>
           </>
         )}
-        {!isUser && thinkingText && (
+        {!isUser && thinkingText && isAssistantStreamingCurrent && (
           <Reasoning
             className="w-full mb-0"
             isStreaming={Boolean(isLoading && isLast)}
