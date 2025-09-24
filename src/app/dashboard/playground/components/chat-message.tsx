@@ -24,6 +24,7 @@ import {
   TooltipTrigger,
 } from '@/components/ui/tooltip';
 import {
+  CheckIcon,
   CopyIcon,
   Pen,
   RefreshCcwIcon,
@@ -50,7 +51,9 @@ const GameGeneratorContent = ({ content }: { content: string }) => {
           .filter((f) => f.trim() !== '');
         result.push(
           <div key={i} className="mb-4">
-            <div className="font-semibold text-sm mb-2">File Manifest:</div>
+            <div className="font-medium text-paragraph mb-2">
+              File Manifest:
+            </div>
             <div className="flex flex-wrap gap-2">
               {files.map((file, index) => (
                 <TaskItemFile key={index}>{file.trim()}</TaskItemFile>
@@ -67,16 +70,17 @@ const GameGeneratorContent = ({ content }: { content: string }) => {
           result.push(
             <div key={i} className="flex items-start gap-2 mb-2">
               <TaskItemFile>{filename}</TaskItemFile>
-              <span className="text-sm text-muted-foreground">
-                {description}
-              </span>
+              <span className="text-xs text-paragraph">{description}</span>
             </div>,
           );
         }
       } else {
         // Regular markdown content
         result.push(
-          <div key={i} className="mb-2 text-sm">
+          <div
+            key={i}
+            className="mb-2 text-xs text-paragraph !text-[#272727]/50"
+          >
             <ReactMarkdown>{line}</ReactMarkdown>
           </div>,
         );
@@ -96,6 +100,7 @@ type ChatMessageProps = {
     content?: string;
     parts?: Array<{ type: string; text?: string; content?: string }>;
     metadata?: Record<string, string>;
+    isComplete?: boolean;
   };
   isLast: boolean;
   isLoading: boolean;
@@ -111,6 +116,7 @@ export const ChatMessage: FC<ChatMessageProps> = ({
   // State for actions
   const [liked, setLiked] = useState(false);
   const [disliked, setDisliked] = useState(false);
+  const [copied, setCopied] = useState(false);
 
   // Action handlers
   const handleRetry = () => {
@@ -122,6 +128,11 @@ export const ChatMessage: FC<ChatMessageProps> = ({
     try {
       await navigator.clipboard.writeText(content);
       console.log('Message copied to clipboard');
+      setCopied(true);
+      // Reset to copy icon after 2 seconds
+      setTimeout(() => {
+        setCopied(false);
+      }, 2000);
     } catch (err) {
       console.error('Failed to copy message:', err);
     }
@@ -134,17 +145,21 @@ export const ChatMessage: FC<ChatMessageProps> = ({
   };
 
   const handleLike = () => {
-    setLiked(!liked);
     if (liked) {
-      setDisliked(false); // Remove dislike if liked
+      setLiked(false);
+      return;
     }
+    setLiked(true);
+    setDisliked(false); // Ensure dislike is cleared when liking
   };
 
   const handleDislike = () => {
-    setDisliked(!disliked);
     if (disliked) {
-      setLiked(false); // Remove like if disliked
+      setDisliked(false);
+      return;
     }
+    setDisliked(true);
+    setLiked(false); // Ensure like is cleared when disliking
   };
 
   const thinkingText = useMemo(() => {
@@ -197,13 +212,16 @@ export const ChatMessage: FC<ChatMessageProps> = ({
     return items;
   }, [message.parts, message.metadata]);
 
+  const isAssistantStreamingCurrent = isLoading && isLast;
+  const showAssistantActions = !isUser && !isAssistantStreamingCurrent;
+
   return (
     <UIMessage from={isUser ? 'user' : 'assistant'}>
       <div className="flex flex-col gap-2 px-2">
         {!isUser && (
           <>
             <MessageAvatar name="AI" src="/icon.png" />
-            <div className="text-md font-medium">AI Agent priority</div>
+            <div className="text-sm font-medium">AI Agent priority</div>
           </>
         )}
         {!isUser && thinkingText && (
@@ -212,8 +230,10 @@ export const ChatMessage: FC<ChatMessageProps> = ({
             isStreaming={Boolean(isLoading && isLast)}
             defaultOpen={true}
           >
-            <ReasoningTrigger />
-            <ReasoningContent>{thinkingText}</ReasoningContent>
+            <ReasoningTrigger className="!text-xs" />
+            <ReasoningContent className="!text-xs">
+              {thinkingText}
+            </ReasoningContent>
           </Reasoning>
         )}
         {!isUser && gameGeneratorItems.length > 0 && (
@@ -221,7 +241,7 @@ export const ChatMessage: FC<ChatMessageProps> = ({
             defaultOpen={Boolean(isLoading && isLast)}
             className="w-full mb-0"
           >
-            <TaskTrigger title="Game Generator" />
+            <TaskTrigger className="!text-xs" title="Game Generator" />
             <TaskContent>
               <GameGeneratorContent content={gameGeneratorItems.join('')} />
             </TaskContent>
@@ -252,62 +272,80 @@ export const ChatMessage: FC<ChatMessageProps> = ({
 
               <Tooltip>
                 <TooltipTrigger asChild>
-                  <Action label="Copy" className="p-0" onClick={handleCopy}>
-                    <CopyIcon className="size-4" />
+                  <Action label="Copy" onClick={handleCopy}>
+                    {copied ? (
+                      <CheckIcon className="size-4" />
+                    ) : (
+                      <CopyIcon className="size-4" />
+                    )}
                   </Action>
                 </TooltipTrigger>
                 <TooltipContent>
-                  <p>Copy</p>
+                  <p>{copied ? 'Copied!' : 'Copy'}</p>
                 </TooltipContent>
               </Tooltip>
             </Actions>
           </TooltipProvider>
         )}
 
-        {/* Actions for assistant messages */}
-        {!isUser && (
+        {/* Actions for assistant messages - hide only while the last message is streaming */}
+        {showAssistantActions && (
           <TooltipProvider>
             <Actions className="">
               <Tooltip>
                 <TooltipTrigger asChild>
                   <Action label="Copy" onClick={handleCopy}>
-                    <CopyIcon className="size-4" />
+                    {copied ? (
+                      <CheckIcon className="size-4" />
+                    ) : (
+                      <CopyIcon className="size-4" />
+                    )}
                   </Action>
                 </TooltipTrigger>
                 <TooltipContent>
-                  <p>Copy</p>
+                  <p>{copied ? 'Copied!' : 'Copy'}</p>
                 </TooltipContent>
               </Tooltip>
 
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Action
-                    label="Like"
-                    onClick={handleLike}
-                    className={liked ? 'text-green-600' : ''}
-                  >
-                    <ThumbsUpIcon className="size-4" />
-                  </Action>
-                </TooltipTrigger>
-                <TooltipContent>
-                  <p>{liked ? 'Remove like' : 'Like'}</p>
-                </TooltipContent>
-              </Tooltip>
+              {!disliked && (
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Action
+                      label="Like"
+                      onClick={handleLike}
+                      className={liked ? 'text-[#272727]/20' : ''}
+                    >
+                      <ThumbsUpIcon
+                        className={`size-4 ${liked ? 'fill-[#272727]/20' : ''}`}
+                      />
+                    </Action>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p>{liked ? 'Remove like' : 'Like'}</p>
+                  </TooltipContent>
+                </Tooltip>
+              )}
 
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Action
-                    label="Dislike"
-                    onClick={handleDislike}
-                    className={disliked ? 'text-red-600' : ''}
-                  >
-                    <ThumbsDownIcon className="size-4" />
-                  </Action>
-                </TooltipTrigger>
-                <TooltipContent>
-                  <p>{disliked ? 'Remove dislike' : 'Dislike'}</p>
-                </TooltipContent>
-              </Tooltip>
+              {!liked && (
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Action
+                      label="Dislike"
+                      onClick={handleDislike}
+                      className={disliked ? 'text-[#272727]/20' : ''}
+                    >
+                      <ThumbsDownIcon
+                        className={`size-4 ${
+                          disliked ? 'fill-[#272727]/20' : ''
+                        }`}
+                      />
+                    </Action>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p>{disliked ? 'Remove dislike' : 'Dislike'}</p>
+                  </TooltipContent>
+                </Tooltip>
+              )}
 
               <Tooltip>
                 <TooltipTrigger asChild>

@@ -19,7 +19,7 @@ import { SandboxCodePanel } from './sandbox-code-panel';
 
 type ExplorePanelProps = {
   chatId: string;
-  onGameSignalReceived: () => void;
+  onGameSignalReceived?: () => void;
   className?: string;
   messages?: Array<unknown>;
   onRequestOpen?: () => void;
@@ -63,8 +63,6 @@ export const ExplorePanel: FC<ExplorePanelProps> = ({
     hardcodedChatId,
     hardcodedVersion,
   );
-
-  console.log('game build files', gameBuildFiles);
 
   // Debug: Log extracted contents and folders
   useEffect(() => {
@@ -184,7 +182,7 @@ export const ExplorePanel: FC<ExplorePanelProps> = ({
       }`}
     >
       {/* Header */}
-      <div className="px-2 pt-1 pb-1.5 border-b border-border bg-white">
+      <div className="px-2 pt-1 pb-1.5 border-b border-border bg-white flex-shrink-0">
         <div className="flex items-center justify-between gap-3">
           {/* Left segmented controls */}
           <div className="flex items-center gap-3">
@@ -266,7 +264,7 @@ export const ExplorePanel: FC<ExplorePanelProps> = ({
       </div>
 
       {/* Content */}
-      <div className="flex-1 transition-all duration-300 ease-in-out">
+      <div className="flex-1 transition-all duration-300 ease-in-out overflow-hidden">
         <SandboxCodePanel
           files={sandboxFiles}
           template="react"

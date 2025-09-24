@@ -22,20 +22,13 @@ import { Switch } from '@/components/ui/switch';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Textarea } from '@/components/ui/textarea';
 import { handleErrorApi, HttpError } from '@/lib/utils';
-import {
-  useGetAgentAvailable,
-  useUpdateAgentMutation,
-} from '@/queries/useAgent';
+import { useGetAgentAvailable } from '@/queries/useAgent';
 import {
   useCreateChatAgentSettingMutation,
   useGetChatAgentSettingByChatId,
   useGetPrimaryAgentByChatId,
 } from '@/queries/useChat';
-import {
-  AgentType,
-  UpdateAgentBodySchema,
-  UpdateAgentBodyType,
-} from '@/types/agent';
+import { AgentType, UpdateAgentBodySchema } from '@/types/agent';
 import { GetChatAgentSettingByChatIdResType } from '@/types/chat';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Bot, Sparkles, Users, X, Zap } from 'lucide-react';
@@ -78,10 +71,10 @@ export const ChatSettings: FC<ChatSettingsProps> = ({ isOpen, onClose }) => {
 
   const {
     control,
-    handleSubmit,
+    // handleSubmit,
     setValue,
     watch,
-    formState: { errors, isDirty },
+    formState: { errors },
   } = form;
   const watchedValues = watch();
   const { data: chatAgentSettingData } = useGetChatAgentSettingByChatId(
@@ -91,7 +84,7 @@ export const ChatSettings: FC<ChatSettingsProps> = ({ isOpen, onClose }) => {
   const createChatAgentSettingMutation = useCreateChatAgentSettingMutation(
     chatId as string,
   );
-  const updateAgentMutation = useUpdateAgentMutation(primaryAgent?.id || '');
+  // const updateAgentMutation = useUpdateAgentMutation(primaryAgent?.id || '');
   const chatAgentSetting = useMemo<GetChatAgentSettingByChatIdResType['data']>(
     () => chatAgentSettingData?.data.data || [],
     [chatAgentSettingData],
@@ -153,35 +146,35 @@ export const ChatSettings: FC<ChatSettingsProps> = ({ isOpen, onClose }) => {
     }
   }, [primaryAgent, setValue]);
 
-  const onSubmit = async (data: ChatSettingsFormData) => {
-    try {
-      // Ensure primaryAgent has data before performing update
-      if (!primaryAgent) {
-        handleErrorApi({
-          error: new HttpError({
-            data: null,
-            message: 'Primary agent is required to save settings',
-            status: 'INVALID',
-          }),
-        });
-        return;
-      }
+  // const onSubmit = async (data: ChatSettingsFormData) => {
+  //   try {
+  //     // Ensure primaryAgent has data before performing update
+  //     if (!primaryAgent) {
+  //       handleErrorApi({
+  //         error: new HttpError({
+  //           data: null,
+  //           message: 'Primary agent is required to save settings',
+  //           status: 'INVALID',
+  //         }),
+  //       });
+  //       return;
+  //     }
 
-      // Update the primary agent with new settings
-      await updateAgentMutation.mutateAsync({
-        description: primaryAgent.description,
-        model: data.model,
-        max_tokens: data.max_tokens,
-        temperature: data.temperature,
-        top_p: data.top_p,
-        name: primaryAgent.name,
-        prompt: data.prompt,
-        type: primaryAgent.response_format.type,
-      } as UpdateAgentBodyType);
-    } catch (error) {
-      handleErrorApi({ error });
-    }
-  };
+  //     // Update the primary agent with new settings
+  //     await updateAgentMutation.mutateAsync({
+  //       description: primaryAgent.description,
+  //       model: data.model,
+  //       max_tokens: data.max_tokens,
+  //       temperature: data.temperature,
+  //       top_p: data.top_p,
+  //       name: primaryAgent.name,
+  //       prompt: data.prompt,
+  //       type: primaryAgent.response_format.type,
+  //     } as UpdateAgentBodyType);
+  //   } catch (error) {
+  //     handleErrorApi({ error });
+  //   }
+  // };
 
   const handleAgentToggle = async (agentId: string) => {
     try {
@@ -675,7 +668,7 @@ export const ChatSettings: FC<ChatSettingsProps> = ({ isOpen, onClose }) => {
           </div>
 
           {/* Action Buttons */}
-          <div className="flex gap-3 pt-6 border-t border-border mt-6 p-4">
+          {/* <div className="flex gap-3 pt-6 border-t border-border mt-6 p-4">
             <Button variant="outline" onClick={onClose} className="flex-1">
               Cancel
             </Button>
@@ -688,7 +681,7 @@ export const ChatSettings: FC<ChatSettingsProps> = ({ isOpen, onClose }) => {
             >
               {updateAgentMutation.isPending ? 'Saving...' : 'Save Settings'}
             </Button>
-          </div>
+          </div> */}
         </Tabs>
       </SheetContent>
     </Sheet>

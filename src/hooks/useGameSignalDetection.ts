@@ -28,9 +28,7 @@ export const useGameSignalDetection = (
             (metadata as Record<string, unknown>)['game-signal'] !== undefined);
 
         const hasGameGeneratorPart = Array.isArray(parts)
-          ? parts.some(
-              (p) => p?.type === 'game_generator' || p?.type === 'game-signal',
-            )
+          ? parts.some((p) => p?.type === 'game-signal')
           : false;
 
         return isAssistant && (hasGameGeneratorMeta || hasGameGeneratorPart);
