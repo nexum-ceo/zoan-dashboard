@@ -1,13 +1,12 @@
 'use client';
 
-import { TrendingUp } from 'lucide-react';
+import { MessageSquare } from 'lucide-react';
 import { CartesianGrid, Line, LineChart, XAxis } from 'recharts';
 
 import {
   Card,
   CardContent,
   CardDescription,
-  CardFooter,
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
@@ -17,6 +16,13 @@ import {
   ChartTooltip,
   ChartTooltipContent,
 } from '@/components/ui/chart';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 
 export const description = 'A linear line chart';
 
@@ -28,7 +34,6 @@ const chartData = [
   { month: 'May', desktop: 209 },
   { month: 'June', desktop: 214 },
 ];
-
 const chartConfig = {
   desktop: {
     label: 'Desktop',
@@ -38,13 +43,32 @@ const chartConfig = {
 
 export function ChartLineLinear() {
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>Line Chart - Linear</CardTitle>
-        <CardDescription>January - June 2024</CardDescription>
+    <Card className="h-full flex flex-col">
+      <CardHeader className="flex items-center justify-between pb-0">
+        <div>
+          <CardTitle className="text-[#272727] text-body-b2">120</CardTitle>
+          <CardDescription className="text-sm font-normal leading-3.5 text-[#272727]/50">
+            Total Chats
+          </CardDescription>
+        </div>
+        <div className="flex gap-1 items-center">
+          <Select defaultValue="week">
+            <SelectTrigger className="w-full !h-6.5">
+              <SelectValue placeholder="Select time" className="!h-6.5" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="week">This week</SelectItem>
+              <SelectItem value="month">This month</SelectItem>
+              <SelectItem value="year">This year</SelectItem>
+            </SelectContent>
+          </Select>
+          <div className="w-6.5 h-6.5 p-1.5 gap-1.5 rounded-lg bg-primary-brand-green flex items-center justify-center">
+            <MessageSquare className="w-3.5 h-3.5 stroke-primary-brand-darker-green" />
+          </div>
+        </div>
       </CardHeader>
-      <CardContent>
-        <ChartContainer config={chartConfig}>
+      <CardContent className="flex-1 min-h-0 pt-2">
+        <ChartContainer config={chartConfig} className="h-full w-full">
           <LineChart
             accessibilityLayer
             data={chartData}
@@ -75,14 +99,6 @@ export function ChartLineLinear() {
           </LineChart>
         </ChartContainer>
       </CardContent>
-      <CardFooter className="flex-col items-start gap-2 text-sm">
-        <div className="flex gap-2 leading-none font-medium">
-          Trending up by 5.2% this month <TrendingUp className="h-4 w-4" />
-        </div>
-        <div className="text-muted-foreground leading-none">
-          Showing total visitors for the last 6 months
-        </div>
-      </CardFooter>
     </Card>
   );
 }
