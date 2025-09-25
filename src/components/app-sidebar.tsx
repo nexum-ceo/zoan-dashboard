@@ -145,10 +145,7 @@ export function AppSidebar() {
   const cooldownUntilRef = useRef<Map<string, number>>(new Map());
 
   const handleNavClick = (href: string, label: string) => {
-    const blockedRoutes = new Set<string>([
-      '/dashboard/projects',
-      '/dashboard/personal-space',
-    ]);
+    const blockedRoutes = new Set<string>(['/dashboard/projects']);
     if (blockedRoutes.has(href)) {
       const now = Date.now();
       const until = cooldownUntilRef.current.get(href) ?? 0;
