@@ -16,6 +16,7 @@ import {
   CardTitle,
 } from '@/components/ui/card';
 import { ChartConfig, ChartContainer } from '@/components/ui/chart';
+import UserCheck from '../../../public/icon/user-check';
 
 export const description = 'A radial chart with text';
 
@@ -35,18 +36,23 @@ const chartConfig = {
 
 export function ChartRadialText() {
   return (
-    <Card className="h-full py-2">
-      <CardHeader className="items-center pb-0">
-        <CardTitle>Radial Chart - Text</CardTitle>
+    <Card className="h-full p-2">
+      <CardHeader className="flex justify-between items-center pb-0 px-0">
+        <CardTitle>Active Agents</CardTitle>
+        <div>
+          <div className="w-6.5 h-6.5 p-1.5 gap-1.5 rounded-lg bg-primary-brand-green flex items-center justify-center">
+            <UserCheck className="w-3.5 h-3.5 stroke-primary-brand-darker-green" />
+          </div>
+        </div>
       </CardHeader>
-      <CardContent className="flex-1 min-h-0 pb-0 my-auto">
+      <CardContent className="flex-1 min-h-0 pb-0 my-auto px-0">
         <ChartContainer config={chartConfig} className="h-full w-full">
           <RadialBarChart
             data={chartData}
-            startAngle={0}
-            endAngle={250}
+            startAngle={90}
+            endAngle={-40}
             innerRadius={80}
-            outerRadius={110}
+            outerRadius={100}
           >
             <PolarGrid
               gridType="circle"
@@ -67,19 +73,21 @@ export function ChartRadialText() {
                         textAnchor="middle"
                         dominantBaseline="middle"
                       >
+                        <tspan className="!fill-[#272727] text-[28px] font-medium leading-8">
+                          3
+                        </tspan>
                         <tspan
-                          x={viewBox.cx}
-                          y={viewBox.cy}
-                          className="fill-foreground text-4xl font-bold"
+                          className="!fill-[#272727]/50 text-sm leading-9 font-medium"
+                          dx="4"
                         >
-                          {chartData[0].visitors.toLocaleString()}
+                          /10
                         </tspan>
                         <tspan
                           x={viewBox.cx}
                           y={(viewBox.cy || 0) + 24}
-                          className="fill-muted-foreground"
+                          className="!fill-[#272727]/50 text-[10px] font-medium"
                         >
-                          Visitors
+                          In-Active Agents
                         </tspan>
                       </text>
                     );
@@ -90,9 +98,9 @@ export function ChartRadialText() {
           </RadialBarChart>
         </ChartContainer>
       </CardContent>
-      <CardFooter className="flex-col gap-2 text-sm">
+      <CardFooter className="flex-col gap-2 text-sm px-0">
         <div className="text-muted-foreground leading-none">
-          Showing total visitors for the last 6 months
+          Updated 5 minutes ago
         </div>
       </CardFooter>
     </Card>
