@@ -1,5 +1,7 @@
+'use client';
 import type { StaticImageData } from 'next/image';
 import Image from 'next/image';
+import { useRouter } from 'next/navigation';
 import VectorIcon from '../../../../../public/icon/vector';
 import Adventure from '../../../../../public/image/card/adventure.jpg';
 import Boat from '../../../../../public/image/card/boat.jpg';
@@ -8,6 +10,7 @@ import Mario1 from '../../../../../public/image/mario-1.png';
 import Mario2 from '../../../../../public/image/mario-2.png';
 
 export default function Category() {
+  const router = useRouter();
   const categories: Array<{
     id: string;
     title: string;
@@ -42,7 +45,10 @@ export default function Category() {
             <div>
               <div className="text-body-b1 mb-2">Categories</div>
             </div>
-            <button className="text-paragraph !text-[#272727]/50 flex items-center gap-1.5 cursor-pointer">
+            <button
+              onClick={() => router.push('/dashboard/community/categories')}
+              className="text-paragraph !text-[#272727]/50 flex items-center gap-1.5 cursor-pointer"
+            >
               Browse all
               <VectorIcon />
             </button>
