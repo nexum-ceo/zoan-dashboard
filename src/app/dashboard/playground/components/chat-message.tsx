@@ -11,6 +11,7 @@ import {
   ReasoningContent,
   ReasoningTrigger,
 } from '@/components/ui/shadcn-io/ai/reasoning';
+import { Response } from '@/components/ui/shadcn-io/ai/response';
 import {
   Task,
   TaskContent,
@@ -255,7 +256,7 @@ export const ChatMessage: FC<ChatMessageProps> = ({
           </Task>
         )}
         <MessageContent className="text-xs text-[#272727] shadow-none px-3 py-2 font-medium leading-3.5">
-          <ReactMarkdown>{content}</ReactMarkdown>
+          <Response>{content}</Response>
         </MessageContent>
 
         {/* Actions for user messages */}
