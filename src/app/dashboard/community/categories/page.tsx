@@ -1,22 +1,35 @@
+'use client';
 import CategoriesCard from '@/app/dashboard/community/categories/components/categories-card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { ArrowLeft } from 'lucide-react';
+import { useRouter } from 'next/navigation';
 import ChevronRight from '../../../../../public/icon/chevron-right';
 import Search from '../../../../../public/icon/search';
 
 export default function CategoriesPage() {
+  const router = useRouter();
   return (
     <div className="py-10">
       <div className="px-25 py-10 space-y-6">
-        <Button variant={'secondary'} className="!p-2">
+        <Button
+          variant={'secondary'}
+          className="!p-2"
+          onClick={() => router.push('/dashboard/community')}
+        >
           <ArrowLeft className="w-3.5 h-3.5" />
         </Button>
         {/* Header */}
         <div>
           <div className="text-tag-label flex items-center gap-1">
             {' '}
-            <span className="text-[#272727]/50">Community</span>
+            <button
+              type="button"
+              onClick={() => router.push('/dashboard/community')}
+              className="text-[#272727]/50 hover:text-[#272727] cursor-pointer"
+            >
+              Community
+            </button>
             <ChevronRight className="w-3 h-3" />
             <span className="text-primary-brand-darker-green">Categories</span>
           </div>
