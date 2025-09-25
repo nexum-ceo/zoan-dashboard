@@ -22,7 +22,6 @@ export default function CategoriesPage() {
         {/* Header */}
         <div>
           <div className="text-tag-label flex items-center gap-1">
-            {' '}
             <button
               type="button"
               onClick={() => router.push('/dashboard/community')}

@@ -61,14 +61,12 @@ export default function CategoriesCard() {
                   alt={`${item.title} right`}
                   fill
                   className="object-cover object-center"
-                />{' '}
-              </div>{' '}
-            </div>{' '}
-          </div>{' '}
+                />
+              </div>
+            </div>
+          </div>
           <div className="px-4 py-3">
-            {' '}
             <div className="flex items-center justify-between">
-              {' '}
               <div className="flex items-center gap-2">
                 <GamePad className="w-4 h-4 stroke-primary-brand-darker-green" />
                 <div className="text-paragraph font-medium !text-[14px]">
