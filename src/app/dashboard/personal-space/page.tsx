@@ -37,8 +37,8 @@ export default function PersonalSpace() {
           {/* Right: Two stacked stat cards */}
           <div className="w-[360px] shrink-0 flex flex-col gap-4 h-[285px]">
             {/* Usage Time card */}
-            <Card className="w-full h-full flex-1">
-              <CardHeader className="flex items-center justify-between pb-0">
+            <Card className="w-full h-full p-2 justify-between">
+              <CardHeader className="flex items-center justify-between px-0">
                 <Select defaultValue="week">
                   <SelectTrigger className="w-28 !h-6.5">
                     <SelectValue placeholder="This week" />
@@ -53,7 +53,7 @@ export default function PersonalSpace() {
                   <Clock3 className="w-3.5 h-3.5 stroke-primary-brand-darker-green" />
                 </div>
               </CardHeader>
-              <CardContent className="pt-2">
+              <CardContent className="px-0">
                 <CardTitle className="text-[#272727] text-body-b2">
                   12h20m
                 </CardTitle>
@@ -62,8 +62,8 @@ export default function PersonalSpace() {
             </Card>
 
             {/* Top Category card */}
-            <Card className="w-full h-full flex-1">
-              <CardHeader className="flex items-center justify-between pb-0">
+            <Card className="w-full h-full p-2 justify-between">
+              <CardHeader className="flex items-center justify-between pb-0 px-0">
                 <Select defaultValue="week">
                   <SelectTrigger className="w-28 !h-6.5">
                     <SelectValue placeholder="This week" />
@@ -78,7 +78,7 @@ export default function PersonalSpace() {
                   <Tag className="w-3.5 h-3.5 text-foreground stroke-primary-brand-darker-green" />
                 </div>
               </CardHeader>
-              <CardContent className="pt-2">
+              <CardContent className="px-0">
                 <CardTitle className="text-[#272727] text-xl font-medium">
                   Gaming
                 </CardTitle>

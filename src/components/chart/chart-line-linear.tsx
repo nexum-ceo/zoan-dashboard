@@ -43,8 +43,8 @@ const chartConfig = {
 
 export function ChartLineLinear() {
   return (
-    <Card className="h-full flex flex-col">
-      <CardHeader className="flex items-center justify-between pb-0">
+    <Card className="h-full flex flex-col p-2">
+      <CardHeader className="flex items-center justify-between pb-0 px-0">
         <div>
           <CardTitle className="text-[#272727] text-body-b2">120</CardTitle>
           <CardDescription className="text-sm font-normal leading-3.5 text-[#272727]/50">
@@ -67,7 +67,7 @@ export function ChartLineLinear() {
           </div>
         </div>
       </CardHeader>
-      <CardContent className="flex-1 min-h-0 pt-2">
+      <CardContent className="flex-1 min-h-0 px-0">
         <ChartContainer config={chartConfig} className="h-full w-full">
           <LineChart
             accessibilityLayer
