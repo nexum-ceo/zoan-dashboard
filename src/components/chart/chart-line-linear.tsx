@@ -1,6 +1,6 @@
 'use client';
 
-import { MessageSquare } from 'lucide-react';
+import { Bot, Codesandbox, MessageSquare } from 'lucide-react';
 import { CartesianGrid, Line, LineChart, XAxis } from 'recharts';
 
 import {
@@ -23,6 +23,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 export const description = 'A linear line chart';
 
@@ -44,27 +45,50 @@ const chartConfig = {
 export function ChartLineLinear() {
   return (
     <Card className="h-full flex flex-col p-2">
-      <CardHeader className="flex items-center justify-between pb-0 px-0">
-        <div>
-          <CardTitle className="text-[#272727] text-body-b2">120</CardTitle>
-          <CardDescription className="text-sm font-normal leading-3.5 text-[#272727]/50">
-            Total Chats
-          </CardDescription>
-        </div>
-        <div className="flex gap-1 items-center">
-          <Select defaultValue="week">
-            <SelectTrigger className="w-full !h-6.5">
-              <SelectValue placeholder="Select time" className="!h-6.5" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="week">This week</SelectItem>
-              <SelectItem value="month">This month</SelectItem>
-              <SelectItem value="year">This year</SelectItem>
-            </SelectContent>
-          </Select>
-          <div className="w-6.5 h-6.5 p-1.5 gap-1.5 rounded-lg bg-primary-brand-green flex items-center justify-center">
-            <MessageSquare className="w-3.5 h-3.5 stroke-primary-brand-darker-green" />
+      <CardHeader className="pb-0 px-0">
+        <div className="flex items-center justify-between">
+          <div>
+            <CardTitle className="text-[#272727] text-body-b2">120</CardTitle>
+            <CardDescription className="text-sm font-normal leading-3.5 text-[#272727]/50">
+              Total Chats
+            </CardDescription>
           </div>
+
+          <div className="flex gap-1 items-center">
+            <Select defaultValue="week">
+              <SelectTrigger className="w-full !h-6.5">
+                <SelectValue placeholder="Select time" className="!h-6.5" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="week">This week</SelectItem>
+                <SelectItem value="month">This month</SelectItem>
+                <SelectItem value="year">This year</SelectItem>
+              </SelectContent>
+            </Select>
+            <div className="w-6.5 h-6.5 p-1.5 gap-1.5 rounded-lg bg-primary-brand-green flex items-center justify-center">
+              <MessageSquare className="w-3.5 h-3.5 stroke-primary-brand-darker-green" />
+            </div>
+          </div>
+        </div>
+        <div>
+          <Tabs defaultValue="discover" className="w-full bg-white">
+            <TabsList className="bg-white border border-[#272727]/5">
+              <TabsTrigger
+                value="discover"
+                className="px-3 py-2 text-[#272727]  data-[state=active]:bg-primary-brand-green"
+              >
+                <Bot className="w-4 h-4" />
+                Agent
+              </TabsTrigger>
+              <TabsTrigger
+                value="2d"
+                className="px-3 py-2 text-[#272727]  data-[state=active]:bg-primary-brand-green"
+              >
+                <Codesandbox className="w-4 h-4" />
+                App
+              </TabsTrigger>
+            </TabsList>
+          </Tabs>
         </div>
       </CardHeader>
       <CardContent className="flex-1 min-h-0 px-0">
