@@ -170,6 +170,15 @@
     line-height: 100%; /* 10px */
     letter-spacing: 0.1px;
   }
+
+  .text-body-b2 {
+    font-family: var(--Font, Inter);
+    font-size: var(--Font-size-28, 28px);
+    font-style: normal;
+    font-weight: var(--Medium, 500);
+    line-height: 120%; /* 33.6px */
+    letter-spacing: 0.28px;
+  }
 }
 
 /* Remove spinner for Chrome, Safari, Edge */

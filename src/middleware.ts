@@ -5,10 +5,7 @@ export default withAuth(
   function middleware(req) {
     // Force 404 for /dashboard/project, /dashboard/personal-space routes
     const { pathname } = req.nextUrl;
-    if (
-      pathname.startsWith('/dashboard/projects') ||
-      pathname.startsWith('/dashboard/personal-space')
-    ) {
+    if (pathname.startsWith('/dashboard/projects')) {
       return NextResponse.rewrite(new URL('/404', req.url));
     }
 
