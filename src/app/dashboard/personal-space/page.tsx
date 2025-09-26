@@ -25,17 +25,17 @@ export default function PersonalSpace() {
         {/* Content Row - Flex layout */}
         <div className="flex gap-4 w-full items-stretch">
           {/* Left: Line chart large card */}
-          <div className="flex-[1.6] min-w-0 h-[285px] [&>*]:h-full">
+          <div className="flex-[1.6] min-w-0 w-[45%] h-[285px] [&>*]:h-full">
             <ChartLineLinear />
           </div>
 
           {/* Middle: Active Agents radial card */}
-          <div className="w-[340px] shrink-0 h-[285px] [&>*]:h-full">
+          <div className="w-[20%] shrink-0 h-[285px] [&>*]:h-full">
             <ChartRadialText />
           </div>
 
           {/* Right: Two stacked stat cards */}
-          <div className="w-[360px] shrink-0 flex flex-col gap-4 h-[285px]">
+          <div className="w-[30%] shrink-0 flex flex-col gap-4 h-[285px]">
             {/* Usage Time card */}
             <Card className="w-full h-full p-2 justify-between">
               <CardHeader className="flex items-center justify-between px-0">
