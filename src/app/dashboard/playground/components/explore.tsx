@@ -109,7 +109,6 @@ export const ExplorePanel: FC<ExplorePanelProps> = ({
   }, [extractedIds]);
 
   const { data: gameBuildFiles } = useGetListFileInGameFolder(buildsApiPath);
-  console.log('gameBuildFiles', gameBuildFiles);
 
   // File and folder content management
   const { fileContents, loadFileContent } = useFileContent();
