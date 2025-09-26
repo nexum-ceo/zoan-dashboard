@@ -144,18 +144,18 @@ export function ChartLineLinear() {
             <Line
               dataKey="desktop"
               type="linear"
-              stroke="var(--color-desktop)"
+              stroke="#199e78"
               strokeWidth={2}
               dot={{
                 r: 3,
                 strokeWidth: 1.5,
-                stroke: 'var(--color-desktop)',
+                stroke: '#939393',
                 fill: '#fff',
               }}
               activeDot={{
                 r: 4,
                 strokeWidth: 2,
-                stroke: 'var(--color-desktop)',
+                stroke: '#199e78',
                 fill: '#fff',
               }}
             />
