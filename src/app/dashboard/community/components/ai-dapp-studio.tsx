@@ -183,7 +183,7 @@ export const AIDappStudioSection: FC<AIDappStudioSectionProps> = ({
         </div>
 
         {/* Projects Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 2xl:gap-10">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
           {projects.map((project) => (
             <AIDappStudioProjectCard key={project.id} project={project} />
           ))}
