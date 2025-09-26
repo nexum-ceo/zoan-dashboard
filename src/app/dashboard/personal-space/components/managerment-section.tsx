@@ -1,10 +1,15 @@
+'use client';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Progress } from '@/components/ui/progress';
+import { Separator } from '@/components/ui/separator';
 import { Switch } from '@/components/ui/switch';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { MoreVertical } from 'lucide-react';
+import { IconLabel } from '@tabler/icons-react';
+import { Dot } from 'lucide-react';
+import { useState } from 'react';
 import AddPlusSquare from '../../../../../public/icon/add-plus-square';
+import EllipsisVertical from '../../../../../public/icon/ellipsis-vertical';
 import Search from '../../../../../public/icon/search';
 
 // Mock data for 12 agents
@@ -83,153 +88,99 @@ const agentsData = [
     isActive: false,
     icon: '🔒',
   },
-  {
-    id: 7,
-    title: 'API Tester',
-    publisher: 'TestLabs',
-    category: 'Testing',
-    version: 'V1.9.4',
-    tags: ['API Testing', 'Automation', 'Performance', 'Quality Assurance'],
-    description: 'Automated API testing and performance monitoring tool',
-    chatUsage: { current: 34, total: 100 },
-    isActive: true,
-    icon: '🧪',
-  },
-  {
-    id: 8,
-    title: 'Database Manager',
-    publisher: 'DataBase Pro',
-    category: 'Database',
-    version: 'V2.7.2',
-    tags: ['Database', 'SQL', 'Optimization', 'Migration'],
-    description: 'Database management and optimization assistant',
-    chatUsage: { current: 56, total: 100 },
-    isActive: true,
-    icon: '🗄️',
-  },
-  {
-    id: 9,
-    title: 'Cloud Deployer',
-    publisher: 'CloudOps',
-    category: 'DevOps',
-    version: 'V1.6.8',
-    tags: ['Cloud', 'Deployment', 'AWS', 'Docker'],
-    description: 'Automated cloud deployment and infrastructure management',
-    chatUsage: { current: 78, total: 100 },
-    isActive: false,
-    icon: '☁️',
-  },
-  {
-    id: 10,
-    title: 'Mobile Developer',
-    publisher: 'MobileFirst',
-    category: 'Mobile',
-    version: 'V2.1.5',
-    tags: ['React Native', 'iOS', 'Android', 'Cross-platform'],
-    description: 'Mobile app development and cross-platform solutions',
-    chatUsage: { current: 41, total: 100 },
-    isActive: true,
-    icon: '📱',
-  },
-  {
-    id: 11,
-    title: 'AI Trainer',
-    publisher: 'ML Solutions',
-    category: 'Machine Learning',
-    version: 'V3.0.1',
-    tags: ['Machine Learning', 'Training', 'Models', 'Neural Networks'],
-    description: 'AI model training and machine learning assistant',
-    chatUsage: { current: 92, total: 100 },
-    isActive: true,
-    icon: '🤖',
-  },
-  {
-    id: 12,
-    title: 'Blockchain Dev',
-    publisher: 'CryptoLabs',
-    category: 'Blockchain',
-    version: 'V1.4.7',
-    tags: ['Blockchain', 'Smart Contracts', 'Web3', 'Ethereum'],
-    description: 'Blockchain development and smart contract assistant',
-    chatUsage: { current: 28, total: 100 },
-    isActive: false,
-    icon: '⛓️',
-  },
 ];
 
 // Agent Card Component
-function AgentCard({ agent }: { agent: (typeof agentsData)[0] }) {
+function AgentCard({
+  agent,
+  onToggleActive,
+}: {
+  agent: (typeof agentsData)[0];
+  onToggleActive: (agentId: number) => void;
+}) {
   return (
-    <div className="bg-white rounded-lg border border-[#272727]/5 p-4 space-y-3">
+    <div className="flex flex-col justify-between w-full bg-white rounded-lg border border-[#272727]/5 p-2 pt-2.5 space-y-4">
       {/* Header */}
-      <div className="flex items-start justify-between">
-        <div className="flex items-start space-x-3">
-          <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-blue-500 to-green-500 flex items-center justify-center text-white text-lg">
-            {agent.icon}
-          </div>
-          <div className="flex-1">
-            <h3 className="text-[#272727] font-semibold text-base">
-              {agent.title}
-            </h3>
-            <div className="flex items-center space-x-2 mt-1">
-              <span className="text-sm text-[#272727]/60">
-                By {agent.publisher}
+      <div className="w-full flex gap-2">
+        <div className="rounded-lg bg-gradient-to-br from-blue-500 to-green-500 flex items-center justify-center text-white text-sm font-bold flex-shrink-0 w-7 h-7">
+          {agent.icon}
+        </div>
+
+        <div className="flex-1">
+          <h3 className="text-paragraph">{agent.title}</h3>
+          <div className="flex items-center gap-1">
+            <div className="text-tag-label !text-[#272727]/50">
+              By {agent.publisher}
+            </div>
+            <Dot className="w-2 h-2 text-[#272727]/50" />
+            <div className="flex items-center gap-1">
+              <IconLabel className="w-3 h-3 text-primary-brand-darker-green" />
+              <span className="text-primary-brand-darker-green text-[10px] font-normal">
+                {agent.category}
               </span>
-              <div className="flex items-center space-x-1">
-                <div className="w-2 h-2 rounded-full bg-green-500"></div>
-                <span className="text-sm text-green-500 font-medium">
-                  {agent.category}
-                </span>
-              </div>
             </div>
           </div>
+          {/* Version and Tags */}
+          <div className="flex flex-wrap items-center gap-1">
+            <span className="p-1.5 bg-[#272727]/5 text-tag-label rounded-full">
+              {agent.version}
+            </span>
+            {agent.tags.slice(0, 3).map((tag, index) => (
+              <span
+                key={index}
+                className="p-1.5 bg-[#272727]/5 text-tag-label rounded-full"
+              >
+                {tag}
+              </span>
+            ))}
+            {agent.tags.length > 3 && (
+              <span className="p-1.5 bg-[#272727]/5 text-tag-label rounded-full">
+                +{agent.tags.length - 3} more
+              </span>
+            )}
+          </div>
         </div>
-        <MoreVertical className="w-4 h-4 text-[#272727]/40" />
-      </div>
-
-      {/* Version and Tags */}
-      <div className="flex flex-wrap items-center gap-2">
-        <span className="px-2 py-1 bg-[#272727]/5 text-xs text-[#272727]/70 rounded-full">
-          {agent.version}
-        </span>
-        {agent.tags.slice(0, 3).map((tag, index) => (
-          <span
-            key={index}
-            className="px-2 py-1 bg-[#272727]/5 text-xs text-[#272727]/70 rounded-full"
-          >
-            {tag}
-          </span>
-        ))}
-        {agent.tags.length > 3 && (
-          <span className="px-2 py-1 bg-[#272727]/5 text-xs text-[#272727]/70 rounded-full">
-            +{agent.tags.length - 3} more
-          </span>
-        )}
       </div>
 
       {/* Description */}
-      <p className="text-sm text-[#272727]/70 leading-relaxed">
+      <p className="text-xs text-[#272727] font-normal leading-3.5 ">
         {agent.description}
       </p>
 
       {/* Footer */}
-      <div className="flex items-center justify-between pt-2">
-        <div className="flex-1">
-          <div className="flex items-center justify-between mb-2">
-            <span className="text-xs text-[#272727]/60">Chat Usage</span>
-            <span className="text-xs text-green-500 font-medium">
-              {agent.chatUsage.current}/{agent.chatUsage.total}
+      <div>
+        <div className="p-2">
+          <div className="mb-3">
+            <span className="text-[10px] text-[#272727]/50 font-medium">
+              Chat Usage
             </span>
           </div>
-          <Progress
-            value={(agent.chatUsage.current / agent.chatUsage.total) * 100}
-            className="h-2"
-          />
+          <div className="flex items-center justify-between gap-1">
+            <Progress
+              value={(agent.chatUsage.current / agent.chatUsage.total) * 100}
+              className="h-2"
+            />
+            <div className="text-[10px] text-[#272727]/50 font-medium">
+              <span className="text-primary-brand-darker-green">
+                {agent.chatUsage.current}
+              </span>
+              /{agent.chatUsage.total}
+            </div>
+          </div>
         </div>
-        <div className="flex items-center space-x-4 ml-6">
+        <Separator className="my-2 mx-auto" />
+        <div className="flex justify-between">
           <div className="flex items-center space-x-2">
-            <Switch checked={agent.isActive} />
+            <Switch
+              checked={agent.isActive}
+              onCheckedChange={() => onToggleActive(agent.id)}
+              className="data-[state=unchecked]:bg-[#272727]/10 data-[state=checked]:bg-primary-brand-darker-green disabled:bg-primary-brand-green"
+              thumbClassName="data-[state=unchecked]:bg-[#272727]/50 data-[state=checked]:bg-white"
+            />
             <span className="text-sm text-[#272727]">Active</span>
+          </div>
+          <div className="cursor-pointer">
+            <EllipsisVertical />
           </div>
         </div>
       </div>
@@ -238,6 +189,16 @@ function AgentCard({ agent }: { agent: (typeof agentsData)[0] }) {
 }
 
 export default function ManagermentSection() {
+  const [agents, setAgents] = useState(agentsData);
+
+  const handleToggleActive = (agentId: number) => {
+    setAgents((prevAgents) =>
+      prevAgents.map((agent) =>
+        agent.id === agentId ? { ...agent, isActive: !agent.isActive } : agent,
+      ),
+    );
+  };
+
   return (
     <div className="space-y-4">
       {/*Header Bar*/}
@@ -278,13 +239,31 @@ export default function ManagermentSection() {
 
       {/*Agent Card*/}
       <div className="space-y-3">
+        {/* Agent Card List */}
         <div className="text-sm font-medium leading-3.5 text-[#272727]">
           Agents
         </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+          {agents.map((agent) => (
+            <AgentCard
+              key={agent.id}
+              agent={agent}
+              onToggleActive={handleToggleActive}
+            />
+          ))}
+        </div>
+
         {/* Agent Card List */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {agentsData.map((agent) => (
-            <AgentCard key={agent.id} agent={agent} />
+        <div className="text-sm font-medium leading-3.5 text-[#272727]">
+          AI DApps
+        </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+          {agents.map((agent) => (
+            <AgentCard
+              key={agent.id}
+              agent={agent}
+              onToggleActive={handleToggleActive}
+            />
           ))}
         </div>
       </div>

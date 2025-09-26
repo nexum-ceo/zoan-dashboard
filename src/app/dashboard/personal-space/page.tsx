@@ -3,12 +3,10 @@ import ManagermentSection from '@/app/dashboard/personal-space/components/manage
 
 export default function PersonalSpace() {
   return (
-    <div className="h-full bg-background transition-colors duration-200">
-      <div className="my-container space-y-6">
-        {/*Chart Section*/}
-        <ChartSection />
-        <ManagermentSection />
-      </div>
+    <div className="flex-1 flex flex-col px-25 space-y-6 py-20">
+      {/*Chart Section*/}
+      <ChartSection />
+      <ManagermentSection />
     </div>
   );
 }
