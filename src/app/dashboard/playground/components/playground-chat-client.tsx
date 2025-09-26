@@ -242,7 +242,6 @@ export function PlaygroundChatClient({ chatId }: PlaygroundChatClientProps) {
       });
     if (found) {
       setExploreOpen(true);
-      setSettingsOpen(false);
     }
   }, [initialMessages]);
 
