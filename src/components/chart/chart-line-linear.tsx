@@ -1,7 +1,7 @@
 'use client';
 
 import { Bot, Codesandbox, MessageSquare } from 'lucide-react';
-import { CartesianGrid, Line, LineChart, XAxis } from 'recharts';
+import { CartesianGrid, Line, LineChart, XAxis, YAxis } from 'recharts';
 
 import {
   Card,
@@ -14,7 +14,6 @@ import {
   ChartConfig,
   ChartContainer,
   ChartTooltip,
-  ChartTooltipContent,
 } from '@/components/ui/chart';
 import {
   Select,
@@ -28,13 +27,34 @@ import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 export const description = 'A linear line chart';
 
 const chartData = [
-  { month: 'January', desktop: 186 },
-  { month: 'February', desktop: 305 },
-  { month: 'March', desktop: 237 },
-  { month: 'April', desktop: 73 },
-  { month: 'May', desktop: 209 },
-  { month: 'June', desktop: 214 },
+  { month: 'Mon', desktop: 0, date: '10/08/2025' },
+  { month: 'Tue', desktop: 21, date: '11/08/2025' },
+  { month: 'Wed', desktop: 24, date: '12/08/2025' },
+  { month: 'Thu', desktop: 11, date: '13/08/2025' },
+  { month: 'Fri', desktop: 24, date: '14/08/2025' },
+  { month: 'Sat', desktop: 10, date: '15/08/2025' },
+  { month: 'Sun', desktop: 14, date: '16/08/2025' },
 ];
+
+type LineTooltipProps = {
+  active?: boolean;
+  payload?: Array<{ value: number; payload?: { date?: string } }>;
+};
+
+function CustomLineTooltip({ active, payload }: LineTooltipProps) {
+  if (!active || !payload || !payload.length) return null;
+  const item = payload[0];
+  const value = item.value as number;
+  const date = item?.payload?.date as string | undefined;
+  return (
+    <div className="rounded-lg bg-white shadow-sm border border-[#272727]/10 px-3 py-2">
+      <div className="text-[#19a07b] text-sm font-semibold">{value} chats</div>
+      {date ? (
+        <div className="text-[10px] text-[#272727]/60 mt-0.5">{date}</div>
+      ) : null}
+    </div>
+  );
+}
 const chartConfig = {
   desktop: {
     label: 'Desktop',
@@ -101,7 +121,7 @@ export function ChartLineLinear() {
               right: 12,
             }}
           >
-            <CartesianGrid vertical={false} />
+            <CartesianGrid strokeDasharray="5 5" />
             <XAxis
               dataKey="month"
               tickLine={false}
@@ -109,16 +129,35 @@ export function ChartLineLinear() {
               tickMargin={8}
               tickFormatter={(value) => value.slice(0, 3)}
             />
+            <YAxis
+              tickLine={false}
+              axisLine={false}
+              tickMargin={8}
+              tick={{ fontSize: 12, fill: '#666' }}
+              ticks={[0, 10, 20, 25, 50]}
+              domain={[0, 50]}
+            />
             <ChartTooltip
-              cursor={false}
-              content={<ChartTooltipContent hideLabel />}
+              cursor={{ stroke: 'rgba(0,0,0,0.06)' }}
+              content={<CustomLineTooltip />}
             />
             <Line
               dataKey="desktop"
               type="linear"
               stroke="var(--color-desktop)"
               strokeWidth={2}
-              dot={false}
+              dot={{
+                r: 3,
+                strokeWidth: 1.5,
+                stroke: 'var(--color-desktop)',
+                fill: '#fff',
+              }}
+              activeDot={{
+                r: 4,
+                strokeWidth: 2,
+                stroke: 'var(--color-desktop)',
+                fill: '#fff',
+              }}
             />
           </LineChart>
         </ChartContainer>
