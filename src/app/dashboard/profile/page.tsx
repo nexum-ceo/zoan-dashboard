@@ -1,8 +1,11 @@
 'use client';
 
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import { Separator } from '@/components/ui/separator';
-import { useMemo } from 'react';
+import { Textarea } from '@/components/ui/textarea';
+import { Github, Globe, MapPin, X } from 'lucide-react';
+import { useMemo, useState } from 'react';
 
 export default function ProfilePage() {
   const heatmap = useMemo(() => {
@@ -20,32 +23,99 @@ export default function ProfilePage() {
     return 'bg-[#20a357]'; // primary-brand-darker-green
   };
 
+  const [editing, setEditing] = useState(false);
+
   return (
     <div className="flex flex-col py-10 pr-3 items-center">
       <div className="flex items-start justify-between gap-13 px-25 py-10 max-w-7xl">
         {/* Sidebar */}
         <aside className="bg-white ">
-          <div className="space-y-1">
-            <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-blue-500 to-green-500" />
-            <div>
-              <div className="text-[#272727] text-sm font-medium">
-                myarmygmae-9005
-              </div>
-              <div className="text-[10px] text-[#272727]/50">
-                @myarmygmae-9005
+          {/* Summary view */}
+          <div
+            className={`overflow-hidden transition-[max-height,opacity] duration-300 ease-in-out ${
+              editing ? 'max-h-0 opacity-0' : 'max-h-[1000px] opacity-100'
+            }`}
+          >
+            <div className="space-y-1">
+              <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-blue-500 to-green-500" />
+              <div>
+                <div className="text-[#272727] text-sm font-medium">
+                  myarmygmae-9005
+                </div>
+                <div className="text-[10px] text-[#272727]/50">
+                  @myarmygmae-9005
+                </div>
               </div>
             </div>
+            <Separator className="my-4" />
+            <div className="my-4 flex justify-between text-[16px] text-[#272727]/50 leading-4 font-medium">
+              Total prompts
+              <span className="text-[#272727] font-medium">10</span>
+            </div>
+            <div className="space-y-1">
+              <Button className="w-full" onClick={() => setEditing(true)}>
+                Edit profile
+              </Button>
+              <Button variant={'secondary'} className="w-full">
+                Set profile to private
+              </Button>
+            </div>
           </div>
-          <Separator className="my-4" />
-          <div className="my-4 flex justify-between text-[16px] text-[#272727]/50 leading-4 font-medium">
-            Total prompts
-            <span className="text-[#272727] font-medium">10</span>
-          </div>
-          <div className="space-y-1">
-            <Button className="w-full">Edit profile</Button>
-            <Button variant={'secondary'} className="w-full">
-              Set profile to private
-            </Button>
+
+          {/* Editor view */}
+          <div
+            className={`overflow-hidden transition-[max-height,opacity] duration-300 ease-in-out ${
+              editing ? 'max-h-[1200px] opacity-100' : 'max-h-0 opacity-0'
+            }`}
+          >
+            <div className="mt-1 space-y-3">
+              <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-blue-500 to-green-500" />
+              <div className="space-y-1">
+                <label className="text-xs text-[#272727]">Display name</label>
+                <Input placeholder="SCao" className="h-8" />
+              </div>
+              <div className="space-y-1">
+                <label className="text-xs text-[#272727]">Username</label>
+                <Input placeholder="myarmygmae-9005" className="h-8" />
+              </div>
+              <div className="space-y-1">
+                <label className="text-xs text-[#272727]">Bio</label>
+                <Textarea placeholder="Bio" className="min-h-[120px]" />
+              </div>
+              <div className="space-y-1">
+                <label className="text-xs text-[#272727]">Socials</label>
+                <div className="space-y-2">
+                  <div className="flex items-center gap-2">
+                    <MapPin className="w-4 h-4 text-[#272727]/50" />
+                    <Input placeholder="Location" className="h-8" />
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <X className="w-4 h-4 text-[#272727]/50" />
+                    <Input placeholder="X" className="h-8" />
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Github className="w-4 h-4 text-[#272727]/50" />
+                    <Input placeholder="Github" className="h-8" />
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Globe className="w-4 h-4 text-[#272727]/50" />
+                    <Input placeholder="Website" className="h-8" />
+                  </div>
+                </div>
+              </div>
+              <div className="space-y-2 pt-1">
+                <Button className="w-full bg-[#e6f6ef] text-[#20a357] hover:bg-[#d6f0e7]">
+                  Save changes
+                </Button>
+                <Button
+                  variant="secondary"
+                  className="w-full"
+                  onClick={() => setEditing(false)}
+                >
+                  Cancel
+                </Button>
+              </div>
+            </div>
           </div>
         </aside>
 
