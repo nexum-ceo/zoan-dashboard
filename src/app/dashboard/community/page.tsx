@@ -20,6 +20,7 @@ export default function CommunityPage() {
             <div className="text-paragraph !text-[#272727]/50 text-center mb-4">
               Discover and install AI agents created by the community
             </div>
+            {/* Input Area */}
             <div className="relative w-[50%] mx-auto">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-[#272727]" />
               <Input
@@ -27,9 +28,6 @@ export default function CommunityPage() {
                 className="w-full h-10 pl-10 bg-gray-100 border-0 rounded-lg text-sm placeholder:text-[#272727]/50"
               />
             </div>
-            {/* Input Area */}
-
-            {/* AI Suggestion */}
           </div>
 
           <div className="py-20 pt-6 2xl:px-30 sm:px-12 w-full">
