@@ -55,8 +55,8 @@ export function PlaygroundClient() {
   return (
     <>
       {/* Main Chat Area */}
-      <div className="flex-1 flex flex-col relative py-20 bg-white">
-        <div className="px-25 py-20 pb-6">
+      <div className="flex-1 flex flex-col items-center py-20 bg-white">
+        <div className="px-25 py-20 pb-6 max-w-7xl w-full">
           {/* Messages */}
           <PlaygroundMessages
             messages={messages}
@@ -82,7 +82,7 @@ export function PlaygroundClient() {
           </div>
         </div>
 
-        <div className="py-20 pt-6 2xl:px-30 sm:px-12 w-full">
+        <div className="py-20 pt-6 w-full max-w-7xl">
           {/** --- Personal Space Section ---  */}
           <PersonalSpace />
 
