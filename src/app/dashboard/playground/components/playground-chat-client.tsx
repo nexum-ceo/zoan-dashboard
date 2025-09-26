@@ -352,7 +352,7 @@ export function PlaygroundChatClient({ chatId }: PlaygroundChatClientProps) {
   );
 
   return (
-    <div className="w-full h-screen p-3 flex flex-col gap-3">
+    <div className="w-full p-3 flex flex-col gap-3">
       {/* Header */}
       <div className="w-full px-3 py-2 bg-white rounded-xl">
         <div className="flex items-center justify-between w-full">
@@ -381,7 +381,7 @@ export function PlaygroundChatClient({ chatId }: PlaygroundChatClientProps) {
         <ResizablePanel
           defaultSize={isExploreExpanded ? 0 : exploreOpen ? 40 : 100}
           minSize={isExploreExpanded ? 0 : 30}
-          className="flex flex-col bg-sidebar relative transition-all duration-300 ease-in-out"
+          className="flex flex-col transition-all duration-300 ease-in-out"
         >
           {/* Mobile Header with Menu Button */}
           {isMobile && (
@@ -403,54 +403,47 @@ export function PlaygroundChatClient({ chatId }: PlaygroundChatClientProps) {
           )}
 
           {/* Messages */}
-          <div className="flex-1 w-full overflow-hidden h-full">
-            <div
-              ref={messagesContainerRef}
-              className="relative size-full overflow-y-auto flex-1 scrollbar-none"
-            >
-              <Conversation className="relative size-full scrollbar-none">
-                <ConversationContent className="px-4 py-2">
-                  {/* Loading indicator for fetching more messages */}
-                  {isFetchingNextPage && (
-                    <div className="flex justify-center py-4">
-                      <div className="text-sm text-muted-foreground">
-                        Loading more messages...
-                      </div>
-                    </div>
-                  )}
-                  {messages.length === 0 ? (
-                    <div className="flex flex-col items-center justify-center h-full text-center">
-                      <div className="w-16 h-16  rounded-2xl flex items-center justify-center mb-4">
-                        <MessageSquare className="w-8 h-8 text-black" />
-                      </div>
-                      <h3 className="text-xl font-semibold text-gray-900 mb-2">
-                        What should we build today?
-                      </h3>
-                      <p className="text-gray-500 max-w-md">
-                        Ask me anything! I&#39;m here to help with your
-                        questions and tasks.
-                      </p>
-                    </div>
-                  ) : (
-                    messages.map((message, index) => (
-                      <ChatMessage
-                        key={message.id}
-                        message={message}
-                        isLast={index === messages.length - 1}
-                        isLoading={
-                          (isAssistantStreaming || isLoading) &&
-                          index === messages.length - 1 &&
-                          message.role === ChatRole.ASSISTANT
-                        }
-                      />
-                    ))
-                  )}
-                  <div ref={messagesEndRef} />
-                </ConversationContent>
-                <ConversationScrollButton />
-              </Conversation>
-            </div>
-          </div>
+          <Conversation className="overflow-hidden">
+            <ConversationContent className="px-4 py-2">
+              {/* Loading indicator for fetching more messages */}
+              {isFetchingNextPage && (
+                <div className="flex justify-center py-4">
+                  <div className="text-sm text-muted-foreground">
+                    Loading more messages...
+                  </div>
+                </div>
+              )}
+              {messages.length === 0 ? (
+                <div className="flex flex-col items-center justify-center h-full text-center">
+                  <div className="w-16 h-16  rounded-2xl flex items-center justify-center mb-4">
+                    <MessageSquare className="w-8 h-8 text-black" />
+                  </div>
+                  <h3 className="text-xl font-semibold text-gray-900 mb-2">
+                    What should we build today?
+                  </h3>
+                  <p className="text-gray-500 max-w-md">
+                    Ask me anything! I&#39;m here to help with your questions
+                    and tasks.
+                  </p>
+                </div>
+              ) : (
+                messages.map((message, index) => (
+                  <ChatMessage
+                    key={message.id}
+                    message={message}
+                    isLast={index === messages.length - 1}
+                    isLoading={
+                      (isAssistantStreaming || isLoading) &&
+                      index === messages.length - 1 &&
+                      message.role === ChatRole.ASSISTANT
+                    }
+                  />
+                ))
+              )}
+              <div ref={messagesEndRef} />
+            </ConversationContent>
+            <ConversationScrollButton />
+          </Conversation>
 
           {/* Input Area */}
           <div className="bg-sidebar">
