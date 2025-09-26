@@ -3,6 +3,13 @@
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import { Separator } from '@/components/ui/separator';
 import { Textarea } from '@/components/ui/textarea';
 import { AnimatePresence, motion } from 'framer-motion';
@@ -164,15 +171,24 @@ export default function ProfilePage() {
 
         {/* Main */}
         <main className="space-y-4 w-fit">
-          <section className="bg-white rounded-xl border border-[#272727]/10 p-4">
-            <div className="flex items-center justify-between">
+          <section className="bg-white rounded-lg border border-[#272727]/10 p-2">
+            <div className="flex items-center justify-between font-medium">
               <div className="text-[#272727] text-sm">
-                Activity{' '}
-                <span className="text-[#20a357]">(129 messages in total)</span>
+                Activity (
+                <span className="text-primary-brand-darker-green">129 </span>
+                messages in total)
               </div>
-              <select className="h-7 px-2 rounded-md border border-[#272727]/10 text-xs text-[#272727]">
-                <option>Last 12 months</option>
-              </select>
+              <Select defaultValue="12m">
+                <SelectTrigger className="!h-6 w-fit px-2 py-1.5 text-xs border border-[#272727]/10 rounded-lg">
+                  <SelectValue placeholder="Range" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="1m">Last 30 days</SelectItem>
+                  <SelectItem value="3m">Last 3 months</SelectItem>
+                  <SelectItem value="6m">Last 6 months</SelectItem>
+                  <SelectItem value="12m">Last 12 months</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
             <div className="mt-3">
               <div className="w-full">
@@ -184,23 +200,27 @@ export default function ProfilePage() {
                     />
                   ))}
                 </div>
-                <div className="flex justify-end items-center gap-2 mt-2 text-[10px] text-[#272727]/60">
+                <div className="font-medium flex justify-end items-center gap-2 mt-3 text-sm text-[#272727]/50">
                   <span>Less</span>
-                  <div className="w-3 h-3 rounded-[2px] bg-[#e6f6ef]" />
-                  <div className="w-3 h-3 rounded-[2px] bg-[#c8eedf]" />
-                  <div className="w-3 h-3 rounded-[2px] bg-[#9de1c7]" />
-                  <div className="w-3 h-3 rounded-[2px] bg-[#6ccfa9]" />
-                  <div className="w-3 h-3 rounded-[2px] bg-[#20a357]" />
+                  <div className="w-10.5 h-2.5 rounded-[2px] bg-[#e8ebe9]" />
+                  <div className="w-10.5 h-2.5 rounded-[2px] bg-[#e4f8e7]" />
+                  <div className="w-10.5 h-2.5 rounded-[2px] bg-[#25a47f]" />
+                  <div className="w-10.5 h-2.5 rounded-[2px] bg-[#0f7053]" />
                   <span>More</span>
                 </div>
               </div>
             </div>
           </section>
 
-          <section className="bg-white rounded-xl border border-[#272727]/10 p-8 h-72 flex items-center justify-center">
-            <div className="text-center">
-              <div className="w-8 h-8 rounded-lg bg-[#f3f4f6] mx-auto mb-2" />
-              <div className="text-sm text-[#272727]/60">
+          <section className="bg-white p-2 border border-dashed border-[#272727]/10 rounded-lg space-y-3">
+            <div className="font-medium text-sm leading-4.5 text-[#272727]">
+              Show case
+            </div>
+            <div className="text-center pt-[177px] pb-[148px] flex flex-col items-center justify-center">
+              <div className="p-1 border border-[#272727]/10 rounded-md">
+                <Globe className="w-4 h-4" />
+              </div>
+              <div className="text-sm text-[#272727]/20 font-medium">
                 No community submissions to display.
               </div>
             </div>
