@@ -18,6 +18,7 @@ import {
   PromptInputTools,
 } from '@/components/ui/shadcn-io/ai/prompt-input';
 import { getMediaTypeFromFilename } from '@/lib/s3';
+import { useLibrary } from '@/queries/useLibrary';
 import type { ChatStatus } from 'ai';
 import { signIn, useSession } from 'next-auth/react';
 import Image from 'next/image';
@@ -52,6 +53,7 @@ export const ChatInput: FC<ChatInputProps> = ({
   const [attachedFiles, setAttachedFiles] = useState<UploadedFile[]>([]);
   const { data: session } = useSession();
   const router = useRouter();
+  const uploadMutation = useLibrary();
 
   // Handle input change - allow typing even during AI response
   const handleInputChange = (e: ChangeEvent<HTMLTextAreaElement>) => {
@@ -118,7 +120,7 @@ export const ChatInput: FC<ChatInputProps> = ({
     }
   };
 
-  // Upload file function
+  // Upload file function using library hook
   const uploadFile = async (file: File): Promise<UploadedFile> => {
     const uploadedFile: UploadedFile = {
       id: Math.random().toString(36).substr(2, 9),
@@ -133,23 +135,15 @@ export const ChatInput: FC<ChatInputProps> = ({
       const fileName = `${timestamp}_${file.name}`;
       const filePath = `${session!.user!.id}/${fileName}`;
 
-      // Get presigned URL
-      const presignedResponse = await fetch('/api/library/presigned-url', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          file_list: [
-            {
-              path: filePath,
-              file_name: fileName,
-            },
-          ],
-        }),
+      // Get presigned URL using library hook
+      const presignedData = await uploadMutation.mutateAsync({
+        file_list: [
+          {
+            path: filePath,
+            file_name: fileName,
+          },
+        ],
       });
-
-      const presignedData = await presignedResponse.json();
 
       if (
         !presignedData.data ||
@@ -164,64 +158,36 @@ export const ChatInput: FC<ChatInputProps> = ({
         throw new Error('Invalid presigned URL response');
       }
 
-      // Upload file using presigned URL with progress tracking
-      const xhr = new XMLHttpRequest();
-
-      return new Promise((resolve, reject) => {
-        xhr.upload.addEventListener('progress', (event) => {
-          if (event.lengthComputable) {
-            const progress = Math.round((event.loaded / event.total) * 100);
-            setAttachedFiles((prev) =>
-              prev.map((f) =>
-                f.file.name === file.name ? { ...f, progress } : f,
-              ),
-            );
-          }
-        });
-
-        xhr.addEventListener('load', () => {
-          if (xhr.status >= 200 && xhr.status < 300) {
-            const baseUrl = process.env.NEXT_PUBLIC_MINIO_URL || '';
-            const fileUrl = `${baseUrl}/library/${filePath}`;
-
-            setAttachedFiles((prev) =>
-              prev.map((f) =>
-                f.file.name === file.name
-                  ? { ...f, progress: 100, status: 'completed', url: fileUrl }
-                  : f,
-              ),
-            );
-
-            resolve({
-              ...uploadedFile,
-              progress: 100,
-              status: 'completed',
-              url: fileUrl,
-            });
-          } else {
-            throw new Error(`Upload failed with status: ${xhr.status}`);
-          }
-        });
-
-        xhr.addEventListener('error', () => {
-          setAttachedFiles((prev) =>
-            prev.map((f) =>
-              f.file.name === file.name
-                ? {
-                    ...f,
-                    status: 'error',
-                    error: 'Network error during upload',
-                  }
-                : f,
-            ),
-          );
-          reject(new Error('Network error during upload'));
-        });
-
-        xhr.open('PUT', presignedUrl);
-        xhr.setRequestHeader('Content-Type', file.type);
-        xhr.send(file);
+      // Upload file using presigned URL
+      const response = await fetch(presignedUrl, {
+        method: 'PUT',
+        body: file,
+        headers: {
+          'Content-Type': file.type,
+        },
       });
+
+      if (!response.ok) {
+        throw new Error(`Upload failed with status: ${response.status}`);
+      }
+
+      const baseUrl = process.env.NEXT_PUBLIC_MINIO_URL || '';
+      const fileUrl = `${baseUrl}/library/${filePath}`;
+
+      setAttachedFiles((prev) =>
+        prev.map((f) =>
+          f.file.name === file.name
+            ? { ...f, progress: 100, status: 'completed', url: fileUrl }
+            : f,
+        ),
+      );
+
+      return {
+        ...uploadedFile,
+        progress: 100,
+        status: 'completed',
+        url: fileUrl,
+      };
     } catch (error) {
       setAttachedFiles((prev) =>
         prev.map((f) =>
