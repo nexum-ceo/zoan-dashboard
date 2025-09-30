@@ -17,13 +17,22 @@ import {
   PromptInputToolbar,
   PromptInputTools,
 } from '@/components/ui/shadcn-io/ai/prompt-input';
+import { useDragDrop } from '@/contexts/DragDropContext';
 import { getMediaTypeFromFilename } from '@/lib/s3';
 import { useLibrary } from '@/queries/useLibrary';
 import type { ChatStatus } from 'ai';
 import { signIn, useSession } from 'next-auth/react';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
-import { ChangeEvent, FC, FormEvent, useState } from 'react';
+import {
+  ChangeEvent,
+  FC,
+  FormEvent,
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+} from 'react';
 import CloseIcon from '../../../../../public/icon/close';
 import ZoanLogo from '../../../../../public/zoan-logo.png';
 
@@ -54,6 +63,10 @@ export const ChatInput: FC<ChatInputProps> = ({
   const { data: session } = useSession();
   const router = useRouter();
   const uploadMutation = useLibrary();
+  const { setOnFilesDropped } = useDragDrop();
+  const handleFilesSelectedRef = useRef<
+    ((files: FileList) => Promise<void>) | null
+  >(null);
 
   // Handle input change - allow typing even during AI response
   const handleInputChange = (e: ChangeEvent<HTMLTextAreaElement>) => {
@@ -77,132 +90,163 @@ export const ChatInput: FC<ChatInputProps> = ({
     setShowAuthDialog(false);
   };
 
-  // Handle files selected from inline upload
-  const handleFilesSelected = async (files: FileList) => {
-    if (!session?.user?.id) {
-      setShowAuthDialog(true);
-      return;
-    }
-
-    const fileArray = Array.from(files);
-    const newUploadedFiles: UploadedFile[] = fileArray.map((file) => ({
-      id: Math.random().toString(36).substr(2, 9),
-      file,
-      progress: 0,
-      status: 'uploading',
-      // Create preview URL for images immediately
-      url:
-        getMediaTypeFromFilename(file.name) === 'image'
-          ? URL.createObjectURL(file)
-          : undefined,
-    }));
-
-    setAttachedFiles((prev) => [...prev, ...newUploadedFiles]);
-
-    // Upload files
-    try {
-      const uploadPromises = fileArray.map((file) => uploadFile(file));
-      const completedFiles = await Promise.all(uploadPromises);
-
-      // Update the attached files with completed uploads
-      setAttachedFiles((prev) =>
-        prev.map((f) => {
-          const completed = completedFiles.find(
-            (cf) => cf.file.name === f.file.name,
-          );
-          return completed ? completed : f;
-        }),
-      );
-
-      onFilesUploaded?.(completedFiles);
-    } catch (error) {
-      console.error('Upload error:', error);
-    }
-  };
-
   // Upload file function using library hook
-  const uploadFile = async (file: File): Promise<UploadedFile> => {
-    const uploadedFile: UploadedFile = {
-      id: Math.random().toString(36).substr(2, 9),
-      file,
-      progress: 0,
-      status: 'uploading',
+  const uploadFile = useCallback(
+    async (file: File): Promise<UploadedFile> => {
+      const uploadedFile: UploadedFile = {
+        id: Math.random().toString(36).substr(2, 9),
+        file,
+        progress: 0,
+        status: 'uploading',
+      };
+
+      try {
+        // Generate unique file path
+        const timestamp = Date.now();
+        const fileName = `${timestamp}_${file.name}`;
+        const filePath = `${session!.user!.id}/${fileName}`;
+
+        // Get presigned URL using library hook
+        const presignedData = await uploadMutation.mutateAsync({
+          file_list: [
+            {
+              path: filePath,
+              file_name: fileName,
+            },
+          ],
+        });
+
+        if (
+          !presignedData.data ||
+          !Array.isArray(presignedData.data) ||
+          presignedData.data.length === 0
+        ) {
+          throw new Error('Failed to get presigned URL');
+        }
+
+        const presignedUrl = presignedData.data[0]?.presigned_url;
+        if (!presignedUrl) {
+          throw new Error('Invalid presigned URL response');
+        }
+
+        // Upload file using presigned URL
+        const response = await fetch(presignedUrl, {
+          method: 'PUT',
+          body: file,
+          headers: {
+            'Content-Type': file.type,
+          },
+        });
+
+        if (!response.ok) {
+          throw new Error(`Upload failed with status: ${response.status}`);
+        }
+
+        const baseUrl = process.env.NEXT_PUBLIC_MINIO_URL || '';
+        const fileUrl = `${baseUrl}/library/${filePath}`;
+
+        setAttachedFiles((prev) =>
+          prev.map((f) =>
+            f.file.name === file.name
+              ? { ...f, progress: 100, status: 'completed', url: fileUrl }
+              : f,
+          ),
+        );
+
+        return {
+          ...uploadedFile,
+          progress: 100,
+          status: 'completed',
+          url: fileUrl,
+        };
+      } catch (error) {
+        setAttachedFiles((prev) =>
+          prev.map((f) =>
+            f.file.name === file.name
+              ? {
+                  ...f,
+                  status: 'error',
+                  error:
+                    error instanceof Error ? error.message : 'Upload failed',
+                }
+              : f,
+          ),
+        );
+        throw error;
+      }
+    },
+    [session, uploadMutation],
+  );
+
+  // Handle files selected from inline upload
+  const handleFilesSelected = useCallback(
+    async (files: FileList) => {
+      if (!session?.user?.id) {
+        setShowAuthDialog(true);
+        return;
+      }
+
+      const fileArray = Array.from(files);
+      const newUploadedFiles: UploadedFile[] = fileArray.map((file) => ({
+        id: Math.random().toString(36).substr(2, 9),
+        file,
+        progress: 0,
+        status: 'uploading',
+        // Create preview URL for images immediately
+        url:
+          getMediaTypeFromFilename(file.name) === 'image'
+            ? URL.createObjectURL(file)
+            : undefined,
+      }));
+
+      setAttachedFiles((prev) => [...prev, ...newUploadedFiles]);
+
+      // Upload files
+      try {
+        const uploadPromises = fileArray.map((file) => uploadFile(file));
+        const completedFiles = await Promise.all(uploadPromises);
+
+        // Update the attached files with completed uploads
+        setAttachedFiles((prev) =>
+          prev.map((f) => {
+            const completed = completedFiles.find(
+              (cf) => cf.file.name === f.file.name,
+            );
+            return completed ? completed : f;
+          }),
+        );
+
+        onFilesUploaded?.(completedFiles);
+      } catch (error) {
+        console.error('Upload error:', error);
+      }
+    },
+    [session, uploadFile, onFilesUploaded],
+  );
+
+  // Update ref when function changes
+  useEffect(() => {
+    handleFilesSelectedRef.current = handleFilesSelected;
+  }, [handleFilesSelected]);
+
+  // Set up file handler for drag drop context
+  useEffect(() => {
+    const processDroppedFiles = async (files: File[]) => {
+      try {
+        if (handleFilesSelectedRef.current) {
+          for (const file of files) {
+            const fileList = new DataTransfer();
+            fileList.items.add(file);
+            await handleFilesSelectedRef.current(fileList.files);
+          }
+        }
+      } catch (error) {
+        console.error('Error processing dropped files:', error);
+      }
     };
 
-    try {
-      // Generate unique file path
-      const timestamp = Date.now();
-      const fileName = `${timestamp}_${file.name}`;
-      const filePath = `${session!.user!.id}/${fileName}`;
-
-      // Get presigned URL using library hook
-      const presignedData = await uploadMutation.mutateAsync({
-        file_list: [
-          {
-            path: filePath,
-            file_name: fileName,
-          },
-        ],
-      });
-
-      if (
-        !presignedData.data ||
-        !Array.isArray(presignedData.data) ||
-        presignedData.data.length === 0
-      ) {
-        throw new Error('Failed to get presigned URL');
-      }
-
-      const presignedUrl = presignedData.data[0]?.presigned_url;
-      if (!presignedUrl) {
-        throw new Error('Invalid presigned URL response');
-      }
-
-      // Upload file using presigned URL
-      const response = await fetch(presignedUrl, {
-        method: 'PUT',
-        body: file,
-        headers: {
-          'Content-Type': file.type,
-        },
-      });
-
-      if (!response.ok) {
-        throw new Error(`Upload failed with status: ${response.status}`);
-      }
-
-      const baseUrl = process.env.NEXT_PUBLIC_MINIO_URL || '';
-      const fileUrl = `${baseUrl}/library/${filePath}`;
-
-      setAttachedFiles((prev) =>
-        prev.map((f) =>
-          f.file.name === file.name
-            ? { ...f, progress: 100, status: 'completed', url: fileUrl }
-            : f,
-        ),
-      );
-
-      return {
-        ...uploadedFile,
-        progress: 100,
-        status: 'completed',
-        url: fileUrl,
-      };
-    } catch (error) {
-      setAttachedFiles((prev) =>
-        prev.map((f) =>
-          f.file.name === file.name
-            ? {
-                ...f,
-                status: 'error',
-                error: error instanceof Error ? error.message : 'Upload failed',
-              }
-            : f,
-        ),
-      );
-      throw error;
-    }
-  };
+    setOnFilesDropped(processDroppedFiles);
+  }, [setOnFilesDropped]);
 
   // Remove attached file
   const handleRemoveFile = (fileId: string) => {
