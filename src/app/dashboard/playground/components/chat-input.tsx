@@ -1,5 +1,6 @@
 'use client';
 
+import { AttachedFiles } from '@/components/ui/attached-files';
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
@@ -8,16 +9,16 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
+import type { UploadedFile } from '@/components/ui/file-upload';
+import { InlineFileUpload } from '@/components/ui/inline-file-upload';
 import {
   PromptInput,
-  PromptInputButton,
   PromptInputSubmit,
   PromptInputTextarea,
   PromptInputToolbar,
   PromptInputTools,
 } from '@/components/ui/shadcn-io/ai/prompt-input';
 import type { ChatStatus } from 'ai';
-import { Paperclip } from 'lucide-react';
 import { signIn, useSession } from 'next-auth/react';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
@@ -33,6 +34,7 @@ type ChatInputProps = {
   submitDisabled?: boolean;
   status?: ChatStatus;
   bannerPosition?: 'top' | 'bottom';
+  onFilesUploaded?: (files: UploadedFile[]) => void;
 };
 
 export const ChatInput: FC<ChatInputProps> = ({
@@ -43,9 +45,11 @@ export const ChatInput: FC<ChatInputProps> = ({
   submitDisabled = false,
   status,
   bannerPosition = 'bottom',
+  onFilesUploaded,
 }) => {
   const [showUpgradeBanner, setShowUpgradeBanner] = useState(true);
   const [showAuthDialog, setShowAuthDialog] = useState(false);
+  const [attachedFiles, setAttachedFiles] = useState<UploadedFile[]>([]);
   const { data: session } = useSession();
   const router = useRouter();
 
@@ -69,6 +73,169 @@ export const ChatInput: FC<ChatInputProps> = ({
     // TODO: Implement sign up logic
     console.log('Sign up clicked');
     setShowAuthDialog(false);
+  };
+
+  // Handle files selected from inline upload
+  const handleFilesSelected = async (files: FileList) => {
+    if (!session?.user?.id) {
+      setShowAuthDialog(true);
+      return;
+    }
+
+    const fileArray = Array.from(files);
+    const newUploadedFiles: UploadedFile[] = fileArray.map((file) => ({
+      id: Math.random().toString(36).substr(2, 9),
+      file,
+      progress: 0,
+      status: 'uploading',
+    }));
+
+    setAttachedFiles((prev) => [...prev, ...newUploadedFiles]);
+
+    // Upload files
+    try {
+      const uploadPromises = fileArray.map((file) => uploadFile(file));
+      const completedFiles = await Promise.all(uploadPromises);
+
+      // Update the attached files with completed uploads
+      setAttachedFiles((prev) =>
+        prev.map((f) => {
+          const completed = completedFiles.find(
+            (cf) => cf.file.name === f.file.name,
+          );
+          return completed ? completed : f;
+        }),
+      );
+
+      onFilesUploaded?.(completedFiles);
+    } catch (error) {
+      console.error('Upload error:', error);
+    }
+  };
+
+  // Upload file function
+  const uploadFile = async (file: File): Promise<UploadedFile> => {
+    const uploadedFile: UploadedFile = {
+      id: Math.random().toString(36).substr(2, 9),
+      file,
+      progress: 0,
+      status: 'uploading',
+    };
+
+    try {
+      // Generate unique file path
+      const timestamp = Date.now();
+      const fileName = `${timestamp}_${file.name}`;
+      const filePath = `${session!.user!.id}/${fileName}`;
+
+      // Get presigned URL
+      const presignedResponse = await fetch('/api/library/presigned-url', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          file_list: [
+            {
+              path: filePath,
+              file_name: fileName,
+            },
+          ],
+        }),
+      });
+
+      const presignedData = await presignedResponse.json();
+
+      if (
+        !presignedData.data ||
+        !Array.isArray(presignedData.data) ||
+        presignedData.data.length === 0
+      ) {
+        throw new Error('Failed to get presigned URL');
+      }
+
+      const presignedUrl = presignedData.data[0]?.presigned_url;
+      if (!presignedUrl) {
+        throw new Error('Invalid presigned URL response');
+      }
+
+      // Upload file using presigned URL with progress tracking
+      const xhr = new XMLHttpRequest();
+
+      return new Promise((resolve, reject) => {
+        xhr.upload.addEventListener('progress', (event) => {
+          if (event.lengthComputable) {
+            const progress = Math.round((event.loaded / event.total) * 100);
+            setAttachedFiles((prev) =>
+              prev.map((f) =>
+                f.file.name === file.name ? { ...f, progress } : f,
+              ),
+            );
+          }
+        });
+
+        xhr.addEventListener('load', () => {
+          if (xhr.status >= 200 && xhr.status < 300) {
+            const baseUrl = process.env.NEXT_PUBLIC_MINIO_URL || '';
+            const fileUrl = `${baseUrl}/library/${filePath}`;
+
+            setAttachedFiles((prev) =>
+              prev.map((f) =>
+                f.file.name === file.name
+                  ? { ...f, progress: 100, status: 'completed', url: fileUrl }
+                  : f,
+              ),
+            );
+
+            resolve({
+              ...uploadedFile,
+              progress: 100,
+              status: 'completed',
+              url: fileUrl,
+            });
+          } else {
+            throw new Error(`Upload failed with status: ${xhr.status}`);
+          }
+        });
+
+        xhr.addEventListener('error', () => {
+          setAttachedFiles((prev) =>
+            prev.map((f) =>
+              f.file.name === file.name
+                ? {
+                    ...f,
+                    status: 'error',
+                    error: 'Network error during upload',
+                  }
+                : f,
+            ),
+          );
+          reject(new Error('Network error during upload'));
+        });
+
+        xhr.open('PUT', presignedUrl);
+        xhr.setRequestHeader('Content-Type', file.type);
+        xhr.send(file);
+      });
+    } catch (error) {
+      setAttachedFiles((prev) =>
+        prev.map((f) =>
+          f.file.name === file.name
+            ? {
+                ...f,
+                status: 'error',
+                error: error instanceof Error ? error.message : 'Upload failed',
+              }
+            : f,
+        ),
+      );
+      throw error;
+    }
+  };
+
+  // Remove attached file
+  const handleRemoveFile = (fileId: string) => {
+    setAttachedFiles((prev) => prev.filter((f) => f.id !== fileId));
   };
 
   const PASSPORT_BASE_URL =
@@ -139,37 +306,37 @@ export const ChatInput: FC<ChatInputProps> = ({
           </span>
         </div>
       )}
-      <PromptInput
-        className="z-10 relative rounded-xl border focus-within:border-primary-brand-darker-green bg-card text-card-foreground"
-        onSubmit={handleSubmit}
-      >
-        <PromptInputTextarea
-          placeholder="Ask ZOAN to build something amazing"
-          className="leading-6 min-h-[72px] border-0 focus:border-0 focus:ring-0 focus:outline-none resize-none w-full bg-transparent text-paragraph text-sm placeholder:text-[#272727]/40"
-          style={{ lineHeight: '1.5' }}
-          name="message"
-          value={value}
-          onChange={handleInputChange}
-          disabled={submitDisabled}
-        />
-        <PromptInputToolbar className="px-3 py-2">
-          <PromptInputTools>
-            <PromptInputButton
-              type="button"
-              disabled={disabled}
-              className="bg-[#2727270D]"
-            >
-              <Paperclip className="w-4 h-4 text-muted-foreground" />
-            </PromptInputButton>
-          </PromptInputTools>
-          <div className="flex items-center gap-2">
-            <PromptInputSubmit
-              status={status}
-              disabled={disabled || submitDisabled || !value.trim()}
-            />
-          </div>
-        </PromptInputToolbar>
-      </PromptInput>
+      <div className="z-10 relative rounded-xl border focus-within:border-primary-brand-darker-green bg-card text-card-foreground">
+        {/* Attached Files */}
+        <AttachedFiles files={attachedFiles} onRemoveFile={handleRemoveFile} />
+
+        <PromptInput onSubmit={handleSubmit}>
+          <PromptInputTextarea
+            placeholder="Ask ZOAN to build something amazing"
+            className="leading-6 min-h-[72px] border-0 focus:border-0 focus:ring-0 focus:outline-none resize-none w-full bg-transparent text-paragraph text-sm placeholder:text-[#272727]/40"
+            style={{ lineHeight: '1.5' }}
+            name="message"
+            value={value}
+            onChange={handleInputChange}
+            disabled={submitDisabled}
+          />
+          <PromptInputToolbar className="px-3 py-2">
+            <PromptInputTools>
+              <InlineFileUpload onFilesSelected={handleFilesSelected} />
+            </PromptInputTools>
+            <div className="flex items-center gap-2">
+              <PromptInputSubmit
+                status={status}
+                disabled={
+                  disabled ||
+                  submitDisabled ||
+                  (!value.trim() && attachedFiles.length === 0)
+                }
+              />
+            </div>
+          </PromptInputToolbar>
+        </PromptInput>
+      </div>
       {showUpgradeBanner && bannerPosition === 'bottom' && (
         <div className="rounded-b-xl -mt-3 flex items-center justify-between bg-primary-brand-green px-4 pb-3 pt-7 text-paragraph">
           <span>
