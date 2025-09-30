@@ -12,6 +12,10 @@ import {
   GetPrimaryAgentByChatIdResType,
   GetSpecificChatResType,
 } from '@/types/chat';
+import {
+  PresignedUrlBodyType,
+  PresignedUrlResponseType,
+} from '@/types/library';
 
 const chatApiRequest = {
   list: (pageParams: { offset?: number; limit?: number }) =>
@@ -21,6 +25,19 @@ const chatApiRequest = {
         limit: pageParams.limit?.toString(),
       },
     }),
+  getPresignedUrl: (id: string, body: PresignedUrlBodyType) =>
+    axiosInstance.post<PresignedUrlResponseType>(
+      `/chat/${id}/presigned-url/message`,
+      body,
+    ),
+  sGetPresignedUrl: (id: string, body: PresignedUrlBodyType) =>
+    axiosInstance.post<PresignedUrlResponseType>(
+      `/chat/${id}/presigned-url/message`,
+      body,
+      {
+        baseURL: '',
+      },
+    ),
   sList: () =>
     axiosInstance.get<GetChatListResType>('/chat', {
       baseURL: '',

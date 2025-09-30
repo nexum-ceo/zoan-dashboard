@@ -2,7 +2,7 @@
 
 import { useDragDrop } from '@/contexts/DragDropContext';
 import { cn } from '@/lib/utils';
-import { Code, FileText, Image } from 'lucide-react';
+import { Code, FileText, ImageDown } from 'lucide-react';
 import { useEffect, useState } from 'react';
 
 export const DragDropOverlay = () => {
@@ -42,7 +42,7 @@ export const DragDropOverlay = () => {
               <FileText className="w-5 h-5 text-purple-600" />
             </div>
             <div className="w-10 h-10 bg-pink-100 rounded-lg flex items-center justify-center">
-              <Image className="w-5 h-5 text-pink-600" />
+              <ImageDown className="w-5 h-5 text-pink-600" />
             </div>
           </div>
 

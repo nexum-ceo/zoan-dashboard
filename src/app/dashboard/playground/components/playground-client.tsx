@@ -4,6 +4,7 @@ import TopCreators from '@/app/(public)/components/top-creators';
 import CommunitySection from '@/app/dashboard/playground/components/community';
 import PersonalSpace from '@/app/dashboard/playground/components/personal-space';
 import OptionButtons from '@/components/ui/option-buttons';
+import { DragDropProvider } from '@/contexts/DragDropContext';
 import { useChat } from '@/hooks/useChat';
 import { handleErrorApi } from '@/lib/utils';
 import { useCreateChatMutation } from '@/queries/useChat';
@@ -53,7 +54,7 @@ export function PlaygroundClient() {
   };
 
   return (
-    <>
+    <DragDropProvider>
       {/* Main Chat Area */}
       <div className="flex-1 flex flex-col items-center py-20 bg-white">
         <div className="px-25 py-20 pb-6 max-w-7xl w-full">
@@ -93,6 +94,6 @@ export function PlaygroundClient() {
           <TopCreators />
         </div>
       </div>
-    </>
+    </DragDropProvider>
   );
 }

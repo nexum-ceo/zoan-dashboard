@@ -2,6 +2,7 @@
 
 import chatApiRequest from '@/api-requests/chat';
 import { CreateChatAgentSettingBodyType } from '@/types/chat';
+import { PresignedUrlBodyType } from '@/types/library';
 import {
   useInfiniteQuery,
   useMutation,
@@ -121,5 +122,12 @@ export const useGetChatGameVersionList = (id: string) => {
     queryKey: ['chat-game-version-list', id],
     queryFn: () => chatApiRequest.sGetChatGameVersionList(id),
     enabled: !!id,
+  });
+};
+
+export const useGetChatPresignedUrl = (id: string) => {
+  return useMutation({
+    mutationFn: (body: PresignedUrlBodyType) =>
+      chatApiRequest.sGetPresignedUrl(id, body),
   });
 };
