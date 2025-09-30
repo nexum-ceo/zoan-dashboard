@@ -2,8 +2,8 @@
 
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
-import { Upload } from 'lucide-react';
 import { useCallback, useRef } from 'react';
+import PaperClip from '../../../public/icon/paper-clip';
 
 interface InlineFileUploadProps {
   onFilesSelected: (files: FileList) => void;
@@ -19,8 +19,12 @@ const DEFAULT_ACCEPTED_TYPES = [
   'video/*',
   'application/pdf',
   'application/zip',
+  'application/x-zip-compressed',
   'application/x-rar-compressed',
   'application/x-7z-compressed',
+  '.zip',
+  '.rar',
+  '.7z',
   '.fig',
   '.sketch',
 ];
@@ -116,7 +120,7 @@ export const InlineFileUpload = ({
         onClick={openFileDialog}
         className="h-8 w-8 p-0 hover:bg-gray-100"
       >
-        <Upload className="w-4 h-4 text-gray-500" />
+        <PaperClip className="w-4 h-4 text-gray-500" />
       </Button>
 
       {/* Hidden file input */}
