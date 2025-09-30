@@ -9,9 +9,20 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
+import { getMediaTypeFromFilename } from '@/lib/s3';
 import { cn } from '@/lib/utils';
 import type { ChatStatus } from 'ai';
-import { Loader2Icon, SquareIcon, XIcon } from 'lucide-react';
+import {
+  Archive,
+  File,
+  FileText,
+  Image,
+  Loader2Icon,
+  Music,
+  SquareIcon,
+  Video,
+  XIcon,
+} from 'lucide-react';
 import type {
   ComponentProps,
   HTMLAttributes,
@@ -20,16 +31,119 @@ import type {
 import { Children } from 'react';
 import ChevronRightDuo from '../../../../../public/icon/chevron-right-duo';
 
-export type PromptInputProps = HTMLAttributes<HTMLFormElement>;
+// File preview utilities
+const getFileIcon = (file: File) => {
+  const mediaType = getMediaTypeFromFilename(file.name);
 
-export const PromptInput = ({ className, ...props }: PromptInputProps) => (
+  switch (mediaType) {
+    case 'image':
+      return <Image className="w-3 h-3" />;
+    case 'audio':
+      return <Music className="w-3 h-3" />;
+    case 'video':
+      return <Video className="w-3 h-3" />;
+    case 'archive':
+      return <Archive className="w-3 h-3" />;
+    case 'document':
+      return <FileText className="w-3 h-3" />;
+    default:
+      return <File className="w-3 h-3" />;
+  }
+};
+
+const formatFileSize = (bytes: number) => {
+  if (bytes === 0) return '0 Bytes';
+  const k = 1024;
+  const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+  const i = Math.floor(Math.log(bytes) / Math.log(k));
+  return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+};
+
+// File preview component
+interface FilePreviewProps {
+  file: File;
+  url?: string;
+  onRemove?: () => void;
+}
+
+const FilePreview = ({ file, url, onRemove }: FilePreviewProps) => {
+  const mediaType = getMediaTypeFromFilename(file.name);
+  const isImage = mediaType === 'image';
+
+  return (
+    <div className="flex items-center gap-2 px-3 py-1.5 bg-gray-100 rounded-full text-xs text-gray-700 max-w-xs hover:bg-gray-200 transition-colors">
+      {/* File Icon or Image Preview */}
+      <div className="flex-shrink-0 w-5 h-5 flex items-center justify-center">
+        {isImage && url ? (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img
+            src={url}
+            alt={file.name}
+            className="w-5 h-5 rounded object-cover"
+          />
+        ) : (
+          getFileIcon(file)
+        )}
+      </div>
+
+      {/* File Name */}
+      <span className="truncate flex-1 min-w-0 font-medium">{file.name}</span>
+
+      {/* File Size */}
+      <span className="text-gray-500 text-xs">{formatFileSize(file.size)}</span>
+
+      {/* Remove Button */}
+      {onRemove && (
+        <button
+          onClick={onRemove}
+          className="flex-shrink-0 w-5 h-5 flex items-center justify-center hover:bg-gray-300 rounded-full transition-colors"
+        >
+          <XIcon className="w-3 h-3" />
+        </button>
+      )}
+    </div>
+  );
+};
+
+export type PromptInputProps = HTMLAttributes<HTMLFormElement> & {
+  attachedFiles?: Array<{
+    id: string;
+    file: File;
+    url?: string;
+    onRemove?: (id: string) => void;
+  }>;
+  children?: React.ReactNode;
+};
+
+export const PromptInput = ({
+  className,
+  attachedFiles,
+  children,
+  ...props
+}: PromptInputProps) => (
   <form
     className={cn(
-      'w-full divide-y overflow-hidden rounded-xl border bg-background shadow-sm',
+      'w-full overflow-hidden rounded-xl bg-background shadow-sm',
       className,
     )}
     {...props}
-  />
+  >
+    {/* Attached Files Preview */}
+    {attachedFiles && attachedFiles.length > 0 && (
+      <div className="flex flex-wrap gap-2 px-2 py-1.5">
+        {attachedFiles.map((attachedFile) => (
+          <FilePreview
+            key={attachedFile.id}
+            file={attachedFile.file}
+            url={attachedFile.url}
+            onRemove={() => attachedFile.onRemove?.(attachedFile.id)}
+          />
+        ))}
+      </div>
+    )}
+    {/* Render children (PromptInputTextarea, PromptInputToolbar, etc.) */}
+    {children}
+  </form>
 );
 
 export type PromptInputTextareaProps = ComponentProps<typeof Textarea> & {

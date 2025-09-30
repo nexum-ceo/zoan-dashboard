@@ -1,6 +1,5 @@
 'use client';
 
-import { AttachedFiles } from '@/components/ui/attached-files';
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
@@ -18,6 +17,7 @@ import {
   PromptInputToolbar,
   PromptInputTools,
 } from '@/components/ui/shadcn-io/ai/prompt-input';
+import { getMediaTypeFromFilename } from '@/lib/s3';
 import type { ChatStatus } from 'ai';
 import { signIn, useSession } from 'next-auth/react';
 import Image from 'next/image';
@@ -88,6 +88,11 @@ export const ChatInput: FC<ChatInputProps> = ({
       file,
       progress: 0,
       status: 'uploading',
+      // Create preview URL for images immediately
+      url:
+        getMediaTypeFromFilename(file.name) === 'image'
+          ? URL.createObjectURL(file)
+          : undefined,
     }));
 
     setAttachedFiles((prev) => [...prev, ...newUploadedFiles]);
@@ -307,10 +312,15 @@ export const ChatInput: FC<ChatInputProps> = ({
         </div>
       )}
       <div className="z-10 relative rounded-xl border focus-within:border-primary-brand-darker-green bg-card text-card-foreground">
-        {/* Attached Files */}
-        <AttachedFiles files={attachedFiles} onRemoveFile={handleRemoveFile} />
-
-        <PromptInput onSubmit={handleSubmit}>
+        <PromptInput
+          onSubmit={handleSubmit}
+          attachedFiles={attachedFiles.map((file) => ({
+            id: file.id,
+            file: file.file,
+            url: file.url,
+            onRemove: handleRemoveFile,
+          }))}
+        >
           <PromptInputTextarea
             placeholder="Ask ZOAN to build something amazing"
             className="leading-6 min-h-[72px] border-0 focus:border-0 focus:ring-0 focus:outline-none resize-none w-full bg-transparent text-paragraph text-sm placeholder:text-[#272727]/40"
