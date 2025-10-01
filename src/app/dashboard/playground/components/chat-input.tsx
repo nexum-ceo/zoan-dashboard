@@ -92,6 +92,10 @@ export const ChatInput: FC<ChatInputProps> = ({
       return;
     }
     onSubmit(e);
+    // Clear attachments after a submit so they don't remain in the UI
+    if (attachedFiles.length > 0) {
+      setAttachedFiles([]);
+    }
   };
 
   // Handle sign up
