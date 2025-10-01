@@ -35,7 +35,9 @@ import {
   useEffect,
   useRef,
   useState,
+  type ReactNode,
 } from 'react';
+import type { ExternalToast } from 'sonner';
 import { toast } from 'sonner';
 import CloseIcon from '../../../../../public/icon/close';
 import ZoanLogo from '../../../../../public/zoan-logo.png';
@@ -76,6 +78,42 @@ export const ChatInput: FC<ChatInputProps> = ({
   const handleFilesSelectedRef = useRef<
     ((files: FileList) => Promise<void>) | null
   >(null);
+
+  // Throttled toast helper (5s cooldown per key)
+  const TOAST_COOLDOWN_MS = 5000;
+  const lastToastAtRef = useRef<Record<string, number>>({});
+  const throttledToast = useCallback(
+    (
+      key: string,
+      type: 'error' | 'warning' | 'success' | 'info' | 'message',
+      title: ReactNode,
+      options?: ExternalToast,
+    ) => {
+      const now = Date.now();
+      const lastShownAt = lastToastAtRef.current[key] || 0;
+      if (now - lastShownAt < TOAST_COOLDOWN_MS) return;
+      lastToastAtRef.current[key] = now;
+
+      switch (type) {
+        case 'error':
+          toast.error(title, options);
+          break;
+        case 'warning':
+          toast.warning(title, options);
+          break;
+        case 'success':
+          toast.success(title, options);
+          break;
+        case 'info':
+          toast.info(title, options);
+          break;
+        default:
+          toast.message(title, options);
+          break;
+      }
+    },
+    [],
+  );
 
   // Handle input change - allow typing even during AI response
   const handleInputChange = (e: ChangeEvent<HTMLTextAreaElement>) => {
@@ -203,14 +241,19 @@ export const ChatInput: FC<ChatInputProps> = ({
       if (totalFileCount > MAX_FILES_PER_MESSAGE) {
         const remainingSlots = MAX_FILES_PER_MESSAGE - currentFileCount;
         if (remainingSlots <= 0) {
-          toast.error('File limit reached', {
+          throttledToast('file-limit-reached', 'error', 'File limit reached', {
             description: `You can only upload a maximum of ${MAX_FILES_PER_MESSAGE} files per message. Please remove some files first.`,
           });
           return;
         } else {
-          toast.warning('File limit warning', {
-            description: `You can only upload ${remainingSlots} more file(s). Maximum ${MAX_FILES_PER_MESSAGE} files per message.`,
-          });
+          throttledToast(
+            'file-limit-warning',
+            'warning',
+            'File limit warning',
+            {
+              description: `You can only upload ${remainingSlots} more file(s). Maximum ${MAX_FILES_PER_MESSAGE} files per message.`,
+            },
+          );
           // Only take the first N files that fit within the limit
           const filesToUpload = fileArray.slice(0, remainingSlots);
           const dataTransfer = new DataTransfer();
@@ -259,7 +302,7 @@ export const ChatInput: FC<ChatInputProps> = ({
         );
       }
     },
-    [session, uploadFiles, onFilesUploaded, attachedFiles],
+    [session, uploadFiles, onFilesUploaded, attachedFiles, throttledToast],
   );
 
   // Update ref when function changes
@@ -329,10 +372,15 @@ export const ChatInput: FC<ChatInputProps> = ({
       if (path && chatId) {
         deleteFileMutation.mutate(path, {
           onError: (err) => {
-            toast.error('Failed to delete file', {
-              description:
-                err instanceof Error ? err.message : 'Unknown error occurred',
-            });
+            throttledToast(
+              'delete-file-failed',
+              'error',
+              'Failed to delete file',
+              {
+                description:
+                  err instanceof Error ? err.message : 'Unknown error occurred',
+              },
+            );
           },
         });
       }
