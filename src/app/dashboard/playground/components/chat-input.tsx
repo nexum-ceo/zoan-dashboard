@@ -33,8 +33,11 @@ import {
   useRef,
   useState,
 } from 'react';
+import { toast } from 'sonner';
 import CloseIcon from '../../../../../public/icon/close';
 import ZoanLogo from '../../../../../public/zoan-logo.png';
+
+const MAX_FILES_PER_MESSAGE = 5;
 
 type ChatInputProps = {
   value: string;
@@ -187,6 +190,31 @@ export const ChatInput: FC<ChatInputProps> = ({
       }
 
       const fileArray = Array.from(files);
+
+      // Check if adding these files would exceed the limit
+      const currentFileCount = attachedFiles.length;
+      const newFileCount = fileArray.length;
+      const totalFileCount = currentFileCount + newFileCount;
+
+      if (totalFileCount > MAX_FILES_PER_MESSAGE) {
+        const remainingSlots = MAX_FILES_PER_MESSAGE - currentFileCount;
+        if (remainingSlots <= 0) {
+          toast.error('File limit reached', {
+            description: `You can only upload a maximum of ${MAX_FILES_PER_MESSAGE} files per message. Please remove some files first.`,
+          });
+          return;
+        } else {
+          toast.warning('File limit warning', {
+            description: `You can only upload ${remainingSlots} more file(s). Maximum ${MAX_FILES_PER_MESSAGE} files per message.`,
+          });
+          // Only take the first N files that fit within the limit
+          const filesToUpload = fileArray.slice(0, remainingSlots);
+          const dataTransfer = new DataTransfer();
+          filesToUpload.forEach((file) => dataTransfer.items.add(file));
+          return handleFilesSelected(dataTransfer.files);
+        }
+      }
+
       const newUploadedFiles: UploadedFile[] = fileArray.map((file) => ({
         id: Math.random().toString(36).substr(2, 9),
         file,
@@ -227,7 +255,7 @@ export const ChatInput: FC<ChatInputProps> = ({
         );
       }
     },
-    [session, uploadFiles, onFilesUploaded],
+    [session, uploadFiles, onFilesUploaded, attachedFiles],
   );
 
   // Update ref when function changes
