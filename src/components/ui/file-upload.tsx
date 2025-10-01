@@ -3,6 +3,7 @@
 import libraryApiRequest from '@/api-requests/library';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
+import { useZoanToast } from '@/hooks/useZoanToast';
 import { getMediaTypeFromFilename } from '@/lib/s3';
 import { cn } from '@/lib/utils';
 import {
@@ -105,6 +106,7 @@ export const FileUpload = ({
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { data: session } = useSession();
 
+  const throttledToast = useZoanToast(5000);
   const validateFile = useCallback(
     (file: File): string | null => {
       // Check file size
@@ -132,7 +134,7 @@ export const FileUpload = ({
   const uploadFile = useCallback(
     async (file: File): Promise<UploadedFile> => {
       const uploadedFile: UploadedFile = {
-        id: Math.random().toString(36).substr(2, 9),
+        id: crypto.randomUUID(),
         file,
         progress: 0,
         status: 'uploading',
@@ -254,7 +256,11 @@ export const FileUpload = ({
 
       // Check max files limit
       if (uploadedFiles.length + fileArray.length > maxFiles) {
-        alert(`Maximum ${maxFiles} files allowed`);
+        throttledToast(
+          'file-limit-reached',
+          'error',
+          `Maximum ${maxFiles} files allowed`,
+        );
         return;
       }
 
@@ -271,14 +277,14 @@ export const FileUpload = ({
       });
 
       if (errors.length > 0) {
-        alert(errors.join('\n'));
+        throttledToast('file-upload-error', 'error', errors.join('\n'));
       }
 
       if (validFiles.length === 0) return;
 
       // Add files to state
       const newUploadedFiles: UploadedFile[] = validFiles.map((file) => ({
-        id: Math.random().toString(36).substr(2, 9),
+        id: crypto.randomUUID(),
         file,
         progress: 0,
         status: 'uploading',
@@ -295,7 +301,14 @@ export const FileUpload = ({
         console.error('Upload error:', error);
       }
     },
-    [uploadedFiles.length, maxFiles, onFilesUploaded, uploadFile, validateFile],
+    [
+      uploadedFiles.length,
+      maxFiles,
+      onFilesUploaded,
+      uploadFile,
+      validateFile,
+      throttledToast,
+    ],
   );
 
   const handleDragOver = useCallback((e: React.DragEvent) => {
