@@ -18,6 +18,7 @@ import {
   PromptInputTools,
 } from '@/components/ui/shadcn-io/ai/prompt-input';
 import { useDragDrop } from '@/contexts/DragDropContext';
+import { useZoanToast } from '@/hooks/useZoanToast';
 import { getMediaTypeFromFilename } from '@/lib/s3';
 import {
   useDeleteFileMutation,
@@ -35,10 +36,7 @@ import {
   useEffect,
   useRef,
   useState,
-  type ReactNode,
 } from 'react';
-import type { ExternalToast } from 'sonner';
-import { toast } from 'sonner';
 import CloseIcon from '../../../../../public/icon/close';
 import ZoanLogo from '../../../../../public/zoan-logo.png';
 
@@ -79,41 +77,7 @@ export const ChatInput: FC<ChatInputProps> = ({
     ((files: FileList) => Promise<void>) | null
   >(null);
 
-  // Throttled toast helper (5s cooldown per key)
-  const TOAST_COOLDOWN_MS = 5000;
-  const lastToastAtRef = useRef<Record<string, number>>({});
-  const throttledToast = useCallback(
-    (
-      key: string,
-      type: 'error' | 'warning' | 'success' | 'info' | 'message',
-      title: ReactNode,
-      options?: ExternalToast,
-    ) => {
-      const now = Date.now();
-      const lastShownAt = lastToastAtRef.current[key] || 0;
-      if (now - lastShownAt < TOAST_COOLDOWN_MS) return;
-      lastToastAtRef.current[key] = now;
-
-      switch (type) {
-        case 'error':
-          toast.error(title, options);
-          break;
-        case 'warning':
-          toast.warning(title, options);
-          break;
-        case 'success':
-          toast.success(title, options);
-          break;
-        case 'info':
-          toast.info(title, options);
-          break;
-        default:
-          toast.message(title, options);
-          break;
-      }
-    },
-    [],
-  );
+  const throttledToast = useZoanToast(5000);
 
   // Handle input change - allow typing even during AI response
   const handleInputChange = (e: ChangeEvent<HTMLTextAreaElement>) => {
