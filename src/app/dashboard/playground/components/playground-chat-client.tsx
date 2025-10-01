@@ -47,6 +47,12 @@ type PlaygroundChatClientProps = {
 // Inner component that uses drag drop context
 function PlaygroundChatClientInner({ chatId }: PlaygroundChatClientProps) {
   const [sidebarOpen, setSidebarOpen] = useState<boolean>(false);
+  const [attachments, setAttachments] = useState<
+    Array<{
+      url: string;
+      mime_type: string;
+    }>
+  >([]);
   const isMobile = useIsMobile();
   const router = useRouter();
   const pathname = usePathname();
@@ -142,6 +148,7 @@ function PlaygroundChatClientInner({ chatId }: PlaygroundChatClientProps) {
     onGameSignal: () => {
       setExploreOpen(true);
     },
+    attachments,
   });
 
   // Fallback listener to ensure Explore opens even if callback path breaks
@@ -173,6 +180,33 @@ function PlaygroundChatClientInner({ chatId }: PlaygroundChatClientProps) {
     postMessageRef.current = postMessage;
     setMessagesRef.current = setMessages;
   }, [postMessage, setMessages]);
+
+  const handleFilesUploaded = (
+    files: Array<{
+      id: string;
+      file: File;
+      progress: number;
+      status: 'completed' | 'uploading' | 'error';
+      url?: string;
+      error?: string;
+    }>,
+  ) => {
+    const newAttachments = files
+      .filter((file) => file.status === 'completed' && file.url)
+      .map((file) => ({
+        url: file.url!,
+        mime_type: file.file.type,
+      }));
+
+    setAttachments((prev) => [...prev, ...newAttachments]);
+  };
+
+  // Clear attachments after message is sent
+  const handleSubmitWithAttachments = (e: React.FormEvent<HTMLFormElement>) => {
+    handleSubmit(e);
+    // Clear attachments after sending
+    setAttachments([]);
+  };
 
   // Send the first message with delay for new chats
   useEffect(() => {
@@ -491,11 +525,12 @@ function PlaygroundChatClientInner({ chatId }: PlaygroundChatClientProps) {
               disabled={!canType}
               value={input}
               onChange={handleInputChange}
-              onSubmit={handleSubmit}
+              onSubmit={handleSubmitWithAttachments}
               submitDisabled={!canSubmit}
               status={status}
               bannerPosition="top"
               chatId={chatId}
+              onFilesUploaded={handleFilesUploaded}
             />
           </div>
         </ResizablePanel>
