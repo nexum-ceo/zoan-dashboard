@@ -111,29 +111,10 @@ export const ChatInput: FC<ChatInputProps> = ({
       });
 
       try {
-        console.log('Sending fileList to API:', fileList);
-
         // Get presigned URLs for all files in one API call
         const presignedData = await uploadMutation.mutateAsync({
           file_list: fileList,
         });
-
-        console.log('presignedData response:', presignedData);
-        console.log('presignedData.data:', presignedData.data);
-        console.log('presignedData.data.data:', presignedData.data?.data);
-        console.log('presignedData.data type:', typeof presignedData.data);
-        console.log(
-          'presignedData.data.data type:',
-          typeof presignedData.data?.data,
-        );
-        console.log(
-          'presignedData.data isArray:',
-          Array.isArray(presignedData.data),
-        );
-        console.log(
-          'presignedData.data.data isArray:',
-          Array.isArray(presignedData.data?.data),
-        );
 
         // Try nested data structure first
         const actualData = presignedData.data?.data || presignedData.data;
@@ -153,13 +134,6 @@ export const ChatInput: FC<ChatInputProps> = ({
           if (!presignedItem?.presigned_url) {
             throw new Error(`Invalid presigned URL for file: ${file.name}`);
           }
-          console.log('presignedItem', presignedItem);
-          console.log('presigned URL:', presignedItem.presigned_url);
-          console.log('file info:', {
-            name: file.name,
-            type: file.type,
-            size: file.size,
-          });
 
           const response = await fetch(presignedItem.presigned_url, {
             method: 'PUT',
@@ -170,15 +144,8 @@ export const ChatInput: FC<ChatInputProps> = ({
             },
           });
 
-          console.log(`PUT response for ${file.name}:`, {
-            status: response.status,
-            statusText: response.statusText,
-            ok: response.ok,
-          });
-
           if (!response.ok) {
             const errorText = await response.text();
-            console.error(`PUT error for ${file.name}:`, errorText);
             throw new Error(
               `Upload failed for ${file.name} with status: ${response.status} - ${errorText}`,
             );
@@ -205,7 +172,6 @@ export const ChatInput: FC<ChatInputProps> = ({
         const completedFiles = await Promise.all(uploadPromises);
         return completedFiles;
       } catch (error) {
-        console.error('Batch upload error:', error);
         throw error;
       }
     },
@@ -251,7 +217,6 @@ export const ChatInput: FC<ChatInputProps> = ({
 
         onFilesUploaded?.(completedFiles);
       } catch (error) {
-        console.error('Upload error:', error);
         // Mark all files as error
         setAttachedFiles((prev) =>
           prev.map((f) => ({
