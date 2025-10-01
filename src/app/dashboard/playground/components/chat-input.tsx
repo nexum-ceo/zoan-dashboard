@@ -301,8 +301,7 @@ export const ChatInput: FC<ChatInputProps> = ({
         if (messageIdx >= 0) {
           return segments.slice(messageIdx).join('/');
         }
-        // If path starts with 'library', keep as-is (library/...) for library flows
-        if (segments[0] === 'library') return cleanPath;
+
         // Otherwise drop bucket name if present
         return segments.length > 1 ? segments.slice(1).join('/') : cleanPath;
       }
@@ -313,8 +312,7 @@ export const ChatInput: FC<ChatInputProps> = ({
       // Prefer returning from 'message' onward when present
       const messageIdx2 = parts.indexOf('message');
       if (messageIdx2 >= 0) return parts.slice(messageIdx2).join('/');
-      // If starts with library, keep as-is
-      if (parts[0] === 'library') return pn;
+
       // Otherwise drop first segment (bucket) when possible
       return parts.length > 1 ? parts.slice(1).join('/') : pn;
     } catch {

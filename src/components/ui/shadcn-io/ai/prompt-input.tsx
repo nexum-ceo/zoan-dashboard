@@ -71,7 +71,7 @@ const FilePreview = ({ file, url, onRemove }: FilePreviewProps) => {
   const isImage = mediaType === 'image';
 
   return (
-    <div className="flex items-center gap-2 px-3 py-1.5 bg-gray-100 rounded-full text-xs text-gray-700 max-w-xs hover:bg-gray-200 transition-colors">
+    <div className="flex items-center gap-2 px-3 py-1.5 bg-gray-100 rounded-lg text-xs text-gray-700 max-w-xs hover:bg-gray-200 transition-colors">
       {/* File Icon or Image Preview */}
       <div className="flex-shrink-0 w-5 h-5 flex items-center justify-center">
         {isImage && url ? (
