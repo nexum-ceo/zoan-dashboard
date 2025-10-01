@@ -29,6 +29,8 @@ export type UseSSEChatProps = {
   attachments?: Array<{
     url: string;
     mime_type: string;
+    file_name: string;
+    file_size: number;
   }>;
 };
 

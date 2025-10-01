@@ -133,3 +133,9 @@ export const useGetChatPresignedUrl = (id: string) => {
       chatApiRequest.sGetPresignedUrl(id, body),
   });
 };
+
+export const useDeleteFileMutation = (id: string) => {
+  return useMutation({
+    mutationFn: (path: string) => chatApiRequest.sDeleteFile(id, path),
+  });
+};

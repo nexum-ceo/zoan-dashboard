@@ -133,6 +133,21 @@ const chatApiRequest = {
     axiosInstance.post(`/chat/${id}/completion`, body, {
       baseURL: '',
     }),
+
+  deleteFile: async (id: string, path: string) =>
+    axiosInstance.delete(`/chat/${id}/file`, {
+      data: {
+        path,
+      },
+    }),
+
+  sDeleteFile: async (id: string, path: string) =>
+    axiosInstance.delete(`/chat/${id}/file`, {
+      data: {
+        path,
+      },
+      baseURL: '',
+    }),
 };
 
 export default chatApiRequest;

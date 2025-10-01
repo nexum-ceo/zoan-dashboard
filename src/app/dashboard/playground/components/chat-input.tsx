@@ -19,7 +19,10 @@ import {
 } from '@/components/ui/shadcn-io/ai/prompt-input';
 import { useDragDrop } from '@/contexts/DragDropContext';
 import { getMediaTypeFromFilename } from '@/lib/s3';
-import { useGetChatPresignedUrl } from '@/queries/useChat';
+import {
+  useDeleteFileMutation,
+  useGetChatPresignedUrl,
+} from '@/queries/useChat';
 import type { ChatStatus } from 'ai';
 import { signIn, useSession } from 'next-auth/react';
 import Image from 'next/image';
@@ -68,6 +71,7 @@ export const ChatInput: FC<ChatInputProps> = ({
   const { data: session } = useSession();
   const router = useRouter();
   const uploadMutation = useGetChatPresignedUrl(chatId || '');
+  const deleteFileMutation = useDeleteFileMutation(chatId || '');
   const { setOnFilesDropped } = useDragDrop();
   const handleFilesSelectedRef = useRef<
     ((files: FileList) => Promise<void>) | null
@@ -282,9 +286,61 @@ export const ChatInput: FC<ChatInputProps> = ({
     setOnFilesDropped(processDroppedFiles);
   }, [setOnFilesDropped]);
 
-  // Remove attached file
+  // Helper to extract object key/path from a file URL for deletion
+  const extractDeletePath = useCallback((fileUrl?: string): string | null => {
+    if (!fileUrl) return null;
+    try {
+      const baseUrl = process.env.NEXT_PUBLIC_MINIO_URL || '';
+      if (baseUrl && fileUrl.startsWith(baseUrl)) {
+        // Remove base URL
+        const path = fileUrl.slice(baseUrl.length);
+        const cleanPath = path.startsWith('/') ? path.slice(1) : path;
+        const segments = cleanPath.split('/');
+        // If path contains 'message', return from that segment onward
+        const messageIdx = segments.indexOf('message');
+        if (messageIdx >= 0) {
+          return segments.slice(messageIdx).join('/');
+        }
+        // If path starts with 'library', keep as-is (library/...) for library flows
+        if (segments[0] === 'library') return cleanPath;
+        // Otherwise drop bucket name if present
+        return segments.length > 1 ? segments.slice(1).join('/') : cleanPath;
+      }
+      // Fallback: try using URL to parse pathname
+      const u = new URL(fileUrl);
+      const pn = u.pathname.startsWith('/') ? u.pathname.slice(1) : u.pathname;
+      const parts = pn.split('/');
+      // Prefer returning from 'message' onward when present
+      const messageIdx2 = parts.indexOf('message');
+      if (messageIdx2 >= 0) return parts.slice(messageIdx2).join('/');
+      // If starts with library, keep as-is
+      if (parts[0] === 'library') return pn;
+      // Otherwise drop first segment (bucket) when possible
+      return parts.length > 1 ? parts.slice(1).join('/') : pn;
+    } catch {
+      return null;
+    }
+  }, []);
+
+  // Remove attached file (optimistic), then delete on server if possible
   const handleRemoveFile = (fileId: string) => {
     setAttachedFiles((prev) => prev.filter((f) => f.id !== fileId));
+    try {
+      const removed = attachedFiles.find((f) => f.id === fileId);
+      const path = extractDeletePath(removed?.url);
+      if (path && chatId) {
+        deleteFileMutation.mutate(path, {
+          onError: (err) => {
+            toast.error('Failed to delete file', {
+              description:
+                err instanceof Error ? err.message : 'Unknown error occurred',
+            });
+          },
+        });
+      }
+    } catch {
+      // Non-blocking: UI already removed the file
+    }
   };
 
   const PASSPORT_BASE_URL =

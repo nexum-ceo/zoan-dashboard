@@ -51,6 +51,8 @@ function PlaygroundChatClientInner({ chatId }: PlaygroundChatClientProps) {
     Array<{
       url: string;
       mime_type: string;
+      file_name: string;
+      file_size: number;
     }>
   >([]);
   const isMobile = useIsMobile();
@@ -196,6 +198,8 @@ function PlaygroundChatClientInner({ chatId }: PlaygroundChatClientProps) {
       .map((file) => ({
         url: file.url!,
         mime_type: file.file.type,
+        file_name: file.file.name,
+        file_size: file.file.size,
       }));
 
     setAttachments((prev) => [...prev, ...newAttachments]);
