@@ -9,6 +9,7 @@ type PlaygroundInputProps = {
   onSubmit?: (e: React.FormEvent<HTMLFormElement>) => void;
   disabled: boolean;
   submitDisabled?: boolean;
+  chatId?: string;
 };
 
 export const PlaygroundInput: FC<PlaygroundInputProps> = ({
@@ -17,6 +18,7 @@ export const PlaygroundInput: FC<PlaygroundInputProps> = ({
   onSubmit,
   disabled,
   submitDisabled = false,
+  chatId,
 }: PlaygroundInputProps) => {
   return (
     <div>
@@ -26,6 +28,7 @@ export const PlaygroundInput: FC<PlaygroundInputProps> = ({
         onSubmit={onSubmit || (() => {})}
         disabled={disabled}
         submitDisabled={submitDisabled}
+        chatId={chatId}
       />
     </div>
   );

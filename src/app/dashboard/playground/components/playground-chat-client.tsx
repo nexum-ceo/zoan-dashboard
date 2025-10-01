@@ -495,6 +495,7 @@ function PlaygroundChatClientInner({ chatId }: PlaygroundChatClientProps) {
               submitDisabled={!canSubmit}
               status={status}
               bannerPosition="top"
+              chatId={chatId}
             />
           </div>
         </ResizablePanel>

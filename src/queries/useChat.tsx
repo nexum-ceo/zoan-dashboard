@@ -1,8 +1,10 @@
 'use client';
 
 import chatApiRequest from '@/api-requests/chat';
-import { CreateChatAgentSettingBodyType } from '@/types/chat';
-import { PresignedUrlBodyType } from '@/types/library';
+import {
+  CreateChatAgentSettingBodyType,
+  PresignedUrlBodyType,
+} from '@/types/chat';
 import {
   useInfiniteQuery,
   useMutation,

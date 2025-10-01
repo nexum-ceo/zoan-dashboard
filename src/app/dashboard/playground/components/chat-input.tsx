@@ -19,7 +19,7 @@ import {
 } from '@/components/ui/shadcn-io/ai/prompt-input';
 import { useDragDrop } from '@/contexts/DragDropContext';
 import { getMediaTypeFromFilename } from '@/lib/s3';
-import { useLibrary } from '@/queries/useLibrary';
+import { useGetChatPresignedUrl } from '@/queries/useChat';
 import type { ChatStatus } from 'ai';
 import { signIn, useSession } from 'next-auth/react';
 import Image from 'next/image';
@@ -45,6 +45,7 @@ type ChatInputProps = {
   status?: ChatStatus;
   bannerPosition?: 'top' | 'bottom';
   onFilesUploaded?: (files: UploadedFile[]) => void;
+  chatId?: string;
 };
 
 export const ChatInput: FC<ChatInputProps> = ({
@@ -56,13 +57,14 @@ export const ChatInput: FC<ChatInputProps> = ({
   status,
   bannerPosition = 'bottom',
   onFilesUploaded,
+  chatId,
 }) => {
   const [showUpgradeBanner, setShowUpgradeBanner] = useState(true);
   const [showAuthDialog, setShowAuthDialog] = useState(false);
   const [attachedFiles, setAttachedFiles] = useState<UploadedFile[]>([]);
   const { data: session } = useSession();
   const router = useRouter();
-  const uploadMutation = useLibrary();
+  const uploadMutation = useGetChatPresignedUrl(chatId || '');
   const { setOnFilesDropped } = useDragDrop();
   const handleFilesSelectedRef = useRef<
     ((files: FileList) => Promise<void>) | null
@@ -90,88 +92,120 @@ export const ChatInput: FC<ChatInputProps> = ({
     setShowAuthDialog(false);
   };
 
-  // Upload file function using library hook
-  const uploadFile = useCallback(
-    async (file: File): Promise<UploadedFile> => {
-      const uploadedFile: UploadedFile = {
-        id: Math.random().toString(36).substr(2, 9),
-        file,
-        progress: 0,
-        status: 'uploading',
-      };
+  // Upload files function using batch API call
+  const uploadFiles = useCallback(
+    async (files: File[]): Promise<UploadedFile[]> => {
+      if (!session?.user?.id) {
+        throw new Error('User not authenticated');
+      }
 
-      try {
-        // Generate unique file path
+      // Generate file list for API
+      const fileList = files.map((file) => {
         const timestamp = Date.now();
         const fileName = `${timestamp}_${file.name}`;
-        const filePath = `${session!.user!.id}/${fileName}`;
+        return {
+          file_name: fileName,
+          file_type: file.type,
+          file_size: file.size,
+        };
+      });
 
-        // Get presigned URL using library hook
+      try {
+        console.log('Sending fileList to API:', fileList);
+
+        // Get presigned URLs for all files in one API call
         const presignedData = await uploadMutation.mutateAsync({
-          file_list: [
-            {
-              path: filePath,
-              file_name: fileName,
-            },
-          ],
+          file_list: fileList,
         });
+
+        console.log('presignedData response:', presignedData);
+        console.log('presignedData.data:', presignedData.data);
+        console.log('presignedData.data.data:', presignedData.data?.data);
+        console.log('presignedData.data type:', typeof presignedData.data);
+        console.log(
+          'presignedData.data.data type:',
+          typeof presignedData.data?.data,
+        );
+        console.log(
+          'presignedData.data isArray:',
+          Array.isArray(presignedData.data),
+        );
+        console.log(
+          'presignedData.data.data isArray:',
+          Array.isArray(presignedData.data?.data),
+        );
+
+        // Try nested data structure first
+        const actualData = presignedData.data?.data || presignedData.data;
 
         if (
-          !presignedData.data ||
-          !Array.isArray(presignedData.data) ||
-          presignedData.data.length === 0
+          !actualData ||
+          !Array.isArray(actualData) ||
+          actualData.length === 0
         ) {
-          throw new Error('Failed to get presigned URL');
+          console.error('Invalid presigned data:', presignedData);
+          throw new Error('Failed to get presigned URLs');
         }
 
-        const presignedUrl = presignedData.data[0]?.presigned_url;
-        if (!presignedUrl) {
-          throw new Error('Invalid presigned URL response');
-        }
+        // Upload each file using its presigned URL
+        const uploadPromises = files.map(async (file, index) => {
+          const presignedItem = actualData[index];
+          if (!presignedItem?.presigned_url) {
+            throw new Error(`Invalid presigned URL for file: ${file.name}`);
+          }
+          console.log('presignedItem', presignedItem);
+          console.log('presigned URL:', presignedItem.presigned_url);
+          console.log('file info:', {
+            name: file.name,
+            type: file.type,
+            size: file.size,
+          });
 
-        // Upload file using presigned URL
-        const response = await fetch(presignedUrl, {
-          method: 'PUT',
-          body: file,
-          headers: {
-            'Content-Type': file.type,
-          },
+          const response = await fetch(presignedItem.presigned_url, {
+            method: 'PUT',
+            body: file,
+            headers: {
+              'Content-Type': file.type,
+              'Content-Length': file.size.toString(),
+            },
+          });
+
+          console.log(`PUT response for ${file.name}:`, {
+            status: response.status,
+            statusText: response.statusText,
+            ok: response.ok,
+          });
+
+          if (!response.ok) {
+            const errorText = await response.text();
+            console.error(`PUT error for ${file.name}:`, errorText);
+            throw new Error(
+              `Upload failed for ${file.name} with status: ${response.status} - ${errorText}`,
+            );
+          }
+
+          // Use object_key from response for file URL
+          const objectKey = presignedItem.object_key;
+          const baseUrl = process.env.NEXT_PUBLIC_MINIO_URL || '';
+          const fileUrl = objectKey
+            ? `${baseUrl}/${objectKey.bucket}/${objectKey.key}`
+            : `${baseUrl}/library/${session!.user!.id}/${
+                fileList[index].file_name
+              }`;
+
+          return {
+            id: Math.random().toString(36).substr(2, 9),
+            file,
+            progress: 100,
+            status: 'completed' as const,
+            url: fileUrl,
+          };
         });
 
-        if (!response.ok) {
-          throw new Error(`Upload failed with status: ${response.status}`);
-        }
-
-        const baseUrl = process.env.NEXT_PUBLIC_MINIO_URL || '';
-        const fileUrl = `${baseUrl}/library/${filePath}`;
-
-        setAttachedFiles((prev) =>
-          prev.map((f) =>
-            f.file.name === file.name
-              ? { ...f, progress: 100, status: 'completed', url: fileUrl }
-              : f,
-          ),
-        );
-
-        return {
-          ...uploadedFile,
-          progress: 100,
-          status: 'completed',
-          url: fileUrl,
-        };
+        const completedFiles = await Promise.all(uploadPromises);
+        return completedFiles;
       } catch (error) {
-        setAttachedFiles((prev) =>
-          prev.map((f) =>
-            f.file.name === file.name
-              ? {
-                  ...f,
-                  status: 'error',
-                  error:
-                    error instanceof Error ? error.message : 'Upload failed',
-                }
-              : f,
-          ),
-        );
+        console.error('Batch upload error:', error);
         throw error;
       }
     },
@@ -201,10 +235,9 @@ export const ChatInput: FC<ChatInputProps> = ({
 
       setAttachedFiles((prev) => [...prev, ...newUploadedFiles]);
 
-      // Upload files
+      // Upload files using batch upload
       try {
-        const uploadPromises = fileArray.map((file) => uploadFile(file));
-        const completedFiles = await Promise.all(uploadPromises);
+        const completedFiles = await uploadFiles(fileArray);
 
         // Update the attached files with completed uploads
         setAttachedFiles((prev) =>
@@ -219,9 +252,17 @@ export const ChatInput: FC<ChatInputProps> = ({
         onFilesUploaded?.(completedFiles);
       } catch (error) {
         console.error('Upload error:', error);
+        // Mark all files as error
+        setAttachedFiles((prev) =>
+          prev.map((f) => ({
+            ...f,
+            status: 'error' as const,
+            error: error instanceof Error ? error.message : 'Upload failed',
+          })),
+        );
       }
     },
-    [session, uploadFile, onFilesUploaded],
+    [session, uploadFiles, onFilesUploaded],
   );
 
   // Update ref when function changes
