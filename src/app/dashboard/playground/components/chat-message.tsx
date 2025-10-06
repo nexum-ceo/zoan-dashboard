@@ -18,6 +18,7 @@ import {
   TaskItemFile,
   TaskTrigger,
 } from '@/components/ui/shadcn-io/ai/task';
+import { ImageZoom } from '@/components/ui/shadcn-io/image-zoom';
 import {
   Tooltip,
   TooltipContent,
@@ -313,6 +314,30 @@ export const ChatMessage: FC<ChatMessageProps> = ({
                 const name =
                   att.file_name || att.url.split('/').pop() || 'file';
 
+                if (fileType === 'image') {
+                  return (
+                    <div
+                      key={idx}
+                      className="inline-flex items-center gap-1.5 rounded-md border border-[#272727]/10 px-1.5 py-0.5 text-[10px] text-[#272727] hover:bg-[#272727]/5 cursor-zoom-in"
+                      title={name}
+                    >
+                      <div className="h-4 w-4 rounded-[3px] overflow-hidden border border-[#272727]/10 bg-white">
+                        <ImageZoom>
+                          <Image
+                            src={att.url}
+                            alt={name}
+                            width={1200}
+                            height={800}
+                            className="h-4 w-4 object-cover"
+                            data-zoom
+                          />
+                        </ImageZoom>
+                      </div>
+                      <span className="max-w-[180px] truncate">{name}</span>
+                    </div>
+                  );
+                }
+
                 return (
                   <a
                     key={idx}
@@ -323,18 +348,9 @@ export const ChatMessage: FC<ChatMessageProps> = ({
                     title={name}
                   >
                     <div className="relative h-4 w-4 rounded-[3px] overflow-hidden border border-[#272727]/10 bg-white">
-                      {fileType === 'image' ? (
-                        <Image
-                          src={att.url}
-                          alt={name}
-                          fill
-                          style={{ objectFit: 'cover' }}
-                        />
-                      ) : (
-                        <div className="flex items-center justify-center h-full w-full">
-                          <FileBlankIcon width={10} height={10} />
-                        </div>
-                      )}
+                      <div className="flex items-center justify-center h-full w-full">
+                        <FileBlankIcon width={10} height={10} />
+                      </div>
                     </div>
                     <span className="max-w-[180px] truncate">{name}</span>
                   </a>

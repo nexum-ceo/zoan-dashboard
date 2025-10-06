@@ -16,6 +16,15 @@ export type ChatMessage = {
   sender_id: string | null;
   parts?: Array<{ type: string; text?: string }>;
   isComplete?: boolean; // Track if message is fully received
+  metadata?: {
+    attachments?: Array<{
+      url: string;
+      mime_type: string;
+      file_name: string;
+      file_size: number;
+    }>;
+    [key: string]: unknown;
+  };
 };
 
 export type UseSSEChatProps = {
@@ -590,6 +599,7 @@ export function useSSEChat({
       content: input,
       sender_id: user_id,
       isComplete: true, // User messages are always complete
+      metadata: attachments.length > 0 ? { attachments } : undefined,
     };
     setMessages((prev) => [...prev, userMsg]);
     setIsLoading(true);
@@ -610,6 +620,7 @@ export function useSSEChat({
       content: msg,
       sender_id: user_id,
       isComplete: true, // User messages are always complete
+      metadata: attachments.length > 0 ? { attachments } : undefined,
     };
     setMessages((prev) => [...prev, userMsg]);
     setIsLoading(true);
