@@ -116,6 +116,7 @@ type ChatMessageProps = {
         | string;
       game_generator?: string | unknown;
     };
+    reasoning?: Record<string, string>;
     isComplete?: boolean;
   };
   isLast: boolean;
@@ -214,19 +215,19 @@ export const ChatMessage: FC<ChatMessageProps> = ({
       items.push(...partItems);
     }
 
-    // Check metadata for game_generator
-    if (message.metadata?.game_generator) {
-      const metadataContent =
-        typeof message.metadata.game_generator === 'string'
-          ? message.metadata.game_generator
-          : JSON.stringify(message.metadata.game_generator);
-      if (metadataContent.trim() !== '') {
-        items.push(metadataContent);
+    // Check reasoning for game_generator
+    if (message.reasoning?.game_generator) {
+      const reasoningContent =
+        typeof message.reasoning.game_generator === 'string'
+          ? message.reasoning.game_generator
+          : JSON.stringify(message.reasoning.game_generator);
+      if (reasoningContent.trim() !== '') {
+        items.push(reasoningContent);
       }
     }
 
     return items;
-  }, [message.parts, message.metadata]);
+  }, [message.parts, message.reasoning]);
 
   // Extract attachments from metadata if present
   const attachments = useMemo(() => {
