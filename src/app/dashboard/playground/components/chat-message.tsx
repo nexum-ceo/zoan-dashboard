@@ -250,7 +250,10 @@ export const ChatMessage: FC<ChatMessageProps> = ({
     try {
       const parsed = Array.isArray(raw) ? raw : JSON.parse(raw as string);
       if (!Array.isArray(parsed)) return [];
-      return parsed.filter((a) => a && typeof a.url === 'string');
+      return parsed.filter(
+        (a) =>
+          a && typeof a.url === 'string' && typeof a.file_name === 'string',
+      );
     } catch {
       return [];
     }
