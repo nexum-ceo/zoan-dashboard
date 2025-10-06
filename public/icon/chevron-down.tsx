@@ -13,8 +13,8 @@ export default function ChevronDown(props: SVGProps<SVGSVGElement>) {
       <path
         d="M11.0837 5.45825L7.00033 9.54159L2.91699 5.45825"
         stroke="#272727"
-        stroke-linecap="round"
-        stroke-linejoin="round"
+        strokeLinecap="round"
+        strokeLinejoin="round"
       />
     </svg>
   );
