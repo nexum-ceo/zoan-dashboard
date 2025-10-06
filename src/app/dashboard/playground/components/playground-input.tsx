@@ -1,7 +1,6 @@
 'use client';
 
 import { ChatInput } from '@/app/dashboard/playground/components/chat-input';
-import { DragDropProvider } from '@/contexts/DragDropContext';
 import { ChangeEvent, FC } from 'react';
 
 type PlaygroundInputProps = {
@@ -23,16 +22,14 @@ export const PlaygroundInput: FC<PlaygroundInputProps> = ({
 }: PlaygroundInputProps) => {
   return (
     <div>
-      <DragDropProvider>
-        <ChatInput
-          value={value}
-          onChange={onChange || (() => {})}
-          onSubmit={onSubmit || (() => {})}
-          disabled={disabled}
-          submitDisabled={submitDisabled}
-          chatId={chatId}
-        />
-      </DragDropProvider>
+      <ChatInput
+        value={value}
+        onChange={onChange || (() => {})}
+        onSubmit={onSubmit || (() => {})}
+        disabled={disabled}
+        submitDisabled={submitDisabled}
+        chatId={chatId}
+      />
     </div>
   );
 };
