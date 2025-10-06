@@ -1,15 +1,13 @@
 'use client';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Progress } from '@/components/ui/progress';
-import { Separator } from '@/components/ui/separator';
-import { Switch } from '@/components/ui/switch';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { useGetInstalledAgent } from '@/queries/useAgent';
+import { AgentType } from '@/types/agent';
 import { IconLabel } from '@tabler/icons-react';
 import { Dot } from 'lucide-react';
 import { useState } from 'react';
 import AddPlusSquare from '../../../../../public/icon/add-plus-square';
-import EllipsisVertical from '../../../../../public/icon/ellipsis-vertical';
 import Search from '../../../../../public/icon/search';
 
 // Mock data for 12 agents
@@ -95,36 +93,36 @@ function AgentCard({
   agent,
   onToggleActive,
 }: {
-  agent: (typeof agentsData)[0];
+  agent: AgentType;
   onToggleActive: (agentId: number) => void;
 }) {
   return (
-    <div className="flex flex-col justify-between w-full bg-white rounded-lg border border-[#272727]/5 p-2 pt-2.5 space-y-4">
+    <div className="flex flex-col justify-between w-full bg-white rounded-lg border border-[#272727]/5 p-2 pt-2.5 space-y-4 shadow-md">
       {/* Header */}
       <div className="w-full flex gap-2">
         <div className="rounded-lg bg-gradient-to-br from-blue-500 to-green-500 flex items-center justify-center text-white text-sm font-bold flex-shrink-0 w-7 h-7">
-          {agent.icon}
+          {'🎮'}
         </div>
 
         <div className="flex-1">
-          <h3 className="text-paragraph">{agent.title}</h3>
+          <h3 className="text-paragraph">{agent.name}</h3>
           <div className="flex items-center gap-1">
             <div className="text-tag-label !text-[#272727]/50">
-              By {agent.publisher}
+              By {agent.email}
             </div>
             <Dot className="w-2 h-2 text-[#272727]/50" />
             <div className="flex items-center gap-1">
               <IconLabel className="w-3 h-3 text-primary-brand-darker-green" />
               <span className="text-primary-brand-darker-green text-[10px] font-normal">
-                {agent.category}
+                {agent.categories.join(', ')}
               </span>
             </div>
           </div>
           {/* Version and Tags */}
-          <div className="flex flex-wrap items-center gap-1">
-            <span className="p-1.5 bg-[#272727]/5 text-tag-label rounded-full">
+          <div className="flex flex-wrap items-center gap-1 capitalize">
+            {/* <span className="p-1.5 bg-[#272727]/5 text-tag-label rounded-full">
               {agent.version}
-            </span>
+            </span> */}
             {agent.tags.slice(0, 3).map((tag, index) => (
               <span
                 key={index}
@@ -149,7 +147,7 @@ function AgentCard({
 
       {/* Footer */}
       <div>
-        <div className="p-2">
+        {/* <div className="p-2">
           <div className="mb-3">
             <span className="text-[10px] text-[#272727]/50 font-medium">
               Chat Usage
@@ -167,13 +165,13 @@ function AgentCard({
               /{agent.chatUsage.total}
             </div>
           </div>
-        </div>
-        <Separator className="my-2 mx-auto" />
+        </div> */}
+        {/* <Separator className="my-2 mx-auto" />
         <div className="flex justify-between">
           <div className="flex items-center space-x-2">
             <Switch
-              checked={agent.isActive}
-              onCheckedChange={() => onToggleActive(agent.id)}
+              checked={false}
+              onCheckedChange={() => {}}
               className="data-[state=unchecked]:bg-[#272727]/10 data-[state=checked]:bg-primary-brand-darker-green disabled:bg-primary-brand-green"
               thumbClassName="data-[state=unchecked]:bg-[#272727]/50 data-[state=checked]:bg-white"
             />
@@ -182,15 +180,15 @@ function AgentCard({
           <div className="cursor-pointer">
             <EllipsisVertical />
           </div>
-        </div>
+        </div> */}
       </div>
     </div>
   );
 }
 
-export default function ManagermentSection() {
+export default function ManagementSection() {
   const [agents, setAgents] = useState(agentsData);
-
+  const { data: installedAgents } = useGetInstalledAgent();
   const handleToggleActive = (agentId: number) => {
     setAgents((prevAgents) =>
       prevAgents.map((agent) =>
@@ -244,7 +242,7 @@ export default function ManagermentSection() {
           Agents
         </div>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
-          {agents.map((agent) => (
+          {installedAgents?.data.data.map((agent) => (
             <AgentCard
               key={agent.id}
               agent={agent}
@@ -254,17 +252,17 @@ export default function ManagermentSection() {
         </div>
 
         {/* Agent Card List */}
-        <div className="text-sm font-medium leading-3.5 text-[#272727]">
+        {/* <div className="text-sm font-medium leading-3.5 text-[#272727]">
           AI DApps
-        </div>
+        </div> */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
-          {agents.map((agent) => (
+          {/* {agents.map((agent) => (
             <AgentCard
               key={agent.id}
               agent={agent}
               onToggleActive={handleToggleActive}
             />
-          ))}
+          ))} */}
         </div>
       </div>
     </div>

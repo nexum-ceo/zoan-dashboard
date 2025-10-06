@@ -1,10 +1,17 @@
+'use client';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
+import {
+  useGetCommunityAgent,
+  useInstallCommunityAgent,
+} from '@/queries/useCommunity';
+import { TCommunityAgentData } from '@/types/community';
 import { IconLabel } from '@tabler/icons-react';
-import { ArrowUpRight, Dot, Star } from 'lucide-react';
+import { Dot, Star } from 'lucide-react';
 import Image from 'next/image';
 import { FC } from 'react';
 import VectorIcon from '../../../../../public/icon/vector';
+
 type CommunityProject = {
   id: string;
   title: string;
@@ -46,16 +53,22 @@ const GroupAvatar: FC = () => {
   );
 };
 
-const CommunityProjectCard: FC<{ project: CommunityProject }> = ({
+const CommunityProjectCard: FC<{ project: TCommunityAgentData }> = ({
   project,
 }) => {
+  const { mutate: installAgent } = useInstallCommunityAgent();
+
+  const handleInstallAgent = () => {
+    installAgent(project.agent.id);
+  };
+
   return (
     <div className="p-3 flex items-center gap-2 bg-white rounded-lg border border-[#272727]/5 shadow-sm hover:shadow-md transition-shadow duration-200 overflow-hidden">
       {/* Project Image */}
       <div className="relative size-13 rounded-lg overflow-hidden aspect-square shrink-0">
         <Image
-          src={project.image}
-          alt={project.title}
+          src={'/image/mario-1.png'}
+          alt={project.agent.id}
           fill
           className="object-cover w-full h-full cursor-pointer"
         />
@@ -65,11 +78,11 @@ const CommunityProjectCard: FC<{ project: CommunityProject }> = ({
       <div className="flex-1 min-w-0">
         {/* Title and Category */}
         <div className="flex items-center gap-1">
-          <h3 className="text-paragraph">{project.title}</h3>
+          <h3 className="text-paragraph">{project.agent.name}</h3>
         </div>
         {/* Description */}
         <p className="text-xs font-normal line-clamp-1 text-[#272727]/50">
-          {project.description}
+          {project.agent.description}
         </p>
 
         {/* Creator, Group Avatar and Stats */}
@@ -77,7 +90,7 @@ const CommunityProjectCard: FC<{ project: CommunityProject }> = ({
           <div className="flex items-center gap-1">
             <IconLabel className="w-3 h-3 text-primary-brand-darker-green" />
             <span className="text-primary-brand-darker-green text-[10px] font-normal">
-              {project.category}
+              {'game'}
             </span>
           </div>
           <Dot className="w-2 h-2" />
@@ -85,17 +98,26 @@ const CommunityProjectCard: FC<{ project: CommunityProject }> = ({
             <GroupAvatar />
           </div>
           <span className="text-xs text-[#272727]/50 shrink-0">
-            {project.installs} Install
+            {project.community.install_count} Install
           </span>
           <Dot className="w-2 h-2" />
           <div className="flex items-center gap-1 shrink-0">
             <Star className="w-3 h-3 text-[#272727]/50" />
-            <span className="text-xs text-[#272727]/50">{project.rating}</span>
+            <span className="text-xs text-[#272727]/50">
+              {project.community.rating_avg}
+            </span>
           </div>
         </div>
       </div>
-      <Button size={'l'} variant="secondary" className="!p-1">
-        <ArrowUpRight className="text-[#272727]" />
+      <Button
+        size={'l'}
+        variant="secondary"
+        className="!p-1"
+        onClick={handleInstallAgent}
+        disabled={project.agent.is_installed}
+      >
+        {/* <ArrowUpRight className="text-[#272727]" /> */}
+        {project.agent.is_installed ? 'Installed' : 'Install'}
       </Button>
     </div>
   );
@@ -104,6 +126,12 @@ const CommunityProjectCard: FC<{ project: CommunityProject }> = ({
 export const Community: FC<CommunityProps> = ({
   projects = defaultProjects,
 }) => {
+  const { data: communityAgents, error, isLoading } = useGetCommunityAgent();
+
+  console.log('Community agents:', communityAgents);
+  console.log('Error:', error);
+  console.log('Loading:', isLoading);
+
   return (
     <section className="py-2 px-4">
       <div className="w-full">
@@ -123,8 +151,11 @@ export const Community: FC<CommunityProps> = ({
 
         {/* Projects Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
-          {projects.map((project) => (
-            <CommunityProjectCard key={project.id} project={project} />
+          {communityAgents?.data.data.map((project) => (
+            <CommunityProjectCard
+              key={project.community.id}
+              project={project}
+            />
           ))}
         </div>
       </div>

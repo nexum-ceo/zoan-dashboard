@@ -37,6 +37,13 @@ const agentApiRequest = {
     axiosInstance.get<GetAgentResType>('/agent/available', {
       baseURL: '',
     }),
+
+  getInstalledAgent: () =>
+    axiosInstance.get<GetAgentResType>('/agent/installed'),
+  sGetInstalledAgent: () =>
+    axiosInstance.get<GetAgentResType>('/agent/installed', {
+      baseURL: '',
+    }),
 };
 
 export default agentApiRequest;
