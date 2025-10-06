@@ -114,7 +114,7 @@ function AgentCard({
             <div className="flex items-center gap-1">
               <IconLabel className="w-3 h-3 text-primary-brand-darker-green" />
               <span className="text-primary-brand-darker-green text-[10px] font-normal">
-                {agent.categories.join(', ')}
+                {(agent.categories ?? []).join(', ')}
               </span>
             </div>
           </div>
@@ -123,7 +123,7 @@ function AgentCard({
             {/* <span className="p-1.5 bg-[#272727]/5 text-tag-label rounded-full">
               {agent.version}
             </span> */}
-            {agent.tags.slice(0, 3).map((tag, index) => (
+            {(agent.tags?.slice(0, 3) ?? []).map((tag, index) => (
               <span
                 key={index}
                 className="p-1.5 bg-[#272727]/5 text-tag-label rounded-full"
@@ -131,9 +131,9 @@ function AgentCard({
                 {tag}
               </span>
             ))}
-            {agent.tags.length > 3 && (
+            {(agent.tags?.length ?? 0) > 3 && (
               <span className="p-1.5 bg-[#272727]/5 text-tag-label rounded-full">
-                +{agent.tags.length - 3} more
+                +{(agent.tags?.length ?? 0) - 3} more
               </span>
             )}
           </div>
@@ -189,6 +189,7 @@ function AgentCard({
 export default function ManagementSection() {
   const [agents, setAgents] = useState(agentsData);
   const { data: installedAgents } = useGetInstalledAgent();
+  const safeInstalledAgents = installedAgents?.data?.data ?? [];
   const handleToggleActive = (agentId: number) => {
     setAgents((prevAgents) =>
       prevAgents.map((agent) =>
@@ -242,7 +243,7 @@ export default function ManagementSection() {
           Agents
         </div>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
-          {installedAgents?.data.data.map((agent) => (
+          {safeInstalledAgents.map((agent) => (
             <AgentCard
               key={agent.id}
               agent={agent}
