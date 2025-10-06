@@ -128,10 +128,6 @@ export const Community: FC<CommunityProps> = ({
 }) => {
   const { data: communityAgents, error, isLoading } = useGetCommunityAgent();
 
-  console.log('Community agents:', communityAgents);
-  console.log('Error:', error);
-  console.log('Loading:', isLoading);
-
   return (
     <section className="py-2 px-4">
       <div className="w-full">
