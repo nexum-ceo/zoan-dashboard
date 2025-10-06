@@ -123,10 +123,12 @@ const CommunityProjectCard: FC<{ project: TCommunityAgentData }> = ({
   );
 };
 
-export const Community: FC<CommunityProps> = ({
-  projects = defaultProjects,
-}) => {
-  const { data: communityAgents, error, isLoading } = useGetCommunityAgent();
+export const Community: FC<CommunityProps> = (
+  {
+    // projects = defaultProjects,
+  },
+) => {
+  const { data: communityAgents } = useGetCommunityAgent();
 
   return (
     <section className="py-2 px-4">
@@ -158,76 +160,5 @@ export const Community: FC<CommunityProps> = ({
     </section>
   );
 };
-
-// Default projects data
-const defaultProjects: CommunityProject[] = [
-  {
-    id: '1',
-    title: 'Generate Game AI',
-    category: 'Gaming',
-    creator: 'GamingStudio',
-    installs: '5.2k',
-    rating: 4.9,
-    tags: ['Game development', '2D/3D', 'Physics'],
-    description: 'Designs and optimizes database schemas and queries',
-    image: '/image/mario-1.png',
-  },
-  {
-    id: '2',
-    title: 'Generate Game AI',
-    category: 'Gaming',
-    creator: 'GamingStudio',
-    installs: '5.2k',
-    rating: 4.9,
-    tags: ['Game development', '2D/3D', 'Physics'],
-    description: 'Designs and optimizes database schemas and queries',
-    image: '/image/mario-1.png',
-  },
-  {
-    id: '3',
-    title: 'Generate Game AI',
-    category: 'Gaming',
-    creator: 'GamingStudio',
-    installs: '5.2k',
-    rating: 4.9,
-    tags: ['Game development', '2D/3D', 'Physics'],
-    description: 'Designs and optimizes database schemas and queries',
-    image: '/image/mario-1.png',
-  },
-
-  {
-    id: '4',
-    title: 'Generate Game AI',
-    category: 'Gaming',
-    creator: 'GamingStudio',
-    installs: '5.2k',
-    rating: 4.9,
-    tags: ['Game development', '2D/3D', 'Physics'],
-    description: 'Designs and optimizes database schemas and queries',
-    image: '/image/mario-1.png',
-  },
-  {
-    id: '5',
-    title: 'Generate Game AI',
-    category: 'Gaming',
-    creator: 'GamingStudio',
-    installs: '5.2k',
-    rating: 4.9,
-    tags: ['Game development', '2D/3D', 'Physics'],
-    description: 'Designs and optimizes database schemas and queries',
-    image: '/image/mario-1.png',
-  },
-  {
-    id: '6',
-    title: 'Generate Game AI',
-    category: 'Gaming',
-    creator: 'GamingStudio',
-    installs: '5.2k',
-    rating: 4.9,
-    tags: ['Game development', '2D/3D', 'Physics'],
-    description: 'Designs and optimizes database schemas and queries',
-    image: '/image/mario-1.png',
-  },
-];
 
 export default Community;
