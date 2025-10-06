@@ -109,7 +109,7 @@ type ChatMessageProps = {
       attachments?:
         | Array<{
             url: string;
-            file_name: string;
+            file_name?: string;
             file_size?: number;
             mime_type?: string;
           }>
@@ -234,7 +234,7 @@ export const ChatMessage: FC<ChatMessageProps> = ({
     const raw = message?.metadata?.attachments as
       | Array<{
           url: string;
-          file_name: string;
+          file_name?: string;
           file_size?: number;
           mime_type?: string;
         }>
@@ -244,17 +244,23 @@ export const ChatMessage: FC<ChatMessageProps> = ({
       return [] as Array<{
         url: string;
         file_name: string;
-        file_size?: number;
-        mime_type?: string;
+        file_size: number;
+        mime_type: string;
       }>;
 
     try {
       const parsed = Array.isArray(raw) ? raw : JSON.parse(raw as string);
       if (!Array.isArray(parsed)) return [];
-      return parsed.filter(
-        (a) =>
-          a && typeof a.url === 'string' && typeof a.file_name === 'string',
-      );
+      
+      const filtered = parsed.filter((a) => a && typeof a.url === 'string')
+        .map((a) => ({
+          url: a.url,
+          file_name: a.file_name || a.url.split('/').pop() || 'file', // Extract filename from URL if not provided
+          file_size: a.file_size || 0,
+          mime_type: a.mime_type || ''
+        }));
+
+      return filtered;
     } catch {
       return [];
     }
