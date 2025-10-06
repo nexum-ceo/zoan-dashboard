@@ -53,6 +53,7 @@ export const ChatMessageSchema = z.object({
   role: z.enum(ChatRole),
   content: z.string().optional(),
   metadata: z.record(z.string(), z.string()).optional(),
+  reasoning: z.record(z.string(), z.string()).optional(),
   created_at: z.string(),
   updated_at: z.string(),
 });

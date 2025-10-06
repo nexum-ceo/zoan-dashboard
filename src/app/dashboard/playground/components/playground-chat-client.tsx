@@ -305,7 +305,7 @@ function PlaygroundChatClientInner({ chatId }: PlaygroundChatClientProps) {
     return () => clearTimeout(timeoutId);
   }, [isFetchingNextPage, previousScrollHeight]);
 
-  // Open Explore on initial load if existing history has game_generator metadata
+  // Open Explore on initial load if existing history has game_generator reasoning
   useEffect(() => {
     if (!Array.isArray(initialMessages) || initialMessages.length === 0) return;
     const found = [...(initialMessages as Array<Record<string, unknown>>)]
@@ -313,10 +313,10 @@ function PlaygroundChatClientInner({ chatId }: PlaygroundChatClientProps) {
       .find((m) => {
         const role = (m?.role as string) || '';
         const isAssistant = role === 'assistant' || role === 'ASSISTANT';
-        const metadata =
-          (m?.metadata as Record<string, unknown> | undefined) || undefined;
+        const reasoning =
+          (m?.reasoning as Record<string, unknown> | undefined) || undefined;
         const hasGameGeneratorMeta =
-          !!metadata && metadata['game_generator'] !== undefined;
+          !!reasoning && reasoning['game_generator'] !== undefined;
         return isAssistant && hasGameGeneratorMeta;
       });
     if (found) {
@@ -334,17 +334,17 @@ function PlaygroundChatClientInner({ chatId }: PlaygroundChatClientProps) {
       .find((m) => {
         const role = (m?.role as string) || '';
         const isAssistant = role === 'assistant' || role === 'ASSISTANT';
-        const metadata =
-          (m?.metadata as Record<string, unknown> | undefined) || undefined;
+        const reasoning =
+          (m?.reasoning as Record<string, unknown> | undefined) || undefined;
         const parts =
           (m?.parts as Array<{ type?: string; text?: string }> | undefined) ||
           undefined;
-        const hasSignalMeta =
-          !!metadata && metadata['game-signal'] !== undefined;
+        const hasSignalReasoning =
+          !!reasoning && reasoning['game-signal'] !== undefined;
         const hasSignalPart = Array.isArray(parts)
           ? parts.some((p) => p?.type === 'game-signal')
           : false;
-        return isAssistant && (hasSignalMeta || hasSignalPart);
+        return isAssistant && (hasSignalReasoning || hasSignalPart);
       });
     if (latestWithGameSignal) {
       setExploreOpen(true);
