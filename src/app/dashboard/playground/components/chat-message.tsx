@@ -18,12 +18,14 @@ import {
   TaskItemFile,
   TaskTrigger,
 } from '@/components/ui/shadcn-io/ai/task';
+import { ImageZoom } from '@/components/ui/shadcn-io/image-zoom';
 import {
   Tooltip,
   TooltipContent,
   TooltipProvider,
   TooltipTrigger,
 } from '@/components/ui/tooltip';
+import { getMediaTypeFromFilename } from '@/lib/s3';
 import {
   CheckIcon,
   CopyIcon,
@@ -32,8 +34,10 @@ import {
   ThumbsDownIcon,
   ThumbsUpIcon,
 } from 'lucide-react';
+import Image from 'next/image';
 import React, { FC, useMemo, useState } from 'react';
 import ReactMarkdown from 'react-markdown';
+import FileBlankIcon from '../../../../../public/icon/file-blank';
 
 // Component to render Game Generator content with TaskItemFile
 const GameGeneratorContent = ({ content }: { content: string }) => {
@@ -100,7 +104,19 @@ type ChatMessageProps = {
     role: 'user' | 'assistant' | 'system' | 'data';
     content?: string;
     parts?: Array<{ type: string; text?: string; content?: string }>;
-    metadata?: Record<string, string>;
+    metadata?: {
+      [key: string]: unknown;
+      attachments?:
+        | Array<{
+            url: string;
+            file_name: string;
+            file_size?: number;
+            mime_type?: string;
+          }>
+        | string;
+      game_generator?: string | unknown;
+    };
+    reasoning?: Record<string, string>;
     isComplete?: boolean;
   };
   isLast: boolean;
@@ -199,19 +215,52 @@ export const ChatMessage: FC<ChatMessageProps> = ({
       items.push(...partItems);
     }
 
-    // Check metadata for game_generator
-    if (message.metadata?.game_generator) {
-      const metadataContent =
-        typeof message.metadata.game_generator === 'string'
-          ? message.metadata.game_generator
-          : JSON.stringify(message.metadata.game_generator);
-      if (metadataContent.trim() !== '') {
-        items.push(metadataContent);
+    // Check reasoning for game_generator
+    if (message.reasoning?.game_generator) {
+      const reasoningContent =
+        typeof message.reasoning.game_generator === 'string'
+          ? message.reasoning.game_generator
+          : JSON.stringify(message.reasoning.game_generator);
+      if (reasoningContent.trim() !== '') {
+        items.push(reasoningContent);
       }
     }
 
     return items;
-  }, [message.parts, message.metadata]);
+  }, [message.parts, message.reasoning]);
+
+  // Extract attachments from metadata if present
+  const attachments = useMemo(() => {
+    const raw = message?.metadata?.attachments as
+      | Array<{
+          url: string;
+          file_name: string;
+          file_size?: number;
+          mime_type?: string;
+        }>
+      | string
+      | undefined;
+    if (!raw)
+      return [] as Array<{
+        url: string;
+        file_name: string;
+        file_size?: number;
+        mime_type?: string;
+      }>;
+
+    try {
+      const parsed = Array.isArray(raw) ? raw : JSON.parse(raw as string);
+      if (!Array.isArray(parsed)) return [];
+      return parsed.filter(
+        (a) =>
+          a && typeof a.url === 'string' && typeof a.file_name === 'string',
+      );
+    } catch {
+      return [];
+    }
+  }, [message?.metadata]);
+
+  // Size formatting not needed in the unified chip UI currently
 
   const isAssistantStreamingCurrent = isLoading && isLast;
   const isLastPartThinking =
@@ -258,6 +307,62 @@ export const ChatMessage: FC<ChatMessageProps> = ({
         <MessageContent className="text-xs text-[#272727] shadow-none px-3 py-2 font-medium leading-3.5">
           <Response>{content}</Response>
         </MessageContent>
+
+        {attachments.length > 0 && (
+          <div className="px-1.5 pb-1">
+            <div className="flex flex-wrap gap-1.5">
+              {attachments.map((att, idx) => {
+                const fileType = getMediaTypeFromFilename(
+                  att.file_name || att.url,
+                );
+                const name =
+                  att.file_name || att.url.split('/').pop() || 'file';
+
+                if (fileType === 'image') {
+                  return (
+                    <div
+                      key={idx}
+                      className="inline-flex items-center gap-1.5 rounded-md border border-[#272727]/10 px-1.5 py-0.5 text-[10px] text-[#272727] hover:bg-[#272727]/5 cursor-zoom-in"
+                      title={name}
+                    >
+                      <div className="h-4 w-4 rounded-[3px] overflow-hidden border border-[#272727]/10 bg-white">
+                        <ImageZoom>
+                          <Image
+                            src={att.url}
+                            alt={name}
+                            width={1200}
+                            height={800}
+                            className="h-4 w-4 object-cover"
+                            data-zoom
+                          />
+                        </ImageZoom>
+                      </div>
+                      <span className="max-w-[180px] truncate">{name}</span>
+                    </div>
+                  );
+                }
+
+                return (
+                  <a
+                    key={idx}
+                    href={att.url}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="inline-flex items-center gap-1.5 rounded-md border border-[#272727]/10 px-1.5 py-0.5 text-[10px] text-[#272727] hover:bg-[#272727]/5"
+                    title={name}
+                  >
+                    <div className="relative h-4 w-4 rounded-[3px] overflow-hidden border border-[#272727]/10 bg-white">
+                      <div className="flex items-center justify-center h-full w-full">
+                        <FileBlankIcon width={10} height={10} />
+                      </div>
+                    </div>
+                    <span className="max-w-[180px] truncate">{name}</span>
+                  </a>
+                );
+              })}
+            </div>
+          </div>
+        )}
 
         {/* Actions for user messages */}
         {isUser && (

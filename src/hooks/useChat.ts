@@ -34,7 +34,7 @@ export type UseCustomChatProps = {
 const FILTERED_MESSAGE_TYPES = new Set([
   'completion',
   'system',
-  'metadata',
+  'reasoning',
   'status',
   'error',
 ]);

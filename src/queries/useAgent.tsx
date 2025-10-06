@@ -51,3 +51,10 @@ export const useGetAgentAvailable = () => {
     queryFn: () => agentApiRequest.sGetAgentAvailable(),
   });
 };
+
+export const useGetInstalledAgent = () => {
+  return useQuery({
+    queryKey: ['agent-installed'],
+    queryFn: () => agentApiRequest.sGetInstalledAgent(),
+  });
+};

@@ -11,6 +11,8 @@ import {
   GetChatMessagesResType,
   GetPrimaryAgentByChatIdResType,
   GetSpecificChatResType,
+  PresignedUrlBodyType,
+  PresignedUrlResType,
 } from '@/types/chat';
 
 const chatApiRequest = {
@@ -21,6 +23,21 @@ const chatApiRequest = {
         limit: pageParams.limit?.toString(),
       },
     }),
+  getPresignedUrl: (id: string, body: PresignedUrlBodyType) =>
+    axiosInstance.get<PresignedUrlResType>(
+      `/chat/${id}/presigned-url/message`,
+      {
+        data: body,
+      },
+    ),
+  sGetPresignedUrl: (id: string, body: PresignedUrlBodyType) =>
+    axiosInstance.post<PresignedUrlResType>(
+      `/chat/${id}/presigned-url/message`,
+      body,
+      {
+        baseURL: '',
+      },
+    ),
   sList: () =>
     axiosInstance.get<GetChatListResType>('/chat', {
       baseURL: '',
@@ -114,6 +131,21 @@ const chatApiRequest = {
     axiosInstance.post(`/chat/${id}/completion`, body),
   sCreateChatMessage: (id: string, body: CreateChatMessageBodyType) =>
     axiosInstance.post(`/chat/${id}/completion`, body, {
+      baseURL: '',
+    }),
+
+  deleteFile: async (id: string, path: string) =>
+    axiosInstance.delete(`/chat/${id}/file`, {
+      data: {
+        path,
+      },
+    }),
+
+  sDeleteFile: async (id: string, path: string) =>
+    axiosInstance.delete(`/chat/${id}/file`, {
+      data: {
+        path,
+      },
       baseURL: '',
     }),
 };

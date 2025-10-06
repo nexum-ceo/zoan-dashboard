@@ -8,6 +8,7 @@ import { ExplorePanel } from '@/app/dashboard/playground/components/explore';
 
 import { NavUser } from '@/components/nav-user';
 import { Button } from '@/components/ui/button';
+import { DragDropOverlay } from '@/components/ui/drag-drop-overlay';
 import {
   ResizableHandle,
   ResizablePanel,
@@ -20,6 +21,7 @@ import {
 } from '@/components/ui/shadcn-io/ai/conversation';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import { SidebarProvider } from '@/components/ui/sidebar';
+import { DragDropProvider, useDragDrop } from '@/contexts/DragDropContext';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { useInfiniteScroll } from '@/hooks/useInfiniteScroll';
 import { useSSEChat } from '@/hooks/useSSEChat';
@@ -34,6 +36,7 @@ import { ChatRole } from '@/types/chat';
 import { Menu, MessageSquare, Plus, Sparkles } from 'lucide-react';
 import { usePathname, useRouter } from 'next/navigation';
 import { useEffect, useMemo, useRef, useState } from 'react';
+import { useDropzone } from 'react-dropzone';
 import SettingIcon from '../../../../../public/icon/setting';
 import ShareIcon from '../../../../../public/icon/share';
 
@@ -41,8 +44,17 @@ type PlaygroundChatClientProps = {
   chatId: string;
 };
 
-export function PlaygroundChatClient({ chatId }: PlaygroundChatClientProps) {
+// Inner component that uses drag drop context
+function PlaygroundChatClientInner({ chatId }: PlaygroundChatClientProps) {
   const [sidebarOpen, setSidebarOpen] = useState<boolean>(false);
+  const [attachments, setAttachments] = useState<
+    Array<{
+      url: string;
+      mime_type: string;
+      file_name: string;
+      file_size: number;
+    }>
+  >([]);
   const isMobile = useIsMobile();
   const router = useRouter();
   const pathname = usePathname();
@@ -53,6 +65,39 @@ export function PlaygroundChatClient({ chatId }: PlaygroundChatClientProps) {
   const [isExploreExpanded, setIsExploreExpanded] = useState<boolean>(false);
   const gameSignalListenerRef =
     useRef<(e: Event) => void | undefined>(undefined);
+
+  // Drag drop context
+  const { setIsDragActive, onFilesDropped } = useDragDrop();
+
+  // Setup dropzone
+  const { getRootProps } = useDropzone({
+    onDragEnter: () => setIsDragActive(true),
+    onDragLeave: () => setIsDragActive(false),
+    onDrop: (acceptedFiles) => {
+      setIsDragActive(false);
+      if (acceptedFiles.length > 0 && onFilesDropped) {
+        onFilesDropped(acceptedFiles);
+      }
+    },
+    noClick: true, // Disable click to open file dialog
+    noKeyboard: true, // Disable keyboard navigation
+    multiple: true,
+    accept: {
+      'image/*': ['.png', '.jpg', '.jpeg', '.gif', '.webp'],
+      'audio/*': ['.mp3', '.wav', '.ogg', '.m4a'],
+      'video/*': ['.mp4', '.avi', '.mov', '.wmv'],
+      'application/pdf': ['.pdf'],
+      'application/zip': ['.zip'],
+      'application/x-zip-compressed': ['.zip'],
+      'application/x-rar-compressed': ['.rar'],
+      'application/x-7z-compressed': ['.7z'],
+      'text/*': ['.txt', '.md', '.json', '.xml', '.csv'],
+      'application/json': ['.json'],
+      'text/javascript': ['.js', '.jsx', '.ts', '.tsx'],
+      'text/css': ['.css'],
+      'text/html': ['.html', '.htm'],
+    },
+  });
 
   // Get the first message from localStorage if it exists
   const [pendingMsg, setPendingMsg] = useState<string>(() =>
@@ -105,6 +150,7 @@ export function PlaygroundChatClient({ chatId }: PlaygroundChatClientProps) {
     onGameSignal: () => {
       setExploreOpen(true);
     },
+    attachments,
   });
 
   // Fallback listener to ensure Explore opens even if callback path breaks
@@ -130,8 +176,41 @@ export function PlaygroundChatClient({ chatId }: PlaygroundChatClientProps) {
   const postMessageRef = useRef(postMessage);
   const setMessagesRef = useRef(setMessages);
   const isFirstMessageSendingRef = useRef(false);
-  postMessageRef.current = postMessage;
-  setMessagesRef.current = setMessages;
+
+  // Update refs in useEffect to avoid re-render issues
+  useEffect(() => {
+    postMessageRef.current = postMessage;
+    setMessagesRef.current = setMessages;
+  }, [postMessage, setMessages]);
+
+  const handleFilesUploaded = (
+    files: Array<{
+      id: string;
+      file: File;
+      progress: number;
+      status: 'completed' | 'uploading' | 'error';
+      url?: string;
+      error?: string;
+    }>,
+  ) => {
+    const newAttachments = files
+      .filter((file) => file.status === 'completed' && file.url)
+      .map((file) => ({
+        url: file.url!,
+        mime_type: file.file.type,
+        file_name: file.file.name,
+        file_size: file.file.size,
+      }));
+
+    setAttachments((prev) => [...prev, ...newAttachments]);
+  };
+
+  // Clear attachments after message is sent
+  const handleSubmitWithAttachments = (e: React.FormEvent<HTMLFormElement>) => {
+    handleSubmit(e);
+    // Clear attachments after sending
+    setAttachments([]);
+  };
 
   // Send the first message with delay for new chats
   useEffect(() => {
@@ -226,7 +305,7 @@ export function PlaygroundChatClient({ chatId }: PlaygroundChatClientProps) {
     return () => clearTimeout(timeoutId);
   }, [isFetchingNextPage, previousScrollHeight]);
 
-  // Open Explore on initial load if existing history has game_generator metadata
+  // Open Explore on initial load if existing history has game_generator reasoning
   useEffect(() => {
     if (!Array.isArray(initialMessages) || initialMessages.length === 0) return;
     const found = [...(initialMessages as Array<Record<string, unknown>>)]
@@ -234,10 +313,10 @@ export function PlaygroundChatClient({ chatId }: PlaygroundChatClientProps) {
       .find((m) => {
         const role = (m?.role as string) || '';
         const isAssistant = role === 'assistant' || role === 'ASSISTANT';
-        const metadata =
-          (m?.metadata as Record<string, unknown> | undefined) || undefined;
+        const reasoning =
+          (m?.reasoning as Record<string, unknown> | undefined) || undefined;
         const hasGameGeneratorMeta =
-          !!metadata && metadata['game_generator'] !== undefined;
+          !!reasoning && reasoning['game_generator'] !== undefined;
         return isAssistant && hasGameGeneratorMeta;
       });
     if (found) {
@@ -255,17 +334,17 @@ export function PlaygroundChatClient({ chatId }: PlaygroundChatClientProps) {
       .find((m) => {
         const role = (m?.role as string) || '';
         const isAssistant = role === 'assistant' || role === 'ASSISTANT';
-        const metadata =
-          (m?.metadata as Record<string, unknown> | undefined) || undefined;
+        const reasoning =
+          (m?.reasoning as Record<string, unknown> | undefined) || undefined;
         const parts =
           (m?.parts as Array<{ type?: string; text?: string }> | undefined) ||
           undefined;
-        const hasSignalMeta =
-          !!metadata && metadata['game-signal'] !== undefined;
+        const hasSignalReasoning =
+          !!reasoning && reasoning['game-signal'] !== undefined;
         const hasSignalPart = Array.isArray(parts)
           ? parts.some((p) => p?.type === 'game-signal')
           : false;
-        return isAssistant && (hasSignalMeta || hasSignalPart);
+        return isAssistant && (hasSignalReasoning || hasSignalPart);
       });
     if (latestWithGameSignal) {
       setExploreOpen(true);
@@ -351,7 +430,7 @@ export function PlaygroundChatClient({ chatId }: PlaygroundChatClientProps) {
   );
 
   return (
-    <div className="w-full p-3 flex flex-col gap-3">
+    <div {...getRootProps()} className="w-full p-3 flex flex-col gap-3">
       {/* Header */}
       <div className="w-full px-3 py-2 bg-white rounded-xl">
         <div className="flex items-center justify-between w-full">
@@ -450,10 +529,12 @@ export function PlaygroundChatClient({ chatId }: PlaygroundChatClientProps) {
               disabled={!canType}
               value={input}
               onChange={handleInputChange}
-              onSubmit={handleSubmit}
+              onSubmit={handleSubmitWithAttachments}
               submitDisabled={!canSubmit}
               status={status}
               bannerPosition="top"
+              chatId={chatId}
+              onFilesUploaded={handleFilesUploaded}
             />
           </div>
         </ResizablePanel>
@@ -492,6 +573,18 @@ export function PlaygroundChatClient({ chatId }: PlaygroundChatClientProps) {
           onClose={() => setSettingsOpen(false)}
         />
       </ResizablePanelGroup>
+
+      {/* Drag Drop Overlay */}
+      <DragDropOverlay />
     </div>
+  );
+}
+
+// Main component with DragDropProvider
+export function PlaygroundChatClient({ chatId }: PlaygroundChatClientProps) {
+  return (
+    <DragDropProvider>
+      <PlaygroundChatClientInner chatId={chatId} />
+    </DragDropProvider>
   );
 }

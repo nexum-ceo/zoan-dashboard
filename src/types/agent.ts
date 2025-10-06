@@ -22,6 +22,7 @@ export const ResponseFormatSchema = z.discriminatedUnion('type', [
 
 export const AgentSchema = z.object({
   id: z.string(),
+  email: z.string(),
   user_id: z.string(),
   name: z.string(),
   description: z.string(),
@@ -32,6 +33,8 @@ export const AgentSchema = z.object({
     top_p: z.number(),
   }),
   model: z.string(),
+  tags: z.array(z.string()),
+  categories: z.array(z.string()),
   response_format: ResponseFormatSchema,
   provider_id: z.string(),
   created_at: z.string(),

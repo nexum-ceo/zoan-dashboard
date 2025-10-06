@@ -53,6 +53,7 @@ export const ChatMessageSchema = z.object({
   role: z.enum(ChatRole),
   content: z.string().optional(),
   metadata: z.record(z.string(), z.string()).optional(),
+  reasoning: z.record(z.string(), z.string()).optional(),
   created_at: z.string(),
   updated_at: z.string(),
 });
@@ -186,3 +187,32 @@ export const CreateChatMessageSchema = z.object({
 });
 
 export type CreateChatMessageBodyType = z.infer<typeof CreateChatMessageSchema>;
+export const PresignedUrlBodySchema = z.object({
+  file_list: z.array(
+    z.object({
+      file_name: z.string(),
+      file_type: z.string(),
+      file_size: z.number(),
+    }),
+  ),
+});
+
+export type PresignedUrlBodyType = z.infer<typeof PresignedUrlBodySchema>;
+
+export const PresignedUrlResSchema = z.object({
+  status: z.string(),
+  message: z.string(),
+  data: z.array(
+    z.object({
+      presigned_url: z.string(),
+      object_key: z.object({
+        bucket: z.string(),
+        key: z.string(),
+      }),
+      batch_id: z.string(),
+    }),
+  ),
+  meta: z.null(),
+});
+
+export type PresignedUrlResType = z.infer<typeof PresignedUrlResSchema>;

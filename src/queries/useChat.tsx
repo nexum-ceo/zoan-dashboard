@@ -1,7 +1,10 @@
 'use client';
 
 import chatApiRequest from '@/api-requests/chat';
-import { CreateChatAgentSettingBodyType } from '@/types/chat';
+import {
+  CreateChatAgentSettingBodyType,
+  PresignedUrlBodyType,
+} from '@/types/chat';
 import {
   useInfiniteQuery,
   useMutation,
@@ -121,5 +124,18 @@ export const useGetChatGameVersionList = (id: string) => {
     queryKey: ['chat-game-version-list', id],
     queryFn: () => chatApiRequest.sGetChatGameVersionList(id),
     enabled: !!id,
+  });
+};
+
+export const useGetChatPresignedUrl = (id: string) => {
+  return useMutation({
+    mutationFn: (body: PresignedUrlBodyType) =>
+      chatApiRequest.sGetPresignedUrl(id, body),
+  });
+};
+
+export const useDeleteFileMutation = (id: string) => {
+  return useMutation({
+    mutationFn: (path: string) => chatApiRequest.sDeleteFile(id, path),
   });
 };

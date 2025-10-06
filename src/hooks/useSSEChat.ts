@@ -16,6 +16,15 @@ export type ChatMessage = {
   sender_id: string | null;
   parts?: Array<{ type: string; text?: string }>;
   isComplete?: boolean; // Track if message is fully received
+  metadata?: {
+    attachments?: Array<{
+      url: string;
+      mime_type: string;
+      file_name: string;
+      file_size: number;
+    }>;
+    [key: string]: unknown;
+  };
 };
 
 export type UseSSEChatProps = {
@@ -26,6 +35,12 @@ export type UseSSEChatProps = {
   expectedResponseTimeoutMs?: number;
   enableAutoReconnect?: boolean;
   onGameSignal?: () => void;
+  attachments?: Array<{
+    url: string;
+    mime_type: string;
+    file_name: string;
+    file_size: number;
+  }>;
 };
 
 const FILTERED_MESSAGE_TYPES = new Set([
@@ -47,6 +62,7 @@ export function useSSEChat({
   initialMessages = [],
   enableAutoReconnect = false,
   onGameSignal,
+  attachments = [],
 }: UseSSEChatProps) {
   const [messages, setMessages] = useState<ChatMessage[]>(initialMessages);
   const [input, setInput] = useState<string>('');
@@ -468,7 +484,9 @@ export function useSSEChat({
         sender_id: user_id,
         role: ChatRole.USER,
         content: text,
-        metadata: {},
+        metadata: {
+          ...(attachments.length > 0 && { attachments }),
+        },
       };
 
       // Set SSE as connected when starting the request
@@ -569,7 +587,7 @@ export function useSSEChat({
           throw error;
         });
     },
-    [chatId, user_id, closeConnection],
+    [chatId, user_id, closeConnection, attachments],
   );
 
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
@@ -581,6 +599,7 @@ export function useSSEChat({
       content: input,
       sender_id: user_id,
       isComplete: true, // User messages are always complete
+      metadata: attachments.length > 0 ? { attachments } : undefined,
     };
     setMessages((prev) => [...prev, userMsg]);
     setIsLoading(true);
@@ -601,6 +620,7 @@ export function useSSEChat({
       content: msg,
       sender_id: user_id,
       isComplete: true, // User messages are always complete
+      metadata: attachments.length > 0 ? { attachments } : undefined,
     };
     setMessages((prev) => [...prev, userMsg]);
     setIsLoading(true);

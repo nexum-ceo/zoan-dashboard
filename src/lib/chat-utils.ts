@@ -10,7 +10,7 @@ export type ChatMessage = {
   content: string;
   sender_id: string | null;
   parts?: Array<{ type: string; text?: string }>;
-  metadata?: Record<string, unknown>;
+  reasoning?: Record<string, unknown>;
 };
 
 /**
@@ -33,7 +33,7 @@ export const transformChatMessages = (
   ).filter((m): m is ChatMessageType => m != null);
 
   const safeMessages = validMessages.map(
-    (msg: ChatMessageType & { metadata?: Record<string, unknown> }) => ({
+    (msg: ChatMessageType & { reasoning?: Record<string, unknown> }) => ({
       ...msg,
       id: msg.id ?? `${Date.now()}-${Math.random()}`,
       content: msg.content ?? '',
@@ -41,7 +41,7 @@ export const transformChatMessages = (
         ? msg.role
         : ChatRole.USER,
       sender_id: userId || '',
-      metadata: msg.metadata ?? undefined,
+      reasoning: msg.reasoning ?? undefined,
     }),
   );
 
