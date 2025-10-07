@@ -6,95 +6,16 @@ import { useGetInstalledAgent } from '@/queries/useAgent';
 import { AgentType } from '@/types/agent';
 import { IconLabel } from '@tabler/icons-react';
 import { Dot } from 'lucide-react';
-import { useState } from 'react';
 import AddPlusSquare from '../../../../../public/icon/add-plus-square';
 import Search from '../../../../../public/icon/search';
-
-// Mock data for 12 agents
-const agentsData = [
-  {
-    id: 1,
-    title: 'Generate Game AI',
-    publisher: 'GamingStudio',
-    category: 'Gaming',
-    version: 'V1.2.1',
-    tags: ['Game development', '2D/3D', 'Physics', 'AI', 'Unity'],
-    description: 'Advanced coding assistant for React and Next.js development',
-    chatUsage: { current: 15, total: 100 },
-    isActive: true,
-    icon: '🎮',
-  },
-  {
-    id: 2,
-    title: 'Code Assistant Pro',
-    publisher: 'DevTools Inc',
-    category: 'Development',
-    version: 'V2.0.5',
-    tags: ['Programming', 'Debugging', 'Code Review', 'Best Practices'],
-    description:
-      'Professional coding assistant for multiple programming languages',
-    chatUsage: { current: 45, total: 100 },
-    isActive: true,
-    icon: '💻',
-  },
-  {
-    id: 3,
-    title: 'Design Helper',
-    publisher: 'CreativeStudio',
-    category: 'Design',
-    version: 'V1.8.2',
-    tags: ['UI/UX', 'Figma', 'Prototyping', 'Color Theory'],
-    description:
-      'AI-powered design assistant for creating beautiful interfaces',
-    chatUsage: { current: 23, total: 100 },
-    isActive: false,
-    icon: '🎨',
-  },
-  {
-    id: 4,
-    title: 'Data Analyst',
-    publisher: 'DataCorp',
-    category: 'Analytics',
-    version: 'V3.1.0',
-    tags: ['Data Science', 'Python', 'SQL', 'Visualization'],
-    description: 'Advanced data analysis and visualization assistant',
-    chatUsage: { current: 67, total: 100 },
-    isActive: true,
-    icon: '📊',
-  },
-  {
-    id: 5,
-    title: 'Content Writer',
-    publisher: 'WriteWell',
-    category: 'Writing',
-    version: 'V1.5.3',
-    tags: ['Content', 'SEO', 'Blogging', 'Marketing'],
-    description: 'Professional content creation and writing assistant',
-    chatUsage: { current: 12, total: 100 },
-    isActive: true,
-    icon: '✍️',
-  },
-  {
-    id: 6,
-    title: 'Security Scanner',
-    publisher: 'SecureTech',
-    category: 'Security',
-    version: 'V2.3.1',
-    tags: ['Security', 'Vulnerability', 'Penetration Testing', 'Compliance'],
-    description: 'Comprehensive security analysis and vulnerability scanner',
-    chatUsage: { current: 89, total: 100 },
-    isActive: false,
-    icon: '🔒',
-  },
-];
 
 // Agent Card Component
 function AgentCard({
   agent,
-  onToggleActive,
-}: {
+}: // onToggleActive,
+{
   agent: AgentType;
-  onToggleActive: (agentId: number) => void;
+  onToggleActive?: (agentId: number) => void;
 }) {
   return (
     <div className="flex flex-col justify-between w-full bg-white rounded-lg border border-[#272727]/5 p-2 pt-2.5 space-y-4 shadow-md">
@@ -187,16 +108,16 @@ function AgentCard({
 }
 
 export default function ManagementSection() {
-  const [agents, setAgents] = useState(agentsData);
+  // const [_, setAgents] = useState(agentsData);
   const { data: installedAgents } = useGetInstalledAgent();
   const safeInstalledAgents = installedAgents?.data?.data ?? [];
-  const handleToggleActive = (agentId: number) => {
-    setAgents((prevAgents) =>
-      prevAgents.map((agent) =>
-        agent.id === agentId ? { ...agent, isActive: !agent.isActive } : agent,
-      ),
-    );
-  };
+  // const handleToggleActive = (agentId: number) => {
+  //   setAgents((prevAgents) =>
+  //     prevAgents.map((agent) =>
+  //       agent.id === agentId ? { ...agent, isActive: !agent.isActive } : agent,
+  //     ),
+  //   );
+  // };
 
   return (
     <div className="space-y-4">
@@ -247,7 +168,7 @@ export default function ManagementSection() {
             <AgentCard
               key={agent.id}
               agent={agent}
-              onToggleActive={handleToggleActive}
+              // onToggleActive={handleToggleActive}
             />
           ))}
         </div>

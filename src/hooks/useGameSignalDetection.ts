@@ -15,17 +15,17 @@ export const useGameSignalDetection = (
       .find((m) => {
         const role = m?.role as string | undefined;
         const isAssistant = role === 'assistant' || role === 'ASSISTANT';
-        const metadata = m?.metadata as Record<string, unknown> | undefined;
+        const reasoning = m?.reasoning as Record<string, unknown> | undefined;
         const parts = m?.parts as
           | Array<{ type?: string; text?: string }>
           | undefined;
 
         const hasGameGeneratorMeta =
-          !!metadata &&
-          typeof metadata === 'object' &&
-          ((metadata as Record<string, unknown>)['game_generator'] !==
+          !!reasoning &&
+          typeof reasoning === 'object' &&
+          ((reasoning as Record<string, unknown>)['game_generator'] !==
             undefined ||
-            (metadata as Record<string, unknown>)['game-signal'] !== undefined);
+            (reasoning as Record<string, unknown>)['game-signal'] !== undefined);
 
         const hasGameGeneratorPart = Array.isArray(parts)
           ? parts.some((p) => p?.type === 'game-signal')

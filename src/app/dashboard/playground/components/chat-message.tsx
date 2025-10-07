@@ -109,13 +109,14 @@ type ChatMessageProps = {
       attachments?:
         | Array<{
             url: string;
-            file_name: string;
+            file_name?: string;
             file_size?: number;
             mime_type?: string;
           }>
         | string;
       game_generator?: string | unknown;
     };
+    reasoning?: Record<string, string>;
     isComplete?: boolean;
   };
   isLast: boolean;
@@ -214,26 +215,26 @@ export const ChatMessage: FC<ChatMessageProps> = ({
       items.push(...partItems);
     }
 
-    // Check metadata for game_generator
-    if (message.metadata?.game_generator) {
-      const metadataContent =
-        typeof message.metadata.game_generator === 'string'
-          ? message.metadata.game_generator
-          : JSON.stringify(message.metadata.game_generator);
-      if (metadataContent.trim() !== '') {
-        items.push(metadataContent);
+    // Check reasoning for game_generator
+    if (message.reasoning?.game_generator) {
+      const reasoningContent =
+        typeof message.reasoning.game_generator === 'string'
+          ? message.reasoning.game_generator
+          : JSON.stringify(message.reasoning.game_generator);
+      if (reasoningContent.trim() !== '') {
+        items.push(reasoningContent);
       }
     }
 
     return items;
-  }, [message.parts, message.metadata]);
+  }, [message.parts, message.reasoning]);
 
   // Extract attachments from metadata if present
   const attachments = useMemo(() => {
     const raw = message?.metadata?.attachments as
       | Array<{
           url: string;
-          file_name: string;
+          file_name?: string;
           file_size?: number;
           mime_type?: string;
         }>
@@ -243,17 +244,23 @@ export const ChatMessage: FC<ChatMessageProps> = ({
       return [] as Array<{
         url: string;
         file_name: string;
-        file_size?: number;
-        mime_type?: string;
+        file_size: number;
+        mime_type: string;
       }>;
 
     try {
       const parsed = Array.isArray(raw) ? raw : JSON.parse(raw as string);
       if (!Array.isArray(parsed)) return [];
-      return parsed.filter(
-        (a) =>
-          a && typeof a.url === 'string' && typeof a.file_name === 'string',
-      );
+      
+      const filtered = parsed.filter((a) => a && typeof a.url === 'string')
+        .map((a) => ({
+          url: a.url,
+          file_name: a.file_name || a.url.split('/').pop() || 'file', // Extract filename from URL if not provided
+          file_size: a.file_size || 0,
+          mime_type: a.mime_type || ''
+        }));
+
+      return filtered;
     } catch {
       return [];
     }
