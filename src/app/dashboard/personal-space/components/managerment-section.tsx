@@ -5,12 +5,11 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useGetAgentList, useGetInstalledAgent } from '@/queries/useAgent';
 import { AgentType } from '@/types/agent';
 import { IconLabel } from '@tabler/icons-react';
-import { Dot } from 'lucide-react';
+import { Codesandbox, Dot, Download, Sparkles } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 import AddPlusSquare from '../../../../../public/icon/add-plus-square';
 import Search from '../../../../../public/icon/search';
-import { Sparkles, Download, Codesandbox } from 'lucide-react';
 
 // Agent Card Component
 function AgentCard({
@@ -113,13 +112,17 @@ function AgentCard({
 export default function ManagementSection() {
   const router = useRouter();
   const [activeTab, setActiveTab] = useState('my-agents');
-  
+
   // Fetch data conditionally based on active tab
-  const { data: installedAgents, isLoading: isLoadingInstalled, refetch: refetchInstalled } =
-    useGetInstalledAgent();
-  const { data: agentList, isLoading: isLoadingMyAgents, refetch: refetchMyAgents } = 
-    useGetAgentList();
-  
+  const {
+    data: installedAgents,
+    isLoading: isLoadingInstalled,
+  } = useGetInstalledAgent();
+  const {
+    data: agentList,
+    isLoading: isLoadingMyAgents,
+  } = useGetAgentList();
+
   const safeInstalledAgents = installedAgents?.data?.data ?? [];
   const safeAgentList = agentList?.data?.data ?? [];
 
@@ -129,19 +132,6 @@ export default function ManagementSection() {
 
   const handleTabChange = (value: string) => {
     setActiveTab(value);
-    
-    // Refetch data when tab is clicked
-    switch (value) {
-      case 'my-agents':
-        refetchMyAgents();
-        break;
-      case 'installed':
-        refetchInstalled();
-        break;
-      case 'ai-dapps':
-        // No API call needed for AI dApps yet
-        break;
-    }
   };
   // const handleToggleActive = (agentId: number) => {
   //   setAgents((prevAgents) =>
@@ -156,7 +146,11 @@ export default function ManagementSection() {
       {/*Header Bar*/}
       <div className="text-[#272727] text-body-b1">Management</div>
       {/*Tabs and Content*/}
-      <Tabs value={activeTab} onValueChange={handleTabChange} className="w-full bg-white">
+      <Tabs
+        value={activeTab}
+        onValueChange={handleTabChange}
+        className="w-full bg-white"
+      >
         <div className="flex items-center justify-between">
           <TabsList className="bg-white border border-[#272727]/5">
             <TabsTrigger
