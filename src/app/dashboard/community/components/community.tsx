@@ -114,10 +114,10 @@ const CommunityProjectCard: FC<{ project: TCommunityAgentData }> = ({
         variant="secondary"
         className="!p-1"
         onClick={handleInstallAgent}
-        disabled={project.agent.is_installed}
+        disabled={project.agent.is_installed || project.agent.is_owner}
       >
         {/* <ArrowUpRight className="text-[#272727]" /> */}
-        {project.agent.is_installed ? 'Installed' : 'Install'}
+        {project.agent.is_owner ? 'Owned' : project.agent.is_installed ? 'Installed' : 'Install'}
       </Button>
     </div>
   );

@@ -23,6 +23,7 @@ export const CommunityAgentDataSchema = z.object({
   community: CommunityAgentSchema,
   agent: AgentSchema.extend({
     is_installed: z.boolean(),
+    is_owner: z.boolean(),
   }),
 });
 
