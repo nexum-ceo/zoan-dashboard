@@ -109,9 +109,11 @@ function AgentCard({
   );
 }
 
+type ManagementTab = 'my-agents' | 'installed' | 'ai-dapps';
+
 export default function ManagementSection() {
   const router = useRouter();
-  const [activeTab, setActiveTab] = useState('my-agents');
+  const [activeTab, setActiveTab] = useState<ManagementTab>('my-agents');
 
   // Fetch data conditionally based on active tab
   const {
@@ -131,7 +133,7 @@ export default function ManagementSection() {
   };
 
   const handleTabChange = (value: string) => {
-    setActiveTab(value);
+    setActiveTab(value as ManagementTab);
   };
   // const handleToggleActive = (agentId: number) => {
   //   setAgents((prevAgents) =>
