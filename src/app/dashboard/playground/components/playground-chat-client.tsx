@@ -189,6 +189,7 @@ function PlaygroundChatClientInner({ chatId }: PlaygroundChatClientProps) {
   const postMessageRef = useRef(postMessage);
   const setMessagesRef = useRef(setMessages);
   const isFirstMessageSendingRef = useRef(false);
+  const uploadStartedRef = useRef(false);
 
   // Update refs in useEffect to avoid re-render issues
   useEffect(() => {
@@ -206,11 +207,7 @@ function PlaygroundChatClientInner({ chatId }: PlaygroundChatClientProps) {
     const uploadPendingFiles = async () => {
       if (!chatId || !chatInfo?.user_id) return;
       // Prevent duplicate uploads
-      if (
-        (window as unknown as { __zoan_upload_started__?: boolean })
-          .__zoan_upload_started__
-      )
-        return;
+      if (uploadStartedRef.current) return;
 
       // Hydrate from IndexedDB via pending metadata ids
       const pendingMeta = getPendingAttachments();
@@ -238,9 +235,7 @@ function PlaygroundChatClientInner({ chatId }: PlaygroundChatClientProps) {
 
       try {
         setAreUploadsDone(false);
-        (
-          window as unknown as { __zoan_upload_started__?: boolean }
-        ).__zoan_upload_started__ = true;
+        uploadStartedRef.current = true;
         // Build presign file list
         const fileList = valid.map(({ file, meta }) => {
           const timestamp = Date.now();
@@ -329,6 +324,7 @@ function PlaygroundChatClientInner({ chatId }: PlaygroundChatClientProps) {
       } catch (error) {
         console.error('[PlaygroundChatClient] Failed to upload files:', error);
         setAreUploadsDone(true);
+        uploadStartedRef.current = false;
       }
     };
 

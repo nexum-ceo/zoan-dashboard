@@ -20,7 +20,7 @@ import {
 import { useDragDrop } from '@/contexts/DragDropContext';
 import { useZoanToast } from '@/hooks/useZoanToast';
 import { putAttachment } from '@/lib/attachment-store';
-import { setPendingAttachments } from '@/lib/chat-utils';
+import { getPendingAttachments, setPendingAttachments } from '@/lib/chat-utils';
 import { getMediaTypeFromFilename } from '@/lib/s3';
 import {
   useDeleteFileMutation,
@@ -271,19 +271,19 @@ export const ChatInput: FC<ChatInputProps> = ({
             file_size: f.file.size,
           }));
           // Merge with existing pending attachments in storage
-          const existingRaw =
-            localStorage.getItem('pendingAttachments') || '[]';
-          let existing: Array<{
-            id: string;
-            file_name: string;
-            mime_type: string;
-            file_size: number;
-          }> = [];
-          try {
-            const parsed = JSON.parse(existingRaw);
-            if (Array.isArray(parsed)) existing = parsed;
-          } catch {}
-          setPendingAttachments([...existing, ...meta]);
+          const existing = getPendingAttachments();
+          const byId = new Map<
+            string,
+            {
+              id: string;
+              file_name: string;
+              mime_type: string;
+              file_size: number;
+            }
+          >();
+          for (const item of existing) byId.set(item.id, item);
+          for (const item of meta) byId.set(item.id, item);
+          setPendingAttachments(Array.from(byId.values()));
         } catch {
           // non-blocking
         }
