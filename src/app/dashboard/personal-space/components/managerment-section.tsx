@@ -1,11 +1,13 @@
 'use client';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { useGetInstalledAgent } from '@/queries/useAgent';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { useGetAgentList, useGetInstalledAgent } from '@/queries/useAgent';
 import { AgentType } from '@/types/agent';
 import { IconLabel } from '@tabler/icons-react';
-import { Dot } from 'lucide-react';
+import { Codesandbox, Dot, Download, Sparkles } from 'lucide-react';
+import { useRouter } from 'next/navigation';
+import { useState } from 'react';
 import AddPlusSquare from '../../../../../public/icon/add-plus-square';
 import Search from '../../../../../public/icon/search';
 
@@ -107,10 +109,32 @@ function AgentCard({
   );
 }
 
+type ManagementTab = 'my-agents' | 'installed' | 'ai-dapps';
+
 export default function ManagementSection() {
-  // const [_, setAgents] = useState(agentsData);
-  const { data: installedAgents } = useGetInstalledAgent();
+  const router = useRouter();
+  const [activeTab, setActiveTab] = useState<ManagementTab>('my-agents');
+
+  // Fetch data conditionally based on active tab
+  const {
+    data: installedAgents,
+    isLoading: isLoadingInstalled,
+  } = useGetInstalledAgent();
+  const {
+    data: agentList,
+    isLoading: isLoadingMyAgents,
+  } = useGetAgentList();
+
   const safeInstalledAgents = installedAgents?.data?.data ?? [];
+  const safeAgentList = agentList?.data?.data ?? [];
+
+  const handleInstallAgentClick = () => {
+    router.push('/dashboard/community');
+  };
+
+  const handleTabChange = (value: string) => {
+    setActiveTab(value as ManagementTab);
+  };
   // const handleToggleActive = (agentId: number) => {
   //   setAgents((prevAgents) =>
   //     prevAgents.map((agent) =>
@@ -122,71 +146,102 @@ export default function ManagementSection() {
   return (
     <div className="space-y-4">
       {/*Header Bar*/}
-      <div className="text-[#272727] text-body-b1">Managerment</div>
-      <div className="flex items-center justify-between">
-        <div>
-          <Tabs defaultValue="discover" className="w-full bg-white">
-            <TabsList className="bg-white border border-[#272727]/5">
-              <TabsTrigger
-                value="discover"
-                className="px-3 py-2 text-[#272727]  data-[state=active]:bg-primary-brand-green"
-              >
-                Installed
-              </TabsTrigger>
-              <TabsTrigger
-                value="2d"
-                className="px-3 py-2 text-[#272727]  data-[state=active]:bg-primary-brand-green"
-              >
-                AI dApps
-              </TabsTrigger>
-            </TabsList>
-          </Tabs>
-        </div>
-        <div className="flex items-center gap-1">
-          <div className="relative w-80 mx-auto">
-            <Search className="absolute left-2 top-1/2 transform -translate-y-1/2 w-4 h-4 text-[#272727]" />
-            <Input
-              placeholder="Search all AI agents"
-              className="w-full h-6.5 px-2 py-1.5 pl-8 bg-gray-100 border-0 rounded-lg text-xs placeholder:text-[#272727]/50"
-            />
+      <div className="text-[#272727] text-body-b1">Management</div>
+      {/*Tabs and Content*/}
+      <Tabs
+        value={activeTab}
+        onValueChange={handleTabChange}
+        className="w-full bg-white"
+      >
+        <div className="flex items-center justify-between">
+          <TabsList className="bg-white border border-[#272727]/5">
+            <TabsTrigger
+              value="my-agents"
+              className="px-3 py-2 text-[#272727] data-[state=active]:bg-primary-brand-green"
+            >
+              <Sparkles className="w-4 h-4" />
+              My Agents
+            </TabsTrigger>
+            <TabsTrigger
+              value="installed"
+              className="px-3 py-2 text-[#272727] data-[state=active]:bg-primary-brand-green"
+            >
+              <Download className="w-4 h-4" />
+              Installed Agents
+            </TabsTrigger>
+            <TabsTrigger
+              value="ai-dapps"
+              className="px-3 py-2 text-[#272727] data-[state=active]:bg-primary-brand-green"
+            >
+              <Codesandbox className="w-4 h-4" />
+              AI dApps
+            </TabsTrigger>
+          </TabsList>
+          <div className="flex items-center gap-1">
+            <div className="relative w-80">
+              <Search className="absolute left-2 top-1/2 transform -translate-y-1/2 w-4 h-4 text-[#272727]" />
+              <Input
+                placeholder="Search all AI agents"
+                className="w-full h-6.5 px-2 py-1.5 pl-8 bg-gray-100 border-0 rounded-lg text-xs placeholder:text-[#272727]/50"
+              />
+            </div>
+            <Button size={'l'} onClick={handleInstallAgentClick}>
+              <AddPlusSquare />
+              Install Agent
+            </Button>
           </div>
-          <Button size={'l'}>
-            <AddPlusSquare />
-            Install Agent
-          </Button>
-        </div>
-      </div>
-
-      {/*Agent Card*/}
-      <div className="space-y-3">
-        {/* Agent Card List */}
-        <div className="text-sm font-medium leading-3.5 text-[#272727]">
-          Agents
-        </div>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
-          {safeInstalledAgents.map((agent) => (
-            <AgentCard
-              key={agent.id}
-              agent={agent}
-              // onToggleActive={handleToggleActive}
-            />
-          ))}
         </div>
 
-        {/* Agent Card List */}
-        {/* <div className="text-sm font-medium leading-3.5 text-[#272727]">
-          AI DApps
-        </div> */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
-          {/* {agents.map((agent) => (
-            <AgentCard
-              key={agent.id}
-              agent={agent}
-              onToggleActive={handleToggleActive}
-            />
-          ))} */}
-        </div>
-      </div>
+        <TabsContent value="my-agents" className="mt-6">
+          <div className="space-y-3">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+              {isLoadingMyAgents ? (
+                <div className="col-span-full text-center text-sm text-[#272727]/50">
+                  Loading my agents...
+                </div>
+              ) : safeAgentList.length > 0 ? (
+                safeAgentList.map((agent) => (
+                  <AgentCard key={agent.id} agent={agent} />
+                ))
+              ) : (
+                <div className="col-span-full text-center text-sm text-[#272727]/50">
+                  No agents found
+                </div>
+              )}
+            </div>
+          </div>
+        </TabsContent>
+
+        <TabsContent value="installed" className="mt-6">
+          <div className="space-y-3">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+              {isLoadingInstalled ? (
+                <div className="col-span-full text-center text-sm text-[#272727]/50">
+                  Loading installed agents...
+                </div>
+              ) : safeInstalledAgents.length > 0 ? (
+                safeInstalledAgents.map((agent) => (
+                  <AgentCard key={agent.id} agent={agent} />
+                ))
+              ) : (
+                <div className="col-span-full text-center text-sm text-[#272727]/50">
+                  No installed agents found
+                </div>
+              )}
+            </div>
+          </div>
+        </TabsContent>
+
+        <TabsContent value="ai-dapps" className="mt-6">
+          <div className="space-y-3">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+              <div className="col-span-full text-center text-sm text-[#272727]/50">
+                AI dApps coming soon...
+              </div>
+            </div>
+          </div>
+        </TabsContent>
+      </Tabs>
     </div>
   );
 }
