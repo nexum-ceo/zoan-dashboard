@@ -93,3 +93,50 @@ export const clearPendingMessage = (): void => {
     localStorage.removeItem('pendingMessage');
   }
 };
+
+/**
+ * Handle pending attachments from localStorage
+ */
+export const getPendingAttachments = (): Array<{
+  url: string;
+  mime_type: string;
+  file_name: string;
+  file_size: number;
+  file?: File;
+}> => {
+  if (typeof window === 'undefined') return [];
+  try {
+    const stored = localStorage.getItem('pendingAttachments');
+    const parsed = stored ? JSON.parse(stored) : [];
+    return parsed;
+  } catch (error) {
+    console.error('Failed to parse pending attachments:', error);
+    return [];
+  }
+};
+
+/**
+ * Save pending attachments to localStorage
+ */
+export const setPendingAttachments = (
+  attachments: Array<{
+    url: string;
+    mime_type: string;
+    file_name: string;
+    file_size: number;
+    file?: File;
+  }>,
+): void => {
+  if (typeof window !== 'undefined') {
+    localStorage.setItem('pendingAttachments', JSON.stringify(attachments));
+  }
+};
+
+/**
+ * Clear pending attachments from localStorage
+ */
+export const clearPendingAttachments = (): void => {
+  if (typeof window !== 'undefined') {
+    localStorage.removeItem('pendingAttachments');
+  }
+};

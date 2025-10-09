@@ -10,6 +10,16 @@ type PlaygroundInputProps = {
   disabled: boolean;
   submitDisabled?: boolean;
   chatId?: string;
+  onFilesUploaded?: (
+    files: Array<{
+      id: string;
+      file: File;
+      progress: number;
+      status: 'completed' | 'uploading' | 'error';
+      url?: string;
+      error?: string;
+    }>,
+  ) => void;
 };
 
 export const PlaygroundInput: FC<PlaygroundInputProps> = ({
@@ -19,6 +29,7 @@ export const PlaygroundInput: FC<PlaygroundInputProps> = ({
   disabled,
   submitDisabled = false,
   chatId,
+  onFilesUploaded,
 }: PlaygroundInputProps) => {
   return (
     <div>
@@ -29,6 +40,7 @@ export const PlaygroundInput: FC<PlaygroundInputProps> = ({
         disabled={disabled}
         submitDisabled={submitDisabled}
         chatId={chatId}
+        onFilesUploaded={onFilesUploaded}
       />
     </div>
   );
