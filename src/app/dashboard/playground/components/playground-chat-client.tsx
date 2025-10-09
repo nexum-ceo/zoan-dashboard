@@ -217,7 +217,7 @@ function PlaygroundChatClientInner({ chatId }: PlaygroundChatClientProps) {
       const filesToUpload = await Promise.all(
         pendingMeta.map(async (m) => {
           const blob = await getAttachment(m.id);
-          if (!blob) return null as unknown as { file: File; meta: typeof m };
+          if (!blob) return null;
           const file = new File([blob], m.file_name, { type: m.mime_type });
           return { file, meta: m };
         }),
