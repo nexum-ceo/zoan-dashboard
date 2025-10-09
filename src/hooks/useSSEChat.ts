@@ -491,7 +491,7 @@ export function useSSEChat({
       },
     ): Promise<void> => {
       const attachmentsToSend = Array.isArray(options?.attachments)
-        ? options!.attachments!
+        ? options.attachments
         : attachments;
       const requestBody = {
         sender_id: user_id,
