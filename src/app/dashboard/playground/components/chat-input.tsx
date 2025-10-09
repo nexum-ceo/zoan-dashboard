@@ -284,8 +284,8 @@ export const ChatInput: FC<ChatInputProps> = ({
           for (const item of existing) byId.set(item.id, item);
           for (const item of meta) byId.set(item.id, item);
           setPendingAttachments(Array.from(byId.values()));
-        } catch {
-          // non-blocking
+        } catch (error) {
+          console.error('Failed to save pending attachments:', error);
         }
         onFilesUploaded?.(newUploadedFiles);
         return;

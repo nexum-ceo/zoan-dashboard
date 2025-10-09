@@ -317,7 +317,9 @@ function PlaygroundChatClientInner({ chatId }: PlaygroundChatClientProps) {
         for (const up of uploadedAttachments) {
           try {
             await deleteAttachment(up.id);
-          } catch {}
+          } catch (error) {
+            console.error('Failed to delete attachment:', up.id, error);
+          }
         }
 
         // Files uploaded successfully
