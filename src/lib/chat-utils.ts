@@ -97,17 +97,19 @@ export const clearPendingMessage = (): void => {
 /**
  * Handle pending attachments from localStorage
  */
+// Pending attachments metadata saved in localStorage.
+// Store only serializable fields plus a stable id that maps to IndexedDB blob.
 export const getPendingAttachments = (): Array<{
-  url: string;
-  mime_type: string;
+  id: string; // maps to IndexedDB key
   file_name: string;
+  mime_type: string;
   file_size: number;
-  file?: File;
 }> => {
   if (typeof window === 'undefined') return [];
   try {
     const stored = localStorage.getItem('pendingAttachments');
     const parsed = stored ? JSON.parse(stored) : [];
+    if (!Array.isArray(parsed)) return [];
     return parsed;
   } catch (error) {
     console.error('Failed to parse pending attachments:', error);
@@ -120,11 +122,10 @@ export const getPendingAttachments = (): Array<{
  */
 export const setPendingAttachments = (
   attachments: Array<{
-    url: string;
-    mime_type: string;
+    id: string;
     file_name: string;
+    mime_type: string;
     file_size: number;
-    file?: File;
   }>,
 ): void => {
   if (typeof window !== 'undefined') {

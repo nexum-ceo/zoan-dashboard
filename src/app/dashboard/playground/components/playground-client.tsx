@@ -6,8 +6,8 @@ import PersonalSpace from '@/app/dashboard/playground/components/personal-space'
 import { DragDropOverlay } from '@/components/ui/drag-drop-overlay';
 import OptionButtons from '@/components/ui/option-buttons';
 import { DragDropProvider, useDragDrop } from '@/contexts/DragDropContext';
-import { useChat } from '@/hooks/useChat';
-import { getPendingAttachments, setPendingAttachments } from '@/lib/chat-utils';
+import { useSSEChat } from '@/hooks/useSSEChat';
+// Pending attachment metadata is handled within ChatInput using IndexedDB
 import { handleErrorApi } from '@/lib/utils';
 import { useCreateChatMutation } from '@/queries/useChat';
 import { useRouter } from 'next/navigation';
@@ -20,7 +20,7 @@ function PlaygroundClientInner() {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const messagesContainerRef = useRef<HTMLDivElement>(null);
 
-  const { messages, handleSubmit, isLoading, isProcessing } = useChat({
+  const { messages, handleSubmit, isLoading, isProcessing } = useSSEChat({
     initialMessages: [],
     chatId: '',
     user_id: '',
@@ -28,7 +28,7 @@ function PlaygroundClientInner() {
 
   // State for pending first message and attachments
   const [pendingMessage, setPendingMessage] = useState<string>('');
-  const [attachments, setAttachments] = useState<
+  const [, setAttachments] = useState<
     Array<{
       url: string;
       mime_type: string;
@@ -36,7 +36,7 @@ function PlaygroundClientInner() {
       file_size: number;
       file?: File; // Store File object for later upload
     }>
-  >(() => getPendingAttachments());
+  >([]);
   const createChatMutation = useCreateChatMutation();
   const router = useRouter();
 
@@ -83,8 +83,6 @@ function PlaygroundClientInner() {
         onSuccess: (data) => {
           const chatId = data.data.data.id;
           localStorage.setItem('pendingMessage', pendingMessage);
-          // Save attachments to localStorage for the new chat
-          setPendingAttachments(attachments);
           router.push(`/dashboard/playground/${chatId}`);
         },
         onError: (error) => {
@@ -109,25 +107,20 @@ function PlaygroundClientInner() {
       error?: string;
     }>,
   ) => {
-    // For playground without chatId, we only store blob URLs for preview
-    // Real upload will happen in playground-chat-client when chatId is available
+    // For playground without chatId, we persist pending files (completed OR uploading)
+    // We require a preview URL to restore in the next screen.
     const newAttachments = files
-      .filter((file) => file.status === 'completed' && file.url)
-      .map((file) => ({
-        url: file.url!, // This is a blob URL for preview
-        mime_type: file.file.type,
-        file_name: file.file.name,
-        file_size: file.file.size,
-        // Store the actual File object for later upload
-        file: file.file,
+      .filter((f) => f.status !== 'error' && !!f.url)
+      .map((f) => ({
+        url: f.url!, // blob: URL preview or real URL if already uploaded
+        mime_type: f.file.type,
+        file_name: f.file.name,
+        file_size: f.file.size,
+        // Keep File in memory state (will be stripped in localStorage JSON, which is OK)
+        file: f.file,
       }));
 
-    setAttachments((prev) => {
-      const updated = [...prev, ...newAttachments];
-      // Save to localStorage for persistence across navigation
-      setPendingAttachments(updated);
-      return updated;
-    });
+    setAttachments((prev) => [...prev, ...newAttachments]);
   };
 
   return (
@@ -155,6 +148,7 @@ function PlaygroundClientInner() {
           disabled={false}
           submitDisabled={isProcessing}
           onFilesUploaded={handleFilesUploaded}
+          initialAttachments={[]}
         />
 
         {/* AI Suggestion */}

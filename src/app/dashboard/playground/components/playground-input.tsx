@@ -10,6 +10,12 @@ type PlaygroundInputProps = {
   disabled: boolean;
   submitDisabled?: boolean;
   chatId?: string;
+  initialAttachments?: Array<{
+    url: string;
+    mime_type: string;
+    file_name: string;
+    file_size: number;
+  }>;
   onFilesUploaded?: (
     files: Array<{
       id: string;
@@ -29,6 +35,7 @@ export const PlaygroundInput: FC<PlaygroundInputProps> = ({
   disabled,
   submitDisabled = false,
   chatId,
+  initialAttachments,
   onFilesUploaded,
 }: PlaygroundInputProps) => {
   return (
@@ -40,6 +47,7 @@ export const PlaygroundInput: FC<PlaygroundInputProps> = ({
         disabled={disabled}
         submitDisabled={submitDisabled}
         chatId={chatId}
+        initialAttachments={initialAttachments}
         onFilesUploaded={onFilesUploaded}
       />
     </div>

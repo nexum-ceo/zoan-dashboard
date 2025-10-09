@@ -479,13 +479,28 @@ export function useSSEChat({
   };
 
   const postMessage = useCallback(
-    (text: string): Promise<void> => {
+    (
+      text: string,
+      options?: {
+        attachments?: Array<{
+          url: string;
+          mime_type: string;
+          file_name: string;
+          file_size: number;
+        }>;
+      },
+    ): Promise<void> => {
+      const attachmentsToSend = Array.isArray(options?.attachments)
+        ? options!.attachments!
+        : attachments;
       const requestBody = {
         sender_id: user_id,
         role: ChatRole.USER,
         content: text,
         metadata: {
-          ...(attachments.length > 0 && { attachments }),
+          ...(attachmentsToSend.length > 0 && {
+            attachments: attachmentsToSend,
+          }),
         },
       };
 

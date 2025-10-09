@@ -25,6 +25,7 @@ import { DragDropProvider, useDragDrop } from '@/contexts/DragDropContext';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { useInfiniteScroll } from '@/hooks/useInfiniteScroll';
 import { useSSEChat } from '@/hooks/useSSEChat';
+import { deleteAttachment, getAttachment } from '@/lib/attachment-store';
 import {
   clearPendingAttachments,
   clearPendingMessage,
@@ -62,7 +63,7 @@ function PlaygroundChatClientInner({ chatId }: PlaygroundChatClientProps) {
       file_size: number;
       file?: File;
     }>
-  >(() => getPendingAttachments());
+  >([]);
   const isMobile = useIsMobile();
   const router = useRouter();
   const pathname = usePathname();
@@ -112,6 +113,9 @@ function PlaygroundChatClientInner({ chatId }: PlaygroundChatClientProps) {
     getPendingMessage(),
   );
   const [firstMsgSent, setFirstMsgSent] = useState<boolean>(false);
+  const [areUploadsDone, setAreUploadsDone] = useState<boolean>(
+    () => (getPendingAttachments()?.length ?? 0) === 0,
+  );
   const [previousScrollHeight, setPreviousScrollHeight] = useState<number>(0);
   const [isLoadingMore, setIsLoadingMore] = useState<boolean>(false);
   const { data: chatData } = useGetChat(chatId);
@@ -201,21 +205,50 @@ function PlaygroundChatClientInner({ chatId }: PlaygroundChatClientProps) {
   useEffect(() => {
     const uploadPendingFiles = async () => {
       if (!chatId || !chatInfo?.user_id) return;
+      // Prevent duplicate uploads
+      if (
+        (window as unknown as { __zoan_upload_started__?: boolean })
+          .__zoan_upload_started__
+      )
+        return;
 
-      const filesToUpload = attachments.filter((attachment) => attachment.file);
-      if (filesToUpload.length === 0) return;
-
-      // Upload pending files that have File objects
+      // Hydrate from IndexedDB via pending metadata ids
+      const pendingMeta = getPendingAttachments();
+      const filesToUpload = await Promise.all(
+        pendingMeta.map(async (m) => {
+          const blob = await getAttachment(m.id);
+          if (!blob) return null as unknown as { file: File; meta: typeof m };
+          const file = new File([blob], m.file_name, { type: m.mime_type });
+          return { file, meta: m };
+        }),
+      );
+      const valid = filesToUpload.filter(Boolean) as Array<{
+        file: File;
+        meta: {
+          id: string;
+          file_name: string;
+          mime_type: string;
+          file_size: number;
+        };
+      }>;
+      if (valid.length === 0) {
+        setAreUploadsDone(true);
+        return;
+      }
 
       try {
-        // Generate file list for API
-        const fileList = filesToUpload.map((attachment) => {
+        setAreUploadsDone(false);
+        (
+          window as unknown as { __zoan_upload_started__?: boolean }
+        ).__zoan_upload_started__ = true;
+        // Build presign file list
+        const fileList = valid.map(({ file, meta }) => {
           const timestamp = Date.now();
-          const fileName = `${timestamp}_${attachment.file_name}`;
+          const fileName = `${timestamp}_${meta.file_name}`;
           return {
             file_name: fileName,
-            file_type: attachment.mime_type,
-            file_size: attachment.file_size,
+            file_type: file.type || meta.mime_type,
+            file_size: file.size || meta.file_size,
           };
         });
 
@@ -234,25 +267,25 @@ function PlaygroundChatClientInner({ chatId }: PlaygroundChatClientProps) {
         }
 
         // Upload each file
-        const uploadPromises = filesToUpload.map(async (attachment, index) => {
+        const uploadPromises = valid.map(async ({ file, meta }, index) => {
           const presignedItem = actualData[index];
-          if (!presignedItem?.presigned_url || !attachment.file) {
+          if (!presignedItem?.presigned_url) {
             throw new Error(
-              `Invalid presigned URL for file: ${attachment.file_name}`,
+              `Invalid presigned URL for file: ${meta.file_name}`,
             );
           }
 
           const response = await fetch(presignedItem.presigned_url, {
             method: 'PUT',
-            body: attachment.file,
+            body: file,
             headers: {
-              'Content-Type': attachment.mime_type,
-              'Content-Length': attachment.file_size.toString(),
+              'Content-Type': file.type || meta.mime_type,
+              'Content-Length': String(file.size || meta.file_size),
             },
           });
 
           if (!response.ok) {
-            throw new Error(`Upload failed for ${attachment.file_name}`);
+            throw new Error(`Upload failed for ${meta.file_name}`);
           }
 
           // Get the final URL
@@ -264,34 +297,43 @@ function PlaygroundChatClientInner({ chatId }: PlaygroundChatClientProps) {
 
           return {
             url: fileUrl,
-            mime_type: attachment.mime_type,
-            file_name: attachment.file_name,
-            file_size: attachment.file_size,
+            mime_type: file.type || meta.mime_type,
+            file_name: meta.file_name,
+            file_size: file.size || meta.file_size,
+            id: meta.id,
           };
         });
 
         const uploadedAttachments = await Promise.all(uploadPromises);
 
-        // Update attachments with real URLs
-        setAttachments((prev) => {
-          const updated = prev.map((attachment) => {
-            const uploaded = uploadedAttachments.find(
-              (uploaded) => uploaded.file_name === attachment.file_name,
-            );
-            return uploaded || attachment;
-          });
-          setPendingAttachments(updated);
-          return updated;
-        });
+        // Update attachments with real URLs and clear IDB entries
+        // Clear pending metadata to avoid re-processing
+        setPendingAttachments([]);
+        // And prepare UI attachments with final URLs
+        setAttachments(
+          uploadedAttachments.map((a) => ({
+            url: a.url,
+            mime_type: a.mime_type,
+            file_name: a.file_name,
+            file_size: a.file_size,
+          })),
+        );
+        setAreUploadsDone(true);
+        for (const up of uploadedAttachments) {
+          try {
+            await deleteAttachment(up.id);
+          } catch {}
+        }
 
         // Files uploaded successfully
       } catch (error) {
         console.error('[PlaygroundChatClient] Failed to upload files:', error);
+        setAreUploadsDone(true);
       }
     };
 
     uploadPendingFiles();
-  }, [chatId, chatInfo?.user_id, attachments, uploadMutation]);
+  }, [chatId, chatInfo?.user_id, uploadMutation]);
 
   const handleFilesUploaded = (
     files: Array<{
@@ -314,8 +356,6 @@ function PlaygroundChatClientInner({ chatId }: PlaygroundChatClientProps) {
 
     setAttachments((prev) => {
       const updated = [...prev, ...newAttachments];
-      // Save to localStorage for persistence across navigation
-      setPendingAttachments(updated);
       return updated;
     });
   };
@@ -328,11 +368,16 @@ function PlaygroundChatClientInner({ chatId }: PlaygroundChatClientProps) {
     clearPendingAttachments();
   };
 
-  // Send the first message with delay for new chats
+  // Send the first message with delay for new chats (wait for uploads)
   useEffect(() => {
     // Require user_id to be available before attempting first send
     if (!chatInfo?.user_id) return;
-    if (pendingMsg && !firstMsgSent && !isFirstMessageSendingRef.current) {
+    if (
+      pendingMsg &&
+      !firstMsgSent &&
+      !isFirstMessageSendingRef.current &&
+      areUploadsDone
+    ) {
       // Set flags immediately to prevent multiple executions
       setFirstMsgSent(true);
       isFirstMessageSendingRef.current = true;
@@ -343,6 +388,7 @@ function PlaygroundChatClientInner({ chatId }: PlaygroundChatClientProps) {
         role: 'user' as const,
         content: pendingMsg,
         sender_id: chatInfo.user_id,
+        metadata: attachments.length > 0 ? { attachments } : undefined,
       };
       setMessagesRef.current((prev) => [...prev, userMsg]);
 
@@ -352,8 +398,11 @@ function PlaygroundChatClientInner({ chatId }: PlaygroundChatClientProps) {
           // Wait 1-2 seconds for chat initialization
           await new Promise((resolve) => setTimeout(resolve, 1500));
 
-          // Send first message with attachments
-          await postMessageRef.current(pendingMsg);
+          // Send first message with attachments when available
+          await postMessageRef.current(
+            pendingMsg,
+            attachments.length > 0 ? { attachments } : undefined,
+          );
           setPendingMsg('');
           clearPendingMessage();
           clearPendingAttachments();
@@ -370,7 +419,13 @@ function PlaygroundChatClientInner({ chatId }: PlaygroundChatClientProps) {
 
       sendFirstMessage();
     }
-  }, [pendingMsg, firstMsgSent, chatInfo?.user_id, attachments]);
+  }, [
+    pendingMsg,
+    firstMsgSent,
+    chatInfo?.user_id,
+    attachments,
+    areUploadsDone,
+  ]);
 
   // Sync fetched initial messages into UI state on first load
   useEffect(() => {
