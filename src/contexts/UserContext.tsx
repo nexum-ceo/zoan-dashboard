@@ -1,5 +1,6 @@
 'use client';
 import { useCurrentUserProfile } from '@/queries/useUser';
+import { UserProfileType } from '@/types/user';
 import { useSession } from 'next-auth/react';
 import {
   createContext,
@@ -9,24 +10,8 @@ import {
   useState,
 } from 'react';
 
-export type UserProfile = {
-  id: string;
-  email: string;
-  displayName?: string;
-  username?: string;
-  bio?: string;
-  location?: string;
-  xHandle?: string;
-  githubHandle?: string;
-  website?: string;
-  avatar?: string;
-  totalPrompts?: number;
-  createdAt: string;
-  updatedAt: string;
-};
-
 type UserContextType = {
-  userProfile: UserProfile | null;
+  userProfile: UserProfileType | null;
   isLoading: boolean;
   error: string | null;
   refetchProfile: () => void;
@@ -36,9 +21,8 @@ const UserContext = createContext<UserContextType | undefined>(undefined);
 
 export function UserProvider({ children }: { children: ReactNode }) {
   const { data: session, status } = useSession();
-  const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
+  const [userProfile, setUserProfile] = useState<UserProfileType | null>(null);
 
-  // Use React Query to fetch current user profile
   const {
     data: queryData,
     isLoading,
@@ -50,34 +34,19 @@ export function UserProvider({ children }: { children: ReactNode }) {
     refetchQuery();
   };
 
-  // Use React Query data to set user profile
   useEffect(() => {
     if (status === 'authenticated' && session?.accessToken) {
       if (queryData?.data) {
         // Transform API response to UserProfile format
         const profileData = queryData.data.data;
-        const transformedProfile: UserProfile = {
+        const transformedProfile: UserProfileType = {
           id: profileData.id,
           email: profileData.email,
+          role: profileData.role,
           username: profileData.username,
-          bio: '', // Not available in current API
-          location: '', // Not available in current API
-          xHandle:
-            profileData.social_link.find(
-              (s: { type: string; url: string }) => s.type === 'x',
-            )?.url || '',
-          githubHandle:
-            profileData.social_link.find(
-              (s: { type: string; url: string }) => s.type === 'github',
-            )?.url || '',
-          website:
-            profileData.social_link.find(
-              (s: { type: string; url: string }) => s.type === 'website',
-            )?.url || '',
-          avatar: '', // Not available in current API
-          totalPrompts: 0, // Not available in current API
-          createdAt: profileData.created_at,
-          updatedAt: profileData.updated_at,
+          social_link: profileData.social_link,
+          created_at: profileData.created_at,
+          updated_at: profileData.updated_at,
         };
         setUserProfile(transformedProfile);
       }

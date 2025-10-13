@@ -6,7 +6,7 @@ export async function GET(
   { params }: { params: Promise<{ id: string }> },
 ) {
   const { id } = await params;
-  return await apiWrapper(() => userApiRequest.sGetUserProfile(id), {
+  return await apiWrapper(() => userApiRequest.getCurrentUserProfile(id), {
     defaultErrorMessage: 'Fetch user profile failed',
   });
 }
