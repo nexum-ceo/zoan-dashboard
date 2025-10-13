@@ -10,6 +10,11 @@ import {
   FormMessage,
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
+import {
+  InputGroup,
+  InputGroupAddon,
+  InputGroupInput,
+} from '@/components/ui/input-group';
 import { Label } from '@/components/ui/label';
 import { Separator } from '@/components/ui/separator';
 import { Textarea } from '@/components/ui/textarea';
@@ -48,6 +53,8 @@ export default function ProfileSidebar() {
       social_link: normalizeSocialLinks([]),
     },
   });
+
+  console.log('form errors', form.formState.errors);
 
   useEffect(() => {
     if (userProfile) {
@@ -189,35 +196,40 @@ export default function ProfileSidebar() {
                         <FormField
                           control={form.control}
                           name={`social_link.${index}.url` as const}
-                          render={({ field }) => (
-                            <FormItem className="relative w-full">
-                              {entry.type === 'location' && (
-                                <MapPin className="absolute left-2 top-1/2 transform -translate-y-1/2 w-3.5 h-3.5 text-[#272727]" />
-                              )}
-                              {entry.type === 'x' && (
-                                <X className="absolute left-2 top-1/2 transform -translate-y-1/2 w-3.5 h-3.5 text-[#272727]" />
-                              )}
-                              {entry.type === 'github' && (
-                                <Github className="absolute left-2 top-1/2 transform -translate-y-1/2 w-3.5 h-3.5 text-[#272727]" />
-                              )}
-                              {entry.type === 'website' && (
-                                <Globe className="absolute left-2 top-1/2 transform -translate-y-1/2 w-3.5 h-3.5 text-[#272727]" />
-                              )}
-                              <FormControl>
-                                <Input
-                                  {...field}
-                                  placeholder={
-                                    entry.type === 'location'
-                                      ? 'Location'
-                                      : entry.type === 'x'
-                                      ? 'X'
-                                      : entry.type === 'github'
-                                      ? 'Github'
-                                      : 'Website'
-                                  }
-                                  className="w-full h-6.5 pl-7 bg-gray-100 border-0 rounded-lg text-sm placeholder:text-[#272727]/50"
-                                />
-                              </FormControl>
+                          render={({ field, fieldState }) => (
+                            <FormItem className="w-full">
+                              <InputGroup className="bg-gray-100">
+                                <InputGroupAddon>
+                                  {entry.type === 'location' && (
+                                    <MapPin className="w-3.5 h-3.5 text-[#272727]" />
+                                  )}
+                                  {entry.type === 'x' && (
+                                    <X className="w-3.5 h-3.5 text-[#272727]" />
+                                  )}
+                                  {entry.type === 'github' && (
+                                    <Github className="w-3.5 h-3.5 text-[#272727]" />
+                                  )}
+                                  {entry.type === 'website' && (
+                                    <Globe className="w-3.5 h-3.5 text-[#272727]" />
+                                  )}
+                                </InputGroupAddon>
+                                <FormControl>
+                                  <InputGroupInput
+                                    {...field}
+                                    aria-invalid={!!fieldState.error}
+                                    placeholder={
+                                      entry.type === 'location'
+                                        ? 'Location'
+                                        : entry.type === 'x'
+                                        ? 'X'
+                                        : entry.type === 'github'
+                                        ? 'Github'
+                                        : 'Website'
+                                    }
+                                    className="text-sm"
+                                  />
+                                </FormControl>
+                              </InputGroup>
                               <FormMessage />
                             </FormItem>
                           )}

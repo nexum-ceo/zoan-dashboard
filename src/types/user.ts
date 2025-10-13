@@ -46,7 +46,11 @@ const SocialLinkUpdateSchema = z
     try {
       parsed = new URL(url);
     } catch {
-      ctx.addIssue({ code: 'custom', message: 'Invalid URL format' });
+      ctx.addIssue({
+        code: 'custom',
+        message: 'Invalid URL format',
+        path: ['url'],
+      });
       return;
     }
     const host = parsed.hostname.toLowerCase();
@@ -54,6 +58,7 @@ const SocialLinkUpdateSchema = z
       ctx.addIssue({
         code: 'custom',
         message: 'URL must be a github.com link',
+        path: ['url'],
       });
     }
     if (
@@ -63,6 +68,7 @@ const SocialLinkUpdateSchema = z
       ctx.addIssue({
         code: 'custom',
         message: 'URL must be an x.com or twitter.com link',
+        path: ['url'],
       });
     }
     // website: any valid URL passes via URL constructor
