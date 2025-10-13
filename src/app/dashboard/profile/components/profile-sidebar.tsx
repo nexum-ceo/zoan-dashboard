@@ -6,8 +6,11 @@ import { Label } from '@/components/ui/label';
 import { Separator } from '@/components/ui/separator';
 import { Textarea } from '@/components/ui/textarea';
 import { useUserQuery } from '@/contexts/UserContext';
+import { UserProfileUpdateSchema, UserProfileUpdateType } from '@/types/user';
+import { zodResolver } from '@hookform/resolvers/zod';
 import { AnimatePresence, motion } from 'framer-motion';
-import { useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
+import { useForm } from 'react-hook-form';
 import Github from '../../../../../public/icon/github';
 import Globe from '../../../../../public/icon/globe';
 import MapPin from '../../../../../public/icon/map-pin';
@@ -16,10 +19,57 @@ import X from '../../../../../public/icon/x';
 export default function ProfileSidebar() {
   const [editing, setEditing] = useState(false);
   const { userProfile } = useUserQuery();
-  if (!userProfile) return null;
-  const emailLocal = userProfile.email?.split('@')[0] || '';
-  const displayName = userProfile.name || userProfile.email || emailLocal;
-  const displayUsername = userProfile.username || emailLocal;
+
+  const emailLocal = userProfile?.email?.split('@')[0] || '';
+  const displayUsername = userProfile?.username || emailLocal;
+
+  const form = useForm<UserProfileUpdateType>({
+    resolver: zodResolver(UserProfileUpdateSchema),
+    defaultValues: {
+      name: userProfile?.name || '',
+      username: userProfile?.username || '',
+      social_link: userProfile?.social_link || [],
+    },
+  });
+
+  useEffect(() => {
+    if (!userProfile) return;
+    form.reset({
+      name: userProfile?.name || '',
+      username: userProfile?.username || '',
+      social_link: userProfile?.social_link || [],
+    });
+  }, [userProfile, form]);
+
+  const socialLinks = form.watch('social_link');
+  const socialLinksByType = useMemo(() => {
+    const map: Record<string, string> = {};
+    (socialLinks || []).forEach((s) => {
+      map[s.type] = s.url;
+    });
+    return map;
+  }, [socialLinks]);
+
+  const setSocialLink = (type: string, url: string) => {
+    const current = form.getValues('social_link') || [];
+    const index = current.findIndex((s) => s.type === type);
+    if (index >= 0) {
+      const next = [...current];
+      next[index] = { ...next[index], url };
+      form.setValue('social_link', next, { shouldDirty: true });
+    } else {
+      form.setValue('social_link', [...current, { type, url }], {
+        shouldDirty: true,
+      });
+    }
+  };
+
+  const onSubmit = () => {
+    // TODO: Wire API update when endpoint is available
+    // For now, just close editing view
+    setEditing(false);
+    // console.log('Submit profile', values);
+  };
 
   return (
     <aside className="bg-white w-full">
@@ -37,7 +87,7 @@ export default function ProfileSidebar() {
               <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-blue-500 to-green-500" />
               <div>
                 <div className="text-[#272727] text-sm font-medium">
-                  {userProfile.email || 'loading'}
+                  {userProfile?.email || 'loading'}
                 </div>
                 <div className="text-[10px] text-[#272727]/50">
                   @{displayUsername}
@@ -70,13 +120,16 @@ export default function ProfileSidebar() {
             transition={{ duration: 0.25, ease: 'easeInOut' }}
             className="overflow-hidden"
           >
-            <div className="mt-1 space-y-4 p-1">
+            <form
+              onSubmit={form.handleSubmit(onSubmit)}
+              className="mt-1 space-y-4 p-1"
+            >
               <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-blue-500 to-green-500" />
               <div className="space-y-1">
                 <Label className="text-sm text-[#272727]">Display name</Label>
                 <Input
                   placeholder="Display name"
-                  defaultValue={displayName}
+                  {...form.register('name')}
                   className="w-full h-6.5 bg-[#272727]/5 border-0 text-sm font-medium placeholder:text-[#272727]/50"
                 />
               </div>
@@ -84,7 +137,7 @@ export default function ProfileSidebar() {
                 <Label className="text-sm text-[#272727]">UserName</Label>
                 <Input
                   placeholder="Username"
-                  defaultValue={displayUsername}
+                  {...form.register('username')}
                   className="w-full h-6.5 bg-[#272727]/5 border-0 text-sm font-medium placeholder:text-[#272727]/50"
                 />
               </div>
@@ -103,7 +156,10 @@ export default function ProfileSidebar() {
                     <MapPin className="absolute left-2 top-1/2 transform -translate-y-1/2 w-3.5 h-3.5 text-[#272727]" />
                     <Input
                       placeholder="Location"
-                      defaultValue={userProfile.username}
+                      value={socialLinksByType['location'] ?? ''}
+                      onChange={(e) =>
+                        setSocialLink('location', e.target.value)
+                      }
                       className="w-full h-6.5 pl-7 bg-gray-100 border-0 rounded-lg text-sm placeholder:text-[#272727]/50"
                     />
                   </div>
@@ -112,7 +168,8 @@ export default function ProfileSidebar() {
                     <X className="absolute left-2 top-1/2 transform -translate-y-1/2 w-3.5 h-3.5 text-[#272727]" />
                     <Input
                       placeholder="X"
-                      defaultValue={userProfile.username}
+                      value={socialLinksByType['x'] ?? ''}
+                      onChange={(e) => setSocialLink('x', e.target.value)}
                       className="w-full h-6.5 pl-7 bg-gray-100 border-0 rounded-lg text-sm placeholder:text-[#272727]/50"
                     />
                   </div>
@@ -121,11 +178,8 @@ export default function ProfileSidebar() {
                     <Github className="absolute left-2 top-1/2 transform -translate-y-1/2 w-3.5 h-3.5 text-[#272727]" />
                     <Input
                       placeholder="Github"
-                      defaultValue={
-                        userProfile.social_link?.find(
-                          (s) => s.type === 'github',
-                        )?.url ?? ''
-                      }
+                      value={socialLinksByType['github'] ?? ''}
+                      onChange={(e) => setSocialLink('github', e.target.value)}
                       className="w-full h-6.5 pl-7 bg-gray-100 border-0 rounded-lg text-sm placeholder:text-[#272727]/50"
                     />
                   </div>
@@ -134,18 +188,17 @@ export default function ProfileSidebar() {
                     <Globe className="absolute left-2 top-1/2 transform -translate-y-1/2 w-3.5 h-3.5 text-[#272727]" />
                     <Input
                       placeholder="Website"
-                      defaultValue={
-                        userProfile.social_link?.find(
-                          (s) => s.type === 'website',
-                        )?.url ?? ''
-                      }
+                      value={socialLinksByType['website'] ?? ''}
+                      onChange={(e) => setSocialLink('website', e.target.value)}
                       className="w-full h-6.5 pl-7 bg-gray-100 border-0 rounded-lg text-sm placeholder:text-[#272727]/50"
                     />
                   </div>
                 </div>
               </div>
               <div className="space-y-2 pt-1">
-                <Button className="w-full ">Save changes</Button>
+                <Button type="submit" className="w-full ">
+                  Save changes
+                </Button>
                 <Button
                   variant="secondary"
                   className="w-full"
@@ -160,7 +213,7 @@ export default function ProfileSidebar() {
                 Total prompts
                 <span className="text-[#272727] font-medium">0</span>
               </div>
-            </div>
+            </form>
           </motion.div>
         )}
       </AnimatePresence>
