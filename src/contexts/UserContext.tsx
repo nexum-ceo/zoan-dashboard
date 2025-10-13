@@ -1,9 +1,9 @@
 'use client';
+import { useCurrentUserProfile } from '@/queries/useUser';
 import { useSession } from 'next-auth/react';
 import {
   createContext,
   ReactNode,
-  useCallback,
   useContext,
   useEffect,
   useState,
@@ -29,7 +29,7 @@ type UserContextType = {
   userProfile: UserProfile | null;
   isLoading: boolean;
   error: string | null;
-  refetchProfile: () => Promise<void>;
+  refetchProfile: () => void;
 };
 
 const UserContext = createContext<UserContextType | undefined>(undefined);
@@ -37,68 +37,61 @@ const UserContext = createContext<UserContextType | undefined>(undefined);
 export function UserProvider({ children }: { children: ReactNode }) {
   const { data: session, status } = useSession();
   const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
 
-  const fetchUserProfile = useCallback(async () => {
-    if (!session?.accessToken) {
-      setUserProfile(null);
-      return;
-    }
+  // Use React Query to fetch current user profile
+  const {
+    data: queryData,
+    isLoading,
+    error: queryError,
+    refetch: refetchQuery,
+  } = useCurrentUserProfile();
 
-    setIsLoading(true);
-    setError(null);
-
-    try {
-      const response = await fetch('/api/user', {
-        headers: {
-          Authorization: `Bearer ${session.accessToken}`,
-        },
-      });
-
-      if (!response.ok) {
-        throw new Error('Failed to fetch user profile');
-      }
-
-      const profileData = await response.json();
-      setUserProfile(profileData);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Unknown error');
-      console.error('Error fetching user profile:', err);
-    } finally {
-      setIsLoading(false);
-    }
-  }, [session?.accessToken]);
-
-  const refetchProfile = async () => {
-    await fetchUserProfile();
+  const refetchProfile = () => {
+    refetchQuery();
   };
 
-  // Use profile from session if available, otherwise fetch it
+  // Use React Query data to set user profile
   useEffect(() => {
     if (status === 'authenticated' && session?.accessToken) {
-      if (session.userProfile) {
-        // Use profile from session (fetched during login)
-        setUserProfile(session.userProfile);
-        setIsLoading(false);
-        setError(null);
-      } else {
-        // Fallback: fetch profile if not in session
-        fetchUserProfile();
+      if (queryData?.data) {
+        // Transform API response to UserProfile format
+        const profileData = queryData.data.data;
+        const transformedProfile: UserProfile = {
+          id: profileData.id,
+          email: profileData.email,
+          username: profileData.username,
+          bio: '', // Not available in current API
+          location: '', // Not available in current API
+          xHandle:
+            profileData.social_link.find(
+              (s: { type: string; url: string }) => s.type === 'x',
+            )?.url || '',
+          githubHandle:
+            profileData.social_link.find(
+              (s: { type: string; url: string }) => s.type === 'github',
+            )?.url || '',
+          website:
+            profileData.social_link.find(
+              (s: { type: string; url: string }) => s.type === 'website',
+            )?.url || '',
+          avatar: '', // Not available in current API
+          totalPrompts: 0, // Not available in current API
+          createdAt: profileData.created_at,
+          updatedAt: profileData.updated_at,
+        };
+        setUserProfile(transformedProfile);
       }
     } else if (status === 'unauthenticated') {
       setUserProfile(null);
-      setError(null);
-      setIsLoading(false);
     }
-  }, [session, status, fetchUserProfile]);
+  }, [session, status, queryData]);
 
   return (
     <UserContext.Provider
       value={{
         userProfile,
         isLoading,
-        error,
+        error: queryError?.message || null,
         refetchProfile,
       }}
     >
@@ -107,10 +100,10 @@ export function UserProvider({ children }: { children: ReactNode }) {
   );
 }
 
-export function useUser() {
+export function useUserQuery() {
   const context = useContext(UserContext);
   if (context === undefined) {
-    throw new Error('useUser must be used within a UserProvider');
+    throw new Error('useUserQuery must be used within a UserProvider');
   }
   return context;
 }

@@ -5,7 +5,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Separator } from '@/components/ui/separator';
 import { Textarea } from '@/components/ui/textarea';
-import { useUser } from '@/contexts/UserContext';
+import { useUserQuery } from '@/contexts/UserContext';
 import { AnimatePresence, motion } from 'framer-motion';
 import { useState } from 'react';
 import Github from '../../../../../public/icon/github';
@@ -15,7 +15,7 @@ import X from '../../../../../public/icon/x';
 
 export default function ProfileSidebar() {
   const [editing, setEditing] = useState(false);
-  const { userProfile } = useUser();
+  const { userProfile } = useUserQuery();
 
   return (
     <aside className="bg-white w-full">
