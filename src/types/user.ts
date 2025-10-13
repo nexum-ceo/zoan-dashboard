@@ -25,3 +25,12 @@ export const UserProfileResSchema = z.object({
 });
 
 export type UserProfileResType = z.infer<typeof UserProfileResSchema>;
+
+export const UserProfileUpdateSchema = UserProfileSchema.omit({
+  id: true,
+  email: true,
+  role: true,
+  created_at: true,
+  updated_at: true,
+});
+export type UserProfileUpdateType = z.infer<typeof UserProfileUpdateSchema>;

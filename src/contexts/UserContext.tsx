@@ -20,7 +20,7 @@ type UserContextType = {
 const UserContext = createContext<UserContextType | undefined>(undefined);
 
 export function UserProvider({ children }: { children: ReactNode }) {
-  const { data: session, status } = useSession();
+  const { status } = useSession();
   const [userProfile, setUserProfile] = useState<UserProfileType | null>(null);
 
   const {
@@ -35,26 +35,26 @@ export function UserProvider({ children }: { children: ReactNode }) {
   };
 
   useEffect(() => {
-    if (status === 'authenticated' && session?.accessToken) {
-      if (queryData?.data) {
-        // Transform API response to UserProfile format
-        const profileData = queryData.data.data;
-        const transformedProfile: UserProfileType = {
-          id: profileData.id,
-          email: profileData.email,
-          role: profileData.role,
-          name: profileData.name,
-          username: profileData.username,
-          social_link: profileData.social_link,
-          created_at: profileData.created_at,
-          updated_at: profileData.updated_at,
-        };
-        setUserProfile(transformedProfile);
-      }
-    } else if (status === 'unauthenticated') {
+    // Populate profile as soon as query resolves successfully
+    if (queryData?.data) {
+      const profileData = queryData.data.data;
+      const transformedProfile: UserProfileType = {
+        id: profileData.id,
+        email: profileData.email,
+        role: profileData.role,
+        name: profileData.name,
+        username: profileData.username,
+        social_link: profileData.social_link,
+        created_at: profileData.created_at,
+        updated_at: profileData.updated_at,
+      };
+      setUserProfile(transformedProfile);
+    }
+
+    if (status === 'unauthenticated') {
       setUserProfile(null);
     }
-  }, [session, status, queryData]);
+  }, [status, queryData]);
 
   return (
     <UserContext.Provider
