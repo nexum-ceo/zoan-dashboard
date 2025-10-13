@@ -43,6 +43,7 @@ export function UserProvider({ children }: { children: ReactNode }) {
           id: profileData.id,
           email: profileData.email,
           role: profileData.role,
+          name: profileData.name,
           username: profileData.username,
           social_link: profileData.social_link,
           created_at: profileData.created_at,
