@@ -37,6 +37,7 @@ import {
   Settings,
   Users,
 } from 'lucide-react';
+import { useRouter } from 'next/navigation';
 import { FC, useEffect } from 'react';
 import User from '../../public/icon/user';
 
@@ -49,6 +50,7 @@ export type NavUserProps = {
 
 export const NavUser: FC<NavUserProps> = ({ user }) => {
   const { isMobile } = useSidebar();
+  const router = useRouter();
   // const { theme, setTheme } = useTheme();
   // const { startTransition } = useThemeTransition();
 
@@ -97,7 +99,10 @@ export const NavUser: FC<NavUserProps> = ({ user }) => {
             align="end"
             sideOffset={4}
           >
-            <DropdownMenuItem className="px-3 py-2 bg-gray-100 cursor-pointer">
+            <DropdownMenuItem
+              className="px-3 py-2 bg-gray-100 cursor-pointer"
+              onClick={() => router.push('/dashboard/profile')}
+            >
               <User className="mr-2 h-4 w-4 text-[#272727]" />
               <span className="text-paragraph !text-sm">Profile</span>
             </DropdownMenuItem>
