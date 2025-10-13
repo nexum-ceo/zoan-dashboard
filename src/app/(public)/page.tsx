@@ -1,6 +1,6 @@
 import CommunitySection from '@/app/(public)/components/community-section';
 import TopCreators from '@/app/(public)/components/top-creators';
-import { PlaygroundInput } from '@/app/dashboard/playground/components';
+import { PlaygroundInputHomePage } from '@/app/dashboard/playground/components/playground-input-with-provider';
 import OptionButtons from '@/components/ui/option-buttons';
 
 export default function HomePage() {
@@ -13,7 +13,7 @@ export default function HomePage() {
         </div>
 
         {/* Input Area */}
-        <PlaygroundInput value={''} disabled={false} />
+        <PlaygroundInputHomePage />
 
         {/* AI Suggestion */}
         <div className="mt-6">
