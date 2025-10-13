@@ -2,6 +2,7 @@
 import { authOptions } from '@/app/api/auth/[...nextauth]/option';
 import AppProvider from '@/components/app-provider';
 import SessionProvider from '@/components/session-provider';
+import { UserProvider } from '@/contexts/UserContext';
 import { baseOpenGraph } from '@/shared-metadata';
 import type { Metadata } from 'next';
 import { getServerSession } from 'next-auth';
@@ -39,8 +40,10 @@ export default async function RootLayout({
       <body className={`${inter.variable} antialiased h-screen w-full m-0 p-0`}>
         <AppProvider>
           <SessionProvider>
-            <div className="h-full w-full">{children}</div>
-            <Toaster />
+            <UserProvider>
+              <div className="h-full w-full">{children}</div>
+              <Toaster />
+            </UserProvider>
           </SessionProvider>
         </AppProvider>
       </body>
