@@ -93,3 +93,51 @@ export const clearPendingMessage = (): void => {
     localStorage.removeItem('pendingMessage');
   }
 };
+
+/**
+ * Handle pending attachments from localStorage
+ */
+// Pending attachments metadata saved in localStorage.
+// Store only serializable fields plus a stable id that maps to IndexedDB blob.
+export const getPendingAttachments = (): Array<{
+  id: string; // maps to IndexedDB key
+  file_name: string;
+  mime_type: string;
+  file_size: number;
+}> => {
+  if (typeof window === 'undefined') return [];
+  try {
+    const stored = localStorage.getItem('pendingAttachments');
+    const parsed = stored ? JSON.parse(stored) : [];
+    if (!Array.isArray(parsed)) return [];
+    return parsed;
+  } catch (error) {
+    console.error('Failed to parse pending attachments:', error);
+    return [];
+  }
+};
+
+/**
+ * Save pending attachments to localStorage
+ */
+export const setPendingAttachments = (
+  attachments: Array<{
+    id: string;
+    file_name: string;
+    mime_type: string;
+    file_size: number;
+  }>,
+): void => {
+  if (typeof window !== 'undefined') {
+    localStorage.setItem('pendingAttachments', JSON.stringify(attachments));
+  }
+};
+
+/**
+ * Clear pending attachments from localStorage
+ */
+export const clearPendingAttachments = (): void => {
+  if (typeof window !== 'undefined') {
+    localStorage.removeItem('pendingAttachments');
+  }
+};
