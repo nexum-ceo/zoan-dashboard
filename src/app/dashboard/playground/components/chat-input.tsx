@@ -19,6 +19,8 @@ import {
 } from '@/components/ui/shadcn-io/ai/prompt-input';
 import { useDragDrop } from '@/contexts/DragDropContext';
 import { useZoanToast } from '@/hooks/useZoanToast';
+import { putAttachment } from '@/lib/attachment-store';
+import { getPendingAttachments, setPendingAttachments } from '@/lib/chat-utils';
 import { getMediaTypeFromFilename } from '@/lib/s3';
 import {
   useDeleteFileMutation,
@@ -52,6 +54,12 @@ type ChatInputProps = {
   bannerPosition?: 'top' | 'bottom';
   onFilesUploaded?: (files: UploadedFile[]) => void;
   chatId?: string;
+  initialAttachments?: Array<{
+    url: string;
+    mime_type: string;
+    file_name: string;
+    file_size: number;
+  }>;
 };
 
 export const ChatInput: FC<ChatInputProps> = ({
@@ -64,6 +72,7 @@ export const ChatInput: FC<ChatInputProps> = ({
   bannerPosition = 'bottom',
   onFilesUploaded,
   chatId,
+  initialAttachments,
 }) => {
   const [showUpgradeBanner, setShowUpgradeBanner] = useState(true);
   const [showAuthDialog, setShowAuthDialog] = useState(false);
@@ -244,6 +253,44 @@ export const ChatInput: FC<ChatInputProps> = ({
 
       setAttachedFiles((prev) => [...prev, ...newUploadedFiles]);
 
+      // If chatId is not available yet, persist to IndexedDB and save metadata ids
+      if (!chatId) {
+        try {
+          const ids: string[] = [];
+          for (const f of newUploadedFiles) {
+            const id = f.id; // use generated id
+            ids.push(id);
+            // Persist the actual file bytes
+            await putAttachment(id, f.file);
+          }
+          // Save serializable metadata with id mapping
+          const meta = newUploadedFiles.map((f) => ({
+            id: f.id,
+            file_name: f.file.name,
+            mime_type: f.file.type,
+            file_size: f.file.size,
+          }));
+          // Merge with existing pending attachments in storage
+          const existing = getPendingAttachments();
+          const byId = new Map<
+            string,
+            {
+              id: string;
+              file_name: string;
+              mime_type: string;
+              file_size: number;
+            }
+          >();
+          for (const item of existing) byId.set(item.id, item);
+          for (const item of meta) byId.set(item.id, item);
+          setPendingAttachments(Array.from(byId.values()));
+        } catch (error) {
+          console.error('Failed to save pending attachments:', error);
+        }
+        onFilesUploaded?.(newUploadedFiles);
+        return;
+      }
+
       // Upload files using batch upload
       try {
         const completedFiles = await uploadFiles(fileArray);
@@ -270,13 +317,34 @@ export const ChatInput: FC<ChatInputProps> = ({
         );
       }
     },
-    [session, uploadFiles, onFilesUploaded, attachedFiles, throttledToast],
+    [
+      session,
+      uploadFiles,
+      onFilesUploaded,
+      attachedFiles,
+      throttledToast,
+      chatId,
+    ],
   );
 
   // Update ref when function changes
   useEffect(() => {
     handleFilesSelectedRef.current = handleFilesSelected;
   }, [handleFilesSelected]);
+
+  // Seed preview attachments when provided from parent
+  useEffect(() => {
+    if (!initialAttachments || initialAttachments.length === 0) return;
+    if (attachedFiles.length > 0) return;
+    const seeded: UploadedFile[] = initialAttachments.map((att) => ({
+      id: crypto.randomUUID(),
+      file: new File([], att.file_name, { type: att.mime_type }),
+      progress: 100,
+      status: 'completed' as const,
+      url: att.url,
+    }));
+    setAttachedFiles(seeded);
+  }, [initialAttachments]);
 
   // Set up file handler for drag drop context
   useEffect(() => {
