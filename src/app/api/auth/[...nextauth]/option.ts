@@ -38,6 +38,26 @@ export const authOptions: NextAuthOptions = {
         token.accessToken = user.accessToken;
         token.accessTokenExpires = expireAccessToken;
         token.id = user.id;
+
+        // Fetch user profile after login
+        try {
+          const profileResponse = await fetch(
+            `${process.env.NEXT_PUBLIC_API_URL}/me`,
+            {
+              headers: {
+                Authorization: `Bearer ${user.accessToken}`,
+              },
+            },
+          );
+
+          if (profileResponse.ok) {
+            const profileData = await profileResponse.json();
+            token.userProfile = profileData;
+          }
+        } catch (error) {
+          console.error('Error fetching user profile during login:', error);
+        }
+
         return token;
       }
 
@@ -62,6 +82,7 @@ export const authOptions: NextAuthOptions = {
 
       session.accessToken = token.accessToken;
       session.user = { ...(session.user || {}), id: token.id as string };
+      session.userProfile = token.userProfile;
       session.expires = token.accessTokenExpires;
       return session;
     },

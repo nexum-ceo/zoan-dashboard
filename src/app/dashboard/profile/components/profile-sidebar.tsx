@@ -5,6 +5,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Separator } from '@/components/ui/separator';
 import { Textarea } from '@/components/ui/textarea';
+import { useUser } from '@/contexts/UserContext';
 import { AnimatePresence, motion } from 'framer-motion';
 import { useState } from 'react';
 import Github from '../../../../../public/icon/github';
@@ -14,6 +15,7 @@ import X from '../../../../../public/icon/x';
 
 export default function ProfileSidebar() {
   const [editing, setEditing] = useState(false);
+  const { userProfile } = useUser();
 
   return (
     <aside className="bg-white w-full">
@@ -31,17 +33,21 @@ export default function ProfileSidebar() {
               <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-blue-500 to-green-500" />
               <div>
                 <div className="text-[#272727] text-sm font-medium">
-                  myarmygmae-9005
+                  {userProfile?.displayName ||
+                    userProfile?.username ||
+                    'Loading...'}
                 </div>
                 <div className="text-[10px] text-[#272727]/50">
-                  @myarmygmae-9005
+                  @{userProfile?.username || 'loading...'}
                 </div>
               </div>
             </div>
             <Separator className="my-4" />
             <div className="my-4 flex justify-between text-[16px] text-[#272727]/50 leading-4 font-medium">
               Total prompts
-              <span className="text-[#272727] font-medium">10</span>
+              <span className="text-[#272727] font-medium">
+                {userProfile?.totalPrompts || 0}
+              </span>
             </div>
             <div className="space-y-1">
               <Button className="w-full" onClick={() => setEditing(true)}>
@@ -66,14 +72,16 @@ export default function ProfileSidebar() {
               <div className="space-y-1">
                 <Label className="text-sm text-[#272727]">Display name</Label>
                 <Input
-                  placeholder="SCao"
+                  placeholder="Display name"
+                  defaultValue={userProfile?.displayName || ''}
                   className="w-full h-6.5 bg-[#272727]/5 border-0 text-sm font-medium placeholder:text-[#272727]/50"
                 />
               </div>
               <div className="space-y-1">
                 <Label className="text-sm text-[#272727]">UserName</Label>
                 <Input
-                  placeholder="myarmygmae-9005"
+                  placeholder="Username"
+                  defaultValue={userProfile?.username || ''}
                   className="w-full h-6.5 bg-[#272727]/5 border-0 text-sm font-medium placeholder:text-[#272727]/50"
                 />
               </div>
@@ -81,6 +89,7 @@ export default function ProfileSidebar() {
                 <Label className="text-sm text-[#272727]">Bio</Label>
                 <Textarea
                   placeholder="Bio"
+                  defaultValue={userProfile?.bio || ''}
                   className="w-full min-h-30 bg-[#272727]/5 border-0 text-sm font-medium placeholder:text-[#272727]/50"
                 />
               </div>
@@ -91,6 +100,7 @@ export default function ProfileSidebar() {
                     <MapPin className="absolute left-2 top-1/2 transform -translate-y-1/2 w-3.5 h-3.5 text-[#272727]" />
                     <Input
                       placeholder="Location"
+                      defaultValue={userProfile?.location || ''}
                       className="w-full h-6.5 pl-7 bg-gray-100 border-0 rounded-lg text-sm placeholder:text-[#272727]/50"
                     />
                   </div>
@@ -99,6 +109,7 @@ export default function ProfileSidebar() {
                     <X className="absolute left-2 top-1/2 transform -translate-y-1/2 w-3.5 h-3.5 text-[#272727]" />
                     <Input
                       placeholder="X"
+                      defaultValue={userProfile?.xHandle || ''}
                       className="w-full h-6.5 pl-7 bg-gray-100 border-0 rounded-lg text-sm placeholder:text-[#272727]/50"
                     />
                   </div>
@@ -107,6 +118,7 @@ export default function ProfileSidebar() {
                     <Github className="absolute left-2 top-1/2 transform -translate-y-1/2 w-3.5 h-3.5 text-[#272727]" />
                     <Input
                       placeholder="Github"
+                      defaultValue={userProfile?.githubHandle || ''}
                       className="w-full h-6.5 pl-7 bg-gray-100 border-0 rounded-lg text-sm placeholder:text-[#272727]/50"
                     />
                   </div>
@@ -115,6 +127,7 @@ export default function ProfileSidebar() {
                     <Globe className="absolute left-2 top-1/2 transform -translate-y-1/2 w-3.5 h-3.5 text-[#272727]" />
                     <Input
                       placeholder="Website"
+                      defaultValue={userProfile?.website || ''}
                       className="w-full h-6.5 pl-7 bg-gray-100 border-0 rounded-lg text-sm placeholder:text-[#272727]/50"
                     />
                   </div>
@@ -134,7 +147,9 @@ export default function ProfileSidebar() {
 
               <div className="my-4 flex justify-between text-[16px] text-[#272727]/50 leading-4 font-medium">
                 Total prompts
-                <span className="text-[#272727] font-medium">10</span>
+                <span className="text-[#272727] font-medium">
+                  {userProfile?.totalPrompts || 0}
+                </span>
               </div>
             </div>
           </motion.div>
