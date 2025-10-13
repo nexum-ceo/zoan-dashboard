@@ -7,7 +7,7 @@ export const useCurrentUserProfile = () => {
 
   return useQuery({
     queryKey: ['current-user-profile'],
-    queryFn: () => userApiRequest.sGetUserProfile(session?.user?.id as string),
+    queryFn: () => userApiRequest.sGetUserProfile(),
     enabled: status === 'authenticated' && !!session?.accessToken,
   });
 };

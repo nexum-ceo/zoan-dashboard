@@ -2,10 +2,9 @@ import axiosInstance from '@/lib/axios-instance';
 import { UserProfileResType } from '@/types/user';
 
 const userApiRequest = {
-  getCurrentUserProfile: (userId: string) =>
-    axiosInstance.get<UserProfileResType>(`/user/${userId}`),
-  sGetUserProfile: (userId: string) =>
-    axiosInstance.get<UserProfileResType>(`/user/${userId}`, {
+  getCurrentUserProfile: () => axiosInstance.get<UserProfileResType>(`/me`),
+  sGetUserProfile: () =>
+    axiosInstance.get<UserProfileResType>(`/user/me`, {
       baseURL: '',
     }),
 };
