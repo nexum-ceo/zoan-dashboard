@@ -23,7 +23,6 @@ import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import { SidebarProvider } from '@/components/ui/sidebar';
 import { DragDropProvider, useDragDrop } from '@/contexts/DragDropContext';
 import { useIsMobile } from '@/hooks/use-mobile';
-// import { useInfiniteScroll } from '@/hooks/useInfiniteScroll';
 import { useSSEChat } from '@/hooks/useSSEChat';
 import { deleteAttachment, getAttachment } from '@/lib/attachment-store';
 import {
@@ -78,7 +77,7 @@ function PlaygroundChatClientInner({ chatId }: PlaygroundChatClientProps) {
 
   // Drag drop context
   const { setIsDragActive, onFilesDropped } = useDragDrop();
-  const { ref, inView } = useInView();
+  const { ref, inView } = useInView({ rootMargin: '100px' });
 
   // Setup dropzone
   const { getRootProps } = useDropzone({
@@ -119,7 +118,6 @@ function PlaygroundChatClientInner({ chatId }: PlaygroundChatClientProps) {
     () => (getPendingAttachments()?.length ?? 0) === 0,
   );
   const [previousScrollHeight, setPreviousScrollHeight] = useState<number>(0);
-  // const [isLoadingMore, setIsLoadingMore] = useState<boolean>(false);
   const { data: chatData } = useGetChat(chatId);
   const {
     data: chatMessageData,
@@ -467,21 +465,6 @@ function PlaygroundChatClientInner({ chatId }: PlaygroundChatClientProps) {
     isLoading,
     setMessages,
   ]);
-
-  // Infinite scroll functionality
-  // useInfiniteScroll({
-  //   containerRef: messagesContainerRef,
-  //   hasNextPage: !!hasNextPage,
-  //   isFetchingNextPage: !!isFetchingNextPage,
-  //   isLoadingMore,
-  //   onFetchNextPage: () => {
-  //     setIsLoadingMore(true);
-  //     fetchNextPage().finally(() => {
-  //       setIsLoadingMore(false);
-  //     });
-  //   },
-  //   onScrollHeightChange: setPreviousScrollHeight,
-  // });
 
   // Restore scroll position after new messages are loaded
   useEffect(() => {
