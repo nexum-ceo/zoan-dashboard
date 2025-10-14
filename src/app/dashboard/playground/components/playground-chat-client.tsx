@@ -664,7 +664,7 @@ function PlaygroundChatClientInner({ chatId }: PlaygroundChatClientProps) {
           <Conversation className="overflow-hidden">
             <ConversationContent className="px-4 py-2">
               {/* Loading indicator for fetching more messages */}
-              <div ref={ref}></div>
+              <div ref={ref} aria-hidden="true"></div>
               {isFetchingNextPage && (
                 <div className="flex justify-center py-4">
                   <div className="flex items-center justify-center h-12 w-16">
