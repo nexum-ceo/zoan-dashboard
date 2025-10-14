@@ -150,7 +150,6 @@ export const useUpdateChatTitleMutation = (id: string) => {
       // Invalidate both the specific chat and the chat list to refresh the UI
       queryClient.invalidateQueries({ queryKey: ['chat', id] });
       queryClient.invalidateQueries({ queryKey: ['chat-list-infinite'] });
-      queryClient.invalidateQueries({ queryKey: ['chat-list'] });
     },
   });
 };

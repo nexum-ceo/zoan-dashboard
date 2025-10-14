@@ -42,15 +42,4 @@ export const updateChatTitleInCache = (
       };
     },
   );
-
-  // Update the regular chat list
-  queryClient.setQueryData<GetChatListResType>(['chat-list'], (oldData) => {
-    if (!oldData) return oldData;
-    return {
-      ...oldData,
-      data: oldData.data.map((chat) =>
-        chat.id === chatId ? { ...chat, title: newTitle } : chat,
-      ),
-    };
-  });
 };
