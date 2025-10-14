@@ -167,21 +167,18 @@ function PlaygroundChatClientInner({ chatId }: PlaygroundChatClientProps) {
     attachments,
   });
 
-  // Sync paginated API messages (older history) into SSE message state without duplicates
+  // Prepend only the last fetched page (pagination ensures uniqueness)
   useEffect(() => {
-    if (!chatInfo?.user_id) return;
-    if (!Array.isArray(chatMessages) || chatMessages.length === 0) return;
-
-    const apiMessages = transformChatMessages(chatMessages, chatInfo.user_id);
-    if (apiMessages.length === 0) return;
-
-    setMessages((prev) => {
-      const existingIds = new Set(prev.map((m) => m.id));
-      const toPrepend = apiMessages.filter((m) => !existingIds.has(m.id));
-      if (toPrepend.length === 0) return prev;
-      return [...toPrepend, ...prev];
-    });
-  }, [chatInfo?.user_id, chatMessages, setMessages]);
+    const pages = chatMessageData?.pages ?? [];
+    if (!chatInfo?.user_id || pages.length === 0) return;
+    const lastPage = pages[pages.length - 1];
+    const apiMessages = transformChatMessages(
+      lastPage?.data?.data,
+      chatInfo.user_id,
+    );
+    if (!apiMessages || apiMessages.length === 0) return;
+    setMessages((prev) => [...apiMessages, ...prev]);
+  }, [chatMessageData?.pages, chatInfo?.user_id, setMessages]);
 
   useEffect(() => {
     if (inView && hasNextPage) {
