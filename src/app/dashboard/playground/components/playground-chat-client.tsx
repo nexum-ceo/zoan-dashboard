@@ -19,6 +19,7 @@ import {
   ConversationContent,
   ConversationScrollButton,
 } from '@/components/ui/shadcn-io/ai/conversation';
+import { Loader } from '@/components/ui/shadcn-io/ai/loader';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import { SidebarProvider } from '@/components/ui/sidebar';
 import { DragDropProvider, useDragDrop } from '@/contexts/DragDropContext';
@@ -666,8 +667,11 @@ function PlaygroundChatClientInner({ chatId }: PlaygroundChatClientProps) {
               <div ref={ref}></div>
               {isFetchingNextPage && (
                 <div className="flex justify-center py-4">
-                  <div className="text-sm text-muted-foreground">
-                    Loading more messages...
+                  <div className="flex items-center justify-center h-12 w-16">
+                    <Loader
+                      size={20}
+                      className="animate-spin [animation-duration:0.5s]"
+                    />
                   </div>
                 </div>
               )}
