@@ -4,6 +4,7 @@ import chatApiRequest from '@/api-requests/chat';
 import {
   CreateChatAgentSettingBodyType,
   PresignedUrlBodyType,
+  UpdateChatTitleBodyType,
 } from '@/types/chat';
 import {
   useInfiniteQuery,
@@ -137,5 +138,19 @@ export const useGetChatPresignedUrl = (id: string) => {
 export const useDeleteFileMutation = (id: string) => {
   return useMutation({
     mutationFn: (path: string) => chatApiRequest.sDeleteFile(id, path),
+  });
+};
+
+export const useUpdateChatTitleMutation = (id: string) => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (body: UpdateChatTitleBodyType) =>
+      chatApiRequest.sUpdateChatTitle(id, body),
+    onSuccess: () => {
+      // Invalidate both the specific chat and the chat list to refresh the UI
+      queryClient.invalidateQueries({ queryKey: ['chat', id] });
+      queryClient.invalidateQueries({ queryKey: ['chat-list-infinite'] });
+      queryClient.invalidateQueries({ queryKey: ['chat-list'] });
+    },
   });
 };
