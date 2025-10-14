@@ -23,7 +23,7 @@ import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import { SidebarProvider } from '@/components/ui/sidebar';
 import { DragDropProvider, useDragDrop } from '@/contexts/DragDropContext';
 import { useIsMobile } from '@/hooks/use-mobile';
-import { useInfiniteScroll } from '@/hooks/useInfiniteScroll';
+// import { useInfiniteScroll } from '@/hooks/useInfiniteScroll';
 import { useSSEChat } from '@/hooks/useSSEChat';
 import { deleteAttachment, getAttachment } from '@/lib/attachment-store';
 import {
@@ -45,6 +45,7 @@ import { Menu, MessageSquare, Plus, Sparkles } from 'lucide-react';
 import { usePathname, useRouter } from 'next/navigation';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useDropzone } from 'react-dropzone';
+import { useInView } from 'react-intersection-observer';
 import SettingIcon from '../../../../../public/icon/setting';
 import ShareIcon from '../../../../../public/icon/share';
 
@@ -77,6 +78,7 @@ function PlaygroundChatClientInner({ chatId }: PlaygroundChatClientProps) {
 
   // Drag drop context
   const { setIsDragActive, onFilesDropped } = useDragDrop();
+  const { ref, inView } = useInView();
 
   // Setup dropzone
   const { getRootProps } = useDropzone({
@@ -117,7 +119,7 @@ function PlaygroundChatClientInner({ chatId }: PlaygroundChatClientProps) {
     () => (getPendingAttachments()?.length ?? 0) === 0,
   );
   const [previousScrollHeight, setPreviousScrollHeight] = useState<number>(0);
-  const [isLoadingMore, setIsLoadingMore] = useState<boolean>(false);
+  // const [isLoadingMore, setIsLoadingMore] = useState<boolean>(false);
   const { data: chatData } = useGetChat(chatId);
   const {
     data: chatMessageData,
@@ -165,6 +167,12 @@ function PlaygroundChatClientInner({ chatId }: PlaygroundChatClientProps) {
     },
     attachments,
   });
+
+  useEffect(() => {
+    if (inView && hasNextPage) {
+      fetchNextPage();
+    }
+  }, [inView, hasNextPage, fetchNextPage]);
 
   // Fallback listener to ensure Explore opens even if callback path breaks
   useEffect(() => {
@@ -445,19 +453,19 @@ function PlaygroundChatClientInner({ chatId }: PlaygroundChatClientProps) {
   ]);
 
   // Infinite scroll functionality
-  useInfiniteScroll({
-    containerRef: messagesContainerRef,
-    hasNextPage: !!hasNextPage,
-    isFetchingNextPage: !!isFetchingNextPage,
-    isLoadingMore,
-    onFetchNextPage: () => {
-      setIsLoadingMore(true);
-      fetchNextPage().finally(() => {
-        setIsLoadingMore(false);
-      });
-    },
-    onScrollHeightChange: setPreviousScrollHeight,
-  });
+  // useInfiniteScroll({
+  //   containerRef: messagesContainerRef,
+  //   hasNextPage: !!hasNextPage,
+  //   isFetchingNextPage: !!isFetchingNextPage,
+  //   isLoadingMore,
+  //   onFetchNextPage: () => {
+  //     setIsLoadingMore(true);
+  //     fetchNextPage().finally(() => {
+  //       setIsLoadingMore(false);
+  //     });
+  //   },
+  //   onScrollHeightChange: setPreviousScrollHeight,
+  // });
 
   // Restore scroll position after new messages are loaded
   useEffect(() => {
@@ -656,6 +664,7 @@ function PlaygroundChatClientInner({ chatId }: PlaygroundChatClientProps) {
           <Conversation className="overflow-hidden">
             <ConversationContent className="px-4 py-2">
               {/* Loading indicator for fetching more messages */}
+              <div ref={ref}></div>
               {isFetchingNextPage && (
                 <div className="flex justify-center py-4">
                   <div className="text-sm text-muted-foreground">
