@@ -216,3 +216,28 @@ export const PresignedUrlResSchema = z.object({
 });
 
 export type PresignedUrlResType = z.infer<typeof PresignedUrlResSchema>;
+
+
+// Update chat title schemas
+export const UpdateChatTitleBodySchema = z.object({
+  title: z
+    .string()
+    .min(1, 'Title is required')
+    .max(200, 'Title must be less than 200 characters'),
+});
+
+export type UpdateChatTitleBodyType = z.infer<typeof UpdateChatTitleBodySchema>;
+
+export const UpdateChatTitleResSchema = z.object({
+  status: z.string(),
+  message: z.string(),
+  data: z.object({
+    id: z.string(),
+    user_id: z.string(),
+    title: z.string(),
+    created_at: z.string(),
+    updated_at: z.string(),
+  }),
+});
+
+export type UpdateChatTitleResType = z.infer<typeof UpdateChatTitleResSchema>;
