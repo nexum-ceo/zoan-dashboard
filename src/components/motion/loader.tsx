@@ -183,13 +183,13 @@ export const LoaderFour = ({ text = 'Loading...' }: { text?: string }) => {
 
 export const LoaderFive = ({ text }: { text: string }) => {
   return (
-    <div className="text-xs text-popover-foreground">
+    <div className="text-[10px] text-[#272727]">
       <div className="grid gap-2">
         <div className="font-sans [--shadow-color:var(--color-neutral-500)] dark:[--shadow-color:var(--color-neutral-100)]">
           {text.split('').map((char, i) => (
             <motion.span
               key={i}
-              className="inline-block text-xs"
+              className="inline-block text-[10px]"
               initial={{ scale: 1, opacity: 0.5 }}
               animate={{
                 scale: [1, 1.05, 1],

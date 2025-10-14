@@ -188,6 +188,12 @@ export const ChatMessage: FC<ChatMessageProps> = ({
       .map((part) => part.text)
       .join('\n');
   }, [message.parts]);
+
+  // Check if message has answer type to hide thinking text immediately
+  const hasAnswerType = useMemo(() => {
+    if (!Array.isArray(message.parts)) return false;
+    return message.parts.some((part) => part.type === 'answer');
+  }, [message.parts]);
   const content = useMemo(() => {
     if (Array.isArray(message.parts)) {
       return message.parts
@@ -292,13 +298,10 @@ export const ChatMessage: FC<ChatMessageProps> = ({
             <Reasoning
               className="w-full mb-0"
               isStreaming={Boolean(isAssistantStreamingCurrent)}
-              defaultOpen={true}
+              defaultOpen={!hasAnswerType}
             >
               <ReasoningTrigger className="!text-xs" />
-              {/* <ReasoningContent className="!text-xs"> */}
-              <LoaderFive text={thinkingText} />
-              {/* {thinkingText} */}
-              {/* </ReasoningContent> */}
+              {!hasAnswerType && <LoaderFive text={thinkingText} />}
             </Reasoning>
           )}
         {!isUser && gameGeneratorItems.length > 0 && (
