@@ -168,6 +168,22 @@ function PlaygroundChatClientInner({ chatId }: PlaygroundChatClientProps) {
     attachments,
   });
 
+  // Sync paginated API messages (older history) into SSE message state without duplicates
+  useEffect(() => {
+    if (!chatInfo?.user_id) return;
+    if (!Array.isArray(chatMessages) || chatMessages.length === 0) return;
+
+    const apiMessages = transformChatMessages(chatMessages, chatInfo.user_id);
+    if (apiMessages.length === 0) return;
+
+    setMessages((prev) => {
+      const existingIds = new Set(prev.map((m) => m.id));
+      const toPrepend = apiMessages.filter((m) => !existingIds.has(m.id));
+      if (toPrepend.length === 0) return prev;
+      return [...toPrepend, ...prev];
+    });
+  }, [chatInfo?.user_id, chatMessages, setMessages]);
+
   useEffect(() => {
     if (inView && hasNextPage) {
       fetchNextPage();
