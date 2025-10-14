@@ -310,7 +310,10 @@ export const ChatMessage: FC<ChatMessageProps> = ({
     Array.isArray(message.parts) &&
     message.parts.length > 0 &&
     message.parts[message.parts.length - 1]?.type === 'thinking';
-  const showAssistantActions = !isUser && !isAssistantStreamingCurrent;
+  // Show assistant actions:
+  // - For old messages (not last): always show
+  // - For current streaming message: only show when complete (has DONE signal)
+  const showAssistantActions = !isUser && (!isLast || message.isComplete);
 
   return (
     <UIMessage from={isUser ? 'user' : 'assistant'}>
