@@ -1,6 +1,6 @@
 'use client';
 
-import { LoaderFive } from '@/components/motion/loader';
+// import { LoaderFive } from '@/components/motion/loader';
 import {
   Tooltip,
   TooltipContent,
@@ -35,7 +35,7 @@ import {
   ThumbsUpIcon,
 } from 'lucide-react';
 import Image from 'next/image';
-import { FC, ReactElement, useMemo, useState } from 'react';
+import { FC, ReactElement, useEffect, useMemo, useRef, useState } from 'react';
 import ReactMarkdown from 'react-markdown';
 import FileBlankIcon from '../../../../../public/icon/file-blank';
 
@@ -194,6 +194,36 @@ export const ChatMessage: FC<ChatMessageProps> = ({
     if (!Array.isArray(message.parts)) return false;
     return message.parts.some((part) => part.type === 'answer');
   }, [message.parts]);
+
+  // Track reasoning duration from thinking to text type
+  const [reasoningDuration, setReasoningDuration] = useState(0);
+  const thinkingStartTimeRef = useRef<number | null>(null);
+
+  // Track when thinking starts and ends
+  useEffect(() => {
+    if (!Array.isArray(message.parts)) return;
+
+    const thinkingPart = message.parts.find((part) => part.type === 'thinking');
+    const answerPart = message.parts.find((part) => part.type === 'answer');
+    const textPart = message.parts.find((part) => part.type === 'text');
+
+    if (
+      thinkingPart &&
+      !answerPart &&
+      !textPart &&
+      !thinkingStartTimeRef.current
+    ) {
+      // Thinking started, record start time
+      thinkingStartTimeRef.current = Date.now();
+    } else if ((answerPart || textPart) && thinkingStartTimeRef.current) {
+      // Answer or text appeared, calculate duration
+      const duration = Math.round(
+        (Date.now() - thinkingStartTimeRef.current) / 1000,
+      );
+      setReasoningDuration(duration);
+      thinkingStartTimeRef.current = null;
+    }
+  }, [message.parts]);
   const content = useMemo(() => {
     if (Array.isArray(message.parts)) {
       return message.parts
@@ -299,9 +329,11 @@ export const ChatMessage: FC<ChatMessageProps> = ({
               className="w-full mb-0"
               isStreaming={Boolean(isAssistantStreamingCurrent)}
               defaultOpen={!hasAnswerType}
+              duration={reasoningDuration}
             >
               <ReasoningTrigger className="!text-xs" />
-              {!hasAnswerType && <LoaderFive text={thinkingText} />}
+              {/* TODO: Currently, we are not showing the thinking text when the answer type is present, this will be reopened later. */}
+              {/* {!hasAnswerType && <LoaderFive text={thinkingText} />} */}
             </Reasoning>
           )}
         {!isUser && gameGeneratorItems.length > 0 && (

@@ -1,5 +1,6 @@
 'use client';
 
+import { LoaderFive } from '@/components/motion';
 import {
   Collapsible,
   CollapsibleContent,
@@ -60,11 +61,19 @@ export const Reasoning = memo(
       defaultProp: 0,
     });
 
+    // Use duration prop if provided, otherwise use internal state
+    const finalDuration = durationProp !== undefined ? durationProp : duration;
+
     const [hasAutoClosedRef, setHasAutoClosedRef] = useState(false);
     const [startTime, setStartTime] = useState<number | null>(null);
 
-    // Track duration when streaming starts and ends
+    // Track duration when streaming starts and ends (only if no duration prop is provided)
     useEffect(() => {
+      if (durationProp !== undefined) {
+        // If duration is provided as prop, use it and don't auto-calculate
+        return;
+      }
+
       if (isStreaming) {
         if (startTime === null) {
           setStartTime(Date.now());
@@ -73,7 +82,7 @@ export const Reasoning = memo(
         setDuration(Math.round((Date.now() - startTime) / 1000));
         setStartTime(null);
       }
-    }, [isStreaming, startTime, setDuration]);
+    }, [isStreaming, startTime, setDuration, durationProp]);
 
     // Auto-open when streaming starts, auto-close when streaming ends (once only)
     useEffect(() => {
@@ -95,7 +104,7 @@ export const Reasoning = memo(
 
     return (
       <ReasoningContext.Provider
-        value={{ isStreaming, isOpen, setIsOpen, duration }}
+        value={{ isStreaming, isOpen, setIsOpen, duration: finalDuration }}
       >
         <Collapsible
           className={cn('not-prose mb-4', className)}
@@ -123,7 +132,7 @@ export const ReasoningTrigger = memo(
     children,
     ...props
   }: ReasoningTriggerProps) => {
-    const { isStreaming, isOpen, duration } = useReasoning();
+    const { isOpen, duration } = useReasoning();
 
     return (
       <CollapsibleTrigger
@@ -136,10 +145,10 @@ export const ReasoningTrigger = memo(
         {children ?? (
           <>
             <BrainIcon className="size-4" />
-            {isStreaming || duration === 0 ? (
-              <p>Thinking...</p>
-            ) : (
+            {duration > 0 ? (
               <p>Thought for {duration} seconds</p>
+            ) : (
+              <LoaderFive text="Agent is thinking..." />
             )}
             <ChevronDownIcon
               className={cn(
