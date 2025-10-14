@@ -1,13 +1,15 @@
-import { ChartLineLinear } from '@/components/chart/chart-line-linear';
-import { ChartRadialText } from '@/components/chart/radial-chart';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { ChartLineLinear, ChartRadialText } from '@/components/chart';
 import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@/components/ui/select';
+} from '@/components/ui';
 import { Clock3 } from 'lucide-react';
 import Label from '../../../../../public/icon/label';
 

@@ -9,6 +9,7 @@ import {
 } from '@/components/ui/sheet';
 import { useEffect, useState } from 'react';
 
+import { Button, buttonVariants } from '@/components/ui';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import {
   DropdownMenu,
@@ -38,10 +39,9 @@ import {
 import { signIn, signOut, useSession } from 'next-auth/react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import SettingIcon from '../../public/icon/setting';
-import ShareIcon from '../../public/icon/share';
-import ZoanLogo from '../../public/icon/zoan-logo';
-import { Button, buttonVariants } from './ui/button';
+import SettingIcon from '../../../public/icon/setting';
+import ShareIcon from '../../../public/icon/share';
+import ZoanLogo from '../../../public/icon/zoan-logo';
 
 interface RouteProps {
   href: string;
@@ -63,7 +63,7 @@ const routeList: RouteProps[] = [
   },
 ];
 
-export default function AppNavbar() {
+export function AppNavbar() {
   const [isOpen, setIsOpen] = useState<boolean>(false);
   const router = useRouter();
   const { data: session } = useSession();

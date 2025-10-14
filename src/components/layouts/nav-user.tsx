@@ -38,7 +38,7 @@ import {
   Users,
 } from 'lucide-react';
 import { FC, useEffect } from 'react';
-import User from '../../public/icon/user';
+import User from '../../../public/icon/user';
 
 export type NavUserProps = {
   user: {

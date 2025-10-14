@@ -1,4 +1,4 @@
-import { AppSidebar } from '@/components/app-sidebar';
+import { AppSidebar } from '@/components/layouts';
 import { SidebarProvider } from '@/components/ui/sidebar';
 import { AgentProvider } from '@/contexts/AgentContext';
 import ZoanBaseLayout from '@/templates/ZoanBaseLayout';
