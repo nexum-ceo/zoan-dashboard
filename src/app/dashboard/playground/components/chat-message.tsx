@@ -1,12 +1,12 @@
 'use client';
 
+import { LoaderFive } from '@/components/motion/loader';
 import {
   Tooltip,
   TooltipContent,
   TooltipProvider,
   TooltipTrigger,
 } from '@/components/ui';
-import { LoaderFive } from '@/components/ui/loader';
 import { Action, Actions } from '@/components/ui/shadcn-io/ai/actions';
 import {
   MessageAvatar,

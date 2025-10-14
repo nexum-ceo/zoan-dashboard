@@ -1,3 +1,4 @@
+export * from '../motion/loader';
 export * from './alert-dialog';
 export * from './avatar';
 export * from './badge';
@@ -12,7 +13,6 @@ export * from './form';
 export * from './hover-card';
 export * from './input';
 export * from './label';
-export * from './loader';
 export * from './navigation-menu';
 export * from './progress';
 export * from './scroll-area';
