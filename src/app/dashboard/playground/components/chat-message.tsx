@@ -1,5 +1,12 @@
 'use client';
 
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from '@/components/ui';
+import { LoaderFive } from '@/components/ui/loader';
 import { Action, Actions } from '@/components/ui/shadcn-io/ai/actions';
 import {
   MessageAvatar,
@@ -8,7 +15,6 @@ import {
 } from '@/components/ui/shadcn-io/ai/message';
 import {
   Reasoning,
-  ReasoningContent,
   ReasoningTrigger,
 } from '@/components/ui/shadcn-io/ai/reasoning';
 import { Response } from '@/components/ui/shadcn-io/ai/response';
@@ -19,12 +25,6 @@ import {
   TaskTrigger,
 } from '@/components/ui/shadcn-io/ai/task';
 import { ImageZoom } from '@/components/ui/shadcn-io/image-zoom';
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from '@/components/ui/tooltip';
 import { getMediaTypeFromFilename } from '@/lib/s3';
 import {
   CheckIcon,
@@ -35,7 +35,7 @@ import {
   ThumbsUpIcon,
 } from 'lucide-react';
 import Image from 'next/image';
-import React, { FC, useMemo, useState } from 'react';
+import { FC, ReactElement, useMemo, useState } from 'react';
 import ReactMarkdown from 'react-markdown';
 import FileBlankIcon from '../../../../../public/icon/file-blank';
 
@@ -43,7 +43,7 @@ import FileBlankIcon from '../../../../../public/icon/file-blank';
 const GameGeneratorContent = ({ content }: { content: string }) => {
   const parseGameGeneratorContent = (text: string) => {
     const lines = text.split('\n');
-    const result: React.ReactElement[] = [];
+    const result: ReactElement[] = [];
 
     for (let i = 0; i < lines.length; i++) {
       const line = lines[i];
@@ -251,13 +251,14 @@ export const ChatMessage: FC<ChatMessageProps> = ({
     try {
       const parsed = Array.isArray(raw) ? raw : JSON.parse(raw as string);
       if (!Array.isArray(parsed)) return [];
-      
-      const filtered = parsed.filter((a) => a && typeof a.url === 'string')
+
+      const filtered = parsed
+        .filter((a) => a && typeof a.url === 'string')
         .map((a) => ({
           url: a.url,
           file_name: a.file_name || a.url.split('/').pop() || 'file', // Extract filename from URL if not provided
           file_size: a.file_size || 0,
-          mime_type: a.mime_type || ''
+          mime_type: a.mime_type || '',
         }));
 
       return filtered;
@@ -294,9 +295,10 @@ export const ChatMessage: FC<ChatMessageProps> = ({
               defaultOpen={true}
             >
               <ReasoningTrigger className="!text-xs" />
-              <ReasoningContent className="!text-xs">
-                {thinkingText}
-              </ReasoningContent>
+              {/* <ReasoningContent className="!text-xs"> */}
+              <LoaderFive text={thinkingText} />
+              {/* {thinkingText} */}
+              {/* </ReasoningContent> */}
             </Reasoning>
           )}
         {!isUser && gameGeneratorItems.length > 0 && (

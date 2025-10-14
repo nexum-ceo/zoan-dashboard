@@ -2,9 +2,8 @@
 import { Settings, User, Users } from 'lucide-react';
 
 import { SelectAssistant } from '@/app/dashboard/playground/components';
-import { NavUser } from '@/components/nav-user';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
+import { NavUser } from '@/components/layouts';
+import { Button, Input } from '@/components/ui';
 import {
   Sidebar,
   SidebarContent,
@@ -24,13 +23,13 @@ import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { useRef } from 'react';
 import { toast } from 'sonner';
-import AddPlusSquare from '../../public/icon/add-plus-square';
-import Clock from '../../public/icon/clock';
-import FileBlank from '../../public/icon/file-blank';
-import Globe from '../../public/icon/globe';
-import Search from '../../public/icon/search';
-import TicketVoucher from '../../public/icon/ticket-voucher';
-import UserIcon from '../../public/icon/user';
+import AddPlusSquare from '../../../public/icon/add-plus-square';
+import Clock from '../../../public/icon/clock';
+import FileBlank from '../../../public/icon/file-blank';
+import Globe from '../../../public/icon/globe';
+import Search from '../../../public/icon/search';
+import TicketVoucher from '../../../public/icon/ticket-voucher';
+import UserIcon from '../../../public/icon/user';
 
 // Navigation items with dynamic active state
 const navigationItems = [

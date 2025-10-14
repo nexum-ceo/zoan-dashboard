@@ -6,8 +6,8 @@ import { ChatMessage } from '@/app/dashboard/playground/components/chat-message'
 import { ChatSettings } from '@/app/dashboard/playground/components/chat-setting';
 import { ExplorePanel } from '@/app/dashboard/playground/components/explore';
 
-import { NavUser } from '@/components/nav-user';
-import { Button } from '@/components/ui/button';
+import { NavUser } from '@/components/layouts';
+import { Button } from '@/components/ui';
 import { DragDropOverlay } from '@/components/ui/drag-drop-overlay';
 import {
   ResizableHandle,
