@@ -13,6 +13,8 @@ import {
   GetSpecificChatResType,
   PresignedUrlBodyType,
   PresignedUrlResType,
+  UpdateChatTitleBodyType,
+  UpdateChatTitleResType,
 } from '@/types/chat';
 
 const chatApiRequest = {
@@ -146,6 +148,14 @@ const chatApiRequest = {
       data: {
         path,
       },
+      baseURL: '',
+    }),
+
+  updateChatTitle: (id: string, body: UpdateChatTitleBodyType) =>
+    axiosInstance.patch<UpdateChatTitleResType>(`/chat/${id}`, body),
+
+  sUpdateChatTitle: (id: string, body: UpdateChatTitleBodyType) =>
+    axiosInstance.patch<UpdateChatTitleResType>(`/chat/${id}`, body, {
       baseURL: '',
     }),
 };
