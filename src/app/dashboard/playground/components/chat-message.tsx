@@ -1,5 +1,12 @@
 'use client';
 
+// import { LoaderFive } from '@/components/motion/loader';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from '@/components/ui';
 import { Action, Actions } from '@/components/ui/shadcn-io/ai/actions';
 import {
   MessageAvatar,
@@ -8,7 +15,6 @@ import {
 } from '@/components/ui/shadcn-io/ai/message';
 import {
   Reasoning,
-  ReasoningContent,
   ReasoningTrigger,
 } from '@/components/ui/shadcn-io/ai/reasoning';
 import { Response } from '@/components/ui/shadcn-io/ai/response';
@@ -19,12 +25,6 @@ import {
   TaskTrigger,
 } from '@/components/ui/shadcn-io/ai/task';
 import { ImageZoom } from '@/components/ui/shadcn-io/image-zoom';
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from '@/components/ui/tooltip';
 import { getMediaTypeFromFilename } from '@/lib/s3';
 import {
   CheckIcon,
@@ -35,7 +35,7 @@ import {
   ThumbsUpIcon,
 } from 'lucide-react';
 import Image from 'next/image';
-import React, { FC, useMemo, useState } from 'react';
+import { FC, ReactElement, useEffect, useMemo, useRef, useState } from 'react';
 import ReactMarkdown from 'react-markdown';
 import FileBlankIcon from '../../../../../public/icon/file-blank';
 
@@ -43,7 +43,7 @@ import FileBlankIcon from '../../../../../public/icon/file-blank';
 const GameGeneratorContent = ({ content }: { content: string }) => {
   const parseGameGeneratorContent = (text: string) => {
     const lines = text.split('\n');
-    const result: React.ReactElement[] = [];
+    const result: ReactElement[] = [];
 
     for (let i = 0; i < lines.length; i++) {
       const line = lines[i];
@@ -188,6 +188,42 @@ export const ChatMessage: FC<ChatMessageProps> = ({
       .map((part) => part.text)
       .join('\n');
   }, [message.parts]);
+
+  // Check if message has answer type to hide thinking text immediately
+  const hasAnswerType = useMemo(() => {
+    if (!Array.isArray(message.parts)) return false;
+    return message.parts.some((part) => part.type === 'answer');
+  }, [message.parts]);
+
+  // Track reasoning duration from thinking to text type
+  const [reasoningDuration, setReasoningDuration] = useState(0);
+  const thinkingStartTimeRef = useRef<number | null>(null);
+
+  // Track when thinking starts and ends
+  useEffect(() => {
+    if (!Array.isArray(message.parts)) return;
+
+    const thinkingPart = message.parts.find((part) => part.type === 'thinking');
+    const answerPart = message.parts.find((part) => part.type === 'answer');
+    const textPart = message.parts.find((part) => part.type === 'text');
+
+    if (
+      thinkingPart &&
+      !answerPart &&
+      !textPart &&
+      !thinkingStartTimeRef.current
+    ) {
+      // Thinking started, record start time
+      thinkingStartTimeRef.current = Date.now();
+    } else if ((answerPart || textPart) && thinkingStartTimeRef.current) {
+      // Answer or text appeared, calculate duration
+      const duration = Math.round(
+        (Date.now() - thinkingStartTimeRef.current) / 1000,
+      );
+      setReasoningDuration(duration);
+      thinkingStartTimeRef.current = null;
+    }
+  }, [message.parts]);
   const content = useMemo(() => {
     if (Array.isArray(message.parts)) {
       return message.parts
@@ -251,13 +287,14 @@ export const ChatMessage: FC<ChatMessageProps> = ({
     try {
       const parsed = Array.isArray(raw) ? raw : JSON.parse(raw as string);
       if (!Array.isArray(parsed)) return [];
-      
-      const filtered = parsed.filter((a) => a && typeof a.url === 'string')
+
+      const filtered = parsed
+        .filter((a) => a && typeof a.url === 'string')
         .map((a) => ({
           url: a.url,
           file_name: a.file_name || a.url.split('/').pop() || 'file', // Extract filename from URL if not provided
           file_size: a.file_size || 0,
-          mime_type: a.mime_type || ''
+          mime_type: a.mime_type || '',
         }));
 
       return filtered;
@@ -273,7 +310,10 @@ export const ChatMessage: FC<ChatMessageProps> = ({
     Array.isArray(message.parts) &&
     message.parts.length > 0 &&
     message.parts[message.parts.length - 1]?.type === 'thinking';
-  const showAssistantActions = !isUser && !isAssistantStreamingCurrent;
+  // Show assistant actions:
+  // - For old messages (not last): always show
+  // - For current streaming message: only show when complete (has DONE signal)
+  const showAssistantActions = !isUser && (!isLast || message.isComplete);
 
   return (
     <UIMessage from={isUser ? 'user' : 'assistant'}>
@@ -291,12 +331,12 @@ export const ChatMessage: FC<ChatMessageProps> = ({
             <Reasoning
               className="w-full mb-0"
               isStreaming={Boolean(isAssistantStreamingCurrent)}
-              defaultOpen={true}
+              defaultOpen={!hasAnswerType}
+              duration={reasoningDuration}
             >
               <ReasoningTrigger className="!text-xs" />
-              <ReasoningContent className="!text-xs">
-                {thinkingText}
-              </ReasoningContent>
+              {/* TODO: Currently, we are not showing the thinking text when the answer type is present, this will be reopened later. */}
+              {/* {!hasAnswerType && <LoaderFive text={thinkingText} />} */}
             </Reasoning>
           )}
         {!isUser && gameGeneratorItems.length > 0 && (

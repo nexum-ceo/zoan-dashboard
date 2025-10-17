@@ -1,5 +1,4 @@
-import AnnouncementBar from '@/components/announcement-bar';
-import AppNavbar from '@/components/app-navbar';
+import { AnnouncementBar, AppNavbar } from '@/components/layouts';
 import SessionProvider from '@/components/session-provider';
 import ZoanBaseLayout from '@/templates/ZoanBaseLayout';
 import React from 'react';
