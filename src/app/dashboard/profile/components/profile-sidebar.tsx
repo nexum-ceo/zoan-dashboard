@@ -19,6 +19,7 @@ import { Label } from '@/components/ui/label';
 import { Separator } from '@/components/ui/separator';
 import { Textarea } from '@/components/ui/textarea';
 import { useUserQuery } from '@/contexts/UserContext';
+import { useUpdateUserProfileMutation } from '@/queries/useUser';
 import { UserProfileUpdateSchema, UserProfileUpdateType } from '@/types/user';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { AnimatePresence, motion } from 'framer-motion';
@@ -32,15 +33,14 @@ import X from '../../../../../public/icon/x';
 export default function ProfileSidebar() {
   const [editing, setEditing] = useState(false);
   const { userProfile } = useUserQuery();
+  const updateUserProfile = useUpdateUserProfileMutation();
 
   const emailLocal = userProfile?.email?.split('@')[0] || '';
   const displayUsername = userProfile?.username || emailLocal;
-
-  // Use central schema validation from types
   const normalizeSocialLinks = (
     links: { type: string; url: string }[] | undefined,
   ) => {
-    const desiredOrder = ['location', 'x', 'github', 'website'];
+    const desiredOrder = ['x', 'github', 'website'];
     const map = new Map((links || []).map((l) => [l.type, l.url]));
     return desiredOrder.map((t) => ({ type: t, url: map.get(t) ?? '' }));
   };
@@ -48,19 +48,19 @@ export default function ProfileSidebar() {
   const form = useForm<UserProfileUpdateType>({
     resolver: zodResolver(UserProfileUpdateSchema),
     defaultValues: {
-      name: 'hehehe',
-      username: 'huhuhu',
+      name: '',
+      username: '',
+      location: '',
       social_link: normalizeSocialLinks([]),
     },
   });
-
-  console.log('form errors', form.formState.errors);
 
   useEffect(() => {
     if (userProfile) {
       form.reset({
         name: emailLocal || '',
         username: userProfile.username || '',
+        location: userProfile.location || '',
         social_link: normalizeSocialLinks(userProfile.social_link),
       });
     }
@@ -68,12 +68,41 @@ export default function ProfileSidebar() {
 
   const socialLinks = form.watch('social_link');
 
-  const onSubmit = () => {
-    // TODO: Wire API update when endpoint is available
-    console.log('Submit profile', form.getValues());
-    // For now, just close editing view
-    setEditing(false);
-    // console.log('Submit profile', values);
+  const onSubmit = async () => {
+    const values = form.getValues();
+    const dirtyFields = form.formState.dirtyFields as Partial<
+      Record<keyof UserProfileUpdateType, unknown>
+    >;
+    const payload: Partial<UserProfileUpdateType> = {};
+    if (dirtyFields.name) payload.name = values.name;
+    if (dirtyFields.username) payload.username = values.username;
+    if (dirtyFields.location) payload.location = values.location;
+
+    // Build social_link only if any of its entries changed
+    const dirtySocialUnknown = dirtyFields.social_link;
+    const socialLinkChanged =
+      Array.isArray(dirtySocialUnknown) &&
+      dirtySocialUnknown.some((entry) => {
+        if (entry && typeof entry === 'object') {
+          return Object.prototype.hasOwnProperty.call(entry, 'url');
+        }
+        return false;
+      });
+    if (socialLinkChanged) {
+      payload.social_link = values.social_link;
+    }
+    if (!userProfile?.id) return;
+    if (updateUserProfile.isPending) return;
+
+    try {
+      await updateUserProfile.mutateAsync({
+        userId: userProfile.id,
+        body: payload,
+      });
+      setEditing(false);
+    } catch {
+      // keep editing state; errors are handled by react-query or UI toast elsewhere
+    }
   };
 
   const handleCancel = () => {
@@ -175,6 +204,31 @@ export default function ProfileSidebar() {
                   )}
                 />
                 <div className="space-y-1">
+                  <Label className="text-sm text-[#272727]">Location</Label>
+                  <FormField
+                    control={form.control}
+                    name="location"
+                    render={({ field, fieldState }) => (
+                      <FormItem className="w-full">
+                        <InputGroup className="bg-gray-100">
+                          <InputGroupAddon>
+                            <MapPin className="w-3.5 h-3.5 text-[#272727]" />
+                          </InputGroupAddon>
+                          <FormControl>
+                            <InputGroupInput
+                              {...field}
+                              aria-invalid={!!fieldState.error}
+                              placeholder={'Location'}
+                              className="text-sm"
+                            />
+                          </FormControl>
+                        </InputGroup>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
+                <div className="space-y-1">
                   <Label className="text-sm text-[#272727]">Bio</Label>
                   <Textarea
                     placeholder="Bio"
@@ -193,6 +247,7 @@ export default function ProfileSidebar() {
                           )}
                           defaultValue={entry.type}
                         />
+
                         <FormField
                           control={form.control}
                           name={`social_link.${index}.url` as const}
@@ -200,9 +255,6 @@ export default function ProfileSidebar() {
                             <FormItem className="w-full">
                               <InputGroup className="bg-gray-100">
                                 <InputGroupAddon>
-                                  {entry.type === 'location' && (
-                                    <MapPin className="w-3.5 h-3.5 text-[#272727]" />
-                                  )}
                                   {entry.type === 'x' && (
                                     <X className="w-3.5 h-3.5 text-[#272727]" />
                                   )}
@@ -218,9 +270,7 @@ export default function ProfileSidebar() {
                                     {...field}
                                     aria-invalid={!!fieldState.error}
                                     placeholder={
-                                      entry.type === 'location'
-                                        ? 'Location'
-                                        : entry.type === 'x'
+                                      entry.type === 'x'
                                         ? 'X'
                                         : entry.type === 'github'
                                         ? 'Github'

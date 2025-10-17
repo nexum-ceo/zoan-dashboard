@@ -12,6 +12,7 @@ export const UserProfileSchema = z.object({
       url: z.string(),
     }),
   ),
+  location: z.string(),
   created_at: z.string(),
   updated_at: z.string(),
 });
@@ -80,7 +81,9 @@ export const UserProfileUpdateSchema = UserProfileSchema.omit({
   role: true,
   created_at: true,
   updated_at: true,
-}).extend({
-  social_link: z.array(SocialLinkUpdateSchema),
-});
+})
+  .extend({
+    social_link: z.array(SocialLinkUpdateSchema).optional(),
+  })
+  .partial();
 export type UserProfileUpdateType = z.infer<typeof UserProfileUpdateSchema>;

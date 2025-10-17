@@ -1,5 +1,6 @@
 import userApiRequest from '@/api-requests/user';
-import { useQuery } from '@tanstack/react-query';
+import { UserProfileUpdateType } from '@/types/user';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useSession } from 'next-auth/react';
 
 export const useCurrentUserProfile = () => {
@@ -8,8 +9,30 @@ export const useCurrentUserProfile = () => {
   return useQuery({
     queryKey: ['current-user-profile'],
     queryFn: () => userApiRequest.sGetUserProfile(),
-    // We call Next.js API route /api/user/me which uses server session, so
-    // don't block on client-side accessToken being present
     enabled: status === 'authenticated',
+  });
+};
+
+export const useUpdateUserProfileMutation = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({
+      userId,
+      body,
+    }: {
+      userId: string;
+      body: UserProfileUpdateType;
+    }) => userApiRequest.sUpdateUserById(userId, body),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['current-user-profile'] });
+    },
+  });
+};
+
+export const useCheckUsernameExists = (username: string) => {
+  return useQuery({
+    queryKey: ['is-existing-username', username],
+    queryFn: () => userApiRequest.sCheckUsernameExists(username),
+    enabled: !!username,
   });
 };
