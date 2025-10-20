@@ -1,2 +1,2 @@
-// Model queries
-export * from './queries';
+export * from './key';
+export * from './mutations';

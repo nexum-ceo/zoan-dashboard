@@ -1,28 +1,19 @@
 'use client';
 
 import chatApiRequest from '@/api-requests/chat';
-import {
-  CreateChatAgentSettingBodyType,
-  PresignedUrlBodyType,
-  UpdateChatTitleBodyType,
-} from '@/types/chat';
-import {
-  useInfiniteQuery,
-  useMutation,
-  useQuery,
-  useQueryClient,
-} from '@tanstack/react-query';
+import { useInfiniteQuery, useQuery } from '@tanstack/react-query';
+import { CHAT_KEYS } from '../key';
 
 export const useChatList = () => {
   return useQuery({
-    queryKey: ['chat-list'],
+    queryKey: CHAT_KEYS.chatList,
     queryFn: chatApiRequest.sList,
   });
 };
 
 export const useInfiniteChatList = () => {
   return useInfiniteQuery({
-    queryKey: ['chat-list-infinite'],
+    queryKey: CHAT_KEYS.chatListInfinite,
     queryFn: ({ pageParam = 0 }) =>
       chatApiRequest.sListInfinite({ offset: Number(pageParam), limit: 10 }),
     initialPageParam: 0,
@@ -45,19 +36,9 @@ export const useInfiniteChatList = () => {
   });
 };
 
-export const useCreateChatMutation = () => {
-  const queryClient = useQueryClient();
-  return useMutation({
-    mutationFn: chatApiRequest.sAdd,
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['chat-list-infinite'] });
-    },
-  });
-};
-
 export const useGetChatMessagesInfinite = (id: string) => {
   return useInfiniteQuery({
-    queryKey: ['chat-messages-infinite', id],
+    queryKey: CHAT_KEYS.chatMessagesInfinite(id),
     queryFn: ({ pageParam = 0 }) =>
       chatApiRequest.sGetChatMessages(id, {
         offset: Number(pageParam),
@@ -86,14 +67,14 @@ export const useGetChatMessagesInfinite = (id: string) => {
 
 export const useGetChat = (id: string) => {
   return useQuery({
-    queryKey: ['chat', id],
+    queryKey: CHAT_KEYS.chat(id),
     queryFn: () => chatApiRequest.sGetChat(id),
   });
 };
 
 export const useGetPrimaryAgentByChatId = (id: string) => {
   return useQuery({
-    queryKey: ['primary-agent-by-chat-id', id],
+    queryKey: CHAT_KEYS.primaryAgentByChatId(id),
     queryFn: () => chatApiRequest.sGetPrimaryAgentByChatId(id),
     enabled: !!id,
   });
@@ -101,55 +82,16 @@ export const useGetPrimaryAgentByChatId = (id: string) => {
 
 export const useGetChatAgentSettingByChatId = (id: string) => {
   return useQuery({
-    queryKey: ['chat-agent-setting-by-chat-id', id],
+    queryKey: CHAT_KEYS.chatAgentSettingByChatId(id),
     queryFn: () => chatApiRequest.sGetChatAgentSettingByChatId(id),
     enabled: !!id,
   });
 };
 
-export const useCreateChatAgentSettingMutation = (id: string) => {
-  const queryClient = useQueryClient();
-  return useMutation({
-    mutationFn: (body: CreateChatAgentSettingBodyType) =>
-      chatApiRequest.sCreateChatAgentSetting(id, body),
-    onSuccess: () => {
-      queryClient.invalidateQueries({
-        queryKey: ['chat-agent-setting-by-chat-id', id],
-      });
-    },
-  });
-};
-
 export const useGetChatGameVersionList = (id: string) => {
   return useQuery({
-    queryKey: ['chat-game-version-list', id],
+    queryKey: CHAT_KEYS.chatGameVersionList(id),
     queryFn: () => chatApiRequest.sGetChatGameVersionList(id),
     enabled: !!id,
-  });
-};
-
-export const useGetChatPresignedUrl = (id: string) => {
-  return useMutation({
-    mutationFn: (body: PresignedUrlBodyType) =>
-      chatApiRequest.sGetPresignedUrl(id, body),
-  });
-};
-
-export const useDeleteFileMutation = (id: string) => {
-  return useMutation({
-    mutationFn: (path: string) => chatApiRequest.sDeleteFile(id, path),
-  });
-};
-
-export const useUpdateChatTitleMutation = (id: string) => {
-  const queryClient = useQueryClient();
-  return useMutation({
-    mutationFn: (body: UpdateChatTitleBodyType) =>
-      chatApiRequest.sUpdateChatTitle(id, body),
-    onSuccess: () => {
-      // Invalidate both the specific chat and the chat list to refresh the UI
-      queryClient.invalidateQueries({ queryKey: ['chat', id] });
-      queryClient.invalidateQueries({ queryKey: ['chat-list-infinite'] });
-    },
   });
 };

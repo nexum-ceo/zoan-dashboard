@@ -30,8 +30,7 @@ import {
   useGetChatMessagesInfinite,
   useGetChatPresignedUrl,
 } from '@/hooks/data/chat';
-import { useIsMobile } from '@/hooks/system/use-mobile';
-import { useSSEChat } from '@/hooks/system/useSSEChat';
+import { useIsMobile, useSSEChat } from '@/hooks/system';
 import { deleteAttachment, getAttachment } from '@/lib/attachment-store';
 import {
   clearPendingAttachments,

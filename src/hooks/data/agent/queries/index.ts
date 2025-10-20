@@ -1,60 +1,31 @@
 import agentApiRequest from '@/api-requests/agent';
-import { CreateAgentBodyType, UpdateAgentBodyType } from '@/types/agent';
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { useQuery } from '@tanstack/react-query';
+import { AGENT_KEYS } from '../key';
 
 export const useGetAgentList = () => {
   return useQuery({
-    queryKey: ['agents'],
+    queryKey: AGENT_KEYS.agents,
     queryFn: () => agentApiRequest.sList(),
-  });
-};
-
-export const useCreateAgentMutation = () => {
-  const queryClient = useQueryClient();
-  return useMutation({
-    mutationFn: (body: CreateAgentBodyType) => agentApiRequest.sAdd(body),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['agents'] });
-    },
   });
 };
 
 export const useGetSpecificAgent = (id: string) => {
   return useQuery({
-    queryKey: ['agent', id],
+    queryKey: AGENT_KEYS.agent(id),
     queryFn: () => agentApiRequest.sGetAgent(id),
-  });
-};
-
-export const useUpdateAgentMutation = (id: string) => {
-  const queryClient = useQueryClient();
-  return useMutation({
-    mutationFn: (body: UpdateAgentBodyType) =>
-      agentApiRequest.sUpdate(id, body),
-    onSuccess: () => {
-      queryClient.invalidateQueries({
-        queryKey: ['primary-agent-by-chat-id'],
-      });
-      queryClient.invalidateQueries({
-        queryKey: ['agent-available'],
-      });
-      queryClient.invalidateQueries({
-        queryKey: ['agents'],
-      });
-    },
   });
 };
 
 export const useGetAgentAvailable = () => {
   return useQuery({
-    queryKey: ['agent-available'],
+    queryKey: AGENT_KEYS.agentAvailable,
     queryFn: () => agentApiRequest.sGetAgentAvailable(),
   });
 };
 
 export const useGetInstalledAgent = () => {
   return useQuery({
-    queryKey: ['agent-installed'],
+    queryKey: AGENT_KEYS.agentInstalled,
     queryFn: () => agentApiRequest.sGetInstalledAgent(),
   });
 };
