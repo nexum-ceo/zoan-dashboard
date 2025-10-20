@@ -39,9 +39,9 @@ export const useCheckUsernameExists = (username: string) => {
 
 export const useCheckUsernameExistsMutation = () => {
   return useMutation({
-    mutationFn: async (username: string) => {
+    mutationFn: async (username: string): Promise<boolean> => {
       const res = await userApiRequest.sCheckUsernameExists(username);
-      return res.data; // boolean
+      return res.data;
     },
   });
 };
