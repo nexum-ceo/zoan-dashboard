@@ -2,14 +2,6 @@ import BaseHandleCustom from '@/components/base-handle-custom';
 import { WorkflowHeader } from '@/components/workflow/workflow-header';
 import { WorkflowLeftSideBar } from '@/components/workflow/workflow-left-sidebar';
 import { WorkflowRightSideBar } from '@/components/workflow/workflow-right-sidebar';
-import type { WorkflowConnection, WorkflowNode } from '@/types/workflow';
-import type { Edge, Node } from '@xyflow/react';
-import { Background, Controls, MiniMap, ReactFlow } from '@xyflow/react';
-import '@xyflow/react/dist/style.css';
-import { del as idbDel, set as idbSet } from 'idb-keyval';
-import { FC, useState } from 'react';
-import { toast } from 'sonner';
-import { v4 as uuidv4 } from 'uuid';
 import {
   LocalEdge,
   LocalNode,
@@ -18,7 +10,15 @@ import {
   useNodeHandlers,
   usePersistWorkflow,
   useRestoreWorkflow,
-} from '../../../../../hooks/useWorkflow';
+} from '@/hooks/system';
+import type { WorkflowConnection, WorkflowNode } from '@/types/workflow';
+import type { Edge, Node } from '@xyflow/react';
+import { Background, Controls, MiniMap, ReactFlow } from '@xyflow/react';
+import '@xyflow/react/dist/style.css';
+import { del as idbDel, set as idbSet } from 'idb-keyval';
+import { FC, useState } from 'react';
+import { toast } from 'sonner';
+import { v4 as uuidv4 } from 'uuid';
 
 export type FlowProps = {
   onClose?: () => void;

@@ -18,7 +18,7 @@ import {
   PromptInputTools,
 } from '@/components/ui/shadcn-io/ai/prompt-input';
 import { useDragDrop } from '@/contexts/DragDropContext';
-import { useZoanToast } from '@/hooks/useZoanToast';
+import { useZoanToast } from '@/hooks/ui/useZoanToast';
 import { putAttachment } from '@/lib/attachment-store';
 import { getPendingAttachments, setPendingAttachments } from '@/lib/chat-utils';
 import { getMediaTypeFromFilename } from '@/lib/s3';

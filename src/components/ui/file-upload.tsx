@@ -3,7 +3,7 @@
 import libraryApiRequest from '@/api-requests/library';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
-import { useZoanToast } from '@/hooks/useZoanToast';
+import { useZoanToast } from '@/hooks/ui/useZoanToast';
 import { getMediaTypeFromFilename } from '@/lib/s3';
 import { cn } from '@/lib/utils';
 import {

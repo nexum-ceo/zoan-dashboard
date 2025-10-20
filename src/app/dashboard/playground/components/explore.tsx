@@ -7,9 +7,9 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui';
-import { useFileContent } from '@/hooks/useFileContent';
-import { useFolderContent } from '@/hooks/useFolderContent';
-import { useGameSignalDetection } from '@/hooks/useGameSignalDetection';
+import { useFileContent } from '@/hooks/system';
+import { useFolderContent } from '@/hooks/system/useFolderContent';
+import { useGameSignalDetection } from '@/hooks/system/useGameSignalDetection';
 import { downloadSandboxZip } from '@/lib/download-utils';
 import { extractS3CommonPrefixes, extractS3Contents } from '@/lib/s3';
 import { processS3FilesToSandbox, selectActiveFile } from '@/lib/sandbox-utils';

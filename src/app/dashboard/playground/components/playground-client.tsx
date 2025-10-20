@@ -6,7 +6,7 @@ import PersonalSpace from '@/app/dashboard/playground/components/personal-space'
 import { DragDropOverlay } from '@/components/ui/drag-drop-overlay';
 import OptionButtons from '@/components/ui/option-buttons';
 import { DragDropProvider, useDragDrop } from '@/contexts/DragDropContext';
-import { useSSEChat } from '@/hooks/useSSEChat';
+import { useSSEChat } from '@/hooks/system/useSSEChat';
 // Pending attachment metadata is handled within ChatInput using IndexedDB
 import { handleErrorApi } from '@/lib/utils';
 import { useCreateChatMutation } from '@/queries/useChat';
