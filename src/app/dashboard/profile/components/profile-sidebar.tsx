@@ -19,7 +19,11 @@ import { Label } from '@/components/ui/label';
 import { Separator } from '@/components/ui/separator';
 import { Textarea } from '@/components/ui/textarea';
 import { useUserQuery } from '@/contexts/UserContext';
-import { useUpdateUserProfileMutation } from '@/queries/useUser';
+import { handleErrorApi } from '@/lib/utils';
+import {
+  useCheckUsernameExistsMutation,
+  useUpdateUserProfileMutation,
+} from '@/queries/useUser';
 import { UserProfileUpdateSchema, UserProfileUpdateType } from '@/types/user';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { AnimatePresence, motion } from 'framer-motion';
@@ -34,6 +38,7 @@ export default function ProfileSidebar() {
   const [editing, setEditing] = useState(false);
   const { userProfile } = useUserQuery();
   const updateUserProfile = useUpdateUserProfileMutation();
+  const checkUsernameExistsMutation = useCheckUsernameExistsMutation();
 
   const emailLocal = userProfile?.email?.split('@')[0] || '';
   const displayUsername = userProfile?.username || emailLocal;
@@ -70,29 +75,19 @@ export default function ProfileSidebar() {
 
   const onSubmit = async () => {
     const values = form.getValues();
-    const dirtyFields = form.formState.dirtyFields as Partial<
-      Record<keyof UserProfileUpdateType, unknown>
-    >;
-    const payload: Partial<UserProfileUpdateType> = {};
-    if (dirtyFields.name) payload.name = values.name;
-    if (dirtyFields.username) payload.username = values.username;
-    if (dirtyFields.location) payload.location = values.location;
-
-    // Build social_link only if any of its entries changed
-    const dirtySocialUnknown = dirtyFields.social_link;
-    const socialLinkChanged =
-      Array.isArray(dirtySocialUnknown) &&
-      dirtySocialUnknown.some((entry) => {
-        if (entry && typeof entry === 'object') {
-          return Object.prototype.hasOwnProperty.call(entry, 'url');
-        }
-        return false;
-      });
-    if (socialLinkChanged) {
-      payload.social_link = values.social_link;
-    }
     if (!userProfile?.id) return;
     if (updateUserProfile.isPending) return;
+
+    // Filter out empty social links to avoid unnecessary validation
+    const filteredSocialLinks =
+      values.social_link?.filter(
+        (link) => link.url && link.url.trim() !== '',
+      ) || [];
+
+    const payload = {
+      ...values,
+      social_link: filteredSocialLinks,
+    };
 
     try {
       await updateUserProfile.mutateAsync({
@@ -100,8 +95,8 @@ export default function ProfileSidebar() {
         body: payload,
       });
       setEditing(false);
-    } catch {
-      // keep editing state; errors are handled by react-query or UI toast elsewhere
+    } catch (error) {
+      handleErrorApi({ error });
     }
   };
 
@@ -197,6 +192,33 @@ export default function ProfileSidebar() {
                           placeholder="Username"
                           className="w-full h-6.5 bg-[#272727]/5 border-0 text-sm font-medium placeholder:text-[#272727]/50"
                           {...field}
+                          onBlur={async (e) => {
+                            field.onBlur();
+                            // run schema validation for username immediately on blur
+                            await form.trigger('username');
+                            const value = e.target.value.trim();
+                            if (
+                              !value ||
+                              value === (userProfile?.username || '')
+                            )
+                              return;
+                            try {
+                              const exists =
+                                await checkUsernameExistsMutation.mutateAsync(
+                                  value,
+                                );
+                              if (exists) {
+                                form.setError('username', {
+                                  type: 'validate',
+                                  message: 'Username already exists',
+                                });
+                              } else {
+                                form.clearErrors('username');
+                              }
+                            } catch {
+                              // ignore network errors for blur validation
+                            }
+                          }}
                         />
                       </FormControl>
                       <FormMessage />

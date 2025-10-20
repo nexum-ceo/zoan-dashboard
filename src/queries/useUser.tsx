@@ -36,3 +36,12 @@ export const useCheckUsernameExists = (username: string) => {
     enabled: !!username,
   });
 };
+
+export const useCheckUsernameExistsMutation = () => {
+  return useMutation({
+    mutationFn: async (username: string) => {
+      const res = await userApiRequest.sCheckUsernameExists(username);
+      return res.data; // boolean
+    },
+  });
+};
