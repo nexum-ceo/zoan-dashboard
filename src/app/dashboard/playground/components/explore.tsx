@@ -6,7 +6,7 @@ import {
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@/components/ui/select';
+} from '@/components/ui';
 import { useFileContent } from '@/hooks/useFileContent';
 import { useFolderContent } from '@/hooks/useFolderContent';
 import { useGameSignalDetection } from '@/hooks/useGameSignalDetection';

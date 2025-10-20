@@ -1,13 +1,13 @@
 'use client';
 
-import { Button } from '@/components/ui/button';
 import {
+  Button,
   Dialog,
   DialogContent,
   DialogDescription,
   DialogHeader,
   DialogTitle,
-} from '@/components/ui/dialog';
+} from '@/components/ui';
 import type { UploadedFile } from '@/components/ui/file-upload';
 import { InlineFileUpload } from '@/components/ui/inline-file-upload';
 import {

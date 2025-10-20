@@ -1,5 +1,5 @@
 import { AppSidebar } from '@/components/layouts';
-import { SidebarProvider } from '@/components/ui/sidebar';
+import { SidebarProvider } from '@/components/ui';
 import { AgentProvider } from '@/contexts/AgentContext';
 import ZoanBaseLayout from '@/templates/ZoanBaseLayout';
 import { ReactNode } from 'react';

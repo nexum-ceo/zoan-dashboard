@@ -1,6 +1,5 @@
 'use client';
-import { Avatar, AvatarFallback } from '@/components/ui/avatar';
-import { Button } from '@/components/ui/button';
+import { Avatar, AvatarFallback, Button } from '@/components/ui';
 import {
   useGetCommunityAgent,
   useInstallCommunityAgent,
@@ -117,7 +116,11 @@ const CommunityProjectCard: FC<{ project: TCommunityAgentData }> = ({
         disabled={project.agent.is_installed || project.agent.is_owner}
       >
         {/* <ArrowUpRight className="text-[#272727]" /> */}
-        {project.agent.is_owner ? 'Owned' : project.agent.is_installed ? 'Installed' : 'Install'}
+        {project.agent.is_owner
+          ? 'Owned'
+          : project.agent.is_installed
+          ? 'Installed'
+          : 'Install'}
       </Button>
     </div>
   );

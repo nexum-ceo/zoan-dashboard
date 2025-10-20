@@ -1,7 +1,12 @@
 'use client';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import {
+  Button,
+  Input,
+  Tabs,
+  TabsContent,
+  TabsList,
+  TabsTrigger,
+} from '@/components/ui';
 import { useGetAgentList, useGetInstalledAgent } from '@/queries/useAgent';
 import { AgentType } from '@/types/agent';
 import { IconLabel } from '@tabler/icons-react';
@@ -116,14 +121,9 @@ export default function ManagementSection() {
   const [activeTab, setActiveTab] = useState<ManagementTab>('my-agents');
 
   // Fetch data conditionally based on active tab
-  const {
-    data: installedAgents,
-    isLoading: isLoadingInstalled,
-  } = useGetInstalledAgent();
-  const {
-    data: agentList,
-    isLoading: isLoadingMyAgents,
-  } = useGetAgentList();
+  const { data: installedAgents, isLoading: isLoadingInstalled } =
+    useGetInstalledAgent();
+  const { data: agentList, isLoading: isLoadingMyAgents } = useGetAgentList();
 
   const safeInstalledAgents = installedAgents?.data?.data ?? [];
   const safeAgentList = agentList?.data?.data ?? [];

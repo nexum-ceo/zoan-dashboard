@@ -7,20 +7,22 @@ import { ChatSettings } from '@/app/dashboard/playground/components/chat-setting
 import { ExplorePanel } from '@/app/dashboard/playground/components/explore';
 
 import { NavUser } from '@/components/layouts';
-import { Button } from '@/components/ui';
-import { DragDropOverlay } from '@/components/ui/drag-drop-overlay';
 import {
+  Button,
   ResizableHandle,
   ResizablePanel,
   ResizablePanelGroup,
-} from '@/components/ui/resizable';
+  Sheet,
+  SheetContent,
+  SheetTrigger,
+} from '@/components/ui';
+import { DragDropOverlay } from '@/components/ui/drag-drop-overlay';
 import {
   Conversation,
   ConversationContent,
   ConversationScrollButton,
 } from '@/components/ui/shadcn-io/ai/conversation';
 import { Loader } from '@/components/ui/shadcn-io/ai/loader';
-import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import { SidebarProvider } from '@/components/ui/sidebar';
 import { DragDropProvider, useDragDrop } from '@/contexts/DragDropContext';
 import { useIsMobile } from '@/hooks/use-mobile';

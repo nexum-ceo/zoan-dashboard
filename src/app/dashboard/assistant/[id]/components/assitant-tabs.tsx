@@ -3,8 +3,7 @@
 import Configuration from '@/app/dashboard/assistant/[id]/components/Configuration';
 import Trainning from '@/app/dashboard/assistant/[id]/components/Trainning';
 import Workflow from '@/app/dashboard/assistant/[id]/components/Workflow';
-import { Button } from '@/components/ui/button';
-import { Tabs, TabsContent } from '@/components/ui/tabs';
+import { Button, Tabs, TabsContent } from '@/components/ui';
 import { cn } from '@/lib/utils';
 import {
   DatabaseZap,

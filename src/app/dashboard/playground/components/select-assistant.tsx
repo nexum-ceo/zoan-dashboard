@@ -1,6 +1,6 @@
 'use client';
 
-import { Skeleton } from '@/components/ui/skeleton';
+import { Skeleton } from '@/components/ui';
 import { formatRelativeTime } from '@/lib/date-time-utils';
 import { useInfiniteChatList } from '@/queries/useChat';
 import { Clock } from 'lucide-react';
