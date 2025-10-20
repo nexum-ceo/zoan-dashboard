@@ -2,10 +2,11 @@ import z from 'zod';
 
 export const UserProfileSchema = z.object({
   id: z.string(),
-  email: z.email(),
+  email: z.string().email(),
   name: z.string(),
   role: z.string(),
   username: z.string(),
+  bio: z.string().optional(),
   social_link: z.array(
     z.object({
       type: z.string(),
@@ -37,11 +38,6 @@ const SocialLinkUpdateSchema = z
     const type = (val.type || '').toLowerCase();
     const url = val.url || '';
     if (!url) return; // allow empty; presence can be enforced elsewhere if needed
-
-    if (type === 'location') {
-      // location isn't a URL; skip URL domain checks
-      return;
-    }
 
     let parsed: URL | null = null;
     try {

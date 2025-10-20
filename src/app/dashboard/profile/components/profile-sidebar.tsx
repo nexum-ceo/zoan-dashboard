@@ -56,6 +56,7 @@ export default function ProfileSidebar() {
       name: '',
       username: '',
       location: '',
+      bio: '',
       social_link: normalizeSocialLinks([]),
     },
   });
@@ -66,6 +67,7 @@ export default function ProfileSidebar() {
         name: emailLocal || '',
         username: userProfile.username || '',
         location: userProfile.location || '',
+        bio: userProfile.bio || '',
         social_link: normalizeSocialLinks(userProfile.social_link),
       });
     }
@@ -250,13 +252,25 @@ export default function ProfileSidebar() {
                     )}
                   />
                 </div>
-                <div className="space-y-1">
-                  <Label className="text-sm text-[#272727]">Bio</Label>
-                  <Textarea
-                    placeholder="Bio"
-                    className="w-full min-h-30 bg-[#272727]/5 border-0 text-sm font-medium placeholder:text-[#272727]/50"
-                  />
-                </div>
+                <FormField
+                  control={form.control}
+                  name="bio"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel className="text-sm text-[#272727]">
+                        Bio
+                      </FormLabel>
+                      <FormControl>
+                        <Textarea
+                          placeholder="Bio"
+                          className="w-full min-h-30 bg-[#272727]/5 border-0 text-sm font-medium placeholder:text-[#272727]/50"
+                          {...field}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
                 <div className="space-y-1">
                   <Label className="text-sm text-[#272727]">Socials</Label>
                   <div className="space-y-2">
