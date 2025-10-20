@@ -24,9 +24,9 @@ import {
 import {
   useGetSpecificAgent,
   useUpdateAgentMutation,
-} from '@/queries/useAgent';
-import { useGetModelByName } from '@/queries/useModel';
-import { useProviderOfUserList } from '@/queries/useProvider';
+} from '@/hooks/data/agent';
+import { useGetModelByName } from '@/hooks/data/model';
+import { useProviderOfUserList } from '@/hooks/data/provider';
 import {
   CreateAgentBodySchema,
   CreateAgentBodyType,

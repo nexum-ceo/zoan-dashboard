@@ -8,8 +8,8 @@ import OptionButtons from '@/components/ui/option-buttons';
 import { DragDropProvider, useDragDrop } from '@/contexts/DragDropContext';
 import { useSSEChat } from '@/hooks/system/useSSEChat';
 // Pending attachment metadata is handled within ChatInput using IndexedDB
+import { useCreateChatMutation } from '@/hooks/data/chat';
 import { handleErrorApi } from '@/lib/utils';
-import { useCreateChatMutation } from '@/queries/useChat';
 import { useRouter } from 'next/navigation';
 import { FormEvent, useRef, useState } from 'react';
 import { useDropzone } from 'react-dropzone';

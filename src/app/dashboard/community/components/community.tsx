@@ -3,7 +3,7 @@ import { Avatar, AvatarFallback, Button } from '@/components/ui';
 import {
   useGetCommunityAgent,
   useInstallCommunityAgent,
-} from '@/queries/useCommunity';
+} from '@/hooks/data/community';
 import { TCommunityAgentData } from '@/types/community';
 import { IconLabel } from '@tabler/icons-react';
 import { Dot, Star } from 'lucide-react';

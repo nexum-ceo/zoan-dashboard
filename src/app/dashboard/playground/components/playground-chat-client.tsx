@@ -25,6 +25,11 @@ import {
 import { Loader } from '@/components/ui/shadcn-io/ai/loader';
 import { SidebarProvider } from '@/components/ui/sidebar';
 import { DragDropProvider, useDragDrop } from '@/contexts/DragDropContext';
+import {
+  useGetChat,
+  useGetChatMessagesInfinite,
+  useGetChatPresignedUrl,
+} from '@/hooks/data/chat';
 import { useIsMobile } from '@/hooks/system/use-mobile';
 import { useSSEChat } from '@/hooks/system/useSSEChat';
 import { deleteAttachment, getAttachment } from '@/lib/attachment-store';
@@ -37,11 +42,6 @@ import {
   transformChatMessages,
 } from '@/lib/chat-utils';
 import { getNavigationItems } from '@/lib/navigation-utils';
-import {
-  useGetChat,
-  useGetChatMessagesInfinite,
-  useGetChatPresignedUrl,
-} from '@/queries/useChat';
 import { ChatRole } from '@/types/chat';
 import { Menu, MessageSquare, Plus, Sparkles } from 'lucide-react';
 import { usePathname, useRouter } from 'next/navigation';

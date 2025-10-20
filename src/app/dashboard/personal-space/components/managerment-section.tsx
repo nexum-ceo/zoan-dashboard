@@ -7,7 +7,7 @@ import {
   TabsList,
   TabsTrigger,
 } from '@/components/ui';
-import { useGetAgentList, useGetInstalledAgent } from '@/queries/useAgent';
+import { useGetAgentList, useGetInstalledAgent } from '@/hooks/data/agent';
 import { AgentType } from '@/types/agent';
 import { IconLabel } from '@tabler/icons-react';
 import { Codesandbox, Dot, Download, Sparkles } from 'lucide-react';

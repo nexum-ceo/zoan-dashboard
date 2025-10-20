@@ -18,14 +18,14 @@ import {
   PromptInputTools,
 } from '@/components/ui/shadcn-io/ai/prompt-input';
 import { useDragDrop } from '@/contexts/DragDropContext';
+import {
+  useDeleteFileMutation,
+  useGetChatPresignedUrl,
+} from '@/hooks/data/chat';
 import { useZoanToast } from '@/hooks/ui/useZoanToast';
 import { putAttachment } from '@/lib/attachment-store';
 import { getPendingAttachments, setPendingAttachments } from '@/lib/chat-utils';
 import { getMediaTypeFromFilename } from '@/lib/s3';
-import {
-  useDeleteFileMutation,
-  useGetChatPresignedUrl,
-} from '@/queries/useChat';
 import type { ChatStatus } from 'ai';
 import { signIn, useSession } from 'next-auth/react';
 import Image from 'next/image';

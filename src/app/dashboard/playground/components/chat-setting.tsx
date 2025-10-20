@@ -22,13 +22,13 @@ import {
   TabsTrigger,
   Textarea,
 } from '@/components/ui';
-import { handleErrorApi, HttpError } from '@/lib/utils';
-import { useGetAgentAvailable } from '@/queries/useAgent';
+import { useGetAgentAvailable } from '@/hooks/data/agent';
 import {
   useCreateChatAgentSettingMutation,
   useGetChatAgentSettingByChatId,
   useGetPrimaryAgentByChatId,
-} from '@/queries/useChat';
+} from '@/hooks/data/chat';
+import { handleErrorApi, HttpError } from '@/lib/utils';
 import { AgentType, UpdateAgentBodySchema } from '@/types/agent';
 import { GetChatAgentSettingByChatIdResType } from '@/types/chat';
 import { zodResolver } from '@hookform/resolvers/zod';

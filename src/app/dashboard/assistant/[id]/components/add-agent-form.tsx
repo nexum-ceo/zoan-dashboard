@@ -20,9 +20,9 @@ import {
   Slider,
   Textarea,
 } from '@/components/ui';
-import { useCreateAgentMutation } from '@/queries/useAgent';
-import { useGetModelByName } from '@/queries/useModel';
-import { useProviderOfUserList } from '@/queries/useProvider';
+import { useCreateAgentMutation } from '@/hooks/data/agent';
+import { useGetModelByName } from '@/hooks/data/model';
+import { useProviderOfUserList } from '@/hooks/data/provider';
 import { CreateAgentBodySchema, CreateAgentBodyType } from '@/types/agent';
 
 import { zodResolver } from '@hookform/resolvers/zod';

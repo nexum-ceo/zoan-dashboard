@@ -24,13 +24,13 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui';
-import { formatDate } from '@/lib/date';
-import { handleErrorApi } from '@/lib/utils';
 import {
   useAddProviderMutation,
   useProviderList,
   useProviderOfUserList,
-} from '@/queries/useProvider';
+} from '@/hooks/data/provider';
+import { formatDate } from '@/lib/date';
+import { handleErrorApi } from '@/lib/utils';
 import { ProviderOfUserType } from '@/types/provider';
 import { useState } from 'react';
 

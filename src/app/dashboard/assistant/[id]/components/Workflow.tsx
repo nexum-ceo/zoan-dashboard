@@ -29,13 +29,13 @@ import { FormEvent, useState } from 'react';
 import { toast } from 'sonner';
 
 import { Flow } from '@/app/dashboard/assistant/[id]/components/Flow';
-import { formatDate } from '@/lib/date';
-import { handleErrorApi } from '@/lib/utils';
 import {
   useCreateWorkflowMutation,
   useDeleteWorkflowMutation,
   useGetWorkflowList,
-} from '@/queries/useWorkflow';
+} from '@/hooks/data/workflow';
+import { formatDate } from '@/lib/date';
+import { handleErrorApi } from '@/lib/utils';
 import type { CreateWorkflowType } from '@/types/workflow';
 import { WorkflowType } from '@/types/workflow';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
