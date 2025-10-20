@@ -1,0 +1,76 @@
+name: 'Build and Deploy to GKE'
+
+on:
+  push:
+    branches:
+      - main
+
+env:
+  PROJECT_ID: 'seismic-bonfire-469708-c4'
+  GAR_LOCATION: 'asia-southeast1'
+  GKE_CLUSTER: 'autopilot-cluster-1'
+  GKE_ZONE: 'asia-southeast1'
+  DEPLOYMENT_NAME: 'zoan-dashboard-frontend'
+  REPOSITORY: 'zoan'
+  IMAGE: 'zoan-dashboard-frontend'
+  WORKLOAD_IDENTITY_PROVIDER: 'projects/74298913747/locations/global/workloadIdentityPools/my-pool/providers/github'
+  SERVICE_ACCOUNT: 'github-deployer@seismic-bonfire-469708-c4.iam.gserviceaccount.com'
+
+jobs:
+  setup-build-publish-deploy:
+    name: 'Setup, Build, Publish, and Deploy'
+    runs-on: ubuntu-latest
+    environment: production
+
+    permissions:
+      contents: read
+      id-token: write
+
+    steps:
+      - name: 'Checkout source'
+        uses: actions/checkout@v4
+
+      # ✅ Authenticate to Google Cloud using Workload Identity Federation
+      - id: 'auth'
+        name: 'Authenticate to Google Cloud'
+        uses: google-github-actions/auth@v2
+        with:
+          token_format: 'access_token' # 👈 Bắt buộc để dùng với docker
+          workload_identity_provider: '${{ env.WORKLOAD_IDENTITY_PROVIDER }}'
+          service_account: 'github-deployer@seismic-bonfire-469708-c4.iam.gserviceaccount.com'
+
+      # ✅ Docker login using short-lived token from auth step
+      - name: 'Docker Auth to Artifact Registry'
+        uses: docker/login-action@v3
+        with:
+          username: 'oauth2accesstoken'
+          password: '${{ steps.auth.outputs.access_token }}'
+          registry: '${{ env.GAR_LOCATION }}-docker.pkg.dev'
+
+      # ✅ Get GKE credentials
+      - name: 'Set up GKE credentials'
+        uses: google-github-actions/get-gke-credentials@v2
+        with:
+          cluster_name: '${{ env.GKE_CLUSTER }}'
+          location: '${{ env.GKE_ZONE }}'
+
+      # ✅ Build & push image
+      - name: 'Build and push Docker container'
+        run: |
+          DOCKER_TAG="${GAR_LOCATION}-docker.pkg.dev/${PROJECT_ID}/${REPOSITORY}/${IMAGE}:${GITHUB_SHA}"
+          echo "Building image: $DOCKER_TAG"
+          docker build -t "$DOCKER_TAG" .
+          docker push "$DOCKER_TAG"
+
+      # ✅ Install Kustomize
+      - name: 'Install Kustomize'
+        run: |
+          curl -sL https://github.com/kubernetes-sigs/kustomize/releases/download/kustomize%2Fv5.4.3/kustomize_v5.4.3_linux_amd64.tar.gz | tar xz
+          chmod +x ./kustomize
+
+      # ✅ Deploy to GKE
+      - name: 'Deploy to GKE'
+        run: |-
+          kubectl set image deployment/${DEPLOYMENT_NAME} ${IMAGE}=${GAR_LOCATION}-docker.pkg.dev/${PROJECT_ID}/${REPOSITORY}/${IMAGE}:${GITHUB_SHA}
+          kubectl rollout status deployment/${DEPLOYMENT_NAME}
+          kubectl get services -o wide
