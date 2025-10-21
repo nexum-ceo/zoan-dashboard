@@ -1,17 +1,6 @@
 import userApiRequest from '@/api-requests/user';
 import { UserProfileUpdateType } from '@/types/user';
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { useSession } from 'next-auth/react';
-
-export const useCurrentUserProfile = () => {
-  const { status } = useSession();
-
-  return useQuery({
-    queryKey: ['current-user-profile'],
-    queryFn: () => userApiRequest.sGetUserProfile(),
-    enabled: status === 'authenticated',
-  });
-};
+import { useMutation, useQueryClient } from '@tanstack/react-query';
 
 export const useUpdateUserProfileMutation = () => {
   const queryClient = useQueryClient();
@@ -26,14 +15,6 @@ export const useUpdateUserProfileMutation = () => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['current-user-profile'] });
     },
-  });
-};
-
-export const useCheckUsernameExists = (username: string) => {
-  return useQuery({
-    queryKey: ['is-existing-username', username],
-    queryFn: () => userApiRequest.sCheckUsernameExists(username),
-    enabled: !!username,
   });
 };
 
