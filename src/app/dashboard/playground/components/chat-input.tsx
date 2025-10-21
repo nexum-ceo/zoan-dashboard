@@ -22,7 +22,7 @@ import {
   useDeleteFileMutation,
   useGetChatPresignedUrl,
 } from '@/hooks/data/chat';
-import { useZoanToast } from '@/hooks/ui/useZoanToast';
+import { useZoanToast } from '@/hooks/ui';
 import { putAttachment } from '@/lib/attachment-store';
 import { getPendingAttachments, setPendingAttachments } from '@/lib/chat-utils';
 import { getMediaTypeFromFilename } from '@/lib/s3';

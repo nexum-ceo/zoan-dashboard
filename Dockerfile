@@ -34,7 +34,7 @@ COPY . .
 # Uncomment the following line in case you want to disable telemetry during the build.
 # ENV NEXT_TELEMETRY_DISABLED=1
 
-COPY .env .env
+# COPY .env .env
 
 RUN \
   if [ -f yarn.lock ]; then \
@@ -60,7 +60,7 @@ RUN addgroup --system --gid 1001 nodejs
 RUN adduser --system --uid 1001 nextjs
 
 COPY --from=builder /app/public ./public
-COPY --from=builder /app/.env ./.env
+# COPY --from=builder /app/.env ./.env
 
 # Automatically leverage output traces to reduce image size
 # https://nextjs.org/docs/advanced-features/output-file-tracing
@@ -76,4 +76,7 @@ ENV PORT=3000
 # server.js is created by next build from the standalone output
 # https://nextjs.org/docs/pages/api-reference/config/next-config-js/output
 ENV HOSTNAME="0.0.0.0"
-CMD ["node", "server.js"]
+COPY entrypoint.sh ./
+RUN chmod +x entrypoint.sh
+ENTRYPOINT ["./entrypoint.sh"]
+

@@ -15,6 +15,7 @@ import {
   Sheet,
   SheetContent,
   SheetTrigger,
+  SidebarProvider,
 } from '@/components/ui';
 import { DragDropOverlay } from '@/components/ui/drag-drop-overlay';
 import {
@@ -23,7 +24,6 @@ import {
   ConversationScrollButton,
 } from '@/components/ui/shadcn-io/ai/conversation';
 import { Loader } from '@/components/ui/shadcn-io/ai/loader';
-import { SidebarProvider } from '@/components/ui/sidebar';
 import { DragDropProvider, useDragDrop } from '@/contexts/DragDropContext';
 import {
   useGetChat,
