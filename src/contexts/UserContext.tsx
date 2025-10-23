@@ -1,5 +1,5 @@
 'use client';
-import { useCurrentUserProfile } from '@/queries/useUser';
+import { useCurrentUserProfile } from '@/hooks/data/user';
 import { UserProfileType } from '@/types/user';
 import { useSession } from 'next-auth/react';
 import {

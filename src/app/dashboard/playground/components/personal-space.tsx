@@ -1,4 +1,4 @@
-import { Avatar, AvatarFallback } from '@/components/ui/avatar';
+import { Avatar, AvatarFallback } from '@/components/ui';
 import { IconLabel } from '@tabler/icons-react';
 import { Dot, Star } from 'lucide-react';
 import Image from 'next/image';

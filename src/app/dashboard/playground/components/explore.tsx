@@ -6,15 +6,15 @@ import {
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@/components/ui/select';
-import { useFileContent } from '@/hooks/useFileContent';
-import { useFolderContent } from '@/hooks/useFolderContent';
-import { useGameSignalDetection } from '@/hooks/useGameSignalDetection';
+} from '@/components/ui';
+import { useGetChatGameVersionList } from '@/hooks/data/chat';
+import { useGetListFileInGameFolder } from '@/hooks/data/library';
+import { useFileContent } from '@/hooks/system';
+import { useFolderContent } from '@/hooks/system/useFolderContent';
+import { useGameSignalDetection } from '@/hooks/system/useGameSignalDetection';
 import { downloadSandboxZip } from '@/lib/download-utils';
 import { extractS3CommonPrefixes, extractS3Contents } from '@/lib/s3';
 import { processS3FilesToSandbox, selectActiveFile } from '@/lib/sandbox-utils';
-import { useGetChatGameVersionList } from '@/queries/useChat';
-import { useGetListFileInGameFolder } from '@/queries/useLibrary';
 import type { S3ListBucketResultType } from '@/types/library';
 import { ArrowDownToLine, CodeXml, Eye, MessageSquare } from 'lucide-react';
 import { FC, useEffect, useMemo, useState } from 'react';

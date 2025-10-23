@@ -1,36 +1,32 @@
 'use client';
-import { Button } from '@/components/ui/button';
 import {
+  Button,
   Dialog,
   DialogContent,
   DialogDescription,
   DialogTitle,
-} from '@/components/ui/dialog';
-import {
   Form,
   FormControl,
   FormField,
   FormItem,
   FormLabel,
   FormMessage,
-} from '@/components/ui/form';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import {
+  Input,
+  Label,
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@/components/ui/select';
-import { Slider } from '@/components/ui/slider';
-import { Textarea } from '@/components/ui/textarea';
+  Slider,
+  Textarea,
+} from '@/components/ui';
 import {
   useGetSpecificAgent,
   useUpdateAgentMutation,
-} from '@/queries/useAgent';
-import { useGetModelByName } from '@/queries/useModel';
-import { useProviderOfUserList } from '@/queries/useProvider';
+} from '@/hooks/data/agent';
+import { useGetModelByName } from '@/hooks/data/model';
+import { useProviderOfUserList } from '@/hooks/data/provider';
 import {
   CreateAgentBodySchema,
   CreateAgentBodyType,

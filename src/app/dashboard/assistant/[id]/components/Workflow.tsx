@@ -1,15 +1,4 @@
 'use client';
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@/components/ui/table';
-
 import {
   AlertDialog,
   AlertDialogAction,
@@ -19,8 +8,8 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-} from '@/components/ui/alert-dialog';
-import {
+  Badge,
+  Button,
   Dialog,
   DialogClose,
   DialogContent,
@@ -28,19 +17,25 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-} from '@/components/ui/dialog';
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui';
 import { Download, Edit, FileDown, List, Plus, Trash, X } from 'lucide-react';
 import { FormEvent, useState } from 'react';
 import { toast } from 'sonner';
 
 import { Flow } from '@/app/dashboard/assistant/[id]/components/Flow';
-import { formatDate } from '@/lib/date';
-import { handleErrorApi } from '@/lib/utils';
 import {
   useCreateWorkflowMutation,
   useDeleteWorkflowMutation,
   useGetWorkflowList,
-} from '@/queries/useWorkflow';
+} from '@/hooks/data/workflow';
+import { formatDate } from '@/lib/date';
+import { handleErrorApi } from '@/lib/utils';
 import type { CreateWorkflowType } from '@/types/workflow';
 import { WorkflowType } from '@/types/workflow';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';

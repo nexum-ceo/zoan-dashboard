@@ -1,8 +1,8 @@
 'use client';
 import AddAgentForm from '@/app/dashboard/assistant/[id]/components/add-agent-form';
 import { Skeleton } from '@/components/ui/skeleton';
+import { useGetAgentList } from '@/hooks/data/agent';
 import { formatDate } from '@/lib/date';
-import { useGetAgentList } from '@/queries/useAgent';
 import { useRouter } from 'next/navigation';
 
 export default function AssistantPage() {

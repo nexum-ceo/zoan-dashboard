@@ -1,8 +1,8 @@
 'use client';
 
-import { Skeleton } from '@/components/ui/skeleton';
+import { Skeleton } from '@/components/ui';
+import { useInfiniteChatList } from '@/hooks/data/chat';
 import { formatRelativeTime } from '@/lib/date-time-utils';
-import { useInfiniteChatList } from '@/queries/useChat';
 import { Clock } from 'lucide-react';
 import { usePathname, useRouter } from 'next/navigation';
 import { FC, useMemo, useState } from 'react';

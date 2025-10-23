@@ -1,8 +1,8 @@
 'use client';
 
 import { DragDropProvider } from '@/contexts/DragDropContext';
+import { useCreateChatMutation } from '@/hooks/data/chat';
 import { handleErrorApi } from '@/lib/utils';
-import { useCreateChatMutation } from '@/queries/useChat';
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 import { PlaygroundInput } from './playground-input';
