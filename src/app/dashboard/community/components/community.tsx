@@ -116,11 +116,15 @@ const CommunityProjectCard: FC<{ project: TCommunityAgentData }> = ({
         disabled={project.agent.is_installed || project.agent.is_owner}
       >
         {/* <ArrowUpRight className="text-[#272727]" /> */}
-        {project.agent.is_owner
-          ? 'Owned'
-          : project.agent.is_installed
-          ? 'Installed'
-          : 'Install'}
+        {(() => {
+          if (project.agent.is_owner) {
+            return 'Owned';
+          } else if (project.agent.is_installed) {
+            return 'Installed';
+          } else {
+            return 'Install';
+          }
+        })()}
       </Button>
     </div>
   );
