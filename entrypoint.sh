@@ -25,11 +25,11 @@ elif [ -f /tmp/env/.env.local ]; then
     export ENV_FILE_PATH="/tmp/env/.env.local"
 fi
 
-# Ghi tất cả biến môi trường NEXT_PUBLIC_* vào file .env.local
-printenv | grep ^NEXT_PUBLIC_ > "${ENV_FILE_PATH:-.env.local}"
+# Write all NEXT_PUBLIC_* environment variables to .env.local
+printenv | grep ^NEXT_PUBLIC_ > "$HOME/.env.local"
+export ENV_FILE_PATH="$HOME/.env.local"
 
 echo "✅ Environment variables written to ${ENV_FILE_PATH:-.env.local}:"
-cat "${ENV_FILE_PATH:-.env.local}"
 
 echo "🚀 Starting Next.js server..."
 exec node server.js
