@@ -1,13 +1,13 @@
 'use client';
 
-import { Button } from '@/components/ui/button';
 import {
+  Button,
   Dialog,
   DialogContent,
   DialogDescription,
   DialogHeader,
   DialogTitle,
-} from '@/components/ui/dialog';
+} from '@/components/ui';
 import type { UploadedFile } from '@/components/ui/file-upload';
 import { InlineFileUpload } from '@/components/ui/inline-file-upload';
 import {
@@ -18,14 +18,14 @@ import {
   PromptInputTools,
 } from '@/components/ui/shadcn-io/ai/prompt-input';
 import { useDragDrop } from '@/contexts/DragDropContext';
-import { useZoanToast } from '@/hooks/useZoanToast';
-import { putAttachment } from '@/lib/attachment-store';
-import { getPendingAttachments, setPendingAttachments } from '@/lib/chat-utils';
-import { getMediaTypeFromFilename } from '@/lib/s3';
 import {
   useDeleteFileMutation,
   useGetChatPresignedUrl,
-} from '@/queries/useChat';
+} from '@/hooks/data/chat';
+import { useZoanToast } from '@/hooks/ui';
+import { putAttachment } from '@/lib/attachment-store';
+import { getPendingAttachments, setPendingAttachments } from '@/lib/chat-utils';
+import { getMediaTypeFromFilename } from '@/lib/s3';
 import type { ChatStatus } from 'ai';
 import { signIn, useSession } from 'next-auth/react';
 import Image from 'next/image';

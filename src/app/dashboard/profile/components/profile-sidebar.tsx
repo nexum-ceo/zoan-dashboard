@@ -1,29 +1,27 @@
 'use client';
 
-import { Button } from '@/components/ui/button';
 import {
+  Button,
   Form,
   FormControl,
   FormField,
   FormItem,
   FormLabel,
   FormMessage,
-} from '@/components/ui/form';
-import { Input } from '@/components/ui/input';
-import {
+  Input,
   InputGroup,
   InputGroupAddon,
   InputGroupInput,
-} from '@/components/ui/input-group';
-import { Label } from '@/components/ui/label';
-import { Separator } from '@/components/ui/separator';
-import { Textarea } from '@/components/ui/textarea';
+  Label,
+  Separator,
+  Textarea,
+} from '@/components/ui';
 import { useUserQuery } from '@/contexts/UserContext';
-import { handleErrorApi } from '@/lib/utils';
 import {
   useCheckUsernameExistsMutation,
   useUpdateUserProfileMutation,
-} from '@/queries/useUser';
+} from '@/hooks/data/user';
+import { handleErrorApi } from '@/lib/utils';
 import { UserProfileUpdateSchema, UserProfileUpdateType } from '@/types/user';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { AnimatePresence, motion } from 'framer-motion';

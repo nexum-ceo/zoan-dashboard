@@ -1,10 +1,9 @@
 'use client';
-import { Avatar, AvatarFallback } from '@/components/ui/avatar';
-import { Button } from '@/components/ui/button';
+import { Avatar, AvatarFallback, Button } from '@/components/ui';
 import {
   useGetCommunityAgent,
   useInstallCommunityAgent,
-} from '@/queries/useCommunity';
+} from '@/hooks/data/community';
 import { TCommunityAgentData } from '@/types/community';
 import { IconLabel } from '@tabler/icons-react';
 import { Dot, Star } from 'lucide-react';
@@ -117,7 +116,15 @@ const CommunityProjectCard: FC<{ project: TCommunityAgentData }> = ({
         disabled={project.agent.is_installed || project.agent.is_owner}
       >
         {/* <ArrowUpRight className="text-[#272727]" /> */}
-        {project.agent.is_owner ? 'Owned' : project.agent.is_installed ? 'Installed' : 'Install'}
+        {(() => {
+          if (project.agent.is_owner) {
+            return 'Owned';
+          } else if (project.agent.is_installed) {
+            return 'Installed';
+          } else {
+            return 'Install';
+          }
+        })()}
       </Button>
     </div>
   );

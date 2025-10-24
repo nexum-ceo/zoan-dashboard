@@ -1,7 +1,6 @@
 'use client';
 
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
+import { Badge, Button } from '@/components/ui';
 import { Download, Eye, Heart, Star } from 'lucide-react';
 import { motion } from 'motion/react';
 import { FC } from 'react';

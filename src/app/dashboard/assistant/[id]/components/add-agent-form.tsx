@@ -1,32 +1,28 @@
-import { Button } from '@/components/ui/button';
 import {
+  Button,
   Dialog,
   DialogContent,
   DialogDescription,
   DialogTitle,
-} from '@/components/ui/dialog';
-import {
   Form,
   FormControl,
   FormField,
   FormItem,
   FormLabel,
   FormMessage,
-} from '@/components/ui/form';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import {
+  Input,
+  Label,
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@/components/ui/select';
-import { Slider } from '@/components/ui/slider';
-import { Textarea } from '@/components/ui/textarea';
-import { useCreateAgentMutation } from '@/queries/useAgent';
-import { useGetModelByName } from '@/queries/useModel';
-import { useProviderOfUserList } from '@/queries/useProvider';
+  Slider,
+  Textarea,
+} from '@/components/ui';
+import { useCreateAgentMutation } from '@/hooks/data/agent';
+import { useGetModelByName } from '@/hooks/data/model';
+import { useProviderOfUserList } from '@/hooks/data/provider';
 import { CreateAgentBodySchema, CreateAgentBodyType } from '@/types/agent';
 
 import { zodResolver } from '@hookform/resolvers/zod';

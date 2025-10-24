@@ -1,6 +1,11 @@
-import { Avatar, AvatarFallback } from '@/components/ui/avatar';
-import { Button } from '@/components/ui/button';
-import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import {
+  Avatar,
+  AvatarFallback,
+  Button,
+  Tabs,
+  TabsList,
+  TabsTrigger,
+} from '@/components/ui';
 import { IconLabel } from '@tabler/icons-react';
 import { ArrowUpRight, Dot, Star } from 'lucide-react';
 import Image, { type StaticImageData } from 'next/image';

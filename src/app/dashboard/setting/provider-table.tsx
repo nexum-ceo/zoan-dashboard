@@ -1,6 +1,6 @@
 'use client';
-import { Button } from '@/components/ui/button';
 import {
+  Button,
   Dialog,
   DialogClose,
   DialogContent,
@@ -9,17 +9,13 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-} from '@/components/ui/dialog';
-import { Input } from '@/components/ui/input';
-import {
+  Input,
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@/components/ui/select';
-import { Skeleton } from '@/components/ui/skeleton';
-import {
+  Skeleton,
   Table,
   TableBody,
   TableCaption,
@@ -27,14 +23,14 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from '@/components/ui/table';
-import { formatDate } from '@/lib/date';
-import { handleErrorApi } from '@/lib/utils';
+} from '@/components/ui';
 import {
   useAddProviderMutation,
   useProviderList,
   useProviderOfUserList,
-} from '@/queries/useProvider';
+} from '@/hooks/data/provider';
+import { formatDate } from '@/lib/date';
+import { handleErrorApi } from '@/lib/utils';
 import { ProviderOfUserType } from '@/types/provider';
 import { useState } from 'react';
 

@@ -1,5 +1,5 @@
 'use client';
-import { Button } from '@/components/ui/button';
+import { Button } from '@/components/ui';
 import { motion } from 'framer-motion';
 import { Gamepad2, Settings } from 'lucide-react';
 

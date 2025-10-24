@@ -1,15 +1,10 @@
 import libraryApiRequest from '@/api-requests/library';
-import { useMutation, useQuery } from '@tanstack/react-query';
-
-export const useLibrary = () => {
-  return useMutation({
-    mutationFn: libraryApiRequest.sGetPresignedUrls,
-  });
-};
+import { useQuery } from '@tanstack/react-query';
+import { LIBRARY_KEYS } from '../key';
 
 export const useGetListFileOfUser = (userId: string) => {
   return useQuery({
-    queryKey: ['list-file-of-user', userId],
+    queryKey: LIBRARY_KEYS.listFileOfUser(userId),
     queryFn: () => libraryApiRequest.sGetListFileOfUser(userId),
     enabled: !!userId,
   });
@@ -17,7 +12,7 @@ export const useGetListFileOfUser = (userId: string) => {
 
 export const useGetListFolder = (userId: string) => {
   return useQuery({
-    queryKey: ['list-folder', userId],
+    queryKey: LIBRARY_KEYS.listFolder(userId),
     queryFn: () => libraryApiRequest.sGetListFolder(userId),
     enabled: !!userId,
   });
@@ -25,7 +20,7 @@ export const useGetListFolder = (userId: string) => {
 
 export const useGetListFileInFolder = (userId: string, folderPath: string) => {
   return useQuery({
-    queryKey: ['list-file-in-folder', userId, folderPath],
+    queryKey: LIBRARY_KEYS.listFileInFolder(userId, folderPath),
     queryFn: () => {
       if (!userId) return null;
       if (folderPath === 'all') {
@@ -39,7 +34,7 @@ export const useGetListFileInFolder = (userId: string, folderPath: string) => {
 
 export const useGetListFileInGameFolder = (gameUrl: string) => {
   return useQuery({
-    queryKey: ['list-file-in-game-folder', gameUrl],
+    queryKey: LIBRARY_KEYS.listFileInGameFolder(gameUrl),
     queryFn: () => libraryApiRequest.sGetListFileInGameFolder(gameUrl),
     enabled: !!gameUrl,
   });
@@ -51,21 +46,15 @@ export const useGetGameFolderContent = (
   folderPath: string = '',
 ) => {
   return useQuery({
-    queryKey: ['game-folder-content', gameUrl, folderPath],
+    queryKey: LIBRARY_KEYS.gameFolderContent(gameUrl, folderPath),
     queryFn: () => libraryApiRequest.sGetGameFolderContent(gameUrl, folderPath),
     enabled: !!gameUrl,
   });
 };
 
-export const useDelete = () => {
-  return useMutation({
-    mutationFn: libraryApiRequest.sDeleteFile,
-  });
-};
-
 export const useGetPublicAssets = (folderPath: string = '') => {
   return useQuery({
-    queryKey: ['public-assets', folderPath],
+    queryKey: LIBRARY_KEYS.publicAssets(folderPath),
     queryFn: () => libraryApiRequest.sGetPublicAssets(folderPath),
     enabled: true, // Always enabled since it's public
   });
