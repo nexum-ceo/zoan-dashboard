@@ -30,8 +30,8 @@ jobs:
             cd ~/zoan-dashboard
 
             echo "Fetching latest changes..."
-            git fetch origin main
-            git reset --hard origin/main
+            git fetch origin dev
+            git reset --hard origin/dev
 
             COMMIT_ID=$(git rev-parse --short HEAD)
             echo "Building Docker image with tag: zoan-dashboard:${COMMIT_ID}"
