@@ -38,6 +38,9 @@ jobs:
             git checkout dev
             git pull origin dev
 
+            echo "Creating .env file from GitHub secret..."
+            echo "${{ secrets.ENV_FILE_DEV }}" > .env
+
             COMMIT_ID=$(git rev-parse --short HEAD)
             echo "Building Docker image with tag: zoan-dashboard:${COMMIT_ID}"
             docker build --no-cache -t zoan-dashboard:${COMMIT_ID} .
