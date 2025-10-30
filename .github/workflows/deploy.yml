@@ -19,12 +19,17 @@ jobs:
         with:
           ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
 
+      - name: Create .env
+        run: |
+          echo "${{ secrets.ENV_FILE_DEV }}" > .env
+
       - name: 🚀 Pull latest code & build/run Docker on VPS
         uses: appleboy/ssh-action@v1.0.3
         with:
           host: ${{ secrets.SSH_HOST }}
           username: ${{ secrets.SSH_USER }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
+          envs: ENV_FILE_DEV
           script: |
             set -e
             cd ~/zoan-dashboard
@@ -33,6 +38,9 @@ jobs:
             git fetch origin dev
             git checkout dev
             git pull origin dev
+
+            echo "Creating .env file from GitHub secret..."
+            echo "$ENV_FILE_DEV" > .env
 
             COMMIT_ID=$(git rev-parse --short HEAD)
             echo "Building Docker image with tag: zoan-dashboard:${COMMIT_ID}"
@@ -44,3 +52,5 @@ jobs:
 
             echo "Running new container..."
             docker run -d --name zoan-dashboard -p 3000:3000 zoan-dashboard:${COMMIT_ID}
+        env:
+          ENV_FILE_DEV: ${{ secrets.ENV_FILE_DEV }}
