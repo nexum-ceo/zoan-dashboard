@@ -54,12 +54,18 @@ jobs:
           cluster_name: '${{ env.GKE_CLUSTER }}'
           location: '${{ env.GKE_ZONE }}'
 
+      # ✅ Create env file
+      - name: Create env file
+        run: |
+          echo "${{ secrets.ENV_FILE }}" > .env.production
+          cat .env.production | grep -v "SECRET"
+
       # ✅ Build & push image
       - name: 'Build and push Docker container'
         run: |
           DOCKER_TAG="${GAR_LOCATION}-docker.pkg.dev/${PROJECT_ID}/${REPOSITORY}/${IMAGE}:${GITHUB_SHA}"
           echo "Building image: $DOCKER_TAG"
-          docker build -t "$DOCKER_TAG" .
+          docker build --build-arg ENV_FILE=.env.production -t "$DOCKER_TAG" .
           docker push "$DOCKER_TAG"
 
       # ✅ Install Kustomize
